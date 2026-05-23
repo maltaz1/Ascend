@@ -1,0 +1,100 @@
+{
+  "name": "FlowZone - Produtividade Pessoal",
+  "short_name": "FlowZone",
+  "description": "App de desenvolvimento pessoal com metas, hábitos, dieta, financeiro e muito mais",
+  "start_url": "/",
+  "scope": "/",
+  "display": "standalone",
+  "orientation": "portrait-primary",
+  "background_color": "#0f0f0f",
+  "theme_color": "#A855F7",
+  "icons": [
+    {
+      "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663572413338/HobM3k6R2A7cASuPN7gfoC/flowzone-icon-192-KBYKYjtinzhDMErgY6sPQq.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663572413338/HobM3k6R2A7cASuPN7gfoC/flowzone-icon-512-ZuFtFiW2ViGZpjaWLLNFwR.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "any"
+    },
+    {
+      "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663572413338/HobM3k6R2A7cASuPN7gfoC/flowzone-icon-192-KBYKYjtinzhDMErgY6sPQq.png",
+      "sizes": "192x192",
+      "type": "image/png",
+      "purpose": "maskable"
+    },
+    {
+      "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663572413338/HobM3k6R2A7cASuPN7gfoC/flowzone-icon-512-ZuFtFiW2ViGZpjaWLLNFwR.png",
+      "sizes": "512x512",
+      "type": "image/png",
+      "purpose": "maskable"
+    }
+  ],
+  "screenshots": [
+    {
+      "src": "/screenshot-540x720.png",
+      "sizes": "540x720",
+      "type": "image/png",
+      "form_factor": "narrow"
+    },
+    {
+      "src": "/screenshot-1280x720.png",
+      "sizes": "1280x720",
+      "type": "image/png",
+      "form_factor": "wide"
+    }
+  ],
+  "categories": ["productivity", "lifestyle"],
+  "shortcuts": [
+    {
+      "name": "Dashboard",
+      "short_name": "Dashboard",
+      "description": "Acesse o dashboard do FlowZone",
+      "url": "/?tab=dashboard",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Metas",
+      "short_name": "Metas",
+      "description": "Gerencie suas metas",
+      "url": "/?tab=metas",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    },
+    {
+      "name": "Financeiro",
+      "short_name": "Financeiro",
+      "description": "Controle suas finanças",
+      "url": "/?tab=financeiro",
+      "icons": [
+        {
+          "src": "/icon-192.png",
+          "sizes": "192x192"
+        }
+      ]
+    }
+  ],
+  "share_target": {
+    "action": "/share",
+    "method": "POST",
+    "enctype": "multipart/form-data",
+    "params": {
+      "title": "title",
+      "text": "text",
+      "url": "url"
+    }
+  }
+}
