@@ -117,7 +117,7 @@ export function Layout({ activeTab, onTabChange, children }: LayoutProps) {
       >
         {/* Logo */}
         <div style={{ display: 'flex', alignItems: 'center', gap: 5, padding: '0 2px', marginBottom: 0, overflow: 'hidden' }}>
-          <img src="/src/image/Logo-TaskBar.png" alt="FlowZone Logo" style={{ width: 128, height: 80, flexShrink: 0 }} />
+          <img src="/Logo-TaskBar.png" alt="FlowZone Logo" style={{ width: 128, height: 80, flexShrink: 0 }} />
         </div>
 
 

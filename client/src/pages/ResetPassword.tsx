@@ -3,7 +3,6 @@
 
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
-import LogoTaskBar from "../image/Logo-TaskBar.png";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -62,7 +61,7 @@ export default function ResetPassword() {
 
         {/* Logo */}
         <div style={{ display: "flex", alignItems: "center", gap: 0, marginBottom: "2rem" }}>
-          <img src={LogoTaskBar} alt="Logo" style={{ width: 128, height: 90 }} />
+          <img src="/Logo-TaskBar.png" alt="Logo" style={{ width: 128, height: 90 }} />
         </div>  
 
         <h1 style={{ color: "#f0eeff", fontSize: 22, fontWeight: 700, margin: "0 0 6px" }}>

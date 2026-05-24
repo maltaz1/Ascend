@@ -13,10 +13,10 @@ import {
   Save,
 } from "lucide-react";
 
-import defaultAvatar from "@/image/user-anon.jpg";
-
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+
+const defaultAvatar = "/user-anon.jpg";
 
 export default function Settings() {
   const [profile, setProfile] = useState({

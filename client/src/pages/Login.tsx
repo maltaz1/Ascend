@@ -872,7 +872,7 @@ export default function Login() {
 
           {/* Logo */}
           <div className="asc-left-logo">
-            <img src="./src/image/Logo-TaskBar.png" alt="ASCEND" />
+            <img src="/Logo-TaskBar.png" alt="ASCEND" />
           </div>
 
           {/* Hero text */}
@@ -995,7 +995,7 @@ export default function Login() {
 
             {/* Logo */}
             <div className="asc-form-logo">
-              <img src="./src/image/Logo-TaskBar.png" alt="ASCEND" />
+              <img src="/Logo-TaskBar.png" alt="ASCEND" />
             </div>
 
             {/* Tabs */}

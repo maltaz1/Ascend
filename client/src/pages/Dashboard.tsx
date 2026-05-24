@@ -365,7 +365,7 @@ export default function Dashboard() {
         }}
       >
         <img
-          src="./src/image/fundo-dashboard.jpg"
+          src="/fundo-dashboard.jpg"
           alt="Fundo do Dashboard"
           style={{
             position: "absolute",
