@@ -315,3 +315,33 @@ export async function loadGymData(): Promise<void> {
   notify();
   persistState();
 }
+
+export function getLastExercisePerformance(exerciseName: string) {
+  const sessions = [..._data.workoutSessions]
+    .sort(
+      (a, b) =>
+        new Date(b.completedAt).getTime() -
+        new Date(a.completedAt).getTime()
+    );
+
+  for (const session of sessions) {
+    const exercise = session.exercises?.find(
+      item =>
+        item.exerciseName.trim().toLowerCase() ===
+        exerciseName.trim().toLowerCase()
+    );
+
+    if (exercise && exercise.sets?.length) {
+      const lastSet = exercise.sets[exercise.sets.length - 1];
+
+      return {
+        weight: lastSet.weight,
+        reps: lastSet.reps,
+        date: session.date,
+        sets: exercise.sets,
+      };
+    }
+  }
+
+  return null;
+}

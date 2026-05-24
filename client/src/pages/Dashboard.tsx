@@ -27,6 +27,33 @@ import { supabase } from "@/lib/supabase";
 
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 
+const dashboardChartsResponsiveStyle = `
+  .dashboard-charts-responsive {
+    display: flex;
+    gap: 24px;
+    margin-bottom: 0;
+    flex-wrap: wrap;
+  }
+
+  .dashboard-chart-item {
+    flex: 1;
+    min-width: 320px;
+    padding: 22px 24px;
+    box-sizing: border-box;
+  }
+
+  @media (max-width: 1100px) {
+    .dashboard-charts-responsive {
+      flex-direction: column;
+      gap: 16px;
+    }
+
+    .dashboard-chart-item {
+      min-width: 0 !important;
+      width: 100%;
+    }
+  }
+`;
 
 function getTodayString() {
   return new Date().toISOString().split("T")[0];
@@ -471,9 +498,10 @@ export default function Dashboard() {
       </div>
 
       {/* CHARTS */}
-      <div className="dashboard-charts">
-        {/* AREA */}
-        <div className="fz-card" style={{ padding: "22px 24px" }}>
+      <style>{dashboardChartsResponsiveStyle}</style>
+
+      <div className="dashboard-charts-responsive">
+        <div className="fz-card dashboard-chart-item">
           <div
             style={{
               display: "flex",
@@ -483,7 +511,6 @@ export default function Dashboard() {
             }}
           >
             <TrendingUp size={16} color="#3B82F6" />
-
             <h3
               style={{
                 fontWeight: 700,
@@ -493,7 +520,6 @@ export default function Dashboard() {
               Atividade — Últimos 30 dias
             </h3>
           </div>
-
           <ResponsiveContainer width="100%" height={220}>
             <AreaChart data={activityData}>
               <defs>
@@ -501,23 +527,16 @@ export default function Dashboard() {
                   <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
                   <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
                 </linearGradient>
-
                 <linearGradient id="gradHabits" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#A855F7" stopOpacity={0.3} />
                   <stop offset="95%" stopColor="#A855F7" stopOpacity={0} />
                 </linearGradient>
               </defs>
-
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-
               <XAxis dataKey="day" />
-
               <YAxis />
-
               <Tooltip content={<CustomTooltip />} />
-
               <Legend />
-
               <Area
                 type="monotone"
                 dataKey="tasks"
@@ -525,7 +544,6 @@ export default function Dashboard() {
                 stroke="#3B82F6"
                 fill="url(#gradTasks)"
               />
-
               <Area
                 type="monotone"
                 dataKey="habits"
@@ -536,9 +554,7 @@ export default function Dashboard() {
             </AreaChart>
           </ResponsiveContainer>
         </div>
-
-        {/* WEEK */}
-        <div className="fz-card" style={{ padding: "22px 24px" }}>
+        <div className="fz-card dashboard-chart-item">
           <div
             style={{
               display: "flex",
@@ -548,7 +564,6 @@ export default function Dashboard() {
             }}
           >
             <Award size={16} color="#A855F7" />
-
             <h3
               style={{
                 fontWeight: 700,
@@ -558,26 +573,19 @@ export default function Dashboard() {
               Semana Atual
             </h3>
           </div>
-
           <ResponsiveContainer width="100%" height={220}>
             <BarChart data={weeklyData}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-
               <XAxis dataKey="day" />
-
               <YAxis />
-
               <Tooltip content={<CustomTooltip />} />
-
               <Legend />
-
               <Bar
                 dataKey="tasks"
                 name="Tarefas"
                 fill="#3B82F6"
                 radius={[4, 4, 0, 0]}
               />
-
               <Bar
                 dataKey="habits"
                 name="Hábitos"
