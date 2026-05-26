@@ -42,6 +42,7 @@ import {
 import { Modal } from "@/components/ui/Modal";
 import { showToast } from "@/components/ui/FlowToast";
 
+import { FREE_LIMITS } from "@/config/planLimits";
 import type { Habit } from "@/lib/store";
 
 import { supabase } from "@/lib/supabase";
@@ -341,10 +342,14 @@ function NewHabitModal({
   open,
   onClose,
   reloadHabits,
+  isPro,
+  habits,
 }: {
   open: boolean;
   onClose: () => void;
   reloadHabits: () => void;
+  isPro: boolean;
+  habits: any[];
 }) {
   const [title, setTitle] = useState("");
 
@@ -356,6 +361,11 @@ function NewHabitModal({
 
   const handleSubmit = async () => {
     if (!title.trim()) return;
+
+    if (!isPro && habits.length >= FREE_LIMITS.habits) {
+      showToast("Plano grátis permite apenas 3 hábitos", "info");
+      return;
+    }
 
     const {
       data: { user },
@@ -509,7 +519,7 @@ function NewHabitModal({
 // MAIN
 // =========================
 
-export default function Habits() {
+export default function Habits({ isPro }: { isPro: boolean }) {
   const [habits, setHabits] = useState<any[]>([]);
 
   const today = new Date();
@@ -933,6 +943,8 @@ export default function Habits() {
         open={showModal}
         onClose={() => setShowModal(false)}
         reloadHabits={loadHabits}
+        isPro={isPro}
+        habits={habits}
       />
     </div>
   );

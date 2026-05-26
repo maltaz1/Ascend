@@ -14,6 +14,8 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
+import { FREE_LIMITS } from "@/config/planLimits";
+
 import { addXP } from "@/lib/store";
 
 import { useEffect } from "react";
@@ -59,6 +61,47 @@ type Task = {
 function getTodayString(): string {
   const today = new Date();
   return `${today.getFullYear()}-${String(today.getMonth() + 1).padStart(2, "0")}-${String(today.getDate()).padStart(2, "0")}`;
+}
+
+function normalizeTask(task: Record<string, unknown>): Task {
+  const createdAt = typeof task.createdAt === "string" && task.createdAt
+    ? task.createdAt
+    : typeof task.created_at === "string" && task.created_at
+      ? task.created_at
+      : new Date().toISOString();
+
+  return {
+    id: String(task.id ?? ""),
+    title: String(task.title ?? ""),
+    description: typeof task.description === "string" ? task.description : undefined,
+    date: String(task.date ?? ""),
+    completed: Boolean(task.completed),
+    priority:
+      task.priority === "low" || task.priority === "medium" || task.priority === "high"
+        ? (task.priority as "low" | "medium" | "high")
+        : "medium",
+    category: typeof task.category === "string" ? task.category : undefined,
+    createdAt,
+  };
+}
+
+function getWeekStartDate(date: Date): Date {
+  const weekStart = new Date(date);
+  const day = weekStart.getDay();
+  const diff = (day === 0 ? -6 : 1) - day;
+  weekStart.setDate(weekStart.getDate() + diff);
+  weekStart.setHours(0, 0, 0, 0);
+  return weekStart;
+}
+
+function countTasksCreatedThisWeek(tasks: Task[]): number {
+  const now = new Date();
+  const weekStart = getWeekStartDate(now);
+
+  return tasks.filter(task => {
+    const createdAt = new Date(task.createdAt);
+    return !Number.isNaN(createdAt.getTime()) && createdAt >= weekStart;
+  }).length;
 }
 
 function MiniCalendar({
@@ -400,10 +443,16 @@ function NewTaskModal({
   open,
   onClose,
   defaultDate,
+  isPro,
+  tasks,
+  onTaskCreated,
 }: {
   open: boolean;
   onClose: () => void;
   defaultDate: string;
+  isPro: boolean;
+  tasks: Task[];
+  onTaskCreated: (task: Task) => void;
 }) {
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
@@ -413,24 +462,39 @@ function NewTaskModal({
   const handleSubmit = async () => {
     if (!title.trim() || !date) return;
 
+    if (!isPro && countTasksCreatedThisWeek(tasks) >= FREE_LIMITS.tasksPerWeek) {
+      showToast("Plano grátis permite apenas 1 tarefa por semana", "info");
+      return;
+    }
+
     const user = (await supabase.auth.getUser()).data.user;
 
-    const { error } = await supabase.from("tasks").insert({
-      title,
-      description,
-      date,
-      priority,
-      completed: false,
-      user_id: user?.id,
-    });
-
-    if (error) {
+    if (!user?.id) {
       showToast("Erro ao criar tarefa", "info");
-    } else {
-      showToast("Tarefa criada!", "success");
-      onClose();
-      window.location.reload(); // depois a gente melhora isso
+      return;
     }
+
+    const { data: insertedTask, error } = await supabase
+      .from("tasks")
+      .insert({
+        title,
+        description,
+        date,
+        priority,
+        completed: false,
+        user_id: user.id,
+      })
+      .select()
+      .single();
+
+    if (error || !insertedTask) {
+      showToast("Erro ao criar tarefa", "info");
+      return;
+    }
+
+    onTaskCreated(normalizeTask(insertedTask as Record<string, unknown>));
+    showToast("Tarefa criada!", "success");
+    onClose();
   };
 
   return (
@@ -546,7 +610,7 @@ function NewTaskModal({
   );
 }
 
-export default function Tasks() {
+export default function Tasks({ isPro }: { isPro: boolean }) {
   const { showXP } = useXPAnimation();
   const today = getTodayString();
   const [selectedDate, setSelectedDate] = useState(today);
@@ -559,6 +623,10 @@ export default function Tasks() {
   // Fetch tasks from server
   const [tasks, setTasks] = useState<Task[]>([]);
 
+  const handleTaskCreated = (task: Task) => {
+    setTasks(currentTasks => [task, ...currentTasks]);
+  };
+
   useEffect(() => {
     fetchTasks();
   }, []);
@@ -570,7 +638,7 @@ export default function Tasks() {
       .order("created_at", { ascending: false });
 
     if (!error && data) {
-      setTasks(data);
+      setTasks(data.map(task => normalizeTask(task as Record<string, unknown>)));
     }
   };
 
@@ -832,6 +900,9 @@ export default function Tasks() {
         open={showModal}
         onClose={() => setShowModal(false)}
         defaultDate={selectedDate}
+        isPro={isPro}
+        tasks={tasks}
+        onTaskCreated={handleTaskCreated}
       />
     </div>
   );

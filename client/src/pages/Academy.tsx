@@ -93,7 +93,9 @@ export default function Academy({ onTabChange }: AcademyProps) {
   const sessions = useMemo(() => getWorkoutSessions(), [data]);
   const progressData = useMemo(() => getWorkoutProgressData(), [data]);
 
-  const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(null);
+  const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(
+    null
+  );
   const [newExercise, setNewExercise] = useState<NewExercise>({
     name: "",
     series: 3,
@@ -104,12 +106,17 @@ export default function Academy({ onTabChange }: AcademyProps) {
   const [showNewWorkoutModal, setShowNewWorkoutModal] = useState(false);
   const [showNewExerciseModal, setShowNewExerciseModal] = useState(false);
   const [showWorkoutModal, setShowWorkoutModal] = useState(false);
-  const [workoutInProgress, setWorkoutInProgress] = useState<WorkoutInProgress | null>(null);
+  const [workoutInProgress, setWorkoutInProgress] =
+    useState<WorkoutInProgress | null>(null);
   const [workoutName, setWorkoutName] = useState("");
   const [workoutDay, setWorkoutDay] = useState(0);
   const [historyFilter, setHistoryFilter] = useState("30");
-  const [expandedExercises, setExpandedExercises] = useState<Set<string>>(new Set());
-  const [selectedExerciseForEdit, setSelectedExerciseForEdit] = useState<string | null>(null);
+  const [expandedExercises, setExpandedExercises] = useState<Set<string>>(
+    new Set()
+  );
+  const [selectedExerciseForEdit, setSelectedExerciseForEdit] = useState<
+    string | null
+  >(null);
 
   const selectedWorkout = selectedWorkoutId
     ? workouts.find(w => w.id === selectedWorkoutId)
@@ -139,10 +146,19 @@ export default function Academy({ onTabChange }: AcademyProps) {
   const handleAddExercise = () => {
     if (!newExercise.name.trim() || !selectedWorkout) return;
     const newExerciseObj = { ...newExercise, id: generateId() };
-    const updatedExercises = [...(selectedWorkout.exercises || []), newExerciseObj];
+    const updatedExercises = [
+      ...(selectedWorkout.exercises || []),
+      newExerciseObj,
+    ];
     updateWorkout(selectedWorkout.id, { exercises: updatedExercises });
     setSelectedExerciseForEdit(newExerciseObj.id);
-    setNewExercise({ name: "", series: 3, repMin: 8, repMax: 12, restSeconds: 60 });
+    setNewExercise({
+      name: "",
+      series: 3,
+      repMin: 8,
+      repMax: 12,
+      restSeconds: 60,
+    });
     setShowNewExerciseModal(false);
   };
 
@@ -150,7 +166,9 @@ export default function Academy({ onTabChange }: AcademyProps) {
     if (!selectedWorkout) return;
     const updated = {
       ...selectedWorkout,
-      exercises: (selectedWorkout.exercises || []).filter(e => e.id !== exerciseId),
+      exercises: (selectedWorkout.exercises || []).filter(
+        e => e.id !== exerciseId
+      ),
     };
     updateWorkout(selectedWorkout.id, { exercises: updated.exercises });
   };
@@ -162,11 +180,13 @@ export default function Academy({ onTabChange }: AcademyProps) {
       exercises: (workout.exercises || []).map((ex: any) => ({
         id: ex.id,
         name: ex.name,
-        sets: Array(ex.series || 0).fill(null).map(() => ({
-          weight: 20,
-          reps: 10,
-          type: "normal" as const,
-        })),
+        sets: Array(ex.series || 0)
+          .fill(null)
+          .map(() => ({
+            weight: 20,
+            reps: 10,
+            type: "normal" as const,
+          })),
       })),
       startTime: Date.now(),
     });
@@ -175,10 +195,15 @@ export default function Academy({ onTabChange }: AcademyProps) {
 
   const handleFinishWorkout = async () => {
     if (!workoutInProgress) return;
-    const durationMinutes = Math.round((Date.now() - workoutInProgress.startTime) / 60000);
+    const durationMinutes = Math.round(
+      (Date.now() - workoutInProgress.startTime) / 60000
+    );
     let totalVolume = 0;
     const exercises = workoutInProgress.exercises.map(ex => {
-      const setVolume = ex.sets.reduce((sum, set) => sum + set.weight * set.reps, 0);
+      const setVolume = ex.sets.reduce(
+        (sum, set) => sum + set.weight * set.reps,
+        0
+      );
       totalVolume += setVolume;
       return {
         exerciseName: ex.name,
@@ -247,28 +272,52 @@ export default function Academy({ onTabChange }: AcademyProps) {
           marginBottom: 28,
         }}
       >
-        <div className="fz-card" style={{ padding: "18px 20px", textAlign: "center" }}>
+        <div
+          className="fz-card"
+          style={{ padding: "18px 20px", textAlign: "center" }}
+        >
           <div style={{ fontSize: 24, marginBottom: 8 }}>💪</div>
-          <div className="fz-metric-number" style={{ fontSize: 28, color: "#A855F7", marginBottom: 4 }}>
+          <div
+            className="fz-metric-number"
+            style={{ fontSize: 28, color: "#A855F7", marginBottom: 4 }}
+          >
             <AnimatedCounter value={stats.totalWorkouts} />
           </div>
-          <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Treinos Completos</div>
+          <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
+            Treinos Completos
+          </div>
         </div>
 
-        <div className="fz-card" style={{ padding: "18px 20px", textAlign: "center" }}>
+        <div
+          className="fz-card"
+          style={{ padding: "18px 20px", textAlign: "center" }}
+        >
           <div style={{ fontSize: 24, marginBottom: 8 }}>📋</div>
-          <div className="fz-metric-number" style={{ fontSize: 28, color: "#3B82F6", marginBottom: 4 }}>
+          <div
+            className="fz-metric-number"
+            style={{ fontSize: 28, color: "#3B82F6", marginBottom: 4 }}
+          >
             <AnimatedCounter value={stats.totalWorkoutPlans} />
           </div>
-          <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Fichas de Treino</div>
+          <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
+            Fichas de Treino
+          </div>
         </div>
 
-        <div className="fz-card" style={{ padding: "18px 20px", textAlign: "center" }}>
+        <div
+          className="fz-card"
+          style={{ padding: "18px 20px", textAlign: "center" }}
+        >
           <div style={{ fontSize: 24, marginBottom: 8 }}>🏋️</div>
-          <div className="fz-metric-number" style={{ fontSize: 28, color: "#06B6D4", marginBottom: 4 }}>
+          <div
+            className="fz-metric-number"
+            style={{ fontSize: 28, color: "#06B6D4", marginBottom: 4 }}
+          >
             <AnimatedCounter value={stats.totalExercises} />
           </div>
-          <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>Exercícios</div>
+          <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
+            Exercícios
+          </div>
         </div>
       </div>
 
@@ -288,14 +337,34 @@ export default function Academy({ onTabChange }: AcademyProps) {
       <div className="academy-main-grid">
         {/* Workouts Section */}
         <div>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-            <h2 style={{ fontSize: 18, fontWeight: 600, color: "var(--foreground)", fontFamily: "Space Grotesk" }}>
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
+              marginBottom: 16,
+            }}
+          >
+            <h2
+              style={{
+                fontSize: 18,
+                fontWeight: 600,
+                color: "var(--foreground)",
+                fontFamily: "Space Grotesk",
+              }}
+            >
               Fichas de Treino
             </h2>
             <button
               onClick={() => setShowNewWorkoutModal(true)}
               className="fz-btn-primary"
-              style={{ padding: "8px 14px", fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}
+              style={{
+                padding: "8px 14px",
+                fontSize: 12,
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+              }}
             >
               <Plus size={14} />
               Nova Ficha
@@ -303,9 +372,17 @@ export default function Academy({ onTabChange }: AcademyProps) {
           </div>
 
           {workouts.length === 0 ? (
-            <div className="fz-card" style={{ padding: "40px 20px", textAlign: "center" }}>
-              <Dumbbell size={32} style={{ margin: "0 auto 12px", opacity: 0.5 }} />
-              <p style={{ color: "var(--muted-foreground)", fontSize: 14 }}>Nenhuma ficha de treino criada</p>
+            <div
+              className="fz-card"
+              style={{ padding: "40px 20px", textAlign: "center" }}
+            >
+              <Dumbbell
+                size={32}
+                style={{ margin: "0 auto 12px", opacity: 0.5 }}
+              />
+              <p style={{ color: "var(--muted-foreground)", fontSize: 14 }}>
+                Nenhuma ficha de treino criada
+              </p>
             </div>
           ) : (
             <div style={{ display: "grid", gap: 12 }}>
@@ -317,21 +394,55 @@ export default function Academy({ onTabChange }: AcademyProps) {
                     padding: 0,
                     overflow: "hidden",
                     cursor: "pointer",
-                    border: selectedWorkoutId === workout.id ? "2px solid #A855F7" : "1px solid var(--border)",
+                    border:
+                      selectedWorkoutId === workout.id
+                        ? "2px solid #A855F7"
+                        : "1px solid var(--border)",
                   }}
                   onClick={() => setSelectedWorkoutId(workout.id)}
                 >
-                  <div style={{ padding: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div
+                    style={{
+                      padding: "16px",
+                      display: "flex",
+                      justifyContent: "space-between",
+                      alignItems: "center",
+                    }}
+                  >
                     <div>
-                      <div style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)" }}>{workout.name}</div>
-                      <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 4 }}>
-                        {DAYS_OF_WEEK[workout.dayOfWeek]} • {workout.exercises?.length || 0} exercícios
+                      <div
+                        style={{
+                          fontSize: 14,
+                          fontWeight: 600,
+                          color: "var(--foreground)",
+                        }}
+                      >
+                        {workout.name}
+                      </div>
+                      <div
+                        style={{
+                          fontSize: 12,
+                          color: "var(--muted-foreground)",
+                          marginTop: 4,
+                        }}
+                      >
+                        {DAYS_OF_WEEK[workout.dayOfWeek]} •{" "}
+                        {workout.exercises?.length || 0} exercícios
                       </div>
                     </div>
                     <button
-                      onClick={e => { e.stopPropagation(); handleStartWorkout(workout); }}
+                      onClick={e => {
+                        e.stopPropagation();
+                        handleStartWorkout(workout);
+                      }}
                       className="fz-btn-primary"
-                      style={{ padding: "8px 12px", fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}
+                      style={{
+                        padding: "8px 12px",
+                        fontSize: 12,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                      }}
                     >
                       <Play size={12} />
                       Iniciar
@@ -347,87 +458,234 @@ export default function Academy({ onTabChange }: AcademyProps) {
         <div>
           {selectedWorkout ? (
             <div className="fz-card" style={{ padding: "20px" }}>
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-                <h3 style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)" }}>Detalhes</h3>
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "center",
+                  marginBottom: 16,
+                }}
+              >
+                <h3
+                  style={{
+                    fontSize: 14,
+                    fontWeight: 600,
+                    color: "var(--foreground)",
+                  }}
+                >
+                  Detalhes
+                </h3>
                 <button
                   onClick={() => deleteWorkout(selectedWorkout.id)}
-                  style={{ background: "transparent", border: "none", cursor: "pointer" }}
+                  style={{
+                    background: "transparent",
+                    border: "none",
+                    cursor: "pointer",
+                  }}
                 >
                   <Trash2 size={14} color="#EF4444" />
                 </button>
               </div>
 
-              <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+              <div
+                style={{ display: "flex", flexDirection: "column", gap: 16 }}
+              >
                 <div>
-                  <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
+                  <label
+                    style={{
+                      fontSize: 12,
+                      color: "var(--muted-foreground)",
+                      display: "block",
+                      marginBottom: 6,
+                    }}
+                  >
                     Nome da Ficha
                   </label>
                   <input
                     type="text"
                     value={selectedWorkout.name}
-                    onChange={e => updateWorkout(selectedWorkout.id, { name: e.target.value })}
+                    onChange={e =>
+                      updateWorkout(selectedWorkout.id, {
+                        name: e.target.value,
+                      })
+                    }
                     className="fz-input"
                   />
                 </div>
 
                 <div>
-                  <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 8, fontFamily: "DM Sans", fontWeight: 500 }}>
+                  <div
+                    style={{
+                      fontSize: 12,
+                      color: "var(--muted-foreground)",
+                      marginBottom: 8,
+                      fontFamily: "DM Sans",
+                      fontWeight: 500,
+                    }}
+                  >
                     Dia da Semana
                   </div>
                   <select
                     value={selectedWorkout.dayOfWeek}
-                    onChange={e => updateWorkout(selectedWorkout.id, { dayOfWeek: parseInt(e.target.value) })}
+                    onChange={e =>
+                      updateWorkout(selectedWorkout.id, {
+                        dayOfWeek: parseInt(e.target.value),
+                      })
+                    }
                     className="fz-input"
                   >
                     {DAYS_OF_WEEK.map((day, idx) => (
-                      <option key={idx} value={idx}>{day}</option>
+                      <option key={idx} value={idx}>
+                        {day}
+                      </option>
                     ))}
                   </select>
                 </div>
 
                 {/* Exercises */}
                 <div style={{ marginBottom: 16 }}>
-                  <div style={{ fontSize: 13, fontFamily: "Space Grotesk", fontWeight: 600, marginBottom: 12, color: "var(--foreground)" }}>
+                  <div
+                    style={{
+                      fontSize: 13,
+                      fontFamily: "Space Grotesk",
+                      fontWeight: 600,
+                      marginBottom: 12,
+                      color: "var(--foreground)",
+                    }}
+                  >
                     Exercícios ({selectedWorkout.exercises?.length || 0})
                   </div>
 
                   {(selectedWorkout.exercises || []).map(exercise => (
                     <div
                       key={exercise.id}
-                      style={{ background: "var(--border)", border: "1px solid var(--border)", borderRadius: 10, marginBottom: 8, overflow: "hidden" }}
+                      style={{
+                        background: "var(--border)",
+                        border: "1px solid var(--border)",
+                        borderRadius: 10,
+                        marginBottom: 8,
+                        overflow: "hidden",
+                      }}
                     >
                       <button
                         onClick={() => toggleExerciseExpand(exercise.id)}
-                        style={{ width: "100%", padding: "12px", background: "transparent", border: "none", display: "flex", alignItems: "center", justifyContent: "space-between", cursor: "pointer" }}
+                        style={{
+                          width: "100%",
+                          padding: "12px",
+                          background: "transparent",
+                          border: "none",
+                          display: "flex",
+                          alignItems: "center",
+                          justifyContent: "space-between",
+                          cursor: "pointer",
+                        }}
                       >
                         <div style={{ textAlign: "left", flex: 1 }}>
-                          <div style={{ fontSize: 13, fontWeight: 500, color: "var(--foreground)" }}>{exercise.name}</div>
-                          <div style={{ fontSize: 11, color: "var(--muted-foreground)", marginTop: 2 }}>
-                            {exercise.series}x {exercise.repMin}-{exercise.repMax}
+                          <div
+                            style={{
+                              fontSize: 13,
+                              fontWeight: 500,
+                              color: "var(--foreground)",
+                            }}
+                          >
+                            {exercise.name}
+                          </div>
+                          <div
+                            style={{
+                              fontSize: 11,
+                              color: "var(--muted-foreground)",
+                              marginTop: 2,
+                            }}
+                          >
+                            {exercise.series}x {exercise.repMin}-
+                            {exercise.repMax}
                           </div>
                         </div>
                         <button
-                          onClick={e => { e.stopPropagation(); handleDeleteExercise(exercise.id); }}
-                          style={{ background: "transparent", border: "none", cursor: "pointer", padding: "4px" }}
+                          onClick={e => {
+                            e.stopPropagation();
+                            handleDeleteExercise(exercise.id);
+                          }}
+                          style={{
+                            background: "transparent",
+                            border: "none",
+                            cursor: "pointer",
+                            padding: "4px",
+                          }}
                         >
                           <Trash2 size={14} color="#EF4444" />
                         </button>
                       </button>
 
                       {expandedExercises.has(exercise.id) && (
-                        <div style={{ borderTop: "1px solid var(--border)", padding: "12px", background: "var(--border)" }}>
-                          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8, fontSize: 12 }}>
+                        <div
+                          style={{
+                            borderTop: "1px solid var(--border)",
+                            padding: "12px",
+                            background: "var(--border)",
+                          }}
+                        >
+                          <div
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns: "1fr 1fr",
+                              gap: 8,
+                              fontSize: 12,
+                            }}
+                          >
                             <div>
-                              <div style={{ color: "var(--muted-foreground)", marginBottom: 4 }}>Séries</div>
-                              <div style={{ color: "var(--foreground)", fontWeight: 500 }}>{exercise.series}</div>
+                              <div
+                                style={{
+                                  color: "var(--muted-foreground)",
+                                  marginBottom: 4,
+                                }}
+                              >
+                                Séries
+                              </div>
+                              <div
+                                style={{
+                                  color: "var(--foreground)",
+                                  fontWeight: 500,
+                                }}
+                              >
+                                {exercise.series}
+                              </div>
                             </div>
                             <div>
-                              <div style={{ color: "var(--muted-foreground)", marginBottom: 4 }}>Reps</div>
-                              <div style={{ color: "var(--foreground)", fontWeight: 500 }}>{exercise.repMin}-{exercise.repMax}</div>
+                              <div
+                                style={{
+                                  color: "var(--muted-foreground)",
+                                  marginBottom: 4,
+                                }}
+                              >
+                                Reps
+                              </div>
+                              <div
+                                style={{
+                                  color: "var(--foreground)",
+                                  fontWeight: 500,
+                                }}
+                              >
+                                {exercise.repMin}-{exercise.repMax}
+                              </div>
                             </div>
                             <div>
-                              <div style={{ color: "var(--muted-foreground)", marginBottom: 4 }}>Descanso</div>
-                              <div style={{ color: "var(--foreground)", fontWeight: 500 }}>{exercise.restSeconds}s</div>
+                              <div
+                                style={{
+                                  color: "var(--muted-foreground)",
+                                  marginBottom: 4,
+                                }}
+                              >
+                                Descanso
+                              </div>
+                              <div
+                                style={{
+                                  color: "var(--foreground)",
+                                  fontWeight: 500,
+                                }}
+                              >
+                                {exercise.restSeconds}s
+                              </div>
                             </div>
                           </div>
                         </div>
@@ -438,7 +696,16 @@ export default function Academy({ onTabChange }: AcademyProps) {
                   <button
                     onClick={() => setShowNewExerciseModal(true)}
                     className="fz-btn-ghost"
-                    style={{ width: "100%", padding: "10px", fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 4, marginTop: 8 }}
+                    style={{
+                      width: "100%",
+                      padding: "10px",
+                      fontSize: 12,
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      gap: 4,
+                      marginTop: 8,
+                    }}
                   >
                     <Plus size={12} />
                     Adicionar Exercício
@@ -447,8 +714,13 @@ export default function Academy({ onTabChange }: AcademyProps) {
               </div>
             </div>
           ) : (
-            <div className="fz-card" style={{ padding: "40px 20px", textAlign: "center" }}>
-              <p style={{ color: "var(--muted-foreground)", fontSize: 14 }}>Selecione uma ficha para ver detalhes</p>
+            <div
+              className="fz-card"
+              style={{ padding: "40px 20px", textAlign: "center" }}
+            >
+              <p style={{ color: "var(--muted-foreground)", fontSize: 14 }}>
+                Selecione uma ficha para ver detalhes
+              </p>
             </div>
           )}
         </div>
@@ -456,8 +728,22 @@ export default function Academy({ onTabChange }: AcademyProps) {
 
       {/* History Section */}
       <div style={{ marginTop: 32 }}>
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 16 }}>
-          <h2 style={{ fontSize: 18, fontWeight: 600, color: "var(--foreground)", fontFamily: "Space Grotesk" }}>
+        <div
+          style={{
+            display: "flex",
+            justifyContent: "space-between",
+            alignItems: "center",
+            marginBottom: 16,
+          }}
+        >
+          <h2
+            style={{
+              fontSize: 18,
+              fontWeight: 600,
+              color: "var(--foreground)",
+              fontFamily: "Space Grotesk",
+            }}
+          >
             Histórico
           </h2>
           <select
@@ -473,42 +759,115 @@ export default function Academy({ onTabChange }: AcademyProps) {
         </div>
 
         {filteredSessions.length === 0 ? (
-          <div className="fz-card" style={{ padding: "40px 20px", textAlign: "center" }}>
-            <Calendar size={32} style={{ margin: "0 auto 12px", opacity: 0.5 }} />
-            <p style={{ color: "var(--muted-foreground)", fontSize: 14 }}>Nenhum treino registrado</p>
+          <div
+            className="fz-card"
+            style={{ padding: "40px 20px", textAlign: "center" }}
+          >
+            <Calendar
+              size={32}
+              style={{ margin: "0 auto 12px", opacity: 0.5 }}
+            />
+            <p style={{ color: "var(--muted-foreground)", fontSize: 14 }}>
+              Nenhum treino registrado
+            </p>
           </div>
         ) : (
           <div style={{ display: "grid", gap: 12 }}>
             {filteredSessions.map(session => (
-              <div key={session.id} className="fz-card" style={{ padding: "16px" }}>
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "start", marginBottom: 12 }}>
+              <div
+                key={session.id}
+                className="fz-card"
+                style={{ padding: "16px" }}
+              >
+                <div
+                  style={{
+                    display: "flex",
+                    justifyContent: "space-between",
+                    alignItems: "start",
+                    marginBottom: 12,
+                  }}
+                >
                   <div>
-                    <div style={{ fontSize: 14, fontWeight: 600, color: "var(--foreground)" }}>{session.workoutName}</div>
-                    <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 4 }}>
-                      {new Date(session.date).toLocaleDateString("pt-BR")} • {session.durationMinutes} min
+                    <div
+                      style={{
+                        fontSize: 14,
+                        fontWeight: 600,
+                        color: "var(--foreground)",
+                      }}
+                    >
+                      {session.workoutName}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: "var(--muted-foreground)",
+                        marginTop: 4,
+                      }}
+                    >
+                      {new Date(session.date).toLocaleDateString("pt-BR")} •{" "}
+                      {session.durationMinutes} min
                     </div>
                   </div>
                   <button
                     onClick={() => deleteWorkoutSession(session.id)}
-                    style={{ background: "transparent", border: "none", cursor: "pointer" }}
+                    style={{
+                      background: "transparent",
+                      border: "none",
+                      cursor: "pointer",
+                    }}
                   >
                     <Trash2 size={14} color="#EF4444" />
                   </button>
                 </div>
 
-                <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 12, fontSize: 12 }}>
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: "repeat(3, 1fr)",
+                    gap: 12,
+                    fontSize: 12,
+                  }}
+                >
                   <div>
-                    <div style={{ color: "var(--muted-foreground)", marginBottom: 4 }}>Volume Total</div>
-                    <div style={{ color: "#A855F7", fontWeight: 600 }}>{(session.totalVolume || 0).toFixed(0)} kg</div>
+                    <div
+                      style={{
+                        color: "var(--muted-foreground)",
+                        marginBottom: 4,
+                      }}
+                    >
+                      Volume Total
+                    </div>
+                    <div style={{ color: "#A855F7", fontWeight: 600 }}>
+                      {(session.totalVolume || 0).toFixed(0)} kg
+                    </div>
                   </div>
                   <div>
-                    <div style={{ color: "var(--muted-foreground)", marginBottom: 4 }}>Exercícios</div>
-                    <div style={{ color: "#3B82F6", fontWeight: 600 }}>{session.exercises.length}</div>
+                    <div
+                      style={{
+                        color: "var(--muted-foreground)",
+                        marginBottom: 4,
+                      }}
+                    >
+                      Exercícios
+                    </div>
+                    <div style={{ color: "#3B82F6", fontWeight: 600 }}>
+                      {session.exercises.length}
+                    </div>
                   </div>
                   <div>
-                    <div style={{ color: "var(--muted-foreground)", marginBottom: 4 }}>Séries</div>
+                    <div
+                      style={{
+                        color: "var(--muted-foreground)",
+                        marginBottom: 4,
+                      }}
+                    >
+                      Séries
+                    </div>
                     <div style={{ color: "#06B6D4", fontWeight: 600 }}>
-                      {session.exercises.reduce((sum, ex) => sum + ex.sets.length, 0)}
+                      {session.exercises.reduce(
+                        (sum, ex) => sum + ex.sets.length,
+                        0
+                      )}
                     </div>
                   </div>
                 </div>
@@ -519,52 +878,197 @@ export default function Academy({ onTabChange }: AcademyProps) {
       </div>
 
       {/* Modal: Nova Ficha */}
-      <Modal open={showNewWorkoutModal} onClose={() => setShowNewWorkoutModal(false)} title="Nova Ficha de Treino">
+      <Modal
+        open={showNewWorkoutModal}
+        onClose={() => setShowNewWorkoutModal(false)}
+        title="Nova Ficha de Treino"
+      >
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div>
-            <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>Nome da Ficha</label>
-            <input type="text" value={workoutName} onChange={e => setWorkoutName(e.target.value)} placeholder="Ex: Peito + Ombro + Tríceps" className="fz-input" />
+            <label
+              style={{
+                fontSize: 12,
+                color: "var(--muted-foreground)",
+                display: "block",
+                marginBottom: 6,
+              }}
+            >
+              Nome da Ficha
+            </label>
+            <input
+              type="text"
+              value={workoutName}
+              onChange={e => setWorkoutName(e.target.value)}
+              placeholder="Ex: Peito + Ombro + Tríceps"
+              className="fz-input"
+            />
           </div>
           <div>
-            <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>Dia da Semana</label>
-            <select value={workoutDay} onChange={e => setWorkoutDay(parseInt(e.target.value))} className="fz-input">
-              {DAYS_OF_WEEK.map((day, idx) => <option key={idx} value={idx}>{day}</option>)}
+            <label
+              style={{
+                fontSize: 12,
+                color: "var(--muted-foreground)",
+                display: "block",
+                marginBottom: 6,
+              }}
+            >
+              Dia da Semana
+            </label>
+            <select
+              value={workoutDay}
+              onChange={e => setWorkoutDay(parseInt(e.target.value))}
+              className="fz-input"
+            >
+              {DAYS_OF_WEEK.map((day, idx) => (
+                <option key={idx} value={idx}>
+                  {day}
+                </option>
+              ))}
             </select>
           </div>
-          <button onClick={handleCreateWorkout} className="fz-btn-primary" style={{ width: "100%", padding: "12px" }}>
+          <button
+            onClick={handleCreateWorkout}
+            className="fz-btn-primary"
+            style={{ width: "100%", padding: "12px" }}
+          >
             Criar Ficha
           </button>
         </div>
       </Modal>
 
       {/* Modal: Novo Exercício */}
-      <Modal open={showNewExerciseModal} onClose={() => setShowNewExerciseModal(false)} title="Novo Exercício">
+      <Modal
+        open={showNewExerciseModal}
+        onClose={() => setShowNewExerciseModal(false)}
+        title="Novo Exercício"
+      >
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div>
-            <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>Nome do Exercício</label>
-            <input type="text" value={newExercise.name} onChange={e => setNewExercise({ ...newExercise, name: e.target.value })} placeholder="Ex: Supino, Agachamento, Rosca..." className="fz-input" />
+            <label
+              style={{
+                fontSize: 12,
+                color: "var(--muted-foreground)",
+                display: "block",
+                marginBottom: 6,
+              }}
+            >
+              Nome do Exercício
+            </label>
+            <input
+              type="text"
+              value={newExercise.name}
+              onChange={e =>
+                setNewExercise({ ...newExercise, name: e.target.value })
+              }
+              placeholder="Ex: Supino, Agachamento, Rosca..."
+              className="fz-input"
+            />
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div
+            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
+          >
             <div>
-              <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>Séries</label>
-              <input type="number" value={newExercise.series} onChange={e => setNewExercise({ ...newExercise, series: parseInt(e.target.value) })} className="fz-input" />
+              <label
+                style={{
+                  fontSize: 12,
+                  color: "var(--muted-foreground)",
+                  display: "block",
+                  marginBottom: 6,
+                }}
+              >
+                Séries
+              </label>
+              <input
+                type="number"
+                value={newExercise.series}
+                onChange={e =>
+                  setNewExercise({
+                    ...newExercise,
+                    series: parseInt(e.target.value),
+                  })
+                }
+                className="fz-input"
+              />
             </div>
             <div>
-              <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>Reps Mín</label>
-              <input type="number" value={newExercise.repMin} onChange={e => setNewExercise({ ...newExercise, repMin: parseInt(e.target.value) })} className="fz-input" />
+              <label
+                style={{
+                  fontSize: 12,
+                  color: "var(--muted-foreground)",
+                  display: "block",
+                  marginBottom: 6,
+                }}
+              >
+                Reps Mín
+              </label>
+              <input
+                type="number"
+                value={newExercise.repMin}
+                onChange={e =>
+                  setNewExercise({
+                    ...newExercise,
+                    repMin: parseInt(e.target.value),
+                  })
+                }
+                className="fz-input"
+              />
             </div>
           </div>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
+          <div
+            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
+          >
             <div>
-              <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>Reps Máx</label>
-              <input type="number" value={newExercise.repMax} onChange={e => setNewExercise({ ...newExercise, repMax: parseInt(e.target.value) })} className="fz-input" />
+              <label
+                style={{
+                  fontSize: 12,
+                  color: "var(--muted-foreground)",
+                  display: "block",
+                  marginBottom: 6,
+                }}
+              >
+                Reps Máx
+              </label>
+              <input
+                type="number"
+                value={newExercise.repMax}
+                onChange={e =>
+                  setNewExercise({
+                    ...newExercise,
+                    repMax: parseInt(e.target.value),
+                  })
+                }
+                className="fz-input"
+              />
             </div>
             <div>
-              <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>Descanso (s)</label>
-              <input type="number" value={newExercise.restSeconds} onChange={e => setNewExercise({ ...newExercise, restSeconds: parseInt(e.target.value) })} className="fz-input" />
+              <label
+                style={{
+                  fontSize: 12,
+                  color: "var(--muted-foreground)",
+                  display: "block",
+                  marginBottom: 6,
+                }}
+              >
+                Descanso (s)
+              </label>
+              <input
+                type="number"
+                value={newExercise.restSeconds}
+                onChange={e =>
+                  setNewExercise({
+                    ...newExercise,
+                    restSeconds: parseInt(e.target.value),
+                  })
+                }
+                className="fz-input"
+              />
             </div>
           </div>
-          <button onClick={handleAddExercise} className="fz-btn-primary" style={{ width: "100%", padding: "12px" }}>
+          <button
+            onClick={handleAddExercise}
+            className="fz-btn-primary"
+            style={{ width: "100%", padding: "12px" }}
+          >
             Adicionar Exercício
           </button>
         </div>
@@ -574,126 +1078,481 @@ export default function Academy({ onTabChange }: AcademyProps) {
       <Modal
         open={showWorkoutModal}
         onClose={() => setShowWorkoutModal(false)}
-        title={workoutInProgress?.workoutName || "Treino"}
+        title=""
       >
         {workoutInProgress && (
-          <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+          <div
+            style={{
+              height: "100%",
+              maxHeight: "100dvh",
+              display: "flex",
+              flexDirection: "column",
+              overflow: "hidden",
+              margin: "-24px",
+              background:
+                "linear-gradient(180deg, rgba(10,10,14,1) 0%, rgba(17,17,25,1) 100%)",
+            }}
+          >
+            {/* HEADER FIXO */}
+            <div
+              style={{
+                position: "sticky",
+                top: 0,
+                zIndex: 50,
+                padding: "18px 18px 14px",
+                borderBottom: "1px solid rgba(255,255,255,0.06)",
+                backdropFilter: "blur(20px)",
+                background: "rgba(10,10,14,0.92)",
+              }}
+            >
+              <div
+                style={{
+                  display: "flex",
+                  justifyContent: "space-between",
+                  alignItems: "start",
+                  gap: 12,
+                }}
+              >
+                <div>
+                  <div
+                    style={{
+                      fontSize: 22,
+                      fontWeight: 800,
+                      color: "white",
+                      fontFamily: "Space Grotesk",
+                      marginBottom: 6,
+                    }}
+                  >
+                    {workoutInProgress.workoutName}
+                  </div>
 
-            {/* Timer badge */}
-            <div style={{
-              display: "flex", alignItems: "center", gap: 8,
-              padding: "8px 14px",
-              background: "rgba(168,85,247,0.08)",
-              border: "1px solid rgba(168,85,247,0.18)",
-              borderRadius: 10, width: "fit-content",
-            }}>
-              <div style={{
-                width: 7, height: 7, borderRadius: "50%",
-                background: "#A855F7", boxShadow: "0 0 6px #A855F7",
-              }} />
-              <span style={{ fontSize: 12, color: "#A855F7", fontWeight: 600 }}>Em progresso</span>
-              <span style={{ fontSize: 12, color: "var(--muted-foreground)", marginLeft: 4 }}>
-                · {Math.round((Date.now() - workoutInProgress.startTime) / 60000)} min
-              </span>
-            </div>
-
-            {/* Exercises list */}
-            <div style={{ display: "flex", flexDirection: "column", gap: 16, maxHeight: 480, overflowY: "auto", paddingRight: 2 }}>
-              {workoutInProgress.exercises.map((exercise, exIdx) => {
-                const lastPerformance = getLastExercisePerformance(exercise.name);
-                const totalVolume = exercise.sets.reduce((sum, set) => sum + set.weight * set.reps, 0);
-
-                return (
-                  <div key={exercise.id} style={{ background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.07)", borderRadius: 14, overflow: "hidden" }}>
-
-                    {/* Exercise header */}
-                    <div style={{ padding: "14px 16px", borderBottom: "1px solid rgba(255,255,255,0.06)", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                      <div>
-                        <div style={{ fontSize: 14, fontWeight: 700, color: "var(--foreground)", marginBottom: 2 }}>{exercise.name}</div>
-                        <div style={{ fontSize: 11, color: "var(--muted-foreground)" }}>
-                          Volume: <span style={{ color: "#A855F7", fontWeight: 600 }}>{(totalVolume || 0).toFixed(0)} kg</span>
-                        </div>
-                      </div>
-                      {(lastPerformance?.sets?.length ?? 0) > 0 && (
-                        <div style={{ padding: "4px 10px", background: "rgba(168,85,247,0.1)", border: "1px solid rgba(168,85,247,0.2)", borderRadius: 20, fontSize: 10, color: "#A855F7", fontWeight: 600, whiteSpace: "nowrap" }}>
-                          último: {lastPerformance?.sets?.[0]?.weight}kg
-                        </div>
-                      )}
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      flexWrap: "wrap",
+                    }}
+                  >
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6,
+                        background: "rgba(168,85,247,0.12)",
+                        border: "1px solid rgba(168,85,247,0.22)",
+                        padding: "6px 10px",
+                        borderRadius: 999,
+                      }}
+                    >
+                      <div
+                        style={{
+                          width: 7,
+                          height: 7,
+                          borderRadius: "50%",
+                          background: "#A855F7",
+                          boxShadow: "0 0 10px #A855F7",
+                        }}
+                      />
+                      <span
+                        style={{
+                          fontSize: 11,
+                          color: "#A855F7",
+                          fontWeight: 700,
+                        }}
+                      >
+                        EM TREINO
+                      </span>
                     </div>
 
-                    {/* Last performance chips */}
+                    <div
+                      style={{
+                        fontSize: 12,
+                        color: "var(--muted-foreground)",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {Math.round(
+                        (Date.now() - workoutInProgress.startTime) / 60000
+                      )}{" "}
+                      min
+                    </div>
+                  </div>
+                </div>
+
+                <button
+                  onClick={() => setShowWorkoutModal(false)}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: 10,
+                    border: "1px solid rgba(255,255,255,0.08)",
+                    background: "rgba(255,255,255,0.04)",
+                    color: "white",
+                    cursor: "pointer",
+                    fontSize: 16,
+                  }}
+                >
+                  ✕
+                </button>
+              </div>
+            </div>
+
+            {/* SCROLL */}
+            <div
+              style={{
+                flex: 1,
+                overflowY: "auto",
+                minHeight: 0,
+                paddingBottom: 120,
+                overflowX: "hidden",
+                padding: "18px",
+                display: "flex",
+                flexDirection: "column",
+                gap: 18,
+                WebkitOverflowScrolling: "touch",
+              }}
+            >
+              {workoutInProgress.exercises.map((exercise, exIdx) => {
+                const lastPerformance = getLastExercisePerformance(
+                  exercise.name
+                );
+
+                const totalVolume = exercise.sets.reduce(
+                  (sum, set) => sum + set.weight * set.reps,
+                  0
+                );
+
+                return (
+                  <div
+                    key={exercise.id}
+                    style={{
+                      borderRadius: 20,
+                      overflow: "visible",
+                      background:
+                        "linear-gradient(180deg, rgba(255,255,255,0.04) 0%, rgba(255,255,255,0.02) 100%)",
+                      border: "1px solid rgba(255,255,255,0.06)",
+                      backdropFilter: "blur(10px)",
+                    }}
+                  >
+                    {/* HEADER EXERCÍCIO */}
+                    <div
+                      style={{
+                        padding: "18px",
+                        borderBottom: "1px solid rgba(255,255,255,0.05)",
+                      }}
+                    >
+                      <div
+                        style={{
+                          display: "flex",
+                          justifyContent: "space-between",
+                          alignItems: "start",
+                          gap: 12,
+                        }}
+                      >
+                        <div>
+                          <div
+                            style={{
+                              fontSize: 18,
+                              fontWeight: 700,
+                              color: "white",
+                              marginBottom: 4,
+                            }}
+                          >
+                            {exercise.name}
+                          </div>
+
+                          <div
+                            style={{
+                              display: "flex",
+                              gap: 12,
+                              flexWrap: "wrap",
+                            }}
+                          >
+                            <div
+                              style={{
+                                fontSize: 12,
+                                color: "var(--muted-foreground)",
+                              }}
+                            >
+                              Volume:
+                              <span
+                                style={{
+                                  color: "#A855F7",
+                                  marginLeft: 4,
+                                  fontWeight: 700,
+                                }}
+                              >
+                                {totalVolume.toFixed(0)}kg
+                              </span>
+                            </div>
+
+                            <div
+                              style={{
+                                fontSize: 12,
+                                color: "var(--muted-foreground)",
+                              }}
+                            >
+                              Séries:
+                              <span
+                                style={{
+                                  color: "#3B82F6",
+                                  marginLeft: 4,
+                                  fontWeight: 700,
+                                }}
+                              >
+                                {exercise.sets.length}
+                              </span>
+                            </div>
+                          </div>
+                        </div>
+
+                        {(lastPerformance?.sets?.length ?? 0) > 0 && (
+                          <div
+                            style={{
+                              padding: "6px 10px",
+                              borderRadius: 999,
+                              background: "rgba(168,85,247,0.12)",
+                              border: "1px solid rgba(168,85,247,0.2)",
+                              fontSize: 11,
+                              fontWeight: 700,
+                              color: "#A855F7",
+                              whiteSpace: "nowrap",
+                            }}
+                          >
+                            Último: {lastPerformance?.sets?.[0]?.weight}kg
+                          </div>
+                        )}
+                      </div>
+                    </div>
+
+                    {/* HISTÓRICO */}
                     {(lastPerformance?.sets?.length ?? 0) > 0 && (
-                      <div style={{ padding: "10px 16px", borderBottom: "1px solid rgba(255,255,255,0.05)", display: "flex", gap: 6, overflowX: "auto" }}>
+                      <div
+                        style={{
+                          display: "flex",
+                          gap: 8,
+                          overflowX: "auto",
+                          padding: "12px 18px",
+                          borderBottom: "1px solid rgba(255,255,255,0.04)",
+                        }}
+                      >
                         {lastPerformance?.sets?.map((set, idx) => (
-                          <div key={idx} style={{ padding: "4px 10px", background: "rgba(168,85,247,0.06)", border: "1px solid rgba(168,85,247,0.14)", borderRadius: 8, fontSize: 11, color: "var(--muted-foreground)", whiteSpace: "nowrap", flexShrink: 0 }}>
-                            <span style={{ color: "var(--foreground)", fontWeight: 600 }}>{set.weight}kg</span>
-                            {" × "}
-                            {set.reps}
+                          <div
+                            key={idx}
+                            style={{
+                              flexShrink: 0,
+                              padding: "8px 12px",
+                              borderRadius: 12,
+                              background: "rgba(255,255,255,0.04)",
+                              border: "1px solid rgba(255,255,255,0.05)",
+                              fontSize: 12,
+                              color: "white",
+                              fontWeight: 600,
+                            }}
+                          >
+                            {set.weight}kg × {set.reps}
                           </div>
                         ))}
                       </div>
                     )}
 
-                    {/* Sets */}
-                    <div style={{ display: "flex", flexDirection: "column", gap: 8, marginBottom: 12, padding: "12px 12px 0" }}>
-                      {exercise.sets.map((set, setIdx) => {
-                        const typeConfig: Record<string, { color: string; label: string; icon: string }> = {
-                          warmup: { color: "#A855F7", label: "Aquecimento", icon: "🔥" },
-                          normal: { color: "#3B82F6", label: "Normal", icon: "💪" },
-                          failed: { color: "#EF4444", label: "Falhada", icon: "⚠️" },
-                          drop: { color: "#06B6D4", label: "Drop", icon: "⬇️" },
-                        };
-                        const config = typeConfig[set.type];
-                        return (
+                    {/* SÉRIES */}
+                    <div
+                      style={{
+                        padding: 16,
+                        display: "flex",
+                        flexDirection: "column",
+                        gap: 12,
+                        overflow: "visible",
+                        height: "auto",
+                      }}
+                    >
+                      {exercise.sets.map((set, setIdx) => (
+                        <div
+                          key={setIdx}
+                          style={{
+                            borderRadius: 16,
+                            padding: 14,
+                            background: "rgba(255,255,255,0.03)",
+                            border: "1px solid rgba(255,255,255,0.05)",
+                            boxSizing: "border-box", // ← ADICIONADO
+                            width: "100%", // ← ADICIONADO
+                            overflow: "hidden", // ← ADICIONADO
+                          }}
+                        >
+                          {/* TOP */}
                           <div
-                            key={setIdx}
-                            style={{ display: "flex", alignItems: "center", gap: 12, background: `${config.color}08`, border: `1.5px solid ${config.color}40`, padding: "14px 12px", borderRadius: 10, transition: "all 0.2s ease" }}
+                            style={{
+                              display: "flex",
+                              alignItems: "center",
+                              justifyContent: "space-between",
+                              marginBottom: 12,
+                            }}
                           >
-                            <div style={{ display: "flex", alignItems: "center", justifyContent: "center", width: 36, height: 36, background: config.color, borderRadius: 8, fontSize: 14, fontWeight: 700, color: "white", minWidth: 36, boxShadow: `0 2px 8px ${config.color}40` }}>
+                            <div
+                              style={{
+                                width: 36,
+                                height: 36,
+                                borderRadius: 12,
+                                background:
+                                  "linear-gradient(135deg,#3B82F6,#2563EB)",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                fontWeight: 800,
+                                color: "white",
+                                fontSize: 14,
+                                flexShrink: 0, // ← ADICIONADO
+                              }}
+                            >
                               {setIdx + 1}
                             </div>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 2, minWidth: 90 }}>
-                              <select
-                                value={set.type}
-                                onChange={e => handleUpdateSet(exIdx, setIdx, "type", e.target.value)}
-                                style={{ background: config.color, color: "white", border: "none", borderRadius: 6, padding: "6px 8px", fontSize: 11, fontWeight: 600, cursor: "pointer", width: "100%" }}
-                              >
-                                <option value="warmup">🔥 Aquecimento</option>
-                                <option value="normal">💪 Normal</option>
-                                <option value="failed">⚠️ Falhada</option>
-                                <option value="drop">⬇️ Drop</option>
-                              </select>
-                              <div style={{ fontSize: 9, color: "var(--muted-foreground)", textAlign: "center", fontWeight: 500 }}>{config.label}</div>
-                            </div>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 70 }}>
-                              <label style={{ fontSize: 9, color: "var(--muted-foreground)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Peso (kg)</label>
-                              <input type="number" value={set.weight} onChange={e => handleUpdateSet(exIdx, setIdx, "weight", parseFloat(e.target.value) || 0)} placeholder="0" className="fz-input" style={{ fontSize: 13, padding: "8px", fontWeight: 600, textAlign: "center" }} step="0.5" />
-                            </div>
-                            <div style={{ display: "flex", flexDirection: "column", gap: 4, flex: 1, minWidth: 70 }}>
-                              <label style={{ fontSize: 9, color: "var(--muted-foreground)", fontWeight: 600, textTransform: "uppercase", letterSpacing: "0.5px" }}>Reps</label>
-                              <input type="number" value={set.reps} onChange={e => handleUpdateSet(exIdx, setIdx, "reps", parseInt(e.target.value) || 0)} placeholder="0" className="fz-input" style={{ fontSize: 13, padding: "8px", fontWeight: 600, textAlign: "center" }} />
-                            </div>
+
                             <button
                               onClick={() => handleDeleteSet(exIdx, setIdx)}
-                              style={{ background: "transparent", border: "none", cursor: "pointer", padding: "6px", display: "flex", alignItems: "center", justifyContent: "center", opacity: 0.6, transition: "opacity 0.2s" }}
-                              onMouseEnter={e => (e.currentTarget.style.opacity = "1")}
-                              onMouseLeave={e => (e.currentTarget.style.opacity = "0.6")}
+                              style={{
+                                width: 34,
+                                height: 34,
+                                borderRadius: 10,
+                                border: "1px solid rgba(239,68,68,0.2)",
+                                background: "rgba(239,68,68,0.08)",
+                                color: "#EF4444",
+                                cursor: "pointer",
+                                display: "flex",
+                                alignItems: "center",
+                                justifyContent: "center",
+                                flexShrink: 0, // ← ADICIONADO
+                              }}
                             >
-                              <Trash2 size={16} color="#EF4444" />
+                              <Trash2 size={14} />
                             </button>
                           </div>
-                        );
-                      })}
-                    </div>
 
-                    <div style={{ padding: "0 12px 12px" }}>
+                          {/* TIPO — agora ocupa linha inteira */}
+                          <select
+                            value={set.type}
+                            onChange={e =>
+                              handleUpdateSet(
+                                exIdx,
+                                setIdx,
+                                "type",
+                                e.target.value
+                              )
+                            }
+                            className="fz-input"
+                            style={{
+                              marginBottom: 12,
+                              fontWeight: 700,
+                              width: "100%", // ← GARANTE LINHA INTEIRA
+                              boxSizing: "border-box",
+                            }}
+                          >
+                            <option value="warmup">🔥 Aquecimento</option>
+                            <option value="normal">💪 Normal</option>
+                            <option value="failed">⚠️ Falhada</option>
+                            <option value="drop">⬇️ Drop</option>
+                          </select>
+
+                          {/* INPUTS — contidos dentro do card */}
+                          <div
+                            style={{
+                              display: "grid",
+                              gridTemplateColumns: "1fr 1fr",
+                              gap: 12,
+                              width: "100%", // ← ADICIONADO
+                              boxSizing: "border-box",
+                            }}
+                          >
+                            <div>
+                              <div
+                                style={{
+                                  fontSize: 10,
+                                  marginBottom: 6,
+                                  color: "var(--muted-foreground)",
+                                  fontWeight: 700,
+                                  textTransform: "uppercase",
+                                }}
+                              >
+                                Peso (kg)
+                              </div>
+                              <input
+                                type="number"
+                                value={set.weight}
+                                onChange={e =>
+                                  handleUpdateSet(
+                                    exIdx,
+                                    setIdx,
+                                    "weight",
+                                    parseFloat(e.target.value) || 0
+                                  )
+                                }
+                                className="fz-input"
+                                style={{
+                                  height: 52,
+                                  fontSize: 20,
+                                  fontWeight: 800,
+                                  textAlign: "center",
+                                  width: "100%", // ← ADICIONADO
+                                  boxSizing: "border-box",
+                                }}
+                              />
+                            </div>
+
+                            <div>
+                              <div
+                                style={{
+                                  fontSize: 10,
+                                  marginBottom: 6,
+                                  color: "var(--muted-foreground)",
+                                  fontWeight: 700,
+                                  textTransform: "uppercase",
+                                }}
+                              >
+                                Repetições
+                              </div>
+                              <input
+                                type="number"
+                                value={set.reps}
+                                onChange={e =>
+                                  handleUpdateSet(
+                                    exIdx,
+                                    setIdx,
+                                    "reps",
+                                    parseInt(e.target.value) || 0
+                                  )
+                                }
+                                className="fz-input"
+                                style={{
+                                  height: 52,
+                                  fontSize: 20,
+                                  fontWeight: 800,
+                                  textAlign: "center",
+                                  width: "100%", // ← ADICIONADO
+                                  boxSizing: "border-box",
+                                }}
+                              />
+                            </div>
+                          </div>
+                        </div>
+                      ))}
+
+                      {/* ADD SET */}
                       <button
                         onClick={() => handleAddSet(exIdx)}
-                        className="fz-btn-ghost"
-                        style={{ width: "100%", padding: "8px", fontSize: 12, display: "flex", alignItems: "center", justifyContent: "center", gap: 4 }}
+                        style={{
+                          height: 48,
+                          borderRadius: 14,
+                          border: "1px dashed rgba(255,255,255,0.14)",
+                          background: "rgba(255,255,255,0.03)",
+                          color: "white",
+                          fontWeight: 700,
+                          cursor: "pointer",
+                          marginTop: 4,
+                          width: "100%",
+                        }}
                       >
-                        <Plus size={12} />
-                        Adicionar Série
+                        + Adicionar Série
                       </button>
                     </div>
                   </div>
@@ -701,16 +1560,36 @@ export default function Academy({ onTabChange }: AcademyProps) {
               })}
             </div>
 
-            {/* Botão Finalizar */}
-            <button
-              onClick={handleFinishWorkout}
-              className="fz-btn-primary"
-              style={{ width: "100%", padding: "12px", display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}
+            {/* FOOTER FIXO */}
+            <div
+              style={{
+                position: "sticky",
+                bottom: 0,
+                zIndex: 40,
+                padding: 18,
+                borderTop: "1px solid rgba(255,255,255,0.06)",
+                background: "rgba(10,10,14,0.95)",
+                backdropFilter: "blur(20px)",
+              }}
             >
-              <Check size={14} />
-              Finalizar Treino (+{XP_PER_WORKOUT} XP)
-            </button>
-
+              <button
+                onClick={handleFinishWorkout}
+                style={{
+                  width: "100%",
+                  height: 58,
+                  borderRadius: 18,
+                  border: "none",
+                  background: "linear-gradient(135deg,#3B82F6,#2563EB)",
+                  color: "white",
+                  fontSize: 18,
+                  fontWeight: 800,
+                  cursor: "pointer",
+                  boxShadow: "0 10px 30px rgba(59,130,246,0.3)",
+                }}
+              >
+                ✓ Finalizar Treino (+{XP_PER_WORKOUT} XP)
+              </button>
+            </div>
           </div>
         )}
       </Modal>

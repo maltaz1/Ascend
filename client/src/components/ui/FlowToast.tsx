@@ -39,41 +39,88 @@ export function FlowToastContainer() {
     success: '#10B981',
     xp: '#F59E0B',
     achievement: '#A855F7',
-    info: '#3B82F6',
+    info: '#60A5FA',
   };
 
   return (
-    <div style={{ position: 'fixed', bottom: 24, right: 24, zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 8 }}>
-      {toasts.map((toast, i) => (
-        <div
-          key={toast.id}
-          className="fz-toast"
-          style={{
-            borderColor: `${colors[toast.type]}40`,
-            boxShadow: `0 8px 32px rgba(0,0,0,0.5), 0 0 20px ${colors[toast.type]}15`,
-            animationDelay: `${i * 50}ms`,
-          }}
-        >
-          {toast.emoji && (
-            <span style={{ fontSize: 20 }}>{toast.emoji}</span>
-          )}
-          <div>
-            <p style={{ fontFamily: 'DM Sans', fontSize: 14, color: 'rgba(255,255,255,0.9)', fontWeight: 500 }}>
-              {toast.message}
-            </p>
-          </div>
+    <div style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 10, pointerEvents: 'none' }}>
+      {toasts.map((toast, i) => {
+        const isInfo = toast.type === 'info';
+        const bg = isInfo
+          ? 'linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.94))'
+          : 'linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(24, 24, 38, 0.92))';
+
+        return (
           <div
+            key={toast.id}
+            className="fz-toast"
             style={{
-              width: 6,
-              height: 6,
-              borderRadius: '50%',
-              background: colors[toast.type],
-              flexShrink: 0,
-              boxShadow: `0 0 8px ${colors[toast.type]}`,
+              borderColor: isInfo ? 'rgba(96, 165, 250, 0.35)' : `${colors[toast.type]}55`,
+              borderWidth: 1,
+              borderStyle: 'solid',
+              borderRadius: 18,
+              padding: '12px 14px',
+              minWidth: 280,
+              maxWidth: 340,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 12,
+              background: bg,
+              backdropFilter: 'blur(18px)',
+              boxShadow: '0 14px 40px rgba(15, 23, 42, 0.35)',
+              animationDelay: `${i * 50}ms`,
+              pointerEvents: 'auto',
             }}
-          />
-        </div>
-      ))}
+          >
+            <div
+              style={{
+                width: 34,
+                height: 34,
+                borderRadius: 12,
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                background: isInfo
+                  ? 'linear-gradient(135deg, rgba(96, 165, 250, 0.22), rgba(59, 130, 246, 0.18))'
+                  : 'rgba(255,255,255,0.05)',
+                flexShrink: 0,
+              }}
+            >
+              {toast.emoji ? (
+                <span style={{ fontSize: 18 }}>{toast.emoji}</span>
+              ) : (
+                <span style={{ fontSize: 18, color: colors[toast.type] }}>●</span>
+              )}
+            </div>
+
+            <div style={{ flex: 1, minWidth: 0 }}>
+              <p
+                style={{
+                  margin: 0,
+                  fontFamily: 'DM Sans',
+                  fontSize: 14,
+                  fontWeight: 600,
+                  color: 'rgba(255,255,255,0.96)',
+                  lineHeight: 1.35,
+                }}
+              >
+                {toast.message}
+              </p>
+            </div>
+
+            <div
+              style={{
+                width: 10,
+                height: 10,
+                borderRadius: '50%',
+                background: colors[toast.type],
+                boxShadow: `0 0 14px ${colors[toast.type]}`,
+                flexShrink: 0,
+              }}
+            />
+          </div>
+        );
+      })}
     </div>
   );
 }

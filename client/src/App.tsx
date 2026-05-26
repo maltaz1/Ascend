@@ -17,6 +17,8 @@ import {
   _data,
 } from "./lib/store";
 
+import UpgradeModal from "./components/upgradeModal.tsx";
+
 // Pages
 import Dashboard from "./pages/Dashboard";
 import Today from "./pages/Today";
@@ -49,7 +51,13 @@ type Tab =
   | "evolution"
   | "settings";
 
-function AppContent() {
+function AppContent({
+  isPro,
+  onOpenUpgrade,
+}: {
+  isPro: boolean;
+  onOpenUpgrade: () => void;
+}) {
   const [activeTab, setActiveTab] = useState<Tab>("dashboard");
 
   const renderPage = () => {
@@ -59,11 +67,11 @@ function AppContent() {
       case "today":
         return <Today />;
       case "tasks":
-        return <Tasks />;
+        return <Tasks isPro={isPro} />;
       case "goals":
         return <Goals />;
       case "habits":
-        return <Habits />;
+        return <Habits isPro={isPro} />;
       case "prayer":
         return <Prayer />;
       case "diet":
@@ -84,7 +92,12 @@ function AppContent() {
   };
 
   return (
-    <Layout activeTab={activeTab} onTabChange={setActiveTab}>
+    <Layout
+      activeTab={activeTab}
+      onTabChange={setActiveTab}
+      isPro={isPro}
+      onOpenUpgrade={onOpenUpgrade}
+    >
       {renderPage()}
     </Layout>
   );
@@ -93,6 +106,47 @@ function AppContent() {
 function App() {
   const [user, setUser] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [isPro, setIsPro] = useState(false);
+  const [showUpgradeModal, setShowUpgradeModal] = useState(false);
+
+  const syncProfileState = async (currentUser: any = user) => {
+    if (!currentUser?.id) {
+      setIsPro(false);
+      return;
+    }
+
+    const { data: profile, error } = await supabase
+      .from("profiles")
+      .select("id, is_pro, xp, level, streak, name")
+      .eq("id", currentUser.id)
+      .single();
+
+    if (error) {
+      console.error("ERRO AO SINCRONIZAR PERFIL:", error);
+      return;
+    }
+
+    if (!profile) {
+      await supabase.from("profiles").insert({
+        id: currentUser.id,
+        name: currentUser.email?.split("@")[0] ?? "Usuário",
+        level: 1,
+        xp: 0,
+        streak: 0,
+        is_pro: false,
+      });
+
+      setIsPro(false);
+      return;
+    }
+
+    setIsPro(Boolean(profile.is_pro));
+
+    _data.user.xp = profile.xp || 0;
+    _data.user.level = profile.level || 1;
+    _data.user.streak = profile.streak || 0;
+    _data.user.name = profile.name || "Usuário";
+  };
 
   useEffect(() => {
     async function init() {
@@ -109,29 +163,8 @@ function App() {
             loadTasksData(),
             loadGoalsData(),
           ]);
-          const { data: profile } = await supabase
-            .from("profiles")
-            .select("*")
-            .eq("id", data.user.id)
-            .single();
 
-          if (profile) {
-            _data.user.xp = profile.xp || 0;
-            _data.user.level = profile.level || 1;
-            _data.user.streak = profile.streak || 0;
-            _data.user.name = profile.name || "Usuário";
-          }
-
-          if (!profile) {
-            await supabase.from("profiles").insert({
-              id: data.user.id,
-              name: data.user.email?.split("@")[0],
-              level: 1,
-              xp: 0,
-              streak: 0,
-            });
-          }
-
+          await syncProfileState(data.user);
           await initRealtimeSync();
         }
       } catch (error) {
@@ -144,8 +177,15 @@ function App() {
     init();
 
     const { data: listener } = supabase.auth.onAuthStateChange(
-      (_event, session) => {
-        setUser(session?.user ?? null);
+      async (_event, session) => {
+        const nextUser = session?.user ?? null;
+        setUser(nextUser);
+
+        if (nextUser) {
+          await syncProfileState(nextUser);
+        } else {
+          setIsPro(false);
+        }
       }
     );
 
@@ -153,6 +193,32 @@ function App() {
       listener.subscription.unsubscribe();
     };
   }, []);
+
+  useEffect(() => {
+    if (!user?.id) {
+      return;
+    }
+
+    const channel = supabase
+      .channel(`profiles-realtime-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "profiles",
+          filter: `id=eq.${user.id}`,
+        },
+        async () => {
+          await syncProfileState(user);
+        }
+      )
+      .subscribe();
+
+    return () => {
+      supabase.removeChannel(channel);
+    };
+  }, [user?.id]);
 
   const path = window.location.pathname;
 
@@ -169,8 +235,28 @@ function App() {
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
           {/* 🔑 AQUI É A MÁGICA */}
-          {!user ? <Login /> : <AppContent />}
+          {!user ? (
+            <Login />
+          ) : (
+            <AppContent
+              isPro={isPro}
+              onOpenUpgrade={() => setShowUpgradeModal(true)}
+            />
+          )}
+          <UpgradeModal
+            open={showUpgradeModal}
+            onClose={() => setShowUpgradeModal(false)}
+            onUpgrade={() => {
+              const checkoutUrl = import.meta.env.VITE_CAKTO_CHECKOUT_URL;
 
+              if (!checkoutUrl) {
+                console.error("VITE_CAKTO_CHECKOUT_URL não configurada.");
+                return;
+              }
+
+              window.open(checkoutUrl, "_blank", "noopener,noreferrer");
+            }}
+          />
           <FlowToastContainer />
         </TooltipProvider>
       </ThemeProvider>
