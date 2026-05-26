@@ -1,9 +1,25 @@
-import { createClient } from '@supabase/supabase-js';
+import { createClient, type SupabaseClient } from "@supabase/supabase-js";
+import { logger } from "./logger";
 
-const supabaseUrl = import.meta.env.VITE_SUPABASE_URL;
-const supabaseAnonKey = import.meta.env.VITE_SUPABASE_ANON_KEY;
+const getEnvVar = (key: string): string => {
+  const value = import.meta.env[key];
+  if (!value) {
+    throw new Error(`${key} não configurada`);
+  }
+  return value;
+};
 
-export const supabase = createClient(
-  supabaseUrl,
-  supabaseAnonKey
-);
+const supabaseUrl = getEnvVar("VITE_SUPABASE_URL");
+const supabaseAnonKey = getEnvVar("VITE_SUPABASE_ANON_KEY");
+
+export const supabase: SupabaseClient = createClient(supabaseUrl, supabaseAnonKey, {
+  auth: {
+    persistSession: true,
+    detectSessionInUrl: true,
+    autoRefreshToken: true,
+  },
+});
+
+if (import.meta.env.DEV) {
+  logger.info("supabase", "Supabase client initialized");
+}

@@ -60,14 +60,12 @@ function scheduleReload(table: string): void {
   }, 250);
 }
 
-export async function initRealtimeSync(): Promise<void> {
+export async function initRealtimeSync(userId: string): Promise<void> {
+  if (!userId) return;
   if (channel) return;
 
-  const { data } = await supabase.auth.getUser();
-  if (!data.user) return;
-
   channel = supabase.channel("public:ascend-realtime", {
-    config: { broadcast: { self: false }, presence: { key: data.user.id } },
+    config: { broadcast: { self: false }, presence: { key: userId } },
   });
 
   Object.keys(reloadMap).forEach(table => {
@@ -97,7 +95,8 @@ export async function initRealtimeSync(): Promise<void> {
     }
 
     logger.warn("realtime", "Realtime connection issue", status);
-    setTimeout(() => initRealtimeSync().catch(err => logger.error("realtime", "Reconnect failed", err)), 2000);
+    channel = null;
+    window.setTimeout(() => initRealtimeSync(userId).catch(err => logger.error("realtime", "Reconnect failed", err)), 2000);
   });
 }
 

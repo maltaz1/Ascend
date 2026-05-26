@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import type { User } from "@supabase/supabase-js";
 import { loadGymData } from "./lib/gym";
 import { supabase } from "./lib/supabase";
+import { initializeAuth, subscribeAuthChanges } from "@/lib/auth";
 
 import { Toaster } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
@@ -14,10 +16,22 @@ import {
   loadTasksData,
   loadGoalsData,
   initRealtimeSync,
+  stopRealtimeSync,
   _data,
 } from "./lib/store";
 
-import UpgradeModal from "./components/upgradeModal.tsx";
+function timeoutPromise<T>(promise: Promise<T>, ms: number): Promise<T> {
+  let timer = 0;
+  const timeout = new Promise<never>((_, reject) => {
+    timer = window.setTimeout(() => reject(new Error(`Request timed out after ${ms}ms`)), ms);
+  });
+
+  return Promise.race([promise, timeout]).finally(() => {
+    window.clearTimeout(timer);
+  });
+}
+
+import UpgradeModal from "./components/UpgradeModal";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
@@ -104,12 +118,13 @@ function AppContent({
 }
 
 function App() {
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [startupError, setStartupError] = useState<string | null>(null);
   const [isPro, setIsPro] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
-  const syncProfileState = async (currentUser: any = user) => {
+  const syncProfileState = async (currentUser: User | null = user) => {
     if (!currentUser?.id) {
       setIsPro(false);
       return;
@@ -148,86 +163,110 @@ function App() {
     _data.user.name = profile.name || "Usuário";
   };
 
+  async function preloadStartupData(): Promise<void> {
+    const loaders = [
+      { name: "gym", fn: loadGymData },
+      { name: "diet", fn: loadDietData },
+      { name: "financial", fn: loadFinancialData },
+      { name: "tasks", fn: loadTasksData },
+      { name: "goals", fn: loadGoalsData },
+    ];
+
+    await Promise.allSettled(
+      loaders.map(async ({ name, fn }) => {
+        try {
+          await timeoutPromise(fn(), 7000);
+        } catch (error) {
+          console.warn(`Startup data loader ${name} falhou`, error);
+        }
+      })
+    );
+  }
+
   useEffect(() => {
-    async function init() {
+    let mounted = true;
+    let startupTimeout: number | null = null;
+    let unsubscribeAuth: (() => void) | null = null;
+
+    const authStateChange = async (payload: { event: string; user: User | null }) => {
+      if (!mounted) return;
+      const nextUser = payload.user;
+      setUser(nextUser);
+
+      if (!nextUser) {
+        setIsPro(false);
+        stopRealtimeSync();
+        return;
+      }
+
+      await syncProfileState(nextUser);
+    };
+
+    const init = async () => {
       try {
-        const { data } = await supabase.auth.getUser();
+        const authResult = await initializeAuth();
 
-        setUser(data.user);
+        if (!mounted) return;
 
-        if (data.user) {
-          await Promise.all([
-            loadGymData(),
-            loadDietData(),
-            loadFinancialData(),
-            loadTasksData(),
-            loadGoalsData(),
-          ]);
+        setStartupError(authResult.error ?? null);
+        setUser(authResult.user);
 
-          await syncProfileState(data.user);
-          await initRealtimeSync();
+        if (authResult.user) {
+          await syncProfileState(authResult.user);
+          void preloadStartupData();
         }
       } catch (error) {
         console.error("ERRO INIT:", error);
+        setStartupError("Falha ao inicializar o auth. Atualize a página.");
       } finally {
+        if (!mounted) return;
         setLoading(false);
       }
-    }
+    };
+
+    startupTimeout = window.setTimeout(() => {
+      if (!mounted) return;
+      setLoading(false);
+      setStartupError((current) =>
+        current ?? "Tempo de inicialização excedido. Verifique sua conexão ou faça login novamente."
+      );
+    }, 12000);
 
     init();
-
-    const { data: listener } = supabase.auth.onAuthStateChange(
-      async (_event, session) => {
-        const nextUser = session?.user ?? null;
-        setUser(nextUser);
-
-        if (nextUser) {
-          await syncProfileState(nextUser);
-        } else {
-          setIsPro(false);
-        }
-      }
-    );
+    unsubscribeAuth = subscribeAuthChanges(authStateChange);
 
     return () => {
-      listener.subscription.unsubscribe();
+      mounted = false;
+      unsubscribeAuth?.();
+      if (startupTimeout) {
+        window.clearTimeout(startupTimeout);
+      }
     };
   }, []);
 
   useEffect(() => {
     if (!user?.id) {
+      stopRealtimeSync();
       return;
     }
 
-    const channel = supabase
-      .channel(`profiles-realtime-${user.id}`)
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "profiles",
-          filter: `id=eq.${user.id}`,
-        },
-        async () => {
-          await syncProfileState(user);
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
+    initRealtimeSync(user.id).catch((error) => {
+      console.error("ERRO NO REALTIME SYNC:", error);
+    });
   }, [user?.id]);
 
-  const path = window.location.pathname;
+  const path = typeof window !== "undefined" ? window.location.pathname : "";
 
   if (path === "/reset-password") {
     return <ResetPassword />;
   }
 
   if (loading) {
-    return <div style={{ color: "white", padding: 20 }}>Carregando...</div>;
+    return (
+      <div style={{ color: "white", padding: 20 }}>
+        Carregando... Caso a inicialização demore mais de alguns segundos, atualize a página.
+      </div>
+    );
   }
 
   return (
@@ -236,7 +275,23 @@ function App() {
         <TooltipProvider>
           {/* 🔑 AQUI É A MÁGICA */}
           {!user ? (
-            <Login />
+            <>
+              {startupError ? (
+                <div
+                  style={{
+                    background: "rgba(220, 38, 38, 0.1)",
+                    border: "1px solid rgba(248, 113, 113, 0.25)",
+                    color: "#f87171",
+                    margin: "0 20px 16px",
+                    padding: "14px 18px",
+                    borderRadius: 16,
+                  }}
+                >
+                  {startupError}
+                </div>
+              ) : null}
+              <Login />
+            </>
           ) : (
             <AppContent
               isPro={isPro}

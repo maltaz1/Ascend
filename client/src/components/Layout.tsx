@@ -22,6 +22,7 @@ import {
 import { FREE_TABS } from "@/config/planLimits";
 import { useStore } from "@/hooks/useStore";
 import { getLevelProgress } from "@/lib/store";
+import { useIsMobile } from "@/hooks/useMobile";
 import { AnimatedCounter } from "./ui/AnimatedCounter";
 import { CircularProgress } from "./ui/CircularProgress";
 
@@ -85,6 +86,8 @@ export function Layout({
   const [touchStart, setTouchStart] = useState<number | null>(null);
   const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const levelProgress = getLevelProgress();
+
+  const isMobile = useIsMobile();
 
   const orderedNavItems = navOrder
     .map(id => navItems.find(item => item.id === id))
@@ -359,7 +362,7 @@ export function Layout({
           display: "flex",
           flexDirection: "column",
           background: "var(--bg-primary)",
-          padding: window.innerWidth < 480 ? "16px 12px" : "32px 40px",
+          padding: isMobile ? "16px 12px" : "32px 40px",
           overflowX: "hidden",
         }}
       >
