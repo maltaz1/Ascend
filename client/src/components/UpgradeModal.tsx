@@ -107,7 +107,7 @@ export default function UpgradeModal({ open, onClose, onUpgrade }: UpgradeModalP
               </ul>
 
               {/* CTA */}
-              <a href="https://pay.cakto.com.br/35n9bs3_900728" target="_blank" rel="noopener noreferrer">
+              <a href="https://app.ascend.so/upgrade" target="_blank" rel="noopener noreferrer">
                 <button
                   onClick={onUpgrade}
                   className="mb-2 flex w-full items-center justify-center gap-1.5 rounded-[9px] bg-violet-700 px-5 py-[13px] text-[13px] font-medium tracking-[0.03em] text-violet-50 transition hover:bg-violet-800"
