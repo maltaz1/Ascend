@@ -355,6 +355,8 @@ const signatureHeader =
     return res.status(400).json({ ok: false, error: "Body inválido" });
   }
 
+  console.log("[CAKTO PAYLOAD]", JSON.stringify(payload, null, 2));
+
   const email = extractEmail(payload);
   const eventType = extractEventType(payload);
   const status = extractStatus(payload);
