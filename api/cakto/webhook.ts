@@ -178,6 +178,10 @@ function normalizeSignature(signatureHeader: string): string {
     return trimmed.slice(7).trim().toLowerCase();
   }
 
+  if (trimmed.toLowerCase().startsWith("bearer ")) {
+    return trimmed.slice(7).trim().toLowerCase();
+  }
+
   return trimmed.toLowerCase();
 }
 
@@ -331,9 +335,7 @@ const signatureHeader =
   getHeaderValue(req.headers, "x-cakto-signature") ??
   getHeaderValue(req.headers, "x-webhook-signature") ??
   getHeaderValue(req.headers, "x-signature") ??
-  getHeaderValue(req.headers, "x-hub-signature") ??
-  getHeaderValue(req.headers, "x-hub-signature-256") ??
-  getHeaderValue(req.headers, "authorization");
+  getHeaderValue(req.headers, "x-vercel-proxy-signature");
 
   if (!signatureHeader) {
     console.warn("[CAKTO] Assinatura ausente no webhook.");
