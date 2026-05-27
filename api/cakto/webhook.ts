@@ -1,3 +1,9 @@
+export const config = {
+  api: {
+    bodyParser: true,
+  },
+};
+
 import { createClient } from "@supabase/supabase-js";
 import { createHmac, timingSafeEqual } from "crypto";
 
@@ -25,7 +31,8 @@ type HeaderValue = string | string[] | undefined;
 type VercelRequestLike = {
   method?: string;
   headers: Record<string, HeaderValue>;
-  text(): Promise<string>;
+  body?: unknown;
+  text?(): Promise<string>;
 };
 
 type VercelResponseLike = {
@@ -314,7 +321,10 @@ export default async function handler(req: VercelRequestLike, res: VercelRespons
     return res.status(405).json({ ok: false, error: "Método não permitido" });
   }
 
-  const rawBody = await req.text();
+  const rawBody =
+    typeof req.body === "string"
+      ? req.body
+      : JSON.stringify(req.body || {});
   const signatureHeader = getHeaderValue(req.headers, "x-cakto-signature") ?? getHeaderValue(req.headers, "x-webhook-signature") ?? getHeaderValue(req.headers, "x-signature");
 
   if (!signatureHeader) {
