@@ -106,21 +106,11 @@ function getNestedString(payload: Record<string, unknown>, ...paths: string[]): 
 
 function extractEmail(payload: CaktoPayload): string | null {
   return (
+    getNestedString(payload, "data", "customer", "email") ||
+    getNestedString(payload, "data", "subscription", "customer", "email") ||
     getNestedString(payload, "customer", "email") ||
-    getNestedString(payload, "customer", "email_address") ||
     normalizeString(payload.customer_email) ||
-    normalizeString(payload.email) ||
-    getNestedString(payload, "customer", "user_email")
-  );
-}
-
-function extractStatus(payload: CaktoPayload): string {
-  return (
-    normalizeString(payload.status) ||
-    getNestedString(payload, "payment", "status") ||
-    getNestedString(payload, "subscription", "status") ||
-    getNestedString(payload, "data", "status") ||
-    "unknown"
+    normalizeString(payload.email)
   );
 }
 
@@ -129,7 +119,12 @@ function extractEventType(payload: CaktoPayload): string {
 }
 
 function extractEventId(payload: CaktoPayload): string {
-  return normalizeString(payload.event_id) || normalizeString(payload.id) || `cakto-${Date.now()}-${Math.random().toString(36).slice(2)}`;
+  return (
+    getNestedString(payload, "data", "id") ||
+    normalizeString(payload.event_id) ||
+    normalizeString(payload.id) ||
+    `cakto-${Date.now()}`
+  );
 }
 
 function extractPaymentId(payload: CaktoPayload): string | undefined {
