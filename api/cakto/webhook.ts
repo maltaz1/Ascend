@@ -325,7 +325,15 @@ export default async function handler(req: VercelRequestLike, res: VercelRespons
     typeof req.body === "string"
       ? req.body
       : JSON.stringify(req.body || {});
-  const signatureHeader = getHeaderValue(req.headers, "x-cakto-signature") ?? getHeaderValue(req.headers, "x-webhook-signature") ?? getHeaderValue(req.headers, "x-signature");
+  console.log("[CAKTO HEADERS]", req.headers);
+
+const signatureHeader =
+  getHeaderValue(req.headers, "x-cakto-signature") ??
+  getHeaderValue(req.headers, "x-webhook-signature") ??
+  getHeaderValue(req.headers, "x-signature") ??
+  getHeaderValue(req.headers, "x-hub-signature") ??
+  getHeaderValue(req.headers, "x-hub-signature-256") ??
+  getHeaderValue(req.headers, "authorization");
 
   if (!signatureHeader) {
     console.warn("[CAKTO] Assinatura ausente no webhook.");
