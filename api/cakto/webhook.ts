@@ -118,6 +118,16 @@ function extractEventType(payload: CaktoPayload): string {
   return normalizeString(payload.event_type) || normalizeString(payload.type) || "unknown";
 }
 
+function extractStatus(payload: CaktoPayload): string {
+  return (
+    normalizeString(payload.status) ||
+    getNestedString(payload, "data", "status") ||
+    getNestedString(payload, "subscription", "status") ||
+    getNestedString(payload, "payment", "status") ||
+    "unknown"
+  );
+}
+
 function extractEventId(payload: CaktoPayload): string {
   return (
     getNestedString(payload, "data", "id") ||
