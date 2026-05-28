@@ -115,15 +115,20 @@ function extractEmail(payload: CaktoPayload): string | null {
 }
 
 function extractEventType(payload: CaktoPayload): string {
-  return normalizeString(payload.event_type) || normalizeString(payload.type) || "unknown";
+  return (
+    normalizeString(payload.event) ||
+    normalizeString(payload.event_type) ||
+    normalizeString(payload.type) ||
+    "unknown"
+  );
 }
 
 function extractStatus(payload: CaktoPayload): string {
   return (
-    normalizeString(payload.status) ||
     getNestedString(payload, "data", "status") ||
-    getNestedString(payload, "subscription", "status") ||
+    normalizeString(payload.status) ||
     getNestedString(payload, "payment", "status") ||
+    getNestedString(payload, "subscription", "status") ||
     "unknown"
   );
 }
