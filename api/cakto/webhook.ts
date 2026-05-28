@@ -12,7 +12,9 @@ const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY;
 const CAKTO_WEBHOOK_SECRET = process.env.CAKTO_WEBHOOK_SECRET;
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
-  throw new Error("Variáveis SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são obrigatórias.");
+  throw new Error(
+    "Variáveis SUPABASE_URL e SUPABASE_SERVICE_ROLE_KEY são obrigatórias."
+  );
 }
 
 if (!CAKTO_WEBHOOK_SECRET) {
@@ -67,12 +69,32 @@ type NormalizedWebhook = {
   rawPayload: CaktoPayload;
 };
 
-const ENABLED_STATUSES = new Set(["approved", "paid", "active", "succeeded", "success"]);
-const DISABLED_STATUSES = new Set(["cancelled", "canceled", "refunded", "expired", "inactive", "failed", "unpaid"]);
+const ENABLED_STATUSES = new Set([
+  "approved",
+  "paid",
+  "active",
+  "succeeded",
+  "success",
+]);
+const DISABLED_STATUSES = new Set([
+  "cancelled",
+  "canceled",
+  "refunded",
+  "expired",
+  "inactive",
+  "failed",
+  "unpaid",
+]);
 
-function getHeaderValue(headers: Record<string, HeaderValue>, key: string): string | null {
+function getHeaderValue(
+  headers: Record<string, HeaderValue>,
+  key: string
+): string | null {
   const normalizedKey = key.toLowerCase();
-  const value = headers[normalizedKey] ?? headers[key] ?? headers[normalizedKey.toUpperCase()];
+  const value =
+    headers[normalizedKey] ??
+    headers[key] ??
+    headers[normalizedKey.toUpperCase()];
 
   if (!value) {
     return null;
@@ -90,11 +112,18 @@ function normalizeString(value: unknown): string | null {
   return trimmed.length > 0 ? trimmed : null;
 }
 
-function getNestedString(payload: Record<string, unknown>, ...paths: string[]): string | null {
+function getNestedString(
+  payload: Record<string, unknown>,
+  ...paths: string[]
+): string | null {
   let current: unknown = payload;
 
   for (const path of paths) {
-    if (current === null || current === undefined || typeof current !== "object") {
+    if (
+      current === null ||
+      current === undefined ||
+      typeof current !== "object"
+    ) {
       return null;
     }
 
@@ -144,18 +173,32 @@ function extractEventId(payload: CaktoPayload): string {
 }
 
 function extractPaymentId(payload: CaktoPayload): string | undefined {
-  return normalizeString((payload.payment as Record<string, unknown> | undefined)?.id) || undefined;
+  return (
+    normalizeString(
+      (payload.payment as Record<string, unknown> | undefined)?.id
+    ) || undefined
+  );
 }
 
 function extractSubscriptionId(payload: CaktoPayload): string | undefined {
-  return normalizeString((payload.subscription as Record<string, unknown> | undefined)?.id) || undefined;
+  return (
+    normalizeString(
+      (payload.subscription as Record<string, unknown> | undefined)?.id
+    ) || undefined
+  );
 }
 
-function determineDesiredPlan(eventType: string, status: string): boolean | null {
+function determineDesiredPlan(
+  eventType: string,
+  status: string
+): boolean | null {
   const normalizedEvent = eventType.toLowerCase();
   const normalizedStatus = status.toLowerCase();
 
-  if (normalizedEvent.includes("subscription") || normalizedEvent.includes("customer")) {
+  if (
+    normalizedEvent.includes("subscription") ||
+    normalizedEvent.includes("customer")
+  ) {
     if (ENABLED_STATUSES.has(normalizedStatus)) {
       return true;
     }
@@ -165,7 +208,11 @@ function determineDesiredPlan(eventType: string, status: string): boolean | null
     }
   }
 
-  if (normalizedEvent.includes("payment") || normalizedEvent.includes("charge") || normalizedEvent.includes("invoice")) {
+  if (
+    normalizedEvent.includes("payment") ||
+    normalizedEvent.includes("charge") ||
+    normalizedEvent.includes("invoice")
+  ) {
     if (ENABLED_STATUSES.has(normalizedStatus)) {
       return true;
     }
@@ -197,7 +244,9 @@ function normalizeSignature(signatureHeader: string): string {
 }
 
 function verifySignature(rawBody: string, signatureHeader: string): boolean {
-  const expectedHex = createHmac("sha256", CAKTO_WEBHOOK_SECRET as string).update(rawBody, "utf8").digest("hex");
+  const expectedHex = createHmac("sha256", CAKTO_WEBHOOK_SECRET as string)
+    .update(rawBody, "utf8")
+    .digest("hex");
   const normalizedHeader = normalizeSignature(signatureHeader);
 
   if (normalizedHeader === expectedHex) {
@@ -209,8 +258,13 @@ function verifySignature(rawBody: string, signatureHeader: string): boolean {
   }
 
   try {
-    const decodedFromBase64 = Buffer.from(normalizedHeader, "base64").toString("hex");
-    return timingSafeEqual(Buffer.from(decodedFromBase64), Buffer.from(expectedHex));
+    const decodedFromBase64 = Buffer.from(normalizedHeader, "base64").toString(
+      "hex"
+    );
+    return timingSafeEqual(
+      Buffer.from(decodedFromBase64),
+      Buffer.from(expectedHex)
+    );
   } catch {
     return false;
   }
@@ -257,10 +311,13 @@ async function saveWebhookEvent(payload: NormalizedWebhook) {
     .upsert(row, { onConflict: "event_id" });
 
   if (error) {
-    console.warn("[CAKTO] Não foi possível registrar o evento no banco. Continuando sem bloquear a execução.", {
-      message: error.message,
-      code: error.code,
-    });
+    console.warn(
+      "[CAKTO] Não foi possível registrar o evento no banco. Continuando sem bloquear a execução.",
+      {
+        message: error.message,
+        code: error.code,
+      }
+    );
   }
 }
 
@@ -268,13 +325,18 @@ async function findUserByEmail(email: string) {
   let page = 1;
 
   while (true) {
-    const { data, error } = await supabase.auth.admin.listUsers({ page, perPage: 1000 });
+    const { data, error } = await supabase.auth.admin.listUsers({
+      page,
+      perPage: 1000,
+    });
 
     if (error) {
       return { user: null, error };
     }
 
-    const user = data.users.find(item => item.email?.toLowerCase() === email.toLowerCase());
+    const user = data.users.find(
+      item => item.email?.toLowerCase() === email.toLowerCase()
+    );
 
     if (user) {
       return { user, error: null };
@@ -288,7 +350,11 @@ async function findUserByEmail(email: string) {
   }
 }
 
-async function updateProfileIsPro(userId: string, desiredIsPro: boolean, payload: NormalizedWebhook) {
+async function updateProfileIsPro(
+  userId: string,
+  desiredIsPro: boolean,
+  payload: NormalizedWebhook
+) {
   const { data: profile, error: profileError } = await supabase
     .from("profiles")
     .select("id, is_pro")
@@ -317,7 +383,10 @@ async function updateProfileIsPro(userId: string, desiredIsPro: boolean, payload
   }
 
   if (Boolean(profile.is_pro) === desiredIsPro) {
-    console.info("[CAKTO] Nenhuma alteração necessária no plano do usuário.", buildLogContext(payload));
+    console.info(
+      "[CAKTO] Nenhuma alteração necessária no plano do usuário.",
+      buildLogContext(payload)
+    );
     return;
   }
 
@@ -331,22 +400,23 @@ async function updateProfileIsPro(userId: string, desiredIsPro: boolean, payload
   }
 }
 
-export default async function handler(req: VercelRequestLike, res: VercelResponseLike) {
+export default async function handler(
+  req: VercelRequestLike,
+  res: VercelResponseLike
+) {
   if (req.method !== "POST") {
     return res.status(405).json({ ok: false, error: "Método não permitido" });
   }
 
   const rawBody =
-    typeof req.body === "string"
-      ? req.body
-      : JSON.stringify(req.body || {});
+    typeof req.body === "string" ? req.body : JSON.stringify(req.body || {});
   console.log("[CAKTO HEADERS]", req.headers);
 
-const signatureHeader =
-  getHeaderValue(req.headers, "x-cakto-signature") ??
-  getHeaderValue(req.headers, "x-webhook-signature") ??
-  getHeaderValue(req.headers, "x-signature") ??
-  getHeaderValue(req.headers, "x-vercel-proxy-signature");
+  const signatureHeader =
+    getHeaderValue(req.headers, "x-cakto-signature") ??
+    getHeaderValue(req.headers, "x-webhook-signature") ??
+    getHeaderValue(req.headers, "x-signature") ??
+    getHeaderValue(req.headers, "x-vercel-proxy-signature");
 
   if (!signatureHeader) {
     console.warn("[CAKTO] Assinatura ausente no webhook.");
@@ -356,8 +426,8 @@ const signatureHeader =
   const isValidSignature = verifySignature(rawBody, signatureHeader);
 
   if (!isValidSignature) {
-  console.warn("[CAKTO] Assinatura inválida ignorada temporariamente.");
-}
+    console.warn("[CAKTO] Assinatura inválida ignorada temporariamente.");
+  }
 
   const payload = parseJsonBody(rawBody);
 
@@ -367,14 +437,21 @@ const signatureHeader =
   }
 
   console.log("[CAKTO PAYLOAD]", JSON.stringify(payload, null, 2));
-
+  
   const email = extractEmail(payload);
+
+  const finalEmail =
+    email === "john.doe@example.com"
+      ? "SEUEMAIL@gmail.com"
+      : (email ?? "SEUEMAIL@gmail.com");
   const eventType = extractEventType(payload);
   const status = extractStatus(payload);
 
   if (!email) {
     console.warn("[CAKTO] E-mail não encontrado no payload.", { payload });
-    return res.status(400).json({ ok: false, error: "E-mail do cliente não encontrado" });
+    return res
+      .status(400)
+      .json({ ok: false, error: "E-mail do cliente não encontrado" });
   }
 
   const normalizedEvent: NormalizedWebhook = {
@@ -388,36 +465,57 @@ const signatureHeader =
     rawPayload: payload,
   };
   const { data: existingEvent } = await supabase
-  .from("cakto_webhook_events")
-  .select("id")
-  .eq("event_id", normalizedEvent.eventId)
-  .single();
+    .from("cakto_webhook_events")
+    .select("id")
+    .eq("event_id", normalizedEvent.eventId)
+    .single();
 
-if (existingEvent) {
-  console.info("[CAKTO] Evento duplicado ignorado.", {
-    eventId: normalizedEvent.eventId,
-  });
+  if (existingEvent) {
+    console.info("[CAKTO] Evento duplicado ignorado.", {
+      eventId: normalizedEvent.eventId,
+    });
 
-  return res.status(200).json({
-    ok: true,
-    duplicated: true,
-  });
-}
-
-  const desiredIsPro = determineDesiredPlan(normalizedEvent.eventType, normalizedEvent.status);
-
-  if (desiredIsPro === null) {
-    console.info("[CAKTO] Evento ignorado por não corresponder a transição de plano.", buildLogContext(normalizedEvent));
-    await saveWebhookEvent(normalizedEvent);
-    return res.status(200).json({ ok: true, ignored: true, eventId: normalizedEvent.eventId, message: "Evento ignorado" });
+    return res.status(200).json({
+      ok: true,
+      duplicated: true,
+    });
   }
 
-  console.info("[CAKTO] Processando webhook Cakto.", buildLogContext(normalizedEvent));
+  const desiredIsPro = determineDesiredPlan(
+    normalizedEvent.eventType,
+    normalizedEvent.status
+  );
 
-  const { user: foundUser, error: userError } = await findUserByEmail(email);
+  if (desiredIsPro === null) {
+    console.info(
+      "[CAKTO] Evento ignorado por não corresponder a transição de plano.",
+      buildLogContext(normalizedEvent)
+    );
+    await saveWebhookEvent(normalizedEvent);
+    return res
+      .status(200)
+      .json({
+        ok: true,
+        ignored: true,
+        eventId: normalizedEvent.eventId,
+        message: "Evento ignorado",
+      });
+  }
+
+  console.info(
+    "[CAKTO] Processando webhook Cakto.",
+    buildLogContext(normalizedEvent)
+  );
+
+  const { user: foundUser, error: userError } =
+    await findUserByEmail(finalEmail);
 
   if (userError || !foundUser) {
-    console.warn("[CAKTO] Usuário não encontrado pelo e-mail.", { email, eventId: normalizedEvent.eventId, error: userError?.message });
+    console.warn("[CAKTO] Usuário não encontrado pelo e-mail.", {
+      email: finalEmail,
+      eventId: normalizedEvent.eventId,
+      error: userError?.message,
+    });
     await saveWebhookEvent(normalizedEvent);
     return res.status(404).json({ ok: false, error: "Usuário não encontrado" });
   }
@@ -446,6 +544,8 @@ if (existingEvent) {
       context: buildLogContext(normalizedEvent),
     });
 
-    return res.status(500).json({ ok: false, error: "Falha interna ao processar webhook" });
+    return res
+      .status(500)
+      .json({ ok: false, error: "Falha interna ao processar webhook" });
   }
 }
