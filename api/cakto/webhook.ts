@@ -437,13 +437,13 @@ export default async function handler(
   }
 
   console.log("[CAKTO PAYLOAD]", JSON.stringify(payload, null, 2));
-  
+
   const email = extractEmail(payload);
 
   const finalEmail =
     email === "john.doe@example.com"
-      ? "SEUEMAIL@gmail.com"
-      : (email ?? "SEUEMAIL@gmail.com");
+      ? "viniciusmalta31@gmail.com"
+      : (email ?? "viniciusmalta31@gmail.com");
   const eventType = extractEventType(payload);
   const status = extractStatus(payload);
 
