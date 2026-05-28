@@ -107,10 +107,11 @@ function getNestedString(payload: Record<string, unknown>, ...paths: string[]): 
 function extractEmail(payload: CaktoPayload): string | null {
   return (
     getNestedString(payload, "data", "customer", "email") ||
-    getNestedString(payload, "data", "subscription", "customer", "email") ||
     getNestedString(payload, "customer", "email") ||
+    getNestedString(payload, "customer", "email_address") ||
     normalizeString(payload.customer_email) ||
-    normalizeString(payload.email)
+    normalizeString(payload.email) ||
+    getNestedString(payload, "customer", "user_email")
   );
 }
 
