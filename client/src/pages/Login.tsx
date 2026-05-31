@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { supabase } from "@/lib/supabase";
+import { notifyError, notifySuccess, notifyWarning } from "@/lib/notifications";
 
 type Tab = "login" | "signup";
 
@@ -12,29 +13,65 @@ export default function Login() {
   const [showPassword, setShowPassword] = useState(false);
 
   const handleSignup = async () => {
+    const strongPassword = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$/;
+
+    if (!strongPassword.test(password)) {
+      notifyError(
+        "Senha inválida",
+        "Use pelo menos 8 caracteres, 1 letra maiúscula, 1 minúscula e 1 número."
+      );
+      return;
+    }
+
     setLoading(true);
+
     const { error } = await supabase.auth.signUp({
       email,
       password,
-      options: { data: { name } },
+      options: {
+        data: { name },
+        emailRedirectTo: `${window.location.origin}`,
+      },
     });
+
     if (error) {
-      alert(error.message);
+      notifyError(error.message);
       setLoading(false);
       return;
     }
-    alert("Conta criada!");
+
+    notifySuccess("Enviamos um e-mail de confirmação. Verifique sua caixa de entrada.");
+
+    setTab("login");
     setLoading(false);
   };
 
   const handleLogin = async () => {
     setLoading(true);
+
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
     });
-    console.log("LOGIN:", data, error);
-    if (error) alert(error.message);
+
+    if (error) {
+      notifyError(error.message);
+      setLoading(false);
+      return;
+    }
+
+    if (!data.user.email_confirmed_at) {
+      await supabase.auth.signOut();
+
+      notifyWarning("Você precisa confirmar seu e-mail antes de entrar.");
+
+      setLoading(false);
+      return;
+    }
+
+    console.log("LOGIN DATA:", data);
+    console.log("LOGIN ERROR:", error);
+
     setLoading(false);
   };
 
@@ -864,7 +901,6 @@ export default function Login() {
       `}</style>
 
       <div className="asc-root">
-
         {/* ── Left decorative panel ── */}
         <div className="asc-left">
           <div className="asc-orb1" />
@@ -879,24 +915,34 @@ export default function Login() {
           <div className="asc-left-hero">
             <div className="asc-hero-tag">Produtividade gamificada</div>
             <h1 className="asc-hero-title">
-              Evolua<br />
+              Evolua
+              <br />
               <span>todo dia.</span>
             </h1>
             <p className="asc-hero-sub">
-              Transforme hábitos, tarefas e metas em progresso real — com XP, streaks e conquistas que te mantêm no ritmo.
+              Transforme hábitos, tarefas e metas em progresso real — com XP,
+              streaks e conquistas que te mantêm no ritmo.
             </p>
           </div>
 
           {/* Mock app card */}
           <div className="asc-mock-scene">
             <div className="asc-mock-card">
-
               {/* Floating badges */}
               <div className="asc-badge-streak">
                 🔥 <span>12 dias</span>
               </div>
               <div className="asc-badge-xp">
-                <span style={{ width: 6, height: 6, borderRadius: '50%', background: '#a78bfa', display: 'inline-block', boxShadow: '0 0 6px #a78bfa' }} />
+                <span
+                  style={{
+                    width: 6,
+                    height: 6,
+                    borderRadius: "50%",
+                    background: "#a78bfa",
+                    display: "inline-block",
+                    boxShadow: "0 0 6px #a78bfa",
+                  }}
+                />
                 +240 XP hoje
               </div>
 
@@ -911,14 +957,36 @@ export default function Login() {
                 <div className="asc-ring-wrap">
                   <svg width="52" height="52" viewBox="0 0 52 52">
                     <defs>
-                      <linearGradient id="ringGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+                      <linearGradient
+                        id="ringGrad"
+                        x1="0%"
+                        y1="0%"
+                        x2="100%"
+                        y2="0%"
+                      >
                         <stop offset="0%" stopColor="#6346dc" />
                         <stop offset="100%" stopColor="#a78bfa" />
                       </linearGradient>
                     </defs>
-                    <circle cx="26" cy="26" r="22" fill="none" stroke="rgba(255,255,255,0.06)" strokeWidth="5" />
-                    <circle cx="26" cy="26" r="22" fill="none" stroke="url(#ringGrad)" strokeWidth="5"
-                      strokeLinecap="round" strokeDasharray="138" strokeDashoffset="35" />
+                    <circle
+                      cx="26"
+                      cy="26"
+                      r="22"
+                      fill="none"
+                      stroke="rgba(255,255,255,0.06)"
+                      strokeWidth="5"
+                    />
+                    <circle
+                      cx="26"
+                      cy="26"
+                      r="22"
+                      fill="none"
+                      stroke="url(#ringGrad)"
+                      strokeWidth="5"
+                      strokeLinecap="round"
+                      strokeDasharray="138"
+                      strokeDashoffset="35"
+                    />
                   </svg>
                   <div className="asc-ring-label">75%</div>
                 </div>
@@ -934,28 +1002,46 @@ export default function Login() {
               {/* Habits */}
               <div className="asc-mock-habits">
                 <div className="asc-habit-row">
-                  <div className="asc-habit-dot" style={{ background: '#a78bfa' }} />
+                  <div
+                    className="asc-habit-dot"
+                    style={{ background: "#a78bfa" }}
+                  />
                   <span className="asc-habit-name">Treinar</span>
                   <div className="asc-habit-check done">
-                    <svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" /></svg>
+                    <svg viewBox="0 0 10 10">
+                      <polyline points="1.5,5 4,7.5 8.5,2.5" />
+                    </svg>
                   </div>
                 </div>
                 <div className="asc-habit-row">
-                  <div className="asc-habit-dot" style={{ background: '#ff8c32' }} />
+                  <div
+                    className="asc-habit-dot"
+                    style={{ background: "#ff8c32" }}
+                  />
                   <span className="asc-habit-name">Estudar</span>
                   <div className="asc-habit-check done">
-                    <svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" /></svg>
+                    <svg viewBox="0 0 10 10">
+                      <polyline points="1.5,5 4,7.5 8.5,2.5" />
+                    </svg>
                   </div>
                 </div>
                 <div className="asc-habit-row">
-                  <div className="asc-habit-dot" style={{ background: '#4ade80' }} />
+                  <div
+                    className="asc-habit-dot"
+                    style={{ background: "#4ade80" }}
+                  />
                   <span className="asc-habit-name">Orar</span>
                   <div className="asc-habit-check done">
-                    <svg viewBox="0 0 10 10"><polyline points="1.5,5 4,7.5 8.5,2.5" /></svg>
+                    <svg viewBox="0 0 10 10">
+                      <polyline points="1.5,5 4,7.5 8.5,2.5" />
+                    </svg>
                   </div>
                 </div>
                 <div className="asc-habit-row">
-                  <div className="asc-habit-dot" style={{ background: 'rgba(255,255,255,0.2)' }} />
+                  <div
+                    className="asc-habit-dot"
+                    style={{ background: "rgba(255,255,255,0.2)" }}
+                  />
                   <span className="asc-habit-name">Correr</span>
                   <div className="asc-habit-check pending" />
                 </div>
@@ -966,7 +1052,6 @@ export default function Login() {
                 <div className="asc-streak-pill">🔥 12 dias</div>
                 <span className="asc-xp-gained">+240 XP</span>
               </div>
-
             </div>
           </div>
 
@@ -983,7 +1068,9 @@ export default function Login() {
             </div>
             <div className="asc-divider-v" />
             <div className="asc-stat">
-              <span className="asc-stat-num" style={{ color: '#4ade80' }}>∞</span>
+              <span className="asc-stat-num" style={{ color: "#4ade80" }}>
+                ∞
+              </span>
               <span className="asc-stat-label">Hábitos & Metas</span>
             </div>
           </div>
@@ -992,7 +1079,6 @@ export default function Login() {
         {/* ── Right form panel ── */}
         <div className="asc-right">
           <div className="asc-form-wrap">
-
             {/* Logo */}
             <div className="asc-form-logo">
               <img src="/Logo-TaskBar.png" alt="ASCEND" />
@@ -1027,9 +1113,18 @@ export default function Login() {
                     <label className="asc-label">Email</label>
                     <div className="asc-field-wrap">
                       <span className="asc-field-icon">
-                        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
+                        <svg viewBox="0 0 24 24">
+                          <rect x="2" y="4" width="20" height="16" rx="2" />
+                          <polyline points="2,4 12,13 22,4" />
+                        </svg>
                       </span>
-                      <input className="asc-input" type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} />
+                      <input
+                        className="asc-input"
+                        type="email"
+                        placeholder="seu@email.com"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                      />
                     </div>
                   </div>
 
@@ -1037,7 +1132,10 @@ export default function Login() {
                     <label className="asc-label">Senha</label>
                     <div className="asc-field-wrap">
                       <span className="asc-field-icon">
-                        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <svg viewBox="0 0 24 24">
+                          <rect x="3" y="11" width="18" height="11" rx="2" />
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
                       </span>
                       <input
                         className="asc-input has-eye"
@@ -1046,21 +1144,42 @@ export default function Login() {
                         value={password}
                         onChange={e => setPassword(e.target.value)}
                       />
-                      <button className="asc-eye-btn" onClick={() => setShowPassword(v => !v)} type="button">
+                      <button
+                        className="asc-eye-btn"
+                        onClick={() => setShowPassword(v => !v)}
+                        type="button"
+                      >
                         {showPassword ? (
-                          <svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                          <svg viewBox="0 0 24 24">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                            <line x1="1" y1="1" x2="23" y2="23" />
+                          </svg>
                         ) : (
-                          <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                          <svg viewBox="0 0 24 24">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
                         )}
                       </button>
                     </div>
+
                     <a className="asc-forgot">Esqueci a senha</a>
                   </div>
                 </div>
 
-                <button className="asc-btn" onClick={handleLogin} disabled={loading}>
+                <button
+                  className="asc-btn"
+                  onClick={handleLogin}
+                  disabled={loading}
+                >
                   {loading ? "Entrando..." : "Entrar"}
-                  {!loading && <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>}
+                  {!loading && (
+                    <svg viewBox="0 0 24 24">
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                      <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                  )}
                 </button>
 
                 <div className="asc-switch">
@@ -1083,9 +1202,18 @@ export default function Login() {
                     <label className="asc-label">Nome</label>
                     <div className="asc-field-wrap">
                       <span className="asc-field-icon">
-                        <svg viewBox="0 0 24 24"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+                        <svg viewBox="0 0 24 24">
+                          <path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2" />
+                          <circle cx="12" cy="7" r="4" />
+                        </svg>
                       </span>
-                      <input className="asc-input" type="text" placeholder="Seu nome" value={name} onChange={e => setName(e.target.value)} />
+                      <input
+                        className="asc-input"
+                        type="text"
+                        placeholder="Seu nome"
+                        value={name}
+                        onChange={e => setName(e.target.value)}
+                      />
                     </div>
                   </div>
 
@@ -1093,9 +1221,18 @@ export default function Login() {
                     <label className="asc-label">Email</label>
                     <div className="asc-field-wrap">
                       <span className="asc-field-icon">
-                        <svg viewBox="0 0 24 24"><rect x="2" y="4" width="20" height="16" rx="2"/><polyline points="2,4 12,13 22,4"/></svg>
+                        <svg viewBox="0 0 24 24">
+                          <rect x="2" y="4" width="20" height="16" rx="2" />
+                          <polyline points="2,4 12,13 22,4" />
+                        </svg>
                       </span>
-                      <input className="asc-input" type="email" placeholder="seu@email.com" value={email} onChange={e => setEmail(e.target.value)} />
+                      <input
+                        className="asc-input"
+                        type="email"
+                        placeholder="seu@email.com"
+                        value={email}
+                        onChange={e => setEmail(e.target.value)}
+                      />
                     </div>
                   </div>
 
@@ -1103,7 +1240,10 @@ export default function Login() {
                     <label className="asc-label">Senha</label>
                     <div className="asc-field-wrap">
                       <span className="asc-field-icon">
-                        <svg viewBox="0 0 24 24"><rect x="3" y="11" width="18" height="11" rx="2"/><path d="M7 11V7a5 5 0 0 1 10 0v4"/></svg>
+                        <svg viewBox="0 0 24 24">
+                          <rect x="3" y="11" width="18" height="11" rx="2" />
+                          <path d="M7 11V7a5 5 0 0 1 10 0v4" />
+                        </svg>
                       </span>
                       <input
                         className="asc-input has-eye"
@@ -1112,20 +1252,55 @@ export default function Login() {
                         value={password}
                         onChange={e => setPassword(e.target.value)}
                       />
-                      <button className="asc-eye-btn" onClick={() => setShowPassword(v => !v)} type="button">
+                      <button
+                        className="asc-eye-btn"
+                        onClick={() => setShowPassword(v => !v)}
+                        type="button"
+                      >
                         {showPassword ? (
-                          <svg viewBox="0 0 24 24"><path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94"/><path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19"/><line x1="1" y1="1" x2="23" y2="23"/></svg>
+                          <svg viewBox="0 0 24 24">
+                            <path d="M17.94 17.94A10.07 10.07 0 0 1 12 20c-7 0-11-8-11-8a18.45 18.45 0 0 1 5.06-5.94" />
+                            <path d="M9.9 4.24A9.12 9.12 0 0 1 12 4c7 0 11 8 11 8a18.5 18.5 0 0 1-2.16 3.19" />
+                            <line x1="1" y1="1" x2="23" y2="23" />
+                          </svg>
                         ) : (
-                          <svg viewBox="0 0 24 24"><path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z"/><circle cx="12" cy="12" r="3"/></svg>
+                          <svg viewBox="0 0 24 24">
+                            <path d="M1 12s4-8 11-8 11 8 11 8-4 8-11 8-11-8-11-8z" />
+                            <circle cx="12" cy="12" r="3" />
+                          </svg>
                         )}
                       </button>
+                    </div>
+                    <div
+                      style={{
+                        marginTop: 8,
+                        fontSize: 12,
+                        color: "rgba(255,255,255,0.5)",
+                        lineHeight: 1.5,
+                      }}
+                    >
+                      • 8 caracteres
+                      <br />
+                      • 1 letra maiúscula
+                      <br />
+                      • 1 letra minúscula
+                      <br />• 1 número
                     </div>
                   </div>
                 </div>
 
-                <button className="asc-btn" onClick={handleSignup} disabled={loading}>
+                <button
+                  className="asc-btn"
+                  onClick={handleSignup}
+                  disabled={loading}
+                >
                   {loading ? "Criando conta..." : "Criar conta"}
-                  {!loading && <svg viewBox="0 0 24 24"><line x1="5" y1="12" x2="19" y2="12"/><polyline points="12 5 19 12 12 19"/></svg>}
+                  {!loading && (
+                    <svg viewBox="0 0 24 24">
+                      <line x1="5" y1="12" x2="19" y2="12" />
+                      <polyline points="12 5 19 12 12 19" />
+                    </svg>
+                  )}
                 </button>
 
                 <div className="asc-switch">
@@ -1145,10 +1320,8 @@ export default function Login() {
                 <div className="asc-xp-fill" />
               </div>
             </div>
-
           </div>
         </div>
-
       </div>
     </>
   );

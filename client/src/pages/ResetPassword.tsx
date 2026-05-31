@@ -3,6 +3,7 @@
 
 import { useState } from "react";
 import { supabase } from "../lib/supabase";
+import { notifyError, notifySuccess } from "@/lib/notifications";
 
 export default function ResetPassword() {
   const [password, setPassword] = useState("");
@@ -18,9 +19,9 @@ export default function ResetPassword() {
     const { error } = await supabase.auth.updateUser({ password });
 
     if (error) {
-      alert(error.message);
+      notifyError(error.message);
     } else {
-      alert("Senha alterada com sucesso");
+      notifySuccess("Senha alterada com sucesso");
     }
   }
 

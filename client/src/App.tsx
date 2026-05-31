@@ -313,6 +313,7 @@ function App() {
             }}
           />
           <FlowToastContainer />
+          <Toaster />
         </TooltipProvider>
       </ThemeProvider>
     </ErrorBoundary>

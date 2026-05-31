@@ -12,6 +12,7 @@ import {
   Lock,
   Save,
 } from "lucide-react";
+import { notifyError, notifySuccess } from "@/lib/notifications";
 
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
@@ -75,7 +76,7 @@ export default function Settings() {
       avatar_url: profile.avatar,
     });
 
-    alert("Perfil salvo!");
+    notifySuccess("Perfil salvo!");
   }
 
   async function logout() {
@@ -103,7 +104,7 @@ export default function Settings() {
     } = await supabase.auth.getUser();
 
     if (!user?.email) {
-      alert("Usuário não encontrado");
+      notifyError("Usuário não encontrado");
       return;
     }
 
@@ -112,11 +113,11 @@ export default function Settings() {
     });
 
     if (error) {
-      alert("Erro ao enviar email");
+      notifyError("Erro ao enviar e-mail", "Tente novamente mais tarde.");
       return;
     }
 
-    alert("Email de redefinição enviado!");
+    notifySuccess("E-mail de redefinição enviado!");
   }
 
   async function handleImageUpload(event: React.ChangeEvent<HTMLInputElement>) {
@@ -130,7 +131,7 @@ export default function Settings() {
       } = await supabase.auth.getUser();
 
       if (!user) {
-        alert("Usuário não encontrado");
+        notifyError("Usuário não encontrado");
         return;
       }
 
@@ -149,7 +150,7 @@ export default function Settings() {
       if (uploadError) {
         console.error(uploadError);
 
-        alert(uploadError.message);
+        notifyError(uploadError.message);
 
         return;
       }
@@ -161,11 +162,11 @@ export default function Settings() {
         avatar: data.publicUrl,
       }));
 
-      alert("Imagem enviada!");
+      notifySuccess("Imagem enviada!");
     } catch (error) {
       console.error(error);
 
-      alert("Erro ao enviar imagem");
+      notifyError("Erro ao enviar imagem", "Tente novamente mais tarde.");
     }
   }
 

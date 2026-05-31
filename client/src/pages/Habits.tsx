@@ -15,6 +15,7 @@ import {
 } from "lucide-react";
 
 import { addXP } from "@/lib/store";
+import { notifyError } from "@/lib/notifications";
 
 import {
   AreaChart,
@@ -389,7 +390,7 @@ function NewHabitModal({
     if (error) {
       console.log("SUPABASE ERROR:", error);
 
-      alert(JSON.stringify(error));
+      notifyError("Erro ao criar hábito", error.message ?? JSON.stringify(error));
 
       showToast("Erro ao criar hábito", "info", "❌");
 
