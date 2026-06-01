@@ -77,13 +77,19 @@ function DashboardLayoutContent({
   const user = { name: 'Usuario', email: 'usuario@flowzone.local' };
   const logout = () => {};
   const [location, setLocation] = useLocation();
-  const { state, toggleSidebar } = useSidebar();
+  const { state, toggleSidebar, setOpenMobile } = useSidebar();
   const isCollapsed = state === "collapsed";
   const [isResizing, setIsResizing] = useState(false);
   const sidebarRef = useRef<HTMLDivElement>(null);
   const activeMenuItem = menuItems.find(item => item.path === location);
   const isMobile = useIsMobile();
 
+  useEffect(() => {
+    // Close mobile sidebar when location changes (navigated to new page)
+    if (isMobile) {
+      setOpenMobile(false);
+    }
+  }, [location, isMobile, setOpenMobile]);
   useEffect(() => {
     if (isCollapsed) {
       setIsResizing(false);

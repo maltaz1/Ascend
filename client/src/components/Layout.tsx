@@ -83,8 +83,6 @@ export function Layout({
     return [...savedOrder, ...newItems];
   });
   const [draggedItem, setDraggedItem] = useState<Tab | null>(null);
-  const [touchStart, setTouchStart] = useState<number | null>(null);
-  const [touchEnd, setTouchEnd] = useState<number | null>(null);
   const levelProgress = getLevelProgress();
 
   const isMobile = useIsMobile();
@@ -93,27 +91,10 @@ export function Layout({
     .map(id => navItems.find(item => item.id === id))
     .filter(Boolean) as typeof navItems;
 
-  const handleTouchStart = (e: React.TouchEvent) => {
-    setTouchStart(e.targetTouches[0].clientX);
-  };
-
-  const handleTouchEnd = (e: React.TouchEvent) => {
-    setTouchEnd(e.changedTouches[0].clientX);
-  };
-
+  // Close mobile drawer whenever activeTab changes (navigation)
   React.useEffect(() => {
-    if (!touchStart || !touchEnd) return;
-    const distance = touchStart - touchEnd;
-    const isLeftSwipe = distance > 50;
-    const isRightSwipe = distance < -50;
-
-    if (isLeftSwipe && mobileOpen) {
-      setMobileOpen(false);
-    }
-    if (isRightSwipe && !mobileOpen) {
-      setMobileOpen(true);
-    }
-  }, [touchStart, touchEnd, mobileOpen]);
+    setMobileOpen(false);
+  }, [activeTab]);
 
   return (
     <div
@@ -123,8 +104,6 @@ export function Layout({
         background: "var(--bg-primary)",
         position: "relative",
       }}
-      onTouchStart={handleTouchStart}
-      onTouchEnd={handleTouchEnd}
     >
       {/* Desktop Sidebar */}
       <aside
@@ -423,7 +402,8 @@ export function Layout({
               left: 0,
               right: 0,
               bottom: 0,
-              background: "rgba(0,0,0,0.5)",
+              background: "rgba(0,0,0,0.45)",
+              backdropFilter: "blur(6px)",
               zIndex: 90,
               animation: "fadeIn 0.2s ease",
             }}
@@ -437,10 +417,10 @@ export function Layout({
               position: "fixed",
               top: 0,
               left: 0,
-              width: "80%",
-              maxWidth: 280,
+              width: "85%",
+              maxWidth: 320,
               height: "100vh",
-              background: "var(--bg-secondary)",
+              background: "var(--bg-secondary)/80",
               borderRight: "1px solid var(--border-subtle)",
               zIndex: 95,
               flexDirection: "column",
@@ -448,11 +428,9 @@ export function Layout({
               gap: 2,
               overflowY: "auto",
               animation: "slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
-              touchAction: "none",
             }}
             className="mobile-drawer"
           >
-            {/* Close Button */}
             <button
               onClick={() => setMobileOpen(false)}
               style={{

@@ -490,8 +490,9 @@ const sidebarMenuButtonVariants = cva(
           "bg-background shadow-[0_0_0_1px_hsl(var(--sidebar-border))] hover:bg-sidebar-accent hover:text-sidebar-accent-foreground hover:shadow-[0_0_0_1px_hsl(var(--sidebar-accent))]",
       },
       size: {
-        default: "h-8 text-sm",
-        sm: "h-7 text-xs",
+        // Ensure touch targets on mobile are at least 44px high; desktop remains compact.
+        default: "h-11 md:h-8 text-sm",
+        sm: "h-9 md:h-7 text-xs",
         lg: "h-12 text-sm group-data-[collapsible=icon]:p-0!",
       },
     },
@@ -516,7 +517,18 @@ function SidebarMenuButton({
   tooltip?: string | React.ComponentProps<typeof TooltipContent>;
 } & VariantProps<typeof sidebarMenuButtonVariants>) {
   const Comp = asChild ? Slot : "button";
-  const { isMobile, state } = useSidebar();
+  const { isMobile, state, setOpenMobile } = useSidebar();
+
+  // Capture onClick from props to inject auto-close on mobile
+  const { onClick, ...rest } = props as any;
+
+  const handleClick = (e: React.MouseEvent) => {
+    try {
+      onClick?.(e);
+    } finally {
+      if (isMobile) setOpenMobile(false);
+    }
+  };
 
   const button = (
     <Comp
@@ -525,7 +537,8 @@ function SidebarMenuButton({
       data-size={size}
       data-active={isActive}
       className={cn(sidebarMenuButtonVariants({ variant, size }), className)}
-      {...props}
+      onClick={handleClick}
+      {...(rest as any)}
     />
   );
 
