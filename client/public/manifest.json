@@ -1,6 +1,6 @@
 {
-  "name": "FlowZone - Produtividade Pessoal",
-  "short_name": "FlowZone",
+  "name": "Ascend",
+  "short_name": "Ascend",
   "description": "App de desenvolvimento pessoal com metas, hábitos, dieta, financeiro e muito mais",
   "start_url": "/",
   "scope": "/",
@@ -10,27 +10,27 @@
   "theme_color": "#A855F7",
   "icons": [
     {
-      "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663572413338/HobM3k6R2A7cASuPN7gfoC/flowzone-icon-192-KBYKYjtinzhDMErgY6sPQq.png",
+      "src": "/Logo-principal.jpg",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663572413338/HobM3k6R2A7cASuPN7gfoC/flowzone-icon-512-ZuFtFiW2ViGZpjaWLLNFwR.png",
+      "src": "/Logo-principal.jpg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "any"
     },
     {
-      "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663572413338/HobM3k6R2A7cASuPN7gfoC/flowzone-icon-192-KBYKYjtinzhDMErgY6sPQq.png",
+      "src": "/Logo-principal.jpg",
       "sizes": "192x192",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "maskable"
     },
     {
-      "src": "https://d2xsxph8kpxj0f.cloudfront.net/310519663572413338/HobM3k6R2A7cASuPN7gfoC/flowzone-icon-512-ZuFtFiW2ViGZpjaWLLNFwR.png",
+      "src": "/Logo-principal.jpg",
       "sizes": "512x512",
-      "type": "image/png",
+      "type": "image/jpeg",
       "purpose": "maskable"
     }
   ],
@@ -57,7 +57,7 @@
       "url": "/?tab=dashboard",
       "icons": [
         {
-          "src": "/icon-192.png",
+          "src": "/Logo-principal.jpg",
           "sizes": "192x192"
         }
       ]
@@ -69,7 +69,7 @@
       "url": "/?tab=metas",
       "icons": [
         {
-          "src": "/icon-192.png",
+          "src": "/Logo-principal.jpg",
           "sizes": "192x192"
         }
       ]
@@ -81,7 +81,7 @@
       "url": "/?tab=financeiro",
       "icons": [
         {
-          "src": "/icon-192.png",
+          "src": "/Logo-principal.jpg",
           "sizes": "192x192"
         }
       ]
