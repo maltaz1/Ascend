@@ -10,27 +10,27 @@
   "theme_color": "#A855F7",
   "icons": [
     {
-      "src": "/logo.jpg",
+      "src": "/logo.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/logo.jpg",
+      "src": "/logo.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "any"
     },
     {
-      "src": "/logo.jpg",
+      "src": "/logo.png",
       "sizes": "192x192",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "maskable"
     },
     {
-      "src": "/logo.jpg",
+      "src": "/logo.png",
       "sizes": "512x512",
-      "type": "image/jpeg",
+      "type": "image/png",
       "purpose": "maskable"
     }
   ],
@@ -57,7 +57,7 @@
       "url": "/?tab=dashboard",
       "icons": [
         {
-          "src": "/logo.jpg",
+          "src": "/logo.png",
           "sizes": "192x192"
         }
       ]
@@ -69,7 +69,7 @@
       "url": "/?tab=metas",
       "icons": [
         {
-          "src": "/logo.jpg",
+          "src": "/logo.png",
           "sizes": "192x192"
         }
       ]
@@ -81,7 +81,7 @@
       "url": "/?tab=financeiro",
       "icons": [
         {
-          "src": "/logo.jpg",
+          "src": "/logo.png",
           "sizes": "192x192"
         }
       ]
