@@ -14,6 +14,7 @@ import {
   filterTransactionsByType,
   getCategoryBreakdown,
 } from './financialTransactions';
+import { parseLocalDate, getLocalDateTimestamp } from './date';
 
 // ============================================================================
 // ESTATÍSTICAS BÁSICAS
@@ -91,7 +92,7 @@ export function calculateFinancialStats(
 function calculateDaysInPeriod(transactions: Transaction[]): number {
   if (transactions.length === 0) return 0;
 
-  const dates = transactions.map(t => new Date(t.date).toDateString());
+  const dates = transactions.map(t => parseLocalDate(t.date).toDateString());
   const uniqueDates = new Set(dates);
   return uniqueDates.size;
 }
@@ -103,13 +104,13 @@ function calculateDaysWithoutExpense(transactions: Transaction[]): number {
   if (expenseTransactions.length === 0) return calculateDaysInPeriod(transactions);
 
   // Encontrar data mínima e máxima
-  const dates = transactions.map(t => new Date(t.date).getTime());
+  const dates = transactions.map(t => getLocalDateTimestamp(t.date));
   const minDate = Math.min(...dates);
   const maxDate = Math.max(...dates);
 
   // Contar dias com gastos
   const daysWithExpense = new Set(
-    expenseTransactions.map(t => new Date(t.date).toDateString())
+    expenseTransactions.map(t => parseLocalDate(t.date).toDateString())
   );
 
   // Calcular total de dias no período
@@ -136,14 +137,14 @@ export function generateChartData(
 
 function generateBalanceEvolution(transactions: Transaction[]): Array<{ date: string; balance: number }> {
   const sortedTransactions = [...transactions].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    (a, b) => getLocalDateTimestamp(a.date) - getLocalDateTimestamp(b.date)
   );
 
   const evolution: Array<{ date: string; balance: number }> = [];
   let balance = 0;
 
   sortedTransactions.forEach(t => {
-    const dateStr = new Date(t.date).toLocaleDateString('pt-BR');
+    const dateStr = parseLocalDate(t.date).toLocaleDateString('pt-BR');
     const value = t.type === 'entrada' ? t.value : -t.value;
     balance += value;
 
@@ -181,13 +182,13 @@ function generateDailyExpenses(transactions: Transaction[]): Array<{ date: strin
   const dailyMap: Record<string, number> = {};
 
   filterTransactionsByType(transactions, 'saída').forEach(t => {
-    const dateStr = new Date(t.date).toLocaleDateString('pt-BR');
+    const dateStr = parseLocalDate(t.date).toLocaleDateString('pt-BR');
     dailyMap[dateStr] = (dailyMap[dateStr] || 0) + t.value;
   });
 
   return Object.entries(dailyMap)
     .map(([date, amount]) => ({ date, amount }))
-    .sort((a, b) => new Date(a.date).getTime() - new Date(b.date).getTime());
+    .sort((a, b) => getLocalDateTimestamp(a.date) - getLocalDateTimestamp(b.date));
 }
 
 // ============================================================================
@@ -225,7 +226,7 @@ export function getTrendAnalysis(
   windowSize: number = 7
 ) {
   const sortedTransactions = [...transactions].sort(
-    (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+    (a, b) => getLocalDateTimestamp(a.date) - getLocalDateTimestamp(b.date)
   );
 
   const dailyExpenses = generateDailyExpenses(sortedTransactions);

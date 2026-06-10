@@ -52,8 +52,24 @@ const DATE_FORMAT = 'YYYY-MM-DD';
 /**
  * Retorna a data atual no formato YYYY-MM-DD
  */
+function toYYYYMMDD(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
+/**
+ * Retorna a data atual no formato YYYY-MM-DD
+ */
 export function getTodayString(): string {
-  return new Date().toISOString().split('T')[0];
+  const today = new Date();
+
+  const year = today.getFullYear();
+  const month = String(today.getMonth() + 1).padStart(2, "0");
+  const day = String(today.getDate()).padStart(2, "0");
+
+  return `${year}-${month}-${day}`;
 }
 
 /**
@@ -62,7 +78,7 @@ export function getTodayString(): string {
 export function getYesterdayString(): string {
   const date = new Date();
   date.setDate(date.getDate() - 1);
-  return date.toISOString().split('T')[0];
+  return toYYYYMMDD(date);
 }
 
 /**
@@ -173,7 +189,7 @@ export function getCurrentStreak(habit: Habit): number {
 
   // Começar do hoje e ir para trás
   while (true) {
-    const dateStr = currentDate.toISOString().split('T')[0];
+    const dateStr = toYYYYMMDD(currentDate);
     
     if (habit.completedDates.includes(dateStr)) {
       streak++;
@@ -433,7 +449,7 @@ export function getHabitProgressInPeriod(
   let currentDate = new Date(start);
 
   while (currentDate <= end) {
-    const dateStr = currentDate.toISOString().split('T')[0];
+    const dateStr = toYYYYMMDD(currentDate);
     if (habit.completedDates.includes(dateStr)) {
       completed++;
     }

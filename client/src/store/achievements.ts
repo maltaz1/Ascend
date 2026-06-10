@@ -1,4 +1,5 @@
 import { AppData, Achievement } from "./types";
+import { getTodayString, toYYYYMMDD } from "./utils";
 
 const achievementPredicates: Record<string, (data: AppData) => boolean> = {
   tasks_1: data => data.user.totalTasksCompleted >= 1,
@@ -14,12 +15,12 @@ const achievementPredicates: Record<string, (data: AppData) => boolean> = {
   level_10: data => data.user.level >= 10,
   habit_streak_7: data =>
     data.habits.some(habit => {
-      const today = new Date().toISOString().split("T")[0];
+      const today = getTodayString();
       let streak = 0;
       for (let offset = 0; offset < 7; offset += 1) {
         const date = new Date(today);
         date.setDate(date.getDate() - offset);
-        const dateKey = date.toISOString().split("T")[0];
+        const dateKey = toYYYYMMDD(date);
         if (habit.completedDates.includes(dateKey)) {
           streak += 1;
         } else {

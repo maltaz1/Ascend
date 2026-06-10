@@ -29,6 +29,7 @@ import {
 } from "@/lib/foodApi";
 import { DietSettingsModal } from "./DietSettingsModal";
 import type { Meal, FoodItem } from "@/lib/store";
+import { getTodayString } from "@/store/utils";
 import { supabase } from "@/lib/supabase";
 
 const MEAL_TYPES = {
@@ -417,7 +418,7 @@ function AddFoodModal({
 
     const meal: Omit<Meal, "id" | "timestamp"> = {
       type: mealType,
-      date: new Date().toISOString().split("T")[0],
+      date: getTodayString(),
       foods,
       totalCalories,
       totalProtein,

@@ -1,23 +1,24 @@
-import React, { useState, useMemo } from "react";
-import { addTransaction, getData, subscribe } from "@/lib/store";
+import React, { useState, useMemo, useEffect } from "react";
+import {
+  addTransaction,
+  deleteTransaction,
+  getData,
+  subscribe,
+} from "@/lib/store";
 import {
   ChevronLeft,
   ChevronRight,
   Plus,
   BarChart3,
   PieChart as PieChartIcon,
-  TrendingUp,
-  TrendingDown,
+  Trash2,
 } from "lucide-react";
-import {
-  PieChart,
-  Pie,
-  Cell,
-  ResponsiveContainer,
-  Legend,
-  Tooltip,
-} from "recharts";
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from "recharts";
 import { showToast } from "@/components/ui/FlowToast";
+import { parseLocalDate, getLocalDateTimestamp } from "@/lib/date";
+import { getTodayString } from "@/store/utils";
+
+// ─── constants ───────────────────────────────────────────────────────────────
 
 const CATEGORY_ICONS: Record<string, string> = {
   Alimentação: "🍔",
@@ -44,6 +45,13 @@ const PREDEFINED_CATEGORIES = [
   { name: "Outros / Imprevistos", icon: "🎲" },
 ];
 
+const INCOME_CATEGORIES = [
+  { name: "Salário", icon: "💰" },
+  { name: "Freelance", icon: "💻" },
+  { name: "Investimentos", icon: "📈" },
+  { name: "Outros", icon: "🎲" },
+];
+
 const CHART_COLORS = [
   "#A855F7",
   "#EC4899",
@@ -55,26 +63,62 @@ const CHART_COLORS = [
   "#6366F1",
 ];
 
+// ─── shared style helpers ─────────────────────────────────────────────────────
+
+const labelStyle: React.CSSProperties = {
+  fontSize: "10px",
+  fontWeight: 600,
+  letterSpacing: "0.1em",
+  textTransform: "uppercase",
+  color: "var(--muted-foreground)",
+  display: "block",
+  marginBottom: "7px",
+};
+
+const cardBase: React.CSSProperties = {
+  background: "var(--card)",
+  border: "1px solid var(--border)",
+  borderRadius: "14px",
+  padding: "20px",
+};
+
+// ─── component ────────────────────────────────────────────────────────────────
+
 export default function Financial() {
+  const [windowWidth, setWindowWidth] = useState(
+    typeof window !== "undefined" ? window.innerWidth : 1024
+  );
   const [currentDate, setCurrentDate] = useState(new Date());
   const [transactions, setTransactions] = useState(
     getData().financial.transactions
   );
   const [showAddTransaction, setShowAddTransaction] = useState(false);
+  const [confirmDeleteId, setConfirmDeleteId] = useState<string | null>(null);
   const [chartType, setChartType] = useState<"bars" | "pie">("bars");
   const [formData, setFormData] = useState({
     name: "",
     amount: "",
     type: "expense" as "income" | "expense",
     category: "Alimentação",
-    date: new Date().toISOString().split("T")[0],
+    date: getTodayString(),
   });
 
-  React.useEffect(() => {
+  useEffect(() => {
+    const onResize = () => setWindowWidth(window.innerWidth);
+    window.addEventListener("resize", onResize);
+    return () => window.removeEventListener("resize", onResize);
+  }, []);
+
+  useEffect(() => {
     return subscribe(() => {
       setTransactions([...getData().financial.transactions]);
     });
   }, []);
+
+  const isMobile = windowWidth < 640;
+  const isTablet = windowWidth < 900;
+
+  // ─── date ranges ────────────────────────────────────────────────────────────
 
   const monthStart = new Date(
     currentDate.getFullYear(),
@@ -108,87 +152,77 @@ export default function Financial() {
   const previousWeekEnd = new Date(previousWeekStart);
   previousWeekEnd.setDate(previousWeekStart.getDate() + 6);
 
+  // ─── filtered sets ──────────────────────────────────────────────────────────
+
   const monthTransactions = transactions.filter(t => {
-    const tDate = new Date(t.date);
-    return tDate >= monthStart && tDate <= monthEnd;
+    const d = parseLocalDate(t.date);
+    return d >= monthStart && d <= monthEnd;
   });
 
   const previousMonthTransactions = transactions.filter(t => {
-    const tDate = new Date(t.date);
-    return tDate >= previousMonthStart && tDate <= previousMonthEnd;
+    const d = parseLocalDate(t.date);
+    return d >= previousMonthStart && d <= previousMonthEnd;
   });
 
   const weekTransactions = transactions.filter(t => {
-    const tDate = new Date(t.date);
-    return tDate >= weekStart && tDate <= weekEnd;
+    const d = parseLocalDate(t.date);
+    return d >= weekStart && d <= weekEnd;
   });
 
   const previousWeekTransactions = transactions.filter(t => {
-    const tDate = new Date(t.date);
-    return tDate >= previousWeekStart && tDate <= previousWeekEnd;
+    const d = parseLocalDate(t.date);
+    return d >= previousWeekStart && d <= previousWeekEnd;
   });
+
+  // ─── summaries ──────────────────────────────────────────────────────────────
 
   const summary = useMemo(() => {
     const income = monthTransactions
       .filter(t => t.type === "income")
-      .reduce((sum, t) => sum + t.amount, 0);
+      .reduce((s, t) => s + t.amount, 0);
     const expenses = monthTransactions
       .filter(t => t.type === "expense")
-      .reduce((sum, t) => sum + t.amount, 0);
-    return {
-      income,
-      expenses,
-      balance: income - expenses,
-    };
+      .reduce((s, t) => s + t.amount, 0);
+    return { income, expenses, balance: income - expenses };
   }, [monthTransactions]);
 
   const previousMonthSummary = useMemo(() => {
     const income = previousMonthTransactions
       .filter(t => t.type === "income")
-      .reduce((sum, t) => sum + t.amount, 0);
+      .reduce((s, t) => s + t.amount, 0);
     const expenses = previousMonthTransactions
       .filter(t => t.type === "expense")
-      .reduce((sum, t) => sum + t.amount, 0);
-    return {
-      income,
-      expenses,
-      balance: income - expenses,
-    };
+      .reduce((s, t) => s + t.amount, 0);
+    return { income, expenses, balance: income - expenses };
   }, [previousMonthTransactions]);
 
   const weekSummary = useMemo(() => {
     const income = weekTransactions
       .filter(t => t.type === "income")
-      .reduce((sum, t) => sum + t.amount, 0);
+      .reduce((s, t) => s + t.amount, 0);
     const expenses = weekTransactions
       .filter(t => t.type === "expense")
-      .reduce((sum, t) => sum + t.amount, 0);
-    return {
-      income,
-      expenses,
-      balance: income - expenses,
-    };
+      .reduce((s, t) => s + t.amount, 0);
+    return { income, expenses, balance: income - expenses };
   }, [weekTransactions]);
 
   const previousWeekSummary = useMemo(() => {
     const income = previousWeekTransactions
       .filter(t => t.type === "income")
-      .reduce((sum, t) => sum + t.amount, 0);
+      .reduce((s, t) => s + t.amount, 0);
     const expenses = previousWeekTransactions
       .filter(t => t.type === "expense")
-      .reduce((sum, t) => sum + t.amount, 0);
-    return {
-      income,
-      expenses,
-      balance: income - expenses,
-    };
+      .reduce((s, t) => s + t.amount, 0);
+    return { income, expenses, balance: income - expenses };
   }, [previousWeekTransactions]);
+
+  // ─── chart data ─────────────────────────────────────────────────────────────
 
   const expensesByDay = useMemo(() => {
     const result: Record<number, number> = {};
     monthTransactions.forEach(t => {
       if (t.type === "expense") {
-        const day = new Date(t.date).getDate();
+        const day = parseLocalDate(t.date).getDate();
         result[day] = (result[day] || 0) + t.amount;
       }
     });
@@ -203,40 +237,83 @@ export default function Financial() {
     monthTransactions
       .filter(t => t.type === "expense")
       .forEach(t => {
-          if (t.category) {
-            result[t.category] = (result[t.category] || 0) + t.amount;
-          }
-        });
+        if (t.category)
+          result[t.category] = (result[t.category] || 0) + t.amount;
+      });
     return result;
   }, [monthTransactions]);
 
-  const maxExpense = useMemo(() => {
-    return Math.max(...Object.values(expensesByCategory), 1);
-  }, [expensesByCategory]);
+  const maxExpense = useMemo(
+    () => Math.max(...Object.values(expensesByCategory), 1),
+    [expensesByCategory]
+  );
+
+  const chartData = Object.entries(expensesByCategory)
+    .filter(([, v]) => v > 0)
+    .map(([name, value]) => ({ name, amount: parseFloat(value.toFixed(2)) }))
+    .sort((a, b) => b.amount - a.amount);
+
+  const totalExpenses = chartData.reduce((s, d) => s + d.amount, 0);
+
+  // ─── recent transactions ────────────────────────────────────────────────────
+
+  const recentTransactions = useMemo(() => {
+    return [...transactions]
+      .sort((a, b) => getLocalDateTimestamp(b.date) - getLocalDateTimestamp(a.date))
+      .slice(0, 5);
+  }, [transactions]);
+
+  // ─── helpers ────────────────────────────────────────────────────────────────
+
+  const formatCurrency = (v: number) =>
+    new Intl.NumberFormat("pt-BR", {
+      style: "currency",
+      currency: "BRL",
+    }).format(v);
+
+  const calculatePercentageChange = (current: number, previous: number) => {
+    if (previous === 0) return current > 0 ? 100 : 0;
+    return ((current - previous) / previous) * 100;
+  };
+
+  const monthExpenseChange = calculatePercentageChange(
+    summary.expenses,
+    previousMonthSummary.expenses
+  );
+  const weekExpenseChange = calculatePercentageChange(
+    weekSummary.expenses,
+    previousWeekSummary.expenses
+  );
+
+  // ─── add transaction ────────────────────────────────────────────────────────
 
   const handleAddTransaction = async () => {
-  if (!formData.name || !formData.amount) return;
+    if (!formData.name || !formData.amount) return;
+    await addTransaction({
+      title: formData.name,
+      amount: parseFloat(formData.amount),
+      type: formData.type,
+      category: formData.category,
+      date: formData.date,
+    });
+    setFormData({
+      name: "",
+      amount: "",
+      type: "expense",
+      category: "Alimentação",
+      date: getTodayString(),
+    });
+    setShowAddTransaction(false);
+    showToast("Transação registrada com sucesso", "success", "✅");
+  };
 
-  await addTransaction({
-    title: formData.name,
-    amount: parseFloat(formData.amount),
-    type: formData.type,  
-    category: formData.category,
-    date: formData.date,    
-  });
+  // ─── delete transaction ─────────────────────────────────────────────────────
 
-  setFormData({
-    name: '',
-    amount: '',
-    type: 'expense',
-    category: 'Alimentação',
-    date: new Date().toISOString().split('T')[0],
-  });
-
-  setShowAddTransaction(false);
-
-  showToast('Transação registrada com sucesso', 'success', '✅');
-};
+  const handleDeleteTransaction = async (id: string) => {
+    await deleteTransaction(id);
+    setConfirmDeleteId(null);
+    showToast("Transação removida", "success", "🗑️");
+  };
 
   const getDaysInMonth = () => {
     const days: (number | null)[] = [];
@@ -250,544 +327,209 @@ export default function Financial() {
       currentDate.getMonth() + 1,
       0
     ).getDate();
-
-    for (let i = 0; i < firstDay; i++) {
-      days.push(null);
-    }
-    for (let i = 1; i <= daysInMonth; i++) {
-      days.push(i);
-    }
+    for (let i = 0; i < firstDay; i++) days.push(null);
+    for (let i = 1; i <= daysInMonth; i++) days.push(i);
     return days;
   };
 
-  const formatCurrency = (value: number) => {
-    return new Intl.NumberFormat("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    }).format(value);
-  };
-
-  const calculatePercentageChange = (current: number, previous: number) => {
-    if (previous === 0) return current > 0 ? 100 : 0;
-    return ((current - previous) / previous) * 100;
-  };
-
   const days = getDaysInMonth();
+  const today = new Date();
   const monthName = currentDate.toLocaleDateString("pt-BR", {
     month: "long",
     year: "numeric",
   });
 
-  const chartData = Object.entries(expensesByCategory)
-    .filter(([_, value]) => value > 0)
-    .map(([name, value]) => ({
-      name,
-      amount: parseFloat(value.toFixed(2)),
-    }))
-    .sort((a, b) => b.amount - a.amount);
+  const activeCategories =
+    formData.type === "income" ? INCOME_CATEGORIES : PREDEFINED_CATEGORIES;
 
-  const monthExpenseChange = calculatePercentageChange(
-    summary.expenses,
-    previousMonthSummary.expenses
-  );
-  const weekExpenseChange = calculatePercentageChange(
-    weekSummary.expenses,
-    previousWeekSummary.expenses
-  );
+  // ─── style helpers ──────────────────────────────────────────────────────────
+
+  const badgeStyle = (change: number): React.CSSProperties => ({
+    display: "inline-flex",
+    alignItems: "center",
+    gap: "5px",
+    fontSize: "13px",
+    fontWeight: 600,
+    fontFamily: "'JetBrains Mono', monospace",
+    padding: "4px 10px",
+    borderRadius: "6px",
+    marginBottom: "8px",
+    background:
+      change < 0
+        ? "rgba(34,197,94,0.12)"
+        : change > 0
+          ? "rgba(239,68,68,0.12)"
+          : "rgba(120,120,140,0.15)",
+    color:
+      change < 0
+        ? "#22C55E"
+        : change > 0
+          ? "#EF4444"
+          : "var(--muted-foreground)",
+  });
+
+  const toggleBtnStyle = (active: boolean): React.CSSProperties => ({
+    fontSize: "11px",
+    fontWeight: 600,
+    padding: "5px 12px",
+    borderRadius: "6px",
+    border: "none",
+    cursor: "pointer",
+    fontFamily: "'Sora', sans-serif",
+    transition: "all 0.15s",
+    background: active ? "#A855F7" : "transparent",
+    color: active ? "#fff" : "var(--muted-foreground)",
+  });
+
+  // ─── render ──────────────────────────────────────────────────────────────────
 
   return (
     <div
       style={{
-        padding: "20px",
-        maxWidth: "100%",
-        overflowY: "auto",
-        paddingBottom: "40px",
+        padding: isMobile ? "16px 14px 48px" : "24px 20px 48px",
         display: "flex",
         flexDirection: "column",
-        gap: "24px",
+        gap: "14px",
+        fontFamily: "'Sora', sans-serif",
       }}
     >
-      {/* Header com Resumo do Mês */}
+      {/* ── Summary strip ── */}
       <div
         style={{
           display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
-          gap: "16px",
+          gridTemplateColumns: "repeat(3, 1fr)",
+          background: "var(--border)",
+          border: "1px solid var(--border)",
+          borderRadius: "14px",
+          overflow: "hidden",
+          gap: "1px",
         }}
       >
-        {/* Card Entradas */}
-        <div
-          className="fz-card"
-          style={{
-            textAlign: "center",
-            padding: "20px 16px",
-          }}
-        >
+        {[
+          { label: "Entradas", value: summary.income, color: "#22C55E" },
+          { label: "Gastos", value: summary.expenses, color: "#EF4444" },
+          {
+            label: "Saldo",
+            value: summary.balance,
+            color: summary.balance >= 0 ? "#A855F7" : "#EF4444",
+          },
+        ].map(({ label, value, color }, i) => (
           <div
+            key={label}
             style={{
-              fontSize: "12px",
-              color: "var(--muted-foreground)",
-              marginBottom: "8px",
-              fontWeight: 500,
-            }}
-          >
-            Entradas
-          </div>
-          <div style={{ fontSize: "20px", fontWeight: 700, color: "#22C55E" }}>
-            {formatCurrency(summary.income)}
-          </div>
-        </div>
-
-        {/* Card Gastos */}
-        <div
-          className="fz-card"
-          style={{
-            textAlign: "center",
-            padding: "20px 16px",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "12px",
-              color: "var(--muted-foreground)",
-              marginBottom: "8px",
-              fontWeight: 500,
-            }}
-          >
-            Gastos
-          </div>
-          <div style={{ fontSize: "20px", fontWeight: 700, color: "#EF4444" }}>
-            {formatCurrency(summary.expenses)}
-          </div>
-        </div>
-
-        {/* Card Saldo */}
-        <div
-          className="fz-card"
-          style={{
-            textAlign: "center",
-            padding: "20px 16px",
-          }}
-        >
-          <div
-            style={{
-              fontSize: "12px",
-              color: "var(--muted-foreground)",
-              marginBottom: "8px",
-              fontWeight: 500,
-            }}
-          >
-            Saldo
-          </div>
-          <div
-            style={{
-              fontSize: "20px",
-              fontWeight: 700,
-              color: summary.balance >= 0 ? "#A855F7" : "#EF4444",
-            }}
-          >
-            {formatCurrency(summary.balance)}
-          </div>
-        </div>
-      </div>
-
-      {/* Comparações - Mês e Semana */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          gap: "16px",
-        }}
-      >
-        {/* Comparação Mês */}
-        <div
-          className="fz-card"
-          style={{
-            padding: "16px",
-            borderLeft: `4px solid ${summary.balance >= 0 ? "#22C55E" : "#A855F7"}`,
-          }}
-        >
-          <div
-            style={{
-              fontSize: "12px",
-              color: "var(--muted-foreground)",
-              marginBottom: "12px",
-              fontWeight: 600,
-            }}
-          >
-            Comparação com Mês Anterior
-          </div>
-          <div
-            style={{
+              background: "var(--card)",
+              padding: isMobile ? "16px 10px 14px" : "22px 20px 18px",
               display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              marginBottom: "8px",
+              flexDirection: "column",
+              gap: "6px",
+              borderLeft: i > 0 ? "1px solid var(--border)" : undefined,
             }}
           >
-            {monthExpenseChange < 0 ? (
-              <>
-                <TrendingDown
-                  size={16}
-                  color={summary.balance >= 0 ? "#22C55E" : "#22C55E"}
-                />
-                <span
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: 700,
-                    color: summary.balance >= 0 ? "#22C55E" : "#22C55E",
-                  }}
-                >
-                  {Math.abs(monthExpenseChange).toFixed(1)}% menor
-                </span>
-              </>
-            ) : monthExpenseChange > 0 ? (
-              <>
-                <TrendingUp
-                  size={16}
-                  color={summary.balance >= 0 ? "#22C55E" : "#EF4444"}
-                />
-                <span
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: 700,
-                    color: summary.balance >= 0 ? "#22C55E" : "#EF4444",
-                  }}
-                >
-                  {monthExpenseChange.toFixed(1)}% maior
-                </span>
-              </>
-            ) : (
-              <span
-                style={{
-                  fontSize: "14px",
-                  fontWeight: 700,
-                  color: summary.balance >= 0 ? "#22C55E" : "#888",
-                }}
-              >
-                Sem mudanças
-              </span>
-            )}
-          </div>
-          <div style={{ fontSize: "11px", color: "var(--muted-foreground)" }}>
-            Mês anterior: {formatCurrency(previousMonthSummary.expenses)}
-          </div>
-        </div>
-
-        {/* Comparação Semana */}
-        <div
-          className="fz-card"
-          style={{
-            padding: "16px",
-            borderLeft: `4px solid ${summary.balance >= 0 ? "#22C55E" : "#EC4899"}`,
-          }}
-        >
-          <div
-            style={{
-              fontSize: "12px",
-              color: "var(--muted-foreground)",
-              marginBottom: "12px",
-              fontWeight: 600,
-            }}
-          >
-            Comparação com Semana Anterior
-          </div>
-          <div
-            style={{
-              display: "flex",
-              alignItems: "center",
-              gap: "8px",
-              marginBottom: "8px",
-            }}
-          >
-            {weekExpenseChange < 0 ? (
-              <>
-                <TrendingDown
-                  size={16}
-                  color={summary.balance >= 0 ? "#22C55E" : "#22C55E"}
-                />
-                <span
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: 700,
-                    color: summary.balance >= 0 ? "#22C55E" : "#22C55E",
-                  }}
-                >
-                  {Math.abs(weekExpenseChange).toFixed(1)}% menor
-                </span>
-              </>
-            ) : weekExpenseChange > 0 ? (
-              <>
-                <TrendingUp
-                  size={16}
-                  color={summary.balance >= 0 ? "#22C55E" : "#EF4444"}
-                />
-                <span
-                  style={{
-                    fontSize: "14px",
-                    fontWeight: 700,
-                    color: summary.balance >= 0 ? "#22C55E" : "#EF4444",
-                  }}
-                >
-                  {weekExpenseChange.toFixed(1)}% maior
-                </span>
-              </>
-            ) : (
-              <span
-                style={{
-                  fontSize: "14px",
-                  fontWeight: 700,
-                  color: summary.balance >= 0 ? "#22C55E" : "#888",
-                }}
-              >
-                Sem mudanças
-              </span>
-            )}
-          </div>
-          <div style={{ fontSize: "11px", color: "var(--muted-foreground)" }}>
-            Semana anterior: {formatCurrency(previousWeekSummary.expenses)}
-          </div>
-        </div>
-      </div>
-
-      {/* Layout Principal - Gráfico + Calendário */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr",
-          gap: "24px",
-        }}
-        className="lg:grid-cols-2"
-      >
-        {/* Gráfico de Gastos por Categoria */}
-        {chartData.length > 0 && (
-          <div
-            className="fz-card lg:order-1"
-            style={{
-              padding: "24px",
-              order: 2,
-            }}
-          >
-            {/* Header com Título e Botão de Alternância */}
-            <div
+            <span
               style={{
-                display: "flex",
-                justifyContent: "space-between",
-                alignItems: "center",
-                marginBottom: "20px",
+                fontSize: "10px",
+                fontWeight: 500,
+                color: "var(--muted-foreground)",
+                letterSpacing: "0.04em",
               }}
             >
-              <div
-                style={{
-                  fontSize: "16px",
-                  fontWeight: 700,
-                  color: "var(--foreground)",
-                }}
-              >
-                Distribuição de Gastos
-              </div>
-              <div style={{ display: "flex", gap: "8px" }}>
-                <button
-                  onClick={() => setChartType("bars")}
-                  style={{
-                    background:
-                      chartType === "bars"
-                        ? "linear-gradient(135deg, #A855F7, #EC4899)"
-                        : "rgba(255, 255, 255, 0.05)",
-                    border:
-                      chartType === "bars"
-                        ? "none"
-                        : "1px solid rgba(255, 255, 255, 0.1)",
-                    borderRadius: "6px",
-                    padding: "6px 12px",
-                    color: "#fff",
-                    cursor: "pointer",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                    transition: "all 0.2s",
-                  }}
-                  onMouseEnter={e => {
-                    if (chartType !== "bars") {
-                      (e.currentTarget as HTMLButtonElement).style.background =
-                        "rgba(255, 255, 255, 0.1)";
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    if (chartType !== "bars") {
-                      (e.currentTarget as HTMLButtonElement).style.background =
-                        "rgba(255, 255, 255, 0.05)";
-                    }
-                  }}
-                >
-                  <BarChart3 size={14} /> Barras
-                </button>
-                <button
-                  onClick={() => setChartType("pie")}
-                  style={{
-                    background:
-                      chartType === "pie"
-                        ? "linear-gradient(135deg, #A855F7, #EC4899)"
-                        : "rgba(255, 255, 255, 0.05)",
-                    border:
-                      chartType === "pie"
-                        ? "none"
-                        : "1px solid rgba(255, 255, 255, 0.1)",
-                    borderRadius: "6px",
-                    padding: "6px 12px",
-                    color: "#fff",
-                    cursor: "pointer",
-                    fontSize: "12px",
-                    fontWeight: 600,
-                    display: "flex",
-                    alignItems: "center",
-                    gap: "4px",
-                    transition: "all 0.2s",
-                  }}
-                  onMouseEnter={e => {
-                    if (chartType !== "pie") {
-                      (e.currentTarget as HTMLButtonElement).style.background =
-                        "rgba(255, 255, 255, 0.1)";
-                    }
-                  }}
-                  onMouseLeave={e => {
-                    if (chartType !== "pie") {
-                      (e.currentTarget as HTMLButtonElement).style.background =
-                        "rgba(255, 255, 255, 0.05)";
-                    }
-                  }}
-                >
-                  <PieChartIcon size={14} /> Pizza
-                </button>
-              </div>
-            </div>
-
-            {/* Gráfico de Barras com Emojis */}
-            {chartType === "bars" && (
-              <div
-                style={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: "16px",
-                }}
-              >
-                {chartData.map((item, index) => {
-                  const percentage = (item.amount / maxExpense) * 100;
-                  return (
-                    <div
-                      key={item.name}
-                      style={{
-                        display: "flex",
-                        alignItems: "center",
-                        gap: "12px",
-                      }}
-                    >
-                      <div style={{ fontSize: "24px", minWidth: "32px" }}>
-                        {CATEGORY_ICONS[item.name] || "📊"}
-                      </div>
-                      <div style={{ flex: 1, minWidth: 0 }}>
-                        <div
-                          style={{
-                            fontSize: "12px",
-                            color: "var(--muted-foreground)",
-                            marginBottom: "4px",
-                          }}
-                        >
-                          {item.name}
-                        </div>
-                        <div
-                          style={{
-                            height: "8px",
-                            background: "rgba(255, 255, 255, 0.05)",
-                            borderRadius: "4px",
-                            overflow: "hidden",
-                          }}
-                        >
-                          <div
-                            style={{
-                              height: "100%",
-                              width: `${percentage}%`,
-                              background:
-                                CHART_COLORS[index % CHART_COLORS.length],
-                              borderRadius: "4px",
-                              transition: "width 0.3s ease",
-                            }}
-                          />
-                        </div>
-                      </div>
-                      <div
-                        style={{
-                          fontSize: "12px",
-                          fontWeight: 600,
-                          color: CHART_COLORS[index % CHART_COLORS.length],
-                          minWidth: "70px",
-                          textAlign: "right",
-                        }}
-                      >
-                        {formatCurrency(item.amount)}
-                      </div>
-                    </div>
-                  );
-                })}
-              </div>
-            )}
-
-            {/* Gráfico de Pizza */}
-            {chartType === "pie" && (
-              <ResponsiveContainer width="100%" height={400}>
-                <PieChart>
-                  <Pie
-                    data={chartData}
-                    cx="50%"
-                    cy="50%"
-                    labelLine={false}
-                    label={({ name, amount }) =>
-                      `${name}: R$ ${amount.toFixed(2)}`
-                    }
-                    outerRadius={120}
-                    fill="#8884d8"
-                    dataKey="amount"
-                  >
-                    {CHART_COLORS.map((color, index) => (
-                      <Cell key={`cell-${index}`} fill={color} />
-                    ))}
-                  </Pie>
-                  <Tooltip
-                    formatter={(value: any) =>
-                      `R$ ${parseFloat(value).toFixed(2)}`
-                    }
-                    contentStyle={{
-                      background: "rgba(0, 0, 0, 0.8)",
-                      border: "1px solid rgba(255, 255, 255, 0.1)",
-                      borderRadius: "8px",
-                      color: "#fff",
-                    }}
-                  />
-                </PieChart>
-              </ResponsiveContainer>
-            )}
+              {label}
+            </span>
+            <span
+              style={{
+                fontFamily: "'JetBrains Mono', monospace",
+                fontSize: isMobile ? "14px" : "20px",
+                fontWeight: 600,
+                letterSpacing: "-0.02em",
+                lineHeight: 1,
+                color,
+              }}
+            >
+              {formatCurrency(value)}
+            </span>
           </div>
-        )}
+        ))}
+      </div>
 
-        {/* Calendário - Sidebar */}
+      {/* ── Comparisons ── */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+          gap: "12px",
+        }}
+      >
+        {[
+          {
+            label: "vs. Mês anterior",
+            change: monthExpenseChange,
+            prev: previousMonthSummary.expenses,
+          },
+          {
+            label: "vs. Semana anterior",
+            change: weekExpenseChange,
+            prev: previousWeekSummary.expenses,
+          },
+        ].map(({ label, change, prev }) => (
+          <div key={label} style={{ ...cardBase, padding: "16px" }}>
+            <div
+              style={{
+                fontSize: "10px",
+                fontWeight: 600,
+                letterSpacing: "0.1em",
+                textTransform: "uppercase",
+                color: "var(--muted-foreground)",
+                marginBottom: "10px",
+              }}
+            >
+              {label}
+            </div>
+            <div style={badgeStyle(change)}>
+              {change < 0 ? "↓" : change > 0 ? "↑" : "—"}{" "}
+              {change !== 0
+                ? `${Math.abs(change).toFixed(1)}% ${change < 0 ? "menor" : "maior"}`
+                : "Sem mudanças"}
+            </div>
+            <div
+              style={{
+                fontSize: "11px",
+                color: "var(--muted-foreground)",
+                fontFamily: "'JetBrains Mono', monospace",
+              }}
+            >
+              anterior: {formatCurrency(prev)}
+            </div>
+          </div>
+        ))}
+      </div>
+
+      {/* ── Main layout: calendar first on mobile/tablet ── */}
+      <div
+        style={{
+          display: "grid",
+          gridTemplateColumns: isTablet ? "1fr" : "1fr 260px",
+          gap: "14px",
+        }}
+      >
+        {/* Calendar — order 1 on mobile (shown above chart) */}
         <div
-          className="fz-card lg:order-2"
           style={{
-            padding: "20px",
+            ...cardBase,
+            padding: "18px",
             display: "flex",
             flexDirection: "column",
-            order: 1,
+            order: isTablet ? 1 : 2,
+            maxWidth: isTablet ? "100%" : "260px",
+            width: "100%",
           }}
         >
-          {/* Header do Calendário */}
+          {/* Cal header */}
           <div
             style={{
               display: "flex",
-              justifyContent: "space-between",
               alignItems: "center",
-              marginBottom: "16px",
+              justifyContent: "space-between",
+              marginBottom: "14px",
             }}
           >
             <button
@@ -805,21 +547,21 @@ export default function Financial() {
                 color: "#A855F7",
                 cursor: "pointer",
                 padding: "4px",
-                fontSize: "18px",
+                display: "flex",
               }}
             >
-              <ChevronLeft size={18} />
+              <ChevronLeft size={16} />
             </button>
-            <div
+            <span
               style={{
-                fontSize: "13px",
+                fontSize: "12px",
                 fontWeight: 600,
-                textAlign: "center",
-                flex: 1,
+                color: "var(--foreground)",
+                textTransform: "capitalize",
               }}
             >
               {monthName}
-            </div>
+            </span>
             <button
               onClick={() =>
                 setCurrentDate(
@@ -835,136 +577,141 @@ export default function Financial() {
                 color: "#A855F7",
                 cursor: "pointer",
                 padding: "4px",
-                fontSize: "18px",
+                display: "flex",
               }}
             >
-              <ChevronRight size={18} />
+              <ChevronRight size={16} />
             </button>
           </div>
 
-          {/* Dias da Semana */}
+          {/* Weekday labels */}
           <div
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(7, 1fr)",
-              gap: "4px",
-              marginBottom: "8px",
+              gap: "2px",
+              marginBottom: "6px",
             }}
           >
-            {["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sab"].map(day => (
+            {["D", "S", "T", "Q", "Q", "S", "S"].map((d, i) => (
               <div
-                key={day}
+                key={i}
                 style={{
-                  fontSize: "10px",
+                  fontSize: "9px",
                   fontWeight: 600,
                   textAlign: "center",
-                  color: "#888",
+                  color: "var(--muted-foreground)",
+                  letterSpacing: "0.05em",
+                  textTransform: "uppercase",
                 }}
               >
-                {day}
+                {d}
               </div>
             ))}
           </div>
 
-          {/* Dias do Mês */}
+          {/* Days */}
           <div
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(7, 1fr)",
-              gap: "4px",
+              gap: "2px",
             }}
           >
             {days.map((day, index) => {
-              const hasExpense = day && expensesByDay[day];
               const isToday =
-                day === new Date().getDate() &&
-                currentDate.getMonth() === new Date().getMonth();
+                day === today.getDate() &&
+                currentDate.getMonth() === today.getMonth() &&
+                currentDate.getFullYear() === today.getFullYear();
+              const hasExpense = day !== null && !!expensesByDay[day];
+
               return (
                 <div
                   key={index}
                   style={{
-                    padding: "6px",
-                    textAlign: "center",
-                    fontSize: "11px",
-                    fontWeight: 600,
+                    height: "30px",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    fontSize: "10px",
+                    fontWeight: isToday ? 700 : 500,
                     borderRadius: "6px",
-                    background: isToday
-                      ? "linear-gradient(135deg, #A855F7, #EC4899)"
-                      : hasExpense
-                        ? "rgba(168, 85, 247, 0.2)"
-                        : "transparent",
-                    color: isToday ? "#fff" : day ? "#fff" : "#333",
                     cursor: day ? "pointer" : "default",
+                    position: "relative",
+                    background: isToday ? "#A855F7" : "transparent",
+                    color: isToday
+                      ? "#fff"
+                      : day
+                        ? "var(--foreground)"
+                        : "transparent",
                   }}
                 >
                   {day}
+                  {hasExpense && !isToday && (
+                    <span
+                      style={{
+                        position: "absolute",
+                        bottom: "2px",
+                        left: "50%",
+                        transform: "translateX(-50%)",
+                        width: "3px",
+                        height: "3px",
+                        background: "#A855F7",
+                        borderRadius: "50%",
+                      }}
+                    />
+                  )}
                 </div>
               );
             })}
           </div>
 
-          {/* Botão Registrar */}
-          <button
-            onClick={() => setShowAddTransaction(true)}
-            style={{
-              width: "100%",
-              marginTop: "16px",
-              background: "linear-gradient(135deg, #A855F7, #EC4899)",
-              border: "none",
-              borderRadius: "8px",
-              padding: "12px",
-              color: "#fff",
-              fontWeight: 600,
-              cursor: "pointer",
-              fontSize: "13px",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-              gap: "6px",
-              transition: "all 0.2s",
-            }}
-            onMouseEnter={e => {
-              (e.currentTarget as HTMLButtonElement).style.transform =
-                "translateY(-2px)";
-              (e.currentTarget as HTMLButtonElement).style.boxShadow =
-                "0 8px 16px rgba(168, 85, 247, 0.3)";
-            }}
-            onMouseLeave={e => {
-              (e.currentTarget as HTMLButtonElement).style.transform =
-                "translateY(0)";
-              (e.currentTarget as HTMLButtonElement).style.boxShadow = "none";
-            }}
-          >
-            <Plus size={16} /> Registrar
-          </button>
-        </div>
-      </div>
-
-      {/* Modal Adicionar Transação */}
-      {showAddTransaction && (
-        <div
-          style={{
-            position: "fixed",
-            top: 0,
-            left: 0,
-            right: 0,
-            bottom: 0,
-            background: "rgba(0, 0, 0, 0.5)",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            zIndex: 1000,
-            padding: "20px",
-          }}
-        >
+          {/* Register button */}
           <div
             style={{
-              background: "var(--background)",
-              border: "1px solid var(--border)",
-              borderRadius: "16px",
-              padding: "24px",
-              maxWidth: "400px",
-              width: "100%",
+              marginTop: "16px",
+              paddingTop: "16px",
+              borderTop: "1px solid var(--border)",
+            }}
+          >
+            <button
+              onClick={() => setShowAddTransaction(true)}
+              style={{
+                width: "100%",
+                background: "#A855F7",
+                border: "none",
+                borderRadius: "8px",
+                padding: "11px",
+                color: "#fff",
+                fontFamily: "'Sora', sans-serif",
+                fontWeight: 600,
+                fontSize: "12px",
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                gap: "6px",
+                letterSpacing: "0.02em",
+                transition: "opacity 0.15s",
+              }}
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLButtonElement).style.opacity = "0.85";
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLButtonElement).style.opacity = "1";
+              }}
+            >
+              <Plus size={13} /> Registrar transação
+            </button>
+          </div>
+        </div>
+
+        {/* Chart — order 2 on mobile (shown below calendar) */}
+        {chartData.length > 0 && (
+          <div
+            style={{
+              ...cardBase,
+              order: isTablet ? 2 : 1,
             }}
           >
             <div
@@ -975,15 +722,477 @@ export default function Financial() {
                 marginBottom: "20px",
               }}
             >
+              <span
+                style={{
+                  fontSize: "13px",
+                  fontWeight: 600,
+                  color: "var(--foreground)",
+                }}
+              >
+                Distribuição por categoria
+              </span>
               <div
                 style={{
-                  fontSize: "18px",
+                  display: "flex",
+                  background: "var(--background)",
+                  borderRadius: "8px",
+                  padding: "3px",
+                  gap: "3px",
+                  border: "1px solid var(--border)",
+                }}
+              >
+                <button
+                  style={toggleBtnStyle(chartType === "bars")}
+                  onClick={() => setChartType("bars")}
+                >
+                  <BarChart3
+                    size={12}
+                    style={{
+                      display: "inline",
+                      marginRight: 4,
+                      verticalAlign: "middle",
+                    }}
+                  />
+                  Barras
+                </button>
+                <button
+                  style={toggleBtnStyle(chartType === "pie")}
+                  onClick={() => setChartType("pie")}
+                >
+                  <PieChartIcon
+                    size={12}
+                    style={{
+                      display: "inline",
+                      marginRight: 4,
+                      verticalAlign: "middle",
+                    }}
+                  />
+                  Pizza
+                </button>
+              </div>
+            </div>
+
+            {/* Bars */}
+            {chartType === "bars" && (
+              <div
+                style={{
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: "14px",
+                }}
+              >
+                {chartData.map((item, index) => {
+                  const pct = (item.amount / maxExpense) * 100;
+                  const color = CHART_COLORS[index % CHART_COLORS.length];
+                  return (
+                    <div
+                      key={item.name}
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "12px",
+                      }}
+                    >
+                      <span
+                        style={{
+                          fontSize: "18px",
+                          width: "26px",
+                          textAlign: "center",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {CATEGORY_ICONS[item.name] || "📊"}
+                      </span>
+                      <div style={{ flex: 1, minWidth: 0 }}>
+                        <div
+                          style={{
+                            fontSize: "11px",
+                            color: "var(--muted-foreground)",
+                            marginBottom: "5px",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                          }}
+                        >
+                          {item.name}
+                        </div>
+                        <div
+                          style={{
+                            height: "4px",
+                            background: "var(--border)",
+                            borderRadius: "2px",
+                            overflow: "hidden",
+                          }}
+                        >
+                          <div
+                            style={{
+                              height: "100%",
+                              width: `${pct}%`,
+                              background: color,
+                              borderRadius: "2px",
+                              transition: "width 0.3s ease",
+                            }}
+                          />
+                        </div>
+                      </div>
+                      <span
+                        style={{
+                          fontFamily: "'JetBrains Mono', monospace",
+                          fontSize: "11px",
+                          fontWeight: 600,
+                          color,
+                          minWidth: "72px",
+                          textAlign: "right",
+                          flexShrink: 0,
+                        }}
+                      >
+                        {formatCurrency(item.amount)}
+                      </span>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+
+            {/* Pie — donut + legenda abaixo */}
+            {chartType === "pie" && (
+              <div>
+                <ResponsiveContainer width="100%" height={220}>
+                  <PieChart>
+                    <Pie
+                      data={chartData}
+                      cx="50%"
+                      cy="50%"
+                      innerRadius={60}
+                      outerRadius={95}
+                      dataKey="amount"
+                      paddingAngle={2}
+                    >
+                      {chartData.map((_, index) => (
+                        <Cell
+                          key={`cell-${index}`}
+                          fill={CHART_COLORS[index % CHART_COLORS.length]}
+                        />
+                      ))}
+                    </Pie>
+                    <Tooltip
+                      formatter={(value: number) => [
+                        formatCurrency(value),
+                        "Gasto",
+                      ]}
+                      contentStyle={{
+                        background: "var(--card)",
+                        border: "1px solid var(--border)",
+                        borderRadius: "8px",
+                        fontSize: "12px",
+                        fontFamily: "'JetBrains Mono', monospace",
+                      }}
+                    />
+                  </PieChart>
+                </ResponsiveContainer>
+
+                {/* Legenda do pie */}
+                <div
+                  style={{
+                    display: "grid",
+                    gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr",
+                    gap: "8px",
+                    marginTop: "12px",
+                    paddingTop: "14px",
+                    borderTop: "1px solid var(--border)",
+                  }}
+                >
+                  {chartData.map((item, index) => {
+                    const color = CHART_COLORS[index % CHART_COLORS.length];
+                    const pct =
+                      totalExpenses > 0
+                        ? (item.amount / totalExpenses) * 100
+                        : 0;
+                    return (
+                      <div
+                        key={item.name}
+                        style={{
+                          display: "flex",
+                          alignItems: "center",
+                          gap: "8px",
+                          minWidth: 0,
+                        }}
+                      >
+                        <div
+                          style={{
+                            width: "8px",
+                            height: "8px",
+                            borderRadius: "2px",
+                            background: color,
+                            flexShrink: 0,
+                          }}
+                        />
+                        <span
+                          style={{
+                            fontSize: "11px",
+                            color: "var(--muted-foreground)",
+                            overflow: "hidden",
+                            textOverflow: "ellipsis",
+                            whiteSpace: "nowrap",
+                            flex: 1,
+                            minWidth: 0,
+                          }}
+                        >
+                          {CATEGORY_ICONS[item.name] ?? ""} {item.name}
+                        </span>
+                        <span
+                          style={{
+                            fontFamily: "'JetBrains Mono', monospace",
+                            fontSize: "11px",
+                            fontWeight: 600,
+                            color,
+                            flexShrink: 0,
+                          }}
+                        >
+                          {pct.toFixed(0)}%
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+      </div>
+
+      {/* ── Recent transactions ── */}
+      {recentTransactions.length > 0 && (
+        <div style={cardBase}>
+          <div
+            style={{
+              fontSize: "10px",
+              fontWeight: 600,
+              letterSpacing: "0.12em",
+              textTransform: "uppercase",
+              color: "var(--muted-foreground)",
+              marginBottom: "14px",
+            }}
+          >
+            Lançamentos recentes
+          </div>
+          <div style={{ display: "flex", flexDirection: "column" }}>
+            {recentTransactions.map((txn, i) => {
+              const txnId = txn.id ?? String(i);
+              const isPendingDelete = confirmDeleteId === txnId;
+              return (
+                <div
+                  key={txnId}
+                  style={{
+                    display: "flex",
+                    alignItems: "center",
+                    gap: "12px",
+                    padding: "10px 0",
+                    borderBottom:
+                      i < recentTransactions.length - 1
+                        ? "1px solid var(--border)"
+                        : "none",
+                  }}
+                >
+                  {/* Icon */}
+                  <div
+                    style={{
+                      width: "36px",
+                      height: "36px",
+                      borderRadius: "10px",
+                      background: "var(--background)",
+                      border: "1px solid var(--border)",
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      fontSize: "16px",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {CATEGORY_ICONS[txn.category ?? ""] ??
+                      (txn.type === "income" ? "💰" : "📊")}
+                  </div>
+
+                  {/* Info */}
+                  <div style={{ flex: 1, minWidth: 0 }}>
+                    <div
+                      style={{
+                        fontSize: "13px",
+                        fontWeight: 500,
+                        color: "var(--foreground)",
+                        overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
+                      }}
+                    >
+                      {txn.title}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "11px",
+                        color: "var(--muted-foreground)",
+                      }}
+                    >
+                      {txn.category}
+                    </div>
+                  </div>
+
+                  {/* Amount */}
+                  <span
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: isMobile ? "12px" : "13px",
+                      fontWeight: 600,
+                      color: txn.type === "income" ? "#22C55E" : "#EF4444",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {txn.type === "income" ? "+" : "−"}
+                    {formatCurrency(txn.amount)}
+                  </span>
+
+                  {/* Date */}
+                  <span
+                    style={{
+                      fontFamily: "'JetBrains Mono', monospace",
+                      fontSize: "10px",
+                      color: "var(--muted-foreground)",
+                      minWidth: "36px",
+                      textAlign: "right",
+                      flexShrink: 0,
+                    }}
+                  >
+                    {parseLocalDate(txn.date).toLocaleDateString("pt-BR", {
+                      day: "2-digit",
+                      month: "2-digit",
+                    })}
+                  </span>
+
+                  {/* Delete area */}
+                  {isPendingDelete ? (
+                    <div
+                      style={{
+                        display: "flex",
+                        alignItems: "center",
+                        gap: "6px",
+                        flexShrink: 0,
+                      }}
+                    >
+                      <button
+                        onClick={() => handleDeleteTransaction(txnId)}
+                        style={{
+                          background: "rgba(239,68,68,0.12)",
+                          border: "1px solid rgba(239,68,68,0.3)",
+                          borderRadius: "6px",
+                          padding: "4px 10px",
+                          fontSize: "11px",
+                          fontWeight: 600,
+                          fontFamily: "'Sora', sans-serif",
+                          color: "#EF4444",
+                          cursor: "pointer",
+                          whiteSpace: "nowrap",
+                        }}
+                      >
+                        Confirmar
+                      </button>
+                      <button
+                        onClick={() => setConfirmDeleteId(null)}
+                        style={{
+                          background: "none",
+                          border: "none",
+                          color: "var(--muted-foreground)",
+                          cursor: "pointer",
+                          fontSize: "18px",
+                          lineHeight: 1,
+                          padding: "2px 4px",
+                          fontFamily: "'Sora', sans-serif",
+                        }}
+                      >
+                        ×
+                      </button>
+                    </div>
+                  ) : (
+                    <button
+                      onClick={() => setConfirmDeleteId(txnId)}
+                      title="Remover transação"
+                      style={{
+                        background: "none",
+                        border: "none",
+                        color: "var(--muted-foreground)",
+                        cursor: "pointer",
+                        padding: "4px",
+                        display: "flex",
+                        alignItems: "center",
+                        flexShrink: 0,
+                        borderRadius: "6px",
+                        transition: "color 0.15s",
+                      }}
+                      onMouseEnter={e => {
+                        (e.currentTarget as HTMLButtonElement).style.color =
+                          "#EF4444";
+                      }}
+                      onMouseLeave={e => {
+                        (e.currentTarget as HTMLButtonElement).style.color =
+                          "var(--muted-foreground)";
+                      }}
+                    >
+                      <Trash2 size={14} />
+                    </button>
+                  )}
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
+
+      {/* ── Modal ── */}
+      {showAddTransaction && (
+        <div
+          onClick={e => {
+            if (e.target === e.currentTarget) setShowAddTransaction(false);
+          }}
+          style={{
+            position: "fixed",
+            inset: 0,
+            background: "rgba(0,0,0,0.6)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            zIndex: 1000,
+            padding: "20px",
+          }}
+        >
+          <div
+            style={{
+              background: "var(--card)",
+              border: "1px solid var(--border)",
+              borderRadius: "16px",
+              padding: isMobile ? "20px" : "28px",
+              maxWidth: "380px",
+              width: "100%",
+              maxHeight: "90vh",
+              overflowY: "auto",
+            }}
+          >
+            {/* Header */}
+            <div
+              style={{
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: "22px",
+              }}
+            >
+              <span
+                style={{
+                  fontSize: "15px",
                   fontWeight: 700,
                   color: "var(--foreground)",
                 }}
               >
-                Registrar Transação
-              </div>
+                Registrar transação
+              </span>
               <button
                 onClick={() => setShowAddTransaction(false)}
                 style={{
@@ -991,7 +1200,9 @@ export default function Financial() {
                   border: "none",
                   color: "var(--muted-foreground)",
                   cursor: "pointer",
-                  fontSize: "24px",
+                  fontSize: "22px",
+                  lineHeight: 1,
+                  padding: 0,
                 }}
               >
                 ×
@@ -1001,17 +1212,80 @@ export default function Financial() {
             <div
               style={{ display: "flex", flexDirection: "column", gap: "14px" }}
             >
+              {/* Type toggle */}
               <div>
-                <label
+                <label style={labelStyle}>Tipo</label>
+                <div
                   style={{
-                    fontSize: "12px",
-                    color: "var(--muted-foreground)",
-                    marginBottom: "6px",
-                    display: "block",
+                    display: "grid",
+                    gridTemplateColumns: "1fr 1fr",
+                    gap: "8px",
                   }}
                 >
-                  Descrição
-                </label>
+                  <button
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        type: "expense",
+                        category: "Alimentação",
+                      })
+                    }
+                    style={{
+                      padding: "9px",
+                      borderRadius: "8px",
+                      border: `1px solid ${formData.type === "expense" ? "#EF4444" : "var(--border)"}`,
+                      background:
+                        formData.type === "expense"
+                          ? "rgba(239,68,68,0.1)"
+                          : "var(--background)",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      fontFamily: "'Sora', sans-serif",
+                      cursor: "pointer",
+                      color:
+                        formData.type === "expense"
+                          ? "#EF4444"
+                          : "var(--muted-foreground)",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    Gasto
+                  </button>
+                  <button
+                    onClick={() =>
+                      setFormData({
+                        ...formData,
+                        type: "income",
+                        category: "Salário",
+                      })
+                    }
+                    style={{
+                      padding: "9px",
+                      borderRadius: "8px",
+                      border: `1px solid ${formData.type === "income" ? "#22C55E" : "var(--border)"}`,
+                      background:
+                        formData.type === "income"
+                          ? "rgba(34,197,94,0.1)"
+                          : "var(--background)",
+                      fontSize: "12px",
+                      fontWeight: 600,
+                      fontFamily: "'Sora', sans-serif",
+                      cursor: "pointer",
+                      color:
+                        formData.type === "income"
+                          ? "#22C55E"
+                          : "var(--muted-foreground)",
+                      transition: "all 0.15s",
+                    }}
+                  >
+                    Ganho
+                  </button>
+                </div>
+              </div>
+
+              {/* Description */}
+              <div>
+                <label style={labelStyle}>Descrição</label>
                 <input
                   type="text"
                   placeholder="Ex: Almoço no restaurante"
@@ -1023,20 +1297,12 @@ export default function Financial() {
                 />
               </div>
 
+              {/* Amount */}
               <div>
-                <label
-                  style={{
-                    fontSize: "12px",
-                    color: "var(--muted-foreground)",
-                    marginBottom: "6px",
-                    display: "block",
-                  }}
-                >
-                  Valor
-                </label>
+                <label style={labelStyle}>Valor</label>
                 <input
                   type="number"
-                  placeholder="0.00"
+                  placeholder="0,00"
                   value={formData.amount}
                   onChange={e =>
                     setFormData({ ...formData, amount: e.target.value })
@@ -1045,43 +1311,9 @@ export default function Financial() {
                 />
               </div>
 
+              {/* Category — dynamic */}
               <div>
-                <label
-                  style={{
-                    fontSize: "12px",
-                    color: "var(--muted-foreground)",
-                    marginBottom: "6px",
-                    display: "block",
-                  }}
-                >
-                  Tipo
-                </label>
-                <select
-                  value={formData.type}
-                  onChange={e =>
-                    setFormData({
-                      ...formData,
-                      type: e.target.value as "income" | "expense",
-                    })
-                  }
-                  className="fz-input"
-                >
-                  <option value="expense">Gasto</option>
-                  <option value="income">Ganho</option>
-                </select>
-              </div>
-
-              <div>
-                <label
-                  style={{
-                    fontSize: "12px",
-                    color: "var(--muted-foreground)",
-                    marginBottom: "6px",
-                    display: "block",
-                  }}
-                >
-                  Categoria
-                </label>
+                <label style={labelStyle}>Categoria</label>
                 <select
                   value={formData.category}
                   onChange={e =>
@@ -1089,25 +1321,17 @@ export default function Financial() {
                   }
                   className="fz-input"
                 >
-                  {PREDEFINED_CATEGORIES.map(cat => (
+                  {activeCategories.map(cat => (
                     <option key={cat.name} value={cat.name}>
-                      {cat.name}
+                      {cat.icon} {cat.name}
                     </option>
                   ))}
                 </select>
               </div>
 
+              {/* Date */}
               <div>
-                <label
-                  style={{
-                    fontSize: "12px",
-                    color: "var(--muted-foreground)",
-                    marginBottom: "6px",
-                    display: "block",
-                  }}
-                >
-                  Data
-                </label>
+                <label style={labelStyle}>Data</label>
                 <input
                   type="date"
                   value={formData.date}
@@ -1121,9 +1345,9 @@ export default function Financial() {
               <button
                 onClick={handleAddTransaction}
                 className="fz-btn-primary"
-                style={{ padding: "12px", fontSize: 14, marginTop: 8 }}
+                style={{ padding: "12px", fontSize: 13, marginTop: 4 }}
               >
-                Registrar Transação
+                Registrar transação
               </button>
             </div>
           </div>

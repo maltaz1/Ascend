@@ -8,9 +8,10 @@ import { supabase } from "@/lib/supabase";
 import { CircularProgress } from "@/components/ui/CircularProgress";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { showToast } from "@/components/ui/FlowToast";
+import { getTodayString } from "@/store/utils";
 
 export default function Today() {
-  const today = new Date().toISOString().split("T")[0];
+  const today = getTodayString();
 
   const [profile, setProfile] = useState<any>(null);
 

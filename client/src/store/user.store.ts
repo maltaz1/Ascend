@@ -1,5 +1,5 @@
 import { _data, notify, persistState } from "./state";
-import { getTodayString } from "./utils";
+import { getTodayString, toYYYYMMDD } from "./utils";
 import { syncUserProfile } from "./xp-system";
 
 export function updateUserName(name: string): void {
@@ -43,7 +43,7 @@ export function getWeeklyData(): { day: string; tasks: number; habits: number }[
   for (let offset = 6; offset >= 0; offset -= 1) {
     const date = new Date(today);
     date.setDate(date.getDate() - offset);
-    const dateStr = date.toISOString().split("T")[0];
+    const dateStr = toYYYYMMDD(date);
     const dayName = date.toLocaleDateString("pt-BR", { weekday: "short" });
 
     result.push({

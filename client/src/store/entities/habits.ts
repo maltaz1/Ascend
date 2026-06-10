@@ -1,5 +1,5 @@
 import { getData, store } from "../store";
-import { generateId, getTodayString } from "../utils";
+import { generateId, getTodayString, toYYYYMMDD } from "../utils";
 import { upsertEntity, removeEntity, normalizeEntities, setLoading } from "../core/entity";
 import { evaluateAchievements } from "../achievements";
 import { awardXp, createXpPayload } from "../xp-engine";
@@ -86,7 +86,7 @@ export function getHabitStreak(habit: Habit): number {
   for (let offset = 0; offset < 365; offset += 1) {
     const date = new Date(today);
     date.setDate(date.getDate() - offset);
-    const dateKey = date.toISOString().split("T")[0];
+    const dateKey = toYYYYMMDD(date);
     if (habit.completedDates.includes(dateKey)) {
       streak += 1;
     } else {

@@ -10,6 +10,7 @@ import {
   getMonthKey,
   BudgetLimit,
 } from './financial';
+import { parseLocalDate } from './date';
 
 // ============================================================================
 // OPERAÇÕES CRUD DE TRANSAÇÕES
@@ -70,7 +71,7 @@ export function filterTransactionsByPeriod(
   endDate: Date
 ): Transaction[] {
   return transactions.filter(t => {
-    const tDate = new Date(t.date);
+    const tDate = parseLocalDate(t.date);
     return tDate >= startDate && tDate <= endDate;
   });
 }
@@ -277,8 +278,8 @@ export function sortTransactionsByDate(
   order: 'asc' | 'desc' = 'desc'
 ): Transaction[] {
   return [...transactions].sort((a, b) => {
-    const dateA = new Date(a.date).getTime();
-    const dateB = new Date(b.date).getTime();
+    const dateA = getLocalDateTimestamp(a.date);
+    const dateB = getLocalDateTimestamp(b.date);
     return order === 'desc' ? dateB - dateA : dateA - dateB;
   });
 }

@@ -9,8 +9,15 @@ export function generateId(): string {
   );
 }
 
+export function toYYYYMMDD(date: Date): string {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, "0");
+  const day = String(date.getDate()).padStart(2, "0");
+  return `${year}-${month}-${day}`;
+}
+
 export function getTodayString(): string {
-  return new Date().toISOString().split("T")[0];
+  return toYYYYMMDD(new Date());
 }
 
 export function shallowEqual<T extends Record<string, unknown>>(a: T, b: T): boolean {

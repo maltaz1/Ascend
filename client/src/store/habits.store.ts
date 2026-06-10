@@ -1,6 +1,6 @@
 import { Habit } from "./types";
 import { _data, notify, persistState, markActiveToday } from "./state";
-import { generateId, getTodayString } from "./utils";
+import { generateId, getTodayString, toYYYYMMDD } from "./utils";
 import { addXP } from "./xp-system";
 import { evaluateAchievements } from "./achievements";
 
@@ -85,7 +85,7 @@ export function getHabitStreak(habit: Habit): number {
   for (let offset = 0; offset < 365; offset += 1) {
     const date = new Date(today);
     date.setDate(date.getDate() - offset);
-    const dateKey = date.toISOString().split("T")[0];
+    const dateKey = toYYYYMMDD(date);
     if (habit.completedDates.includes(dateKey)) {
       streak += 1;
     } else {
