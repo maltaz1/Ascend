@@ -7,7 +7,11 @@ const AUTH_INITIALIZE_TIMEOUT_MS = 10000;
 const AUTH_RETRY_COUNT = 1;
 const AUTH_STORAGE_PREFIX = "supabase.auth.";
 
-export type AuthStatus = "initializing" | "authenticated" | "unauthenticated" | "failed";
+export type AuthStatus =
+  | "initializing"
+  | "authenticated"
+  | "unauthenticated"
+  | "failed";
 
 export type AuthInitResult = {
   status: AuthStatus;
@@ -24,13 +28,18 @@ type AuthStateChangePayload = {
 };
 
 function isBrowser(): boolean {
-  return typeof window !== "undefined" && typeof window.localStorage !== "undefined";
+  return (
+    typeof window !== "undefined" && typeof window.localStorage !== "undefined"
+  );
 }
 
 function timeoutPromise<T>(promise: Promise<T>, ms: number): Promise<T> {
   let timer = 0;
   const timeout = new Promise<never>((_, reject) => {
-    timer = window.setTimeout(() => reject(new Error(`Auth request timed out after ${ms}ms`)), ms);
+    timer = window.setTimeout(
+      () => reject(new Error(`Auth request timed out after ${ms}ms`)),
+      ms
+    );
   });
 
   return Promise.race([promise, timeout]).finally(() => {
@@ -43,7 +52,7 @@ export function clearCorruptedSession(): void {
 
   const removedKeys: string[] = [];
 
-  Object.keys(window.localStorage).forEach((key) => {
+  Object.keys(window.localStorage).forEach(key => {
     if (key.startsWith(AUTH_STORAGE_PREFIX)) {
       try {
         window.localStorage.removeItem(key);
@@ -55,13 +64,18 @@ export function clearCorruptedSession(): void {
   });
 
   if (removedKeys.length > 0) {
-    logger.warn("auth", "Sessão Supabase potencialmente corrompida removida", { removedKeys });
+    logger.warn("auth", "Sessão Supabase potencialmente corrompida removida", {
+      removedKeys,
+    });
   }
 }
 
 export async function safeSignOut(): Promise<void> {
   try {
-    const { error } = await timeoutPromise(supabase.auth.signOut(), AUTH_REQUEST_TIMEOUT_MS);
+    const { error } = await timeoutPromise(
+      supabase.auth.signOut(),
+      AUTH_REQUEST_TIMEOUT_MS
+    );
     if (error) {
       logger.warn("auth", "signOut retornou erro", error);
     }
@@ -78,16 +92,32 @@ export async function safeGetUser(): Promise<AuthInitResult> {
 
   for (let attempt = 0; attempt <= AUTH_RETRY_COUNT; attempt += 1) {
     try {
-      const response = await timeoutPromise(supabase.auth.getUser(), AUTH_REQUEST_TIMEOUT_MS);
+      const response = await timeoutPromise(
+        supabase.auth.getUser(),
+        AUTH_REQUEST_TIMEOUT_MS
+      );
       const sessionResponse =
         typeof supabase.auth.getSession === "function"
-          ? await timeoutPromise(supabase.auth.getSession(), AUTH_REQUEST_TIMEOUT_MS)
+          ? await timeoutPromise(
+              supabase.auth.getSession(),
+              AUTH_REQUEST_TIMEOUT_MS
+            )
           : null;
 
-      const user = response.data?.user ?? sessionResponse?.data?.session?.user ?? null;
+      const user =
+        response.data?.user ?? sessionResponse?.data?.session?.user ?? null;
       const session = sessionResponse?.data?.session ?? null;
 
       if (response.error) {
+        if (response.error.message?.includes("Auth session missing")) {
+          return {
+            status: "unauthenticated",
+            user: null,
+            session: null,
+            recovered,
+          };
+        }
+
         lastError = response.error;
         throw response.error;
       }
@@ -108,13 +138,19 @@ export async function safeGetUser(): Promise<AuthInitResult> {
       lastError = error instanceof Error ? error : new Error(message);
 
       if (attempt < AUTH_RETRY_COUNT) {
-        logger.warn("auth", "safeGetUser falhou, limpando sessão e tentando novamente", { message });
+        logger.warn(
+          "auth",
+          "safeGetUser falhou, limpando sessão e tentando novamente",
+          { message }
+        );
         recovered = true;
         clearCorruptedSession();
         continue;
       }
 
-      logger.warn("auth", "safeGetUser finalizou sem usuário ativo", { message });
+      logger.warn("auth", "safeGetUser finalizou sem usuário ativo", {
+        message,
+      });
       return {
         status: "unauthenticated",
         user: null,
@@ -136,10 +172,15 @@ export async function safeGetUser(): Promise<AuthInitResult> {
 
 export async function initializeAuth(): Promise<AuthInitResult> {
   try {
-    const result = await timeoutPromise(safeGetUser(), AUTH_INITIALIZE_TIMEOUT_MS);
+    const result = await timeoutPromise(
+      safeGetUser(),
+      AUTH_INITIALIZE_TIMEOUT_MS
+    );
 
     if (result.status === "authenticated") {
-      logger.info("auth", "Auth inicializada com usuário ativo", { userId: result.user?.id });
+      logger.info("auth", "Auth inicializada com usuário ativo", {
+        userId: result.user?.id,
+      });
     } else {
       logger.info("auth", "Auth inicializada sem usuário ativo", {
         status: result.status,

@@ -216,12 +216,24 @@ function App() {
     };
 
     const init = async () => {
+      console.log("1 - iniciando auth");
       try {
         const authResult = await initializeAuth();
 
+        console.log("2 - auth concluída", authResult);
+
         if (!mounted) return;
 
-        setStartupError(authResult.error ?? null);
+        const errorMessage = authResult.error?.toLowerCase() ?? "";
+
+        if (
+          errorMessage.includes("auth session missing") ||
+          authResult.status === "unauthenticated"
+        ) {
+          setStartupError(null);
+        } else {
+          setStartupError(authResult.error ?? null);
+        }
         setUser(authResult.user);
 
         if (authResult.user) {
@@ -232,14 +244,23 @@ function App() {
         console.error("ERRO INIT:", error);
         setStartupError("Falha ao inicializar o auth. Atualize a página.");
       } finally {
+        if (startupTimeout) {
+          window.clearTimeout(startupTimeout);
+        }
+
         if (!mounted) return;
+
         setLoading(false);
       }
     };
 
     startupTimeout = window.setTimeout(() => {
+      console.warn("🚨 STARTUP TIMEOUT DISPAROU");
+
       if (!mounted) return;
+
       setLoading(false);
+
       setStartupError(
         current =>
           current ??
