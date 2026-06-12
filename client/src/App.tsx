@@ -24,7 +24,10 @@ import {
 function timeoutPromise<T>(promise: Promise<T>, ms: number): Promise<T> {
   let timer = 0;
   const timeout = new Promise<never>((_, reject) => {
-    timer = window.setTimeout(() => reject(new Error(`Request timed out after ${ms}ms`)), ms);
+    timer = window.setTimeout(
+      () => reject(new Error(`Request timed out after ${ms}ms`)),
+      ms
+    );
   });
 
   return Promise.race([promise, timeout]).finally(() => {
@@ -195,7 +198,10 @@ function App() {
     let startupTimeout: number | null = null;
     let unsubscribeAuth: (() => void) | null = null;
 
-    const authStateChange = async (payload: { event: string; user: User | null }) => {
+    const authStateChange = async (payload: {
+      event: string;
+      user: User | null;
+    }) => {
       if (!mounted) return;
       const nextUser = payload.user;
       setUser(nextUser);
@@ -234,8 +240,10 @@ function App() {
     startupTimeout = window.setTimeout(() => {
       if (!mounted) return;
       setLoading(false);
-      setStartupError((current) =>
-        current ?? "Tempo de inicialização excedido. Verifique sua conexão ou faça login novamente."
+      setStartupError(
+        current =>
+          current ??
+          "Tempo de inicialização excedido. Verifique sua conexão ou faça login novamente."
       );
     }, 12000);
 
@@ -257,7 +265,7 @@ function App() {
       return;
     }
 
-    initRealtimeSync(user.id).catch((error) => {
+    initRealtimeSync(user.id).catch(error => {
       console.error("ERRO NO REALTIME SYNC:", error);
     });
   }, [user?.id]);
@@ -271,7 +279,8 @@ function App() {
   if (loading) {
     return (
       <div style={{ color: "white", padding: 20 }}>
-        Carregando... Caso a inicialização demore mais de alguns segundos, atualize a página.
+        Carregando... Caso a inicialização demore mais de alguns segundos,
+        atualize a página.
       </div>
     );
   }
@@ -316,7 +325,11 @@ function App() {
                 return;
               }
 
-              window.open(checkoutUrl, "_blank", "noopener,noreferrer");
+              window.open(
+                `${checkoutUrl}?teste=123`,
+                "_blank",
+                "noopener,noreferrer"
+              );
             }}
           />
           <FlowToastContainer />

@@ -9,16 +9,12 @@ import { createClient } from "@supabase/supabase-js";
 const SUPABASE_URL = process.env.SUPABASE_URL!;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 
-const supabase = createClient(
-  SUPABASE_URL,
-  SUPABASE_SERVICE_ROLE_KEY,
-  {
-    auth: {
-      persistSession: false,
-      autoRefreshToken: false,
-    },
-  }
-);
+const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
+  auth: {
+    persistSession: false,
+    autoRefreshToken: false,
+  },
+});
 
 type HeaderValue = string | string[] | undefined;
 
@@ -104,7 +100,7 @@ async function findUserByEmail(email: string) {
     }
 
     const user = data.users.find(
-      (u) => u.email?.toLowerCase() === email.toLowerCase()
+      u => u.email?.toLowerCase() === email.toLowerCase()
     );
 
     if (user) {
@@ -143,16 +139,13 @@ export default async function handler(
       });
     }
 
-    const event =
-      normalizeString(payload.event) || "unknown";
+    const event = normalizeString(payload.event) || "unknown";
 
     const data = payload.data || {};
 
-    const email =
-      normalizeString(data.customer?.email);
+    const email = normalizeString(data.customer?.email);
 
-    const status =
-      normalizeString(data.status) || "unknown";
+    const status = normalizeString(data.status) || "unknown";
 
     if (!email) {
       console.warn("[CAKTO] Usuário sem email");
@@ -184,9 +177,10 @@ export default async function handler(
         email,
       });
 
-      return res.status(404).json({
-        ok: false,
-        error: "Usuário não encontrado",
+      return res.status(200).json({
+        ok: true,
+        ignored: true,
+        reason: "user_not_found",
       });
     }
 
@@ -197,16 +191,14 @@ export default async function handler(
       .single();
 
     if (!profile) {
-      const { error: insertError } = await supabase
-        .from("profiles")
-        .insert({
-          id: user.id,
-          is_pro: desiredIsPro,
-          level: 1,
-          xp: 0,
-          streak: 0,
-          name: email.split("@")[0],
-        });
+      const { error: insertError } = await supabase.from("profiles").insert({
+        id: user.id,
+        is_pro: desiredIsPro,
+        level: 1,
+        xp: 0,
+        streak: 0,
+        name: email.split("@")[0],
+      });
 
       if (insertError) {
         throw insertError;
