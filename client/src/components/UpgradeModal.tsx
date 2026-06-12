@@ -20,13 +20,24 @@ const benefits = [
 
 function CheckIcon() {
   return (
-    <svg width="9" height="9" viewBox="0 0 12 12" fill="none" stroke="#a78bfa" strokeWidth="2.2">
+    <svg
+      width="9"
+      height="9"
+      viewBox="0 0 12 12"
+      fill="none"
+      stroke="#a78bfa"
+      strokeWidth="2.2"
+    >
       <polyline points="2,6 5,9 10,3" />
     </svg>
   );
 }
 
-export default function UpgradeModal({ open, onClose, onUpgrade }: UpgradeModalProps) {
+export default function UpgradeModal({
+  open,
+  onClose,
+  onUpgrade,
+}: UpgradeModalProps) {
   useEffect(() => {
     const handleEsc = (e: KeyboardEvent) => {
       if (e.key === "Escape") onClose();
@@ -50,7 +61,7 @@ export default function UpgradeModal({ open, onClose, onUpgrade }: UpgradeModalP
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
             transition={{ type: "spring", stiffness: 220, damping: 22 }}
-            onClick={(e) => e.stopPropagation()}
+            onClick={e => e.stopPropagation()}
             style={{ fontFamily: "'DM Sans', sans-serif" }}
             className="relative w-full max-w-sm overflow-hidden rounded-[18px] border border-violet-500/[0.18] bg-[#0f0f13] shadow-2xl"
           >
@@ -76,8 +87,7 @@ export default function UpgradeModal({ open, onClose, onUpgrade }: UpgradeModalP
                 className="mb-2 text-[30px] font-semibold leading-[1.15] text-violet-50"
                 style={{ fontFamily: "'Cormorant Garamond', serif" }}
               >
-                Ascend{" "}
-                <em className="not-italic text-violet-400">PRO</em>
+                Ascend <em className="not-italic text-violet-400">PRO</em>
               </h2>
 
               {/* Subtitle */}
@@ -106,18 +116,46 @@ export default function UpgradeModal({ open, onClose, onUpgrade }: UpgradeModalP
                 ))}
               </ul>
 
+              {/* Aviso Importante */}
+              <div className="mb-4 rounded-[10px] border border-amber-500/20 bg-amber-500/5 p-3">
+                <div className="flex items-start gap-2">
+                  <span className="text-amber-400 text-sm">⚠️</span>
+                  <div>
+                    <p className="text-[12px] font-medium text-amber-400">
+                      Importante
+                    </p>
+                    <p className="mt-1 text-[11px] leading-relaxed text-white/55">
+                      Utilize o mesmo email cadastrado no Ascend para que sua
+                      assinatura seja ativada automaticamente após a confirmação
+                      do pagamento.
+                    </p>
+                  </div>
+                </div>
+              </div>
+
               {/* CTA */}
-              <a href="https://pay.cakto.com.br/35n9bs3_900728" target="_blank" rel="noopener noreferrer">
+              <a
+                href="https://pay.cakto.com.br/35n9bs3_900728"
+                target="_blank"
+                rel="noopener noreferrer"
+              >
                 <button
                   onClick={onUpgrade}
                   className="mb-2 flex w-full items-center justify-center gap-1.5 rounded-[9px] bg-violet-700 px-5 py-[13px] text-[13px] font-medium tracking-[0.03em] text-violet-50 transition hover:bg-violet-800"
                 >
                   Assinar PRO
-                <svg width="12" height="12" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5">
-                  <path d="M5 12h14M12 5l7 7-7 7" />
-                </svg>
-              </button>
-            </a>
+                  <svg
+                    width="12"
+                    height="12"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2.5"
+                  >
+                    <path d="M5 12h14M12 5l7 7-7 7" />
+                  </svg>
+                </button>
+              </a>
 
               <button
                 onClick={onClose}
