@@ -24,6 +24,7 @@ export default function Settings() {
     name: "",
     bio: "",
     avatar: defaultAvatar,
+    isPro: false,
   });
 
   const [notifications, setNotifications] = useState({
@@ -55,9 +56,8 @@ export default function Settings() {
       setProfile({
         name: data.name || "",
         bio: data.bio || "",
-        avatar:
-          data.avatar_url ||
-          defaultAvatar,
+        avatar: data.avatar_url || defaultAvatar,
+        isPro: data.is_pro || false,
       });
     }
   }
@@ -178,12 +178,18 @@ export default function Settings() {
           <h1 className="text-4xl font-bold mb-2">⚙️ Configurações</h1>
 
           <p className="text-zinc-400">
-            Personalize sua experiência no FlowZone
+            Personalize sua experiência no Ascend, gerencie sua conta e aproveite ao máximo nossos recursos!
           </p>
         </div>
 
         {/* PERFIL TOP */}
-        <div className="bg-gradient-to-r from-amber-500/20 to-orange-500/10 border border-amber-500/20 rounded-3xl p-6 mb-8">
+        <div
+          className={`rounded-3xl p-6 mb-8 border ${
+            profile.isPro
+              ? "bg-gradient-to-r from-violet-500/15 to-indigo-500/10 border-violet-500/20"
+              : "bg-gradient-to-r from-zinc-800 to-zinc-900 border-zinc-700"
+          }`}
+        >
           <div className="flex items-center gap-5">
             <img
               src={profile.avatar}
@@ -199,9 +205,16 @@ export default function Settings() {
                 {profile.bio || "Sem bio definida"}
               </p>
 
-              <div className="mt-3 inline-flex items-center gap-2 bg-amber-500/20 text-amber-400 px-3 py-1 rounded-full text-sm">
+              <div
+                className={`mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium border ${
+                  profile.isPro
+                    ? "bg-violet-500/10 text-violet-300 border-violet-500/20"
+                    : "bg-zinc-800 text-zinc-300 border-zinc-700"
+                }`}
+              >
                 <Sparkles size={14} />
-                Premium Productivity
+
+                {profile.isPro ? "Ascend PRO" : "Ascend Free"}
               </div>
             </div>
           </div>
