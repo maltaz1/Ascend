@@ -89,6 +89,8 @@
   --bg-primary: #fafafa;
   --bg-secondary: #ffffff;
   --border-subtle: #e5e7eb;
+  /* Habit cell size — mude aqui para ajustar tudo junto */
+  --habit-cell: 32px;
 }
 
 .dark {
@@ -128,6 +130,7 @@
   --bg-primary: #111118;
   --bg-secondary: #1a1a22;
   --border-subtle: #2a2a32;
+  --habit-cell: 32px;
 }
 
 @layer base {
@@ -422,6 +425,12 @@
     color: #93c5fd;
   }
 
+  /* ============================================
+     HABIT TABLE — layout unificado via --habit-cell
+     Números e bolinhas sempre alinhados porque
+     header e rows usam a mesma largura de célula.
+  ============================================ */
+
   .habit-table-card {
     overflow: hidden;
   }
@@ -432,39 +441,39 @@
     scroll-behavior: smooth;
     -webkit-overflow-scrolling: touch;
     min-width: 0;
-    padding: 18px 0 12px 0;
+    padding: 0;
   }
 
   .habit-table-scroll::-webkit-scrollbar {
-    height: 8px;
+    height: 6px;
   }
 
   .habit-table-scroll::-webkit-scrollbar-track {
-    background: #3a3a45;
+    background: transparent;
     border-radius: 999px;
   }
 
   .habit-table-scroll::-webkit-scrollbar-thumb {
-    background: linear-gradient(135deg, #5f5f6d, #4b4b5d);
+    background: var(--border);
     border-radius: 999px;
   }
 
   .habit-table-scroll::-webkit-scrollbar-thumb:hover {
-    background: linear-gradient(135deg, #8b5cf6, #3b82f6);
+    background: #8b5cf6;
   }
 
+  /* Linha base — header e rows compartilham a mesma grade */
   .habit-table-head,
   .habit-row {
-    display: grid;
-    grid-template-columns: 152px minmax(0, 1fr);
+    display: flex;
     align-items: center;
-    gap: 12px;
-    min-width: 860px;
+    /* coluna do nome fixa + dias em sequência */
     padding: 0 16px;
   }
 
   .habit-table-head {
-    padding-bottom: 12px;
+    padding-top: 14px;
+    padding-bottom: 10px;
     border-bottom: 1px solid var(--border);
     position: sticky;
     top: 0;
@@ -472,24 +481,9 @@
     background: var(--card);
   }
 
-  .habit-table-head-info,
-  .habit-row-info {
-    position: sticky;
-    left: 0;
-    z-index: 2;
-    background: var(--card);
-    padding-right: 16px;
-  }
-
-  .habit-table-head-info {
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--muted-foreground);
-    text-transform: uppercase;
-  }
-
   .habit-row {
-    padding: 12px 16px;
+    padding-top: 10px;
+    padding-bottom: 10px;
     border-bottom: 1px solid var(--border);
   }
 
@@ -497,23 +491,37 @@
     border-bottom: none;
   }
 
+  /* Coluna do nome — fixa e sticky no scroll horizontal */
+  .habit-table-head-info,
+  .habit-row-info {
+    width: 140px;
+    min-width: 140px;
+    flex-shrink: 0;
+    position: sticky;
+    left: 0;
+    z-index: 2;
+    background: var(--card);
+    padding-right: 12px;
+  }
+
+  .habit-table-head-info {
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
   .habit-row-info {
     display: flex;
     flex-direction: column;
-    gap: 8px;
+    gap: 6px;
   }
 
   .habit-row-title {
     display: flex;
     align-items: center;
-    gap: 8px;
-    flex-wrap: wrap;
-  }
-
-  .habit-row-title span {
-    display: inline-flex;
-    align-items: center;
-    gap: 8px;
+    gap: 6px;
   }
 
   .habit-row-delete {
@@ -522,187 +530,201 @@
     border: none;
     color: var(--muted-foreground);
     cursor: pointer;
-    padding: 6px;
-    border-radius: 10px;
-    transition: background 0.18s ease, transform 0.2s ease;
+    padding: 4px;
+    border-radius: 6px;
+    transition: background 0.15s ease, color 0.15s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
   }
 
   .habit-row-delete:hover {
-    background: rgba(255, 255, 255, 0.08);
-    transform: scale(1.03);
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
   }
 
   .habit-row-meta {
     display: flex;
     align-items: center;
-    gap: 6px;
+    gap: 5px;
     font-size: 11px;
     color: var(--muted-foreground);
   }
 
+  /* Dias — header e bolinhas com EXATAMENTE a mesma largura de célula */
+  .habit-table-head-days,
   .habit-row-days {
     display: flex;
     align-items: center;
-    gap: 10px;
-  }
-
-  .habit-table-head-days {
-    display: flex;
-    align-items: center;
-    gap: 10px;
-  }
-
-  .habit-table-body {
-    display: flex;
-    flex-direction: column;
     gap: 0;
+    flex: 1;
   }
 
+  /* Célula do header (número do dia) */
   .habit-day-header-item {
-    width: 44px;
-    min-width: 44px;
+    width: var(--habit-cell);
+    min-width: var(--habit-cell);
+    flex-shrink: 0;
+    height: 24px;
     display: flex;
     align-items: center;
     justify-content: center;
-    font-size: 11px;
-    font-weight: 500;
+    font-size: 10px;
+    font-weight: 600;
     color: var(--muted-foreground);
-    flex-shrink: 0;
   }
 
+  /* Botão de cada dia — mesma largura que o header */
   .habit-day-button {
-    width: 44px;
-    min-width: 44px;
-    height: 44px;
-    min-height: 44px;
+    width: var(--habit-cell);
+    min-width: var(--habit-cell);
+    flex-shrink: 0;
+    height: 40px;
     display: flex;
     align-items: center;
     justify-content: center;
-    border-radius: 14px;
     border: none;
     background: transparent;
-    transition: transform 0.2s ease, background 0.2s ease, box-shadow 0.2s ease;
     cursor: pointer;
+    padding: 0;
+    border-radius: 8px;
+    transition: background 0.15s ease, transform 0.15s ease;
   }
 
-  .habit-day-button:hover {
-    transform: scale(1.08);
-    background: rgba(255, 255, 255, 0.08);
+  .habit-day-button:hover:not(:disabled) {
+    background: rgba(139, 92, 246, 0.1);
+    transform: scale(1.1);
   }
 
-  .habit-day-button:active {
-    transform: scale(0.95);
+  .habit-day-button:active:not(:disabled) {
+    transform: scale(0.93);
   }
 
   .habit-day-button:focus-visible {
     outline: 2px solid #3b82f6;
     outline-offset: 2px;
+    border-radius: 6px;
   }
 
+  /* Destaque do dia atual */
   .habit-day-button.current-day {
-    box-shadow: inset 0 0 0 1px #3b82f6;
+    background: rgba(59, 130, 246, 0.08);
+    border-radius: 8px;
+  }
+
+  .habit-day-button.current-day .habit-day-header-item {
+    color: #3b82f6;
+    font-weight: 700;
   }
 
   .habit-day-button:disabled {
     cursor: not-allowed;
-    opacity: 0.35;
+    opacity: 0.3;
   }
 
+  /* Bolinha */
   .habit-day-dot {
-    width: 16px;
-    height: 16px;
+    width: 14px;
+    height: 14px;
     border-radius: 50%;
-    transition: transform 0.2s ease, box-shadow 0.2s ease;
-    border: 2px solid transparent;
-    background: var(--border);
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+    flex-shrink: 0;
   }
 
   .habit-day-dot.completed {
-    transform: scale(1.05);
-    box-shadow: 0 0 0 4px rgba(255, 255, 255, 0.08);
+    transform: scale(1.1);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
   }
 
   .habit-day-dot.animate {
-    animation: habit-mark 220ms ease-out both;
+    animation: habit-mark 240ms ease-out both;
   }
 
   @keyframes habit-mark {
-    0% {
-      transform: scale(0.88);
-      opacity: 0.6;
-    }
-    60% {
-      transform: scale(1.2);
-      opacity: 1;
-      box-shadow: 0 0 0 6px rgba(125, 56, 255, 0.12);
-    }
-    100% {
-      transform: scale(1.05);
-      opacity: 1;
-    }
+    0%   { transform: scale(0.7); opacity: 0.5; }
+    60%  { transform: scale(1.3); opacity: 1; }
+    100% { transform: scale(1.1); opacity: 1; }
   }
 
-  @media (max-width: 1024px) {
-    .habit-table-head,
-    .habit-row {
-      grid-template-columns: 140px minmax(0, 1fr);
-      padding: 0 12px;
-      min-width: 740px;
-    }
-
-    .habit-day-header-item {
-      width: 48px;
-      min-width: 48px;
-    }
-
-    .habit-day-button {
-      width: 44px;
-      min-width: 44px;
-      height: 44px;
-      min-height: 44px;
-    }
+  .habit-table-body {
+    display: flex;
+    flex-direction: column;
   }
 
+  /* ============================================
+     MOBILE — scroll horizontal dentro do card,
+     coluna do nome fica sticky à esquerda.
+     Números e bolinhas SEMPRE alinhados porque
+     usam a mesma var(--habit-cell).
+  ============================================ */
   @media (max-width: 768px) {
-    .habit-table-head,
-    .habit-row {
-      grid-template-columns: 1fr;
-      min-width: 0;
-      padding: 0 14px;
+    :root, .dark {
+      --habit-cell: 30px;
     }
 
-    .habit-table-head {
-      padding-bottom: 10px;
+    .habit-table-head,
+    .habit-row {
+      /* Remove padding lateral para o scroll funcionar bem */
+      padding-left: 0;
+      padding-right: 8px;
+      /* Largura mínima = coluna nome + 31 dias * célula */
+      min-width: calc(128px + 31 * var(--habit-cell));
     }
 
     .habit-table-head-info,
     .habit-row-info {
-      position: relative;
-      left: 0;
-      background: transparent;
-      padding-right: 0;
-    }
-
-    .habit-row {
-      display: grid;
-      gap: 12px;
-      padding: 14px 16px;
-    }
-
-    .habit-row-days {
-      gap: 12px;
+      width: 128px;
+      min-width: 128px;
+      padding-left: 12px;
+      padding-right: 8px;
     }
 
     .habit-day-button {
-      width: 48px;
-      min-width: 48px;
-      height: 48px;
-      min-height: 48px;
+      height: 38px;
+      border-radius: 6px;
     }
 
     .habit-day-dot {
-      width: 18px;
-      height: 18px;
+      width: 13px;
+      height: 13px;
+    }
+
+    .habit-day-header-item {
+      height: 22px;
+      font-size: 9px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    :root, .dark {
+      --habit-cell: 26px;
+    }
+
+    .habit-table-head,
+    .habit-row {
+      min-width: calc(112px + 31 * var(--habit-cell));
+      padding-right: 4px;
+    }
+
+    .habit-table-head-info,
+    .habit-row-info {
+      width: 112px;
+      min-width: 112px;
+      padding-left: 10px;
+      padding-right: 6px;
+    }
+
+    .habit-day-button {
+      height: 34px;
+    }
+
+    .habit-day-dot {
+      width: 12px;
+      height: 12px;
+    }
+
+    .habit-day-header-item {
+      font-size: 9px;
     }
   }
 
@@ -723,12 +745,8 @@
   }
 
   @keyframes fadeIn {
-    from {
-      opacity: 0;
-    }
-    to {
-      opacity: 1;
-    }
+    from { opacity: 0; }
+    to   { opacity: 1; }
   }
 
   .fz-modal {
@@ -743,14 +761,8 @@
   }
 
   @keyframes slideUp {
-    from {
-      opacity: 0;
-      transform: translateY(20px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(20px); }
+    to   { opacity: 1; transform: translateY(0);    }
   }
 
   .fz-modal-content {
@@ -767,7 +779,7 @@
     box-shadow: 0 10px 25px rgba(0, 0, 0, 0.5);
   }
 
-  /* Habit Dots */
+  /* Habit Dots (legacy — usado em outras views) */
   .habit-dot {
     width: 10px;
     height: 10px;
@@ -787,107 +799,35 @@
 
   /* Animations */
   @keyframes slideIn {
-    from {
-      opacity: 0;
-      transform: translateY(4px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+    from { opacity: 0; transform: translateY(4px); }
+    to   { opacity: 1; transform: translateY(0);   }
   }
 
   .fz-animate-in {
     animation: slideIn 0.2s ease-out;
   }
 
-  /* Grafico animacoes suaves */
+  /* Chart animations */
   @keyframes chartGrow {
-    from {
-      opacity: 0;
-      transform: scaleY(0.8);
-    }
-    to {
-      opacity: 1;
-      transform: scaleY(1);
-    }
+    from { opacity: 0; transform: scaleY(0.8); }
+    to   { opacity: 1; transform: scaleY(1);   }
   }
 
-  @keyframes chartPulse {
-    0% {
-      opacity: 1;
-      transform: scale(1);
-    }
-    50% {
-      opacity: 0.8;
-      transform: scale(0.98);
-    }
-    100% {
-      opacity: 1;
-      transform: scale(1);
-    }
+  @keyframes chartAreaPulse {
+    0%   { opacity: 0.6; filter: drop-shadow(0 0 0 rgba(245, 158, 11, 0));    }
+    50%  { opacity: 1;   filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.4)); }
+    100% { opacity: 1;   filter: drop-shadow(0 0 0 rgba(245, 158, 11, 0));    }
   }
 
-  @keyframes chartGlowUpdate {
-    0% {
-      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0.5), inset 0 0 0 0 rgba(245, 158, 11, 0.1);
-    }
-    50% {
-      box-shadow: 0 0 30px 15px rgba(245, 158, 11, 0.2), inset 0 0 20px 0 rgba(245, 158, 11, 0.05);
-    }
-    100% {
-      box-shadow: 0 0 0 0 rgba(245, 158, 11, 0), inset 0 0 0 0 rgba(245, 158, 11, 0);
-    }
-  }
-
-  @keyframes chartSlideIn {
-    from {
-      opacity: 0;
-      transform: translateY(-4px);
-    }
-    to {
-      opacity: 1;
-      transform: translateY(0);
-    }
+  @keyframes chartBarPulse {
+    0%   { opacity: 0.7; filter: brightness(0.9); }
+    50%  { opacity: 1;   filter: brightness(1.1); }
+    100% { opacity: 1;   filter: brightness(1);   }
   }
 
   .fz-chart-container {
     animation: chartGrow 0.4s ease-out;
     will-change: transform;
-  }
-
-  .fz-chart-updating {
-    /* Animacao removida da div */
-  }
-
-  @keyframes chartAreaPulse {
-    0% {
-      opacity: 0.6;
-      filter: drop-shadow(0 0 0 rgba(245, 158, 11, 0));
-    }
-    50% {
-      opacity: 1;
-      filter: drop-shadow(0 0 8px rgba(245, 158, 11, 0.4));
-    }
-    100% {
-      opacity: 1;
-      filter: drop-shadow(0 0 0 rgba(245, 158, 11, 0));
-    }
-  }
-
-  @keyframes chartBarPulse {
-    0% {
-      opacity: 0.7;
-      filter: brightness(0.9);
-    }
-    50% {
-      opacity: 1;
-      filter: brightness(1.1);
-    }
-    100% {
-      opacity: 1;
-      filter: brightness(1);
-    }
   }
 
   .fz-chart-area {
@@ -900,7 +840,7 @@
     transition: all 0.5s cubic-bezier(0.34, 1.56, 0.64, 1);
   }
 
-  /* Responsive */
+  /* Responsive globals */
   @media (max-width: 768px) {
     .fz-card {
       border-radius: 6px;
@@ -954,16 +894,8 @@
       min-height: 40px;
     }
 
-    h1 {
-      font-size: 20px;
-    }
-
-    h2 {
-      font-size: 18px;
-    }
-
-    h3 {
-      font-size: 16px;
-    }
+    h1 { font-size: 20px; }
+    h2 { font-size: 18px; }
+    h3 { font-size: 16px; }
   }
 }
