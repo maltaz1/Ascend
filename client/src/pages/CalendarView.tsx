@@ -1,7 +1,7 @@
 // FlowZone Calendar — Carbon Amber Industrial Premium
 // Calendário mensal completo com tarefas e metas com deadline
 
-import React, { useState, useMemo } from 'react';
+import React, { useState, useMemo, useEffect } from 'react';
 import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import { getTodayString, getTaskStatus } from '@/lib/store';
@@ -9,6 +9,18 @@ import type { Task, Goal } from '@/lib/store';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
+
+function useWindowWidth() {
+  const [width, setWidth] = useState(typeof window !== 'undefined' ? window.innerWidth : 1024);
+
+  useEffect(() => {
+    const handler = () => setWidth(window.innerWidth);
+    window.addEventListener('resize', handler);
+    return () => window.removeEventListener('resize', handler);
+  }, []);
+
+  return width;
+}
 
 function DayCell({
   day,
@@ -19,6 +31,7 @@ function DayCell({
   goals,
   isSelected,
   onClick,
+  isMobile,
 }: {
   day: number;
   dateStr: string;
@@ -28,6 +41,7 @@ function DayCell({
   goals: Goal[];
   isSelected: boolean;
   onClick: () => void;
+  isMobile: boolean;
 }) {
   const completedTasks = tasks.filter(t => t.completed).length;
   const pendingTasks = tasks.filter(t => !t.completed && t.date >= getTodayString()).length;
@@ -37,9 +51,9 @@ function DayCell({
     <div
       onClick={onClick}
       style={{
-        minHeight: 90,
-        padding: '8px',
-        borderRadius: 10,
+        minHeight: isMobile ? 54 : 90,
+        padding: isMobile ? '5px 3px' : '8px',
+        borderRadius: isMobile ? 8 : 10,
         border: isToday
           ? '1px solid rgba(245,158,11,0.4)'
           : isSelected
@@ -55,6 +69,9 @@ function DayCell({
         opacity: isOtherMonth ? 0.35 : 1,
         position: 'relative',
         overflow: 'hidden',
+        display: 'flex',
+        flexDirection: 'column',
+        alignItems: isMobile ? 'center' : 'stretch',
       }}
       onMouseEnter={e => {
         if (!isToday && !isSelected) {
@@ -71,12 +88,15 @@ function DayCell({
       <div style={{
         fontFamily: 'Space Grotesk',
         fontWeight: isToday ? 800 : 600,
-        fontSize: 14,
+        fontSize: isMobile ? 13 : 14,
         color: isToday ? '#F59E0B' : 'var(--muted-foreground)',
-        marginBottom: 4,
+        marginBottom: isMobile ? 3 : 4,
+        display: 'flex',
+        alignItems: 'center',
+        gap: 4,
       }}>
         {day}
-        {isToday && (
+        {isToday && !isMobile && (
           <span style={{
             marginLeft: 4,
             fontSize: 9,
@@ -90,66 +110,90 @@ function DayCell({
         )}
       </div>
 
-      {/* Task indicators */}
-      <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
-        {completedTasks > 0 && (
-          <div style={{
-            fontSize: 10,
-            color: '#10B981',
-            fontFamily: 'DM Sans',
-            fontWeight: 500,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 3,
-          }}>
-            <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#10B981', flexShrink: 0 }} />
-            {completedTasks} concluída{completedTasks > 1 ? 's' : ''}
-          </div>
-        )}
-        {pendingTasks > 0 && (
-          <div style={{
-            fontSize: 10,
-            color: '#F59E0B',
-            fontFamily: 'DM Sans',
-            fontWeight: 500,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 3,
-          }}>
-            <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#F59E0B', flexShrink: 0 }} />
-            {pendingTasks} pendente{pendingTasks > 1 ? 's' : ''}
-          </div>
-        )}
-        {overdueTasks > 0 && (
-          <div style={{
-            fontSize: 10,
-            color: '#EF4444',
-            fontFamily: 'DM Sans',
-            fontWeight: 500,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 3,
-          }}>
-            <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#EF4444', flexShrink: 0 }} />
-            {overdueTasks} atrasada{overdueTasks > 1 ? 's' : ''}
-          </div>
-        )}
-        {goals.map(g => (
-          <div key={g.id} style={{
-            fontSize: 10,
-            color: g.color,
-            fontFamily: 'DM Sans',
-            fontWeight: 500,
-            display: 'flex',
-            alignItems: 'center',
-            gap: 3,
-            overflow: 'hidden',
-          }}>
-            <span style={{ flexShrink: 0 }}>{g.emoji}</span>
-            <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.title}</span>
-          </div>
-        ))}
-      </div>
+      {/* Task / goal indicators */}
+      {isMobile ? (
+        <div style={{
+          display: 'flex',
+          flexWrap: 'wrap',
+          justifyContent: 'center',
+          alignItems: 'center',
+          gap: 3,
+          maxWidth: '100%',
+        }}>
+          {completedTasks > 0 && (
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#10B981', display: 'inline-block' }} />
+          )}
+          {pendingTasks > 0 && (
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#F59E0B', display: 'inline-block' }} />
+          )}
+          {overdueTasks > 0 && (
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#EF4444', display: 'inline-block' }} />
+          )}
+          {goals.slice(0, 2).map(g => (
+            <span key={g.id} style={{ fontSize: 11, lineHeight: 1 }}>{g.emoji}</span>
+          ))}
+        </div>
+      ) : (
+        <div style={{ display: 'flex', flexDirection: 'column', gap: 2 }}>
+          {completedTasks > 0 && (
+            <div style={{
+              fontSize: 10,
+              color: '#10B981',
+              fontFamily: 'DM Sans',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 3,
+            }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#10B981', flexShrink: 0 }} />
+              {completedTasks} concluída{completedTasks > 1 ? 's' : ''}
+            </div>
+          )}
+          {pendingTasks > 0 && (
+            <div style={{
+              fontSize: 10,
+              color: '#F59E0B',
+              fontFamily: 'DM Sans',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 3,
+            }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#F59E0B', flexShrink: 0 }} />
+              {pendingTasks} pendente{pendingTasks > 1 ? 's' : ''}
+            </div>
+          )}
+          {overdueTasks > 0 && (
+            <div style={{
+              fontSize: 10,
+              color: '#EF4444',
+              fontFamily: 'DM Sans',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 3,
+            }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#EF4444', flexShrink: 0 }} />
+              {overdueTasks} atrasada{overdueTasks > 1 ? 's' : ''}
+            </div>
+          )}
+          {goals.map(g => (
+            <div key={g.id} style={{
+              fontSize: 10,
+              color: g.color,
+              fontFamily: 'DM Sans',
+              fontWeight: 500,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 3,
+              overflow: 'hidden',
+            }}>
+              <span style={{ flexShrink: 0 }}>{g.emoji}</span>
+              <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.title}</span>
+            </div>
+          ))}
+        </div>
+      )}
     </div>
   );
 }
@@ -160,6 +204,8 @@ export default function CalendarView() {
   const [viewYear, setViewYear] = useState(new Date().getFullYear());
   const [viewMonth, setViewMonth] = useState(new Date().getMonth());
   const [selectedDate, setSelectedDate] = useState(today);
+  const windowWidth = useWindowWidth();
+  const isMobile = windowWidth <= 640;
 
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
   const firstDayOfMonth = new Date(viewYear, viewMonth, 1).getDay();
@@ -236,7 +282,7 @@ export default function CalendarView() {
 
       <div className="calendar-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20 }}>
         {/* Calendar Grid */}
-        <div className="fz-card" style={{ padding: '20px 22px' }}>
+        <div className="fz-card calendar-main-card" style={{ padding: '20px 22px' }}>
           {/* Month Navigation */}
           <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}>
             <button onClick={prevMonth} className="fz-btn-ghost" style={{ padding: '6px 10px', borderRadius: 8 }}>
@@ -251,7 +297,7 @@ export default function CalendarView() {
           </div>
 
           {/* Weekday headers */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, marginBottom: 8 }}>
+          <div className="calendar-weekday-header" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, marginBottom: 8 }}>
             {WEEKDAYS.map(d => (
               <div key={d} style={{
                 textAlign: 'center',
@@ -262,13 +308,13 @@ export default function CalendarView() {
                 padding: '4px 0',
                 letterSpacing: '0.04em',
               }}>
-                {d}
+                {isMobile ? d.slice(0, 1) : d}
               </div>
             ))}
           </div>
 
           {/* Days grid */}
-          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
+          <div className="calendar-days-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6 }}>
             {cells.map((cell, i) => {
               const cellTasks = data.tasks.filter(t => t.date === cell.dateStr);
               const cellGoals = data.goals.filter(g => g.deadline === cell.dateStr);
@@ -283,13 +329,14 @@ export default function CalendarView() {
                   goals={cellGoals}
                   isSelected={cell.dateStr === selectedDate}
                   onClick={() => setSelectedDate(cell.dateStr)}
+                  isMobile={isMobile}
                 />
               );
             })}
           </div>
 
           {/* Legend */}
-          <div style={{ display: 'flex', gap: 16, marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
             {[
               { color: '#10B981', label: 'Concluída' },
               { color: '#F59E0B', label: 'Pendente' },
@@ -407,6 +454,17 @@ export default function CalendarView() {
             display: grid !important;
             grid-template-columns: 1fr !important;
             gap: 12px !important;
+          }
+        }
+        @media (max-width: 640px) {
+          .calendar-main-card {
+            padding: 12px !important;
+          }
+          .calendar-days-grid {
+            gap: 4px !important;
+          }
+          .calendar-weekday-header {
+            gap: 4px !important;
           }
         }
       `}</style>

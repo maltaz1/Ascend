@@ -322,18 +322,6 @@ export default function Academy({ onTabChange }: AcademyProps) {
       </div>
 
       {/* Main Layout */}
-      <style>{`
-        .academy-main-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 24px;
-        }
-        @media (min-width: 1024px) {
-          .academy-main-grid {
-            grid-template-columns: 1fr 350px;
-          }
-        }
-      `}</style>
       <div className="academy-main-grid">
         {/* Workouts Section */}
         <div>
@@ -964,8 +952,14 @@ export default function Academy({ onTabChange }: AcademyProps) {
               className="fz-input"
             />
           </div>
+
+          {/* Séries + Reps Mín — grid responsivo */}
           <div
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+              gap: 12,
+            }}
           >
             <div>
               <label
@@ -988,6 +982,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
                   })
                 }
                 className="fz-input"
+                style={{ width: "100%", boxSizing: "border-box" }}
               />
             </div>
             <div>
@@ -1011,11 +1006,18 @@ export default function Academy({ onTabChange }: AcademyProps) {
                   })
                 }
                 className="fz-input"
+                style={{ width: "100%", boxSizing: "border-box" }}
               />
             </div>
           </div>
+
+          {/* Reps Máx + Descanso — grid responsivo */}
           <div
-            style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
+              gap: 12,
+            }}
           >
             <div>
               <label
@@ -1038,6 +1040,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
                   })
                 }
                 className="fz-input"
+                style={{ width: "100%", boxSizing: "border-box" }}
               />
             </div>
             <div>
@@ -1061,9 +1064,11 @@ export default function Academy({ onTabChange }: AcademyProps) {
                   })
                 }
                 className="fz-input"
+                style={{ width: "100%", boxSizing: "border-box" }}
               />
             </div>
           </div>
+
           <button
             onClick={handleAddExercise}
             className="fz-btn-primary"
@@ -1376,9 +1381,9 @@ export default function Academy({ onTabChange }: AcademyProps) {
                             padding: 14,
                             background: "rgba(255,255,255,0.03)",
                             border: "1px solid rgba(255,255,255,0.05)",
-                            boxSizing: "border-box", // ← ADICIONADO
-                            width: "100%", // ← ADICIONADO
-                            overflow: "hidden", // ← ADICIONADO
+                            boxSizing: "border-box",
+                            width: "100%",
+                            overflow: "hidden",
                           }}
                         >
                           {/* TOP */}
@@ -1403,7 +1408,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
                                 fontWeight: 800,
                                 color: "white",
                                 fontSize: 14,
-                                flexShrink: 0, // ← ADICIONADO
+                                flexShrink: 0,
                               }}
                             >
                               {setIdx + 1}
@@ -1422,14 +1427,14 @@ export default function Academy({ onTabChange }: AcademyProps) {
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
-                                flexShrink: 0, // ← ADICIONADO
+                                flexShrink: 0,
                               }}
                             >
                               <Trash2 size={14} />
                             </button>
                           </div>
 
-                          {/* TIPO — agora ocupa linha inteira */}
+                          {/* TIPO */}
                           <select
                             value={set.type}
                             onChange={e =>
@@ -1444,7 +1449,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
                             style={{
                               marginBottom: 12,
                               fontWeight: 700,
-                              width: "100%", // ← GARANTE LINHA INTEIRA
+                              width: "100%",
                               boxSizing: "border-box",
                             }}
                           >
@@ -1454,13 +1459,13 @@ export default function Academy({ onTabChange }: AcademyProps) {
                             <option value="drop">⬇️ Drop</option>
                           </select>
 
-                          {/* INPUTS — contidos dentro do card */}
+                          {/* INPUTS */}
                           <div
                             style={{
                               display: "grid",
                               gridTemplateColumns: "1fr 1fr",
                               gap: 12,
-                              width: "100%", // ← ADICIONADO
+                              width: "100%",
                               boxSizing: "border-box",
                             }}
                           >
@@ -1493,7 +1498,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
                                   fontSize: 20,
                                   fontWeight: 800,
                                   textAlign: "center",
-                                  width: "100%", // ← ADICIONADO
+                                  width: "100%",
                                   boxSizing: "border-box",
                                 }}
                               />
@@ -1528,7 +1533,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
                                   fontSize: 20,
                                   fontWeight: 800,
                                   textAlign: "center",
-                                  width: "100%", // ← ADICIONADO
+                                  width: "100%",
                                   boxSizing: "border-box",
                                 }}
                               />
@@ -1596,6 +1601,16 @@ export default function Academy({ onTabChange }: AcademyProps) {
 
       {/* Media queries */}
       <style>{`
+        .academy-main-grid {
+          display: grid;
+          grid-template-columns: 1fr;
+          gap: 24px;
+        }
+        @media (min-width: 1024px) {
+          .academy-main-grid {
+            grid-template-columns: 1fr 350px;
+          }
+        }
         @media (max-width: 1024px) {
           .academy-main-grid { grid-template-columns: 1fr !important; }
         }
@@ -1606,6 +1621,24 @@ export default function Academy({ onTabChange }: AcademyProps) {
         @media (max-width: 480px) {
           .academy-summary { gap: 12px !important; }
           .academy-main-grid { gap: 16px !important; }
+        }
+
+        /* Modal — garante que não corta conteúdo no mobile */
+        .fz-modal-content {
+          width: min(92vw, 500px) !important;
+          box-sizing: border-box !important;
+          overflow: hidden;
+        }
+        @media (max-width: 480px) {
+          .fz-modal-content {
+            padding: 16px !important;
+          }
+          .fz-modal-content input,
+          .fz-modal-content select {
+            width: 100% !important;
+            box-sizing: border-box !important;
+            min-width: 0 !important;
+          }
         }
       `}</style>
     </div>

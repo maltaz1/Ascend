@@ -434,9 +434,9 @@ function AddFoodModal({
 
   return (
     <Modal open={open} onClose={onClose} title="Adicionar Alimento">
-      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+      <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", minWidth: 0 }}>
         {/* Food Input with AI Button */}
-        <div style={{ position: "relative" }}>
+        <div style={{ position: "relative", width: "100%", minWidth: 0 }}>
           <label
             style={{
               fontFamily: "DM Sans",
@@ -448,13 +448,13 @@ function AddFoodModal({
           >
             Nome do Alimento *
           </label>
-          <div style={{ display: "flex", gap: 8 }}>
+          <div style={{ display: "flex", gap: 8, width: "100%", minWidth: 0 }}>
             <input
               className="fz-input"
               placeholder="Ex: Frango grelhado"
               value={foodName}
               onChange={e => setFoodName(e.target.value)}
-              style={{ flex: 1 }}
+              style={{ flex: 1, minWidth: 0, width: "100%", boxSizing: "border-box" }}
             />
             <button
               onClick={calculateMacrosWithAI}
@@ -473,6 +473,7 @@ function AddFoodModal({
                 fontWeight: 600,
                 fontSize: 12,
                 whiteSpace: "nowrap",
+                flexShrink: 0,
                 transition: "all 0.2s ease",
                 opacity: calculatingMacros || !foodName ? 0.5 : 1,
               }}
@@ -551,9 +552,14 @@ function AddFoodModal({
 
         {/* Nutrition Inputs */}
         <div
-          style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}
+          style={{
+            display: "grid",
+            gridTemplateColumns: "1fr 1fr",
+            gap: 12,
+            width: "100%",
+          }}
         >
-          <div>
+          <div style={{ minWidth: 0 }}>
             <label
               style={{
                 fontFamily: "DM Sans",
@@ -571,9 +577,10 @@ function AddFoodModal({
               placeholder="0"
               value={calories}
               onChange={e => setCalories(e.target.value)}
+              style={{ width: "100%", boxSizing: "border-box" }}
             />
           </div>
-          <div>
+          <div style={{ minWidth: 0 }}>
             <label
               style={{
                 fontFamily: "DM Sans",
@@ -591,9 +598,10 @@ function AddFoodModal({
               placeholder="100"
               value={quantity}
               onChange={e => setQuantity(e.target.value)}
+              style={{ width: "100%", boxSizing: "border-box" }}
             />
           </div>
-          <div>
+          <div style={{ minWidth: 0 }}>
             <label
               style={{
                 fontFamily: "DM Sans",
@@ -611,9 +619,10 @@ function AddFoodModal({
               placeholder="0"
               value={protein}
               onChange={e => setProtein(e.target.value)}
+              style={{ width: "100%", boxSizing: "border-box" }}
             />
           </div>
-          <div>
+          <div style={{ minWidth: 0 }}>
             <label
               style={{
                 fontFamily: "DM Sans",
@@ -631,9 +640,10 @@ function AddFoodModal({
               placeholder="0"
               value={carbs}
               onChange={e => setCarbs(e.target.value)}
+              style={{ width: "100%", boxSizing: "border-box" }}
             />
           </div>
-          <div style={{ gridColumn: "1 / 2" }}>
+          <div style={{ gridColumn: "1 / 2", minWidth: 0 }}>
             <label
               style={{
                 fontFamily: "DM Sans",
@@ -651,6 +661,7 @@ function AddFoodModal({
               placeholder="0"
               value={fat}
               onChange={e => setFat(e.target.value)}
+              style={{ width: "100%", boxSizing: "border-box" }}
             />
           </div>
         </div>
