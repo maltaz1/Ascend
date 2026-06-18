@@ -134,28 +134,22 @@ export default function UpgradeModal({
               </div>
 
               {/* CTA */}
-              <a
-                href="https://pay.cakto.com.br/35n9bs3_900728"
-                target="_blank"
-                rel="noopener noreferrer"
+              <button
+                onClick={onUpgrade}
+                className="mb-2 flex w-full items-center justify-center gap-1.5 rounded-[9px] bg-violet-700 px-5 py-[13px] text-[13px] font-medium tracking-[0.03em] text-violet-50 transition hover:bg-violet-800 cursor-pointer"
               >
-                <button
-                  onClick={onUpgrade}
-                  className="mb-2 flex w-full items-center justify-center gap-1.5 rounded-[9px] bg-violet-700 px-5 py-[13px] text-[13px] font-medium tracking-[0.03em] text-violet-50 transition hover:bg-violet-800"
+                Assinar PRO
+                <svg
+                  width="12"
+                  height="12"
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2.5"
                 >
-                  Assinar PRO
-                  <svg
-                    width="12"
-                    height="12"
-                    viewBox="0 0 24 24"
-                    fill="none"
-                    stroke="currentColor"
-                    strokeWidth="2.5"
-                  >
-                    <path d="M5 12h14M12 5l7 7-7 7" />
-                  </svg>
-                </button>
-              </a>
+                  <path d="M5 12h14M12 5l7 7-7 7" />
+                </svg>
+              </button>
 
               <button
                 onClick={onClose}

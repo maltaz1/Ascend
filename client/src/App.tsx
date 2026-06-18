@@ -144,7 +144,7 @@ function App() {
       .from("profiles")
       .select("id, is_pro, xp, level, streak, name")
       .eq("id", currentUser.id)
-      .single();
+      .maybeSingle(); // Usar maybeSingle para evitar erro de log se não existir
 
     if (error) {
       console.error("ERRO AO SINCRONIZAR PERFIL:", error);
@@ -152,15 +152,21 @@ function App() {
     }
 
     if (!profile) {
-      await supabase.from("profiles").insert({
+      console.log("Criando perfil automático para:", currentUser.id);
+      const { error: insertError } = await supabase.from("profiles").insert({
         id: currentUser.id,
-        name: currentUser.email?.split("@")[0] ?? "Usuário",
+        name: currentUser.user_metadata?.name || currentUser.email?.split("@")[0] || "Usuário",
         level: 1,
         xp: 0,
         streak: 0,
         is_pro: false,
       });
 
+      if (insertError) {
+        console.error("Erro ao criar perfil:", insertError);
+        return;
+      }
+      
       setIsPro(false);
       return;
     }
@@ -346,8 +352,14 @@ function App() {
                 return;
               }
 
+              // Adiciona o e-mail do usuário como parâmetro para facilitar a identificação no Cakto
+              const url = new URL(checkoutUrl);
+              if (user?.email) {
+                url.searchParams.set("email", user.email);
+              }
+              
               window.open(
-                `${checkoutUrl}?teste=123`,
+                url.toString(),
                 "_blank",
                 "noopener,noreferrer"
               );

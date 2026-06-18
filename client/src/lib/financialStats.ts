@@ -92,7 +92,10 @@ export function calculateFinancialStats(
 function calculateDaysInPeriod(transactions: Transaction[]): number {
   if (transactions.length === 0) return 0;
 
-  const dates = transactions.map(t => parseLocalDate(t.date).toDateString());
+  const dates = transactions.map(t => {
+    const dateStr = t.date instanceof Date ? t.date.toISOString().split('T')[0] : (t.date as any);
+    return parseLocalDate(dateStr).toDateString();
+  });
   const uniqueDates = new Set(dates);
   return uniqueDates.size;
 }
@@ -104,13 +107,19 @@ function calculateDaysWithoutExpense(transactions: Transaction[]): number {
   if (expenseTransactions.length === 0) return calculateDaysInPeriod(transactions);
 
   // Encontrar data mínima e máxima
-  const dates = transactions.map(t => getLocalDateTimestamp(t.date));
+  const dates = transactions.map(t => {
+    const dateStr = t.date instanceof Date ? t.date.toISOString().split('T')[0] : (t.date as any);
+    return getLocalDateTimestamp(dateStr);
+  });
   const minDate = Math.min(...dates);
   const maxDate = Math.max(...dates);
 
   // Contar dias com gastos
   const daysWithExpense = new Set(
-    expenseTransactions.map(t => parseLocalDate(t.date).toDateString())
+    expenseTransactions.map(t => {
+      const dateStr = t.date instanceof Date ? t.date.toISOString().split('T')[0] : (t.date as any);
+      return parseLocalDate(dateStr).toDateString();
+    })
   );
 
   // Calcular total de dias no período
@@ -137,14 +146,19 @@ export function generateChartData(
 
 function generateBalanceEvolution(transactions: Transaction[]): Array<{ date: string; balance: number }> {
   const sortedTransactions = [...transactions].sort(
-    (a, b) => getLocalDateTimestamp(a.date) - getLocalDateTimestamp(b.date)
+    (a, b) => {
+      const dateA = a.date instanceof Date ? a.date.toISOString().split('T')[0] : (a.date as any);
+      const dateB = b.date instanceof Date ? b.date.toISOString().split('T')[0] : (b.date as any);
+      return getLocalDateTimestamp(dateA) - getLocalDateTimestamp(dateB);
+    }
   );
 
   const evolution: Array<{ date: string; balance: number }> = [];
   let balance = 0;
 
   sortedTransactions.forEach(t => {
-    const dateStr = parseLocalDate(t.date).toLocaleDateString('pt-BR');
+    const dateInput = t.date instanceof Date ? t.date.toISOString().split('T')[0] : (t.date as any);
+    const dateStr = parseLocalDate(dateInput).toLocaleDateString('pt-BR');
     const value = t.type === 'entrada' ? t.value : -t.value;
     balance += value;
 
@@ -182,7 +196,8 @@ function generateDailyExpenses(transactions: Transaction[]): Array<{ date: strin
   const dailyMap: Record<string, number> = {};
 
   filterTransactionsByType(transactions, 'saída').forEach(t => {
-    const dateStr = parseLocalDate(t.date).toLocaleDateString('pt-BR');
+    const dateInput = t.date instanceof Date ? t.date.toISOString().split('T')[0] : (t.date as any);
+    const dateStr = parseLocalDate(dateInput).toLocaleDateString('pt-BR');
     dailyMap[dateStr] = (dailyMap[dateStr] || 0) + t.value;
   });
 
@@ -226,7 +241,11 @@ export function getTrendAnalysis(
   windowSize: number = 7
 ) {
   const sortedTransactions = [...transactions].sort(
-    (a, b) => getLocalDateTimestamp(a.date) - getLocalDateTimestamp(b.date)
+    (a, b) => {
+      const dateA = a.date instanceof Date ? a.date.toISOString().split('T')[0] : (a.date as any);
+      const dateB = b.date instanceof Date ? b.date.toISOString().split('T')[0] : (b.date as any);
+      return getLocalDateTimestamp(dateA) - getLocalDateTimestamp(dateB);
+    }
   );
 
   const dailyExpenses = generateDailyExpenses(sortedTransactions);
