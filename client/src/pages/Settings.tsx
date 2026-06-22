@@ -186,14 +186,14 @@ export default function Settings() {
         <div
           className={`rounded-3xl p-6 mb-8 border ${
             profile.isPro
-              ? "bg-gradient-to-r from-violet-500/15 to-indigo-500/10 border-violet-500/20"
-              : "bg-gradient-to-r from-zinc-800 to-zinc-900 border-zinc-700"
-          }`}
+              ? "bg-gradient-to-r from-zinc-900 to-zinc-800 border-zinc-700"
+              : "bg-zinc-900 border-zinc-800"
+          } shadow-xl shadow-black/40`}
         >
           <div className="flex items-center gap-5">
             <img
               src={profile.avatar}
-              className="w-24 h-24 rounded-full border-4 border-amber-500"
+              className="w-24 h-24 rounded-full border-2 border-zinc-700"
             />
 
             <div>
@@ -206,14 +206,13 @@ export default function Settings() {
               </p>
 
               <div
-                className={`mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full text-sm font-medium border ${
+                className={`mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold tracking-wide border uppercase ${
                   profile.isPro
-                    ? "bg-violet-500/10 text-violet-300 border-violet-500/20"
-                    : "bg-zinc-800 text-zinc-300 border-zinc-700"
+                    ? "bg-zinc-100 text-zinc-900 border-zinc-100"
+                    : "bg-zinc-800 text-zinc-400 border-zinc-700"
                 }`}
               >
-                <Sparkles size={14} />
-
+                {profile.isPro && <Sparkles size={12} className="mr-1" />}
                 {profile.isPro ? "Ascend PRO" : "Ascend Free"}
               </div>
             </div>

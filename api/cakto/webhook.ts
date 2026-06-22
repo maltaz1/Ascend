@@ -29,7 +29,13 @@ async function getRawBody(readable: any): Promise<Buffer> {
 function verifySignature(payload: string, signature: string, secret: string): boolean {
   const hmac = crypto.createHmac("sha256", secret);
   const digest = hmac.update(payload).digest("hex");
-  return digest === signature;
+  
+  // Trata tanto a assinatura pura quanto a prefixada com 'sha256='
+  const cleanSignature = signature.startsWith("sha256=") 
+    ? signature.substring(7) 
+    : signature;
+
+  return digest === cleanSignature;
 }
 
 function determineIsPro(event: string, status: string): boolean | null {
@@ -100,7 +106,11 @@ export default async function handler(req: any, res: any) {
 
     const status = (data.status || "unknown").toLowerCase();
     const desiredIsPro = determineIsPro(event, status);
+    
+    console.log(`[CAKTO] Processando evento: ${event} | Status: ${status} | E-mail: ${email} | DesiredIsPro: ${desiredIsPro}`);
+
     if (desiredIsPro === null) {
+      console.log(`[CAKTO] Evento ignorado (não relevante para status PRO): ${event}`);
       return res.status(200).json({ ok: true, ignored: true, reason: "event_not_relevant" });
     }
 

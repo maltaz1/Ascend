@@ -12,6 +12,25 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
+  const handleForgotPassword = async () => {
+    if (!email) {
+      notifyWarning("Digite seu e-mail primeiro.");
+      return;
+    }
+    
+    setLoading(true);
+    const { error } = await supabase.auth.resetPasswordForEmail(email, {
+      redirectTo: `${window.location.origin}/reset-password`,
+    });
+
+    if (error) {
+      notifyError(error.message);
+    } else {
+      notifySuccess("E-mail de recuperação enviado!");
+    }
+    setLoading(false);
+  };
+
   const handleSignup = async () => {
     const strongPassword = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$/;
 
@@ -1164,7 +1183,7 @@ export default function Login() {
                       </button>
                     </div>
 
-                    <a className="asc-forgot">Esqueci a senha</a>
+                    <button type="button" onClick={handleForgotPassword} className="asc-forgot bg-transparent border-none cursor-pointer hover:underline p-0">Esqueci a senha</button>
                   </div>
                 </div>
 

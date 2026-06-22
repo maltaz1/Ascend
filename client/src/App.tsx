@@ -222,41 +222,26 @@ function App() {
     };
 
     const init = async () => {
-      console.log("1 - iniciando auth");
       try {
         const authResult = await initializeAuth();
 
-        console.log("2 - auth concluída", authResult);
-
         if (!mounted) return;
 
-        const errorMessage = authResult.error?.toLowerCase() ?? "";
-
-        if (
-          errorMessage.includes("auth session missing") ||
-          authResult.status === "unauthenticated"
-        ) {
-          setStartupError(null);
-        } else {
-          setStartupError(authResult.error ?? null);
-        }
         setUser(authResult.user);
 
         if (authResult.user) {
-          await syncProfileState(authResult.user);
-          void preloadStartupData();
+          // Executa em paralelo para melhorar o tempo de startup
+          await Promise.all([
+            syncProfileState(authResult.user),
+            preloadStartupData()
+          ]);
         }
       } catch (error) {
         console.error("ERRO INIT:", error);
-        setStartupError("Falha ao inicializar o auth. Atualize a página.");
+        setStartupError("Ocorreu um problema ao carregar sua conta. Tente recarregar a página.");
       } finally {
-        if (startupTimeout) {
-          window.clearTimeout(startupTimeout);
-        }
-
-        if (!mounted) return;
-
-        setLoading(false);
+        if (startupTimeout) window.clearTimeout(startupTimeout);
+        if (mounted) setLoading(false);
       }
     };
 

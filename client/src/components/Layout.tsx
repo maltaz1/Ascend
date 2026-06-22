@@ -581,106 +581,93 @@ export function Layout({
               width: "85%",
               maxWidth: 320,
               height: "100vh",
-              background: "var(--bg-secondary)/80",
-              borderRight: "1px solid var(--border-subtle)",
+              background: "rgba(13, 14, 28, 0.98)",
+              backdropFilter: "blur(20px)",
+              borderRight: "1px solid rgba(255, 255, 255, 0.08)",
               zIndex: 95,
               flexDirection: "column",
-              padding: "16px 12px",
-              gap: 2,
+              padding: "20px 16px",
+              gap: 4,
               overflowY: "auto",
+              WebkitOverflowScrolling: "touch",
               animation: "slideIn 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
             }}
             className="mobile-drawer"
           >
-            <button
-              onClick={() => setMobileOpen(false)}
-              style={{
-                alignSelf: "flex-end",
-                width: 36,
-                height: 36,
-                borderRadius: 8,
-                background: "transparent",
-                border: "none",
-                color: "rgba(255,255,255,0.7)",
-                cursor: "pointer",
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-                marginBottom: 12,
-              }}
-            >
-              <X size={20} />
-            </button>
+            <div className="flex items-center justify-between mb-6">
+              <img src="/Logo-TaskBar.png" style={{ height: 40 }} alt="Logo" />
+              <button
+                onClick={() => setMobileOpen(false)}
+                style={{
+                  width: 40,
+                  height: 40,
+                  borderRadius: 12,
+                  background: "rgba(255,255,255,0.05)",
+                  border: "1px solid rgba(255,255,255,0.1)",
+                  color: "white",
+                  display: "flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                <X size={20} />
+              </button>
+            </div>
 
             {/* Nav Items */}
-            {orderedNavItems.map(item => {
-              const Icon = item.icon;
-              const isActive = activeTab === item.id;
-              const isLocked = !isPro && !FREE_TABS.includes(item.id);
-              return (
-                <button
-                  ref={el => {
-                    navItemRefs.current[item.id] = el;
-                  }}
-                  key={item.id}
-                  onClick={() => {
-                    if (isLocked) {
-                      onOpenUpgrade();
-                      return;
-                    }
+            <div className="flex flex-col gap-1">
+              {orderedNavItems.map(item => {
+                const Icon = item.icon;
+                const isActive = activeTab === item.id;
+                const isLocked = !isPro && !FREE_TABS.includes(item.id);
+                return (
+                  <button
+                    ref={el => {
+                      navItemRefs.current[item.id] = el;
+                    }}
+                    key={item.id}
+                    onClick={() => {
+                      if (isLocked) {
+                        onOpenUpgrade();
+                        return;
+                      }
 
-                    onTabChange(item.id);
-                    setMobileOpen(false);
-                  }}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 12,
-                    padding: "12px 14px",
-                    borderRadius: 10,
-                    background: isActive
-                      ? "rgba(245,158,11,0.12)"
-                      : "transparent",
-                    border: isActive
-                      ? "1px solid rgba(245,158,11,0.2)"
-                      : "1px solid transparent",
-                    color: isActive ? "#F59E0B" : "rgba(255,255,255,0.7)",
-                    cursor: "pointer",
-                    transition: "all 0.2s ease",
-                    fontFamily: "DM Sans",
-                    fontSize: 14,
-                    fontWeight: 500,
-                    textAlign: "left",
-                  }}
-                >
-                  <Icon size={18} style={{ flexShrink: 0 }} />
-                  <div
+                      onTabChange(item.id);
+                      setMobileOpen(false);
+                    }}
                     style={{
                       display: "flex",
                       alignItems: "center",
-                      gap: 8,
+                      gap: 14,
+                      padding: "14px 16px",
+                      borderRadius: 14,
+                      background: isActive
+                        ? "rgba(59, 130, 246, 0.1)"
+                        : "transparent",
+                      border: "1px solid transparent",
+                      color: isActive ? "#3B82F6" : "rgba(255,255,255,0.65)",
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                      fontFamily: "Sora",
+                      fontSize: 15,
+                      fontWeight: isActive ? 600 : 400,
+                      textAlign: "left",
                     }}
                   >
-                    <span>{item.label}</span>
+                    <Icon size={20} style={{ flexShrink: 0, color: isActive ? "#3B82F6" : "inherit" }} />
+                    <div className="flex-1 flex items-center justify-between">
+                      <span>{item.label}</span>
 
-                    {isLocked && (
-                      <span
-                        style={{
-                          fontSize: 10,
-                          background: "#7C3AED",
-                          color: "white",
-                          padding: "2px 6px",
-                          borderRadius: 999,
-                          fontWeight: 700,
-                        }}
-                      >
-                        PRO
-                      </span>
-                    )}
-                  </div>
-                </button>
-              );
-            })}
+                      {isLocked && (
+                        <span className="text-[10px] font-bold bg-zinc-100 text-zinc-900 px-2 py-0.5 rounded-full uppercase tracking-wider">
+                          PRO
+                        </span>
+                      )}
+                    </div>
+                  </button>
+                );
+              })}
+            </div>
           </nav>
         </>
       )}
