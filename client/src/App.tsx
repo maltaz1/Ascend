@@ -272,6 +272,8 @@ function App() {
   }, []);
 
   useEffect(() => {
+    if (window.location.pathname === "/reset-password") return;
+    
     if (!user?.id) {
       stopRealtimeSync();
       return;
@@ -302,7 +304,9 @@ function App() {
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
           {/* 🔑 AQUI É A MÁGICA */}
-          {!user ? (
+          {window.location.pathname === "/reset-password" ? (
+            <ResetPassword />
+          ) : !user ? (
             <>
               {startupError ? (
                 <div
