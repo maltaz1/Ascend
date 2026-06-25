@@ -11,6 +11,9 @@ import {
   Database,
   Lock,
   Save,
+  Mail,
+  CreditCard,
+  XCircle,
 } from "lucide-react";
 import { notifyError, notifySuccess } from "@/lib/notifications";
 
@@ -83,6 +86,19 @@ export default function Settings() {
     await supabase.auth.signOut();
     window.location.reload();
   }
+
+  const handleSupportContact = () => {
+    window.location.href = "mailto:ascendprod1@gmail.com";
+  };
+
+  const handleCancellationRequest = async () => {
+    const { data: { user } } = await supabase.auth.getUser();
+    const subject = encodeURIComponent("Solicitação de cancelamento - Ascend PRO");
+    const body = encodeURIComponent(
+      `Olá!\n\nGostaria de solicitar o cancelamento da minha assinatura do Ascend PRO.\n\nNome: ${profile.name || "Não informado"}\nE-mail da conta: ${user?.email || "Não informado"}\n\nMotivo do cancelamento (opcional):\n\nObrigado.`
+    );
+    window.location.href = `mailto:ascendprod1@gmail.com?subject=${subject}&body=${body}`;
+  };
 
   function toggleNotification(type: keyof typeof notifications) {
     setNotifications({
@@ -392,6 +408,92 @@ export default function Settings() {
               </button>
             </div>
           </motion.div>
+
+          {/* CONTA E SUPORTE */}
+          <div className="pt-4 mb-2">
+            <h2 className="text-sm font-bold text-zinc-500 uppercase tracking-widest ml-1">Conta e Suporte</h2>
+          </div>
+
+          {/* CONTATO */}
+          <motion.div whileHover={{ scale: 1.01 }} className={cardClass}>
+            <div className="flex items-center gap-3 mb-5">
+              <Mail className="text-blue-400" />
+              <h2 className="text-2xl font-bold">📧 Contato</h2>
+            </div>
+
+            <div className="space-y-4">
+              <p className="text-zinc-400 text-sm">
+                Entre em contato caso tenha dúvidas, sugestões ou precise de ajuda.
+              </p>
+
+              <button
+                onClick={handleSupportContact}
+                className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-4 hover:border-blue-500/40 transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                    <Mail size={18} className="text-blue-500" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-zinc-200">ascendprod1@gmail.com</p>
+                    <p className="text-xs text-zinc-500">Clique para enviar um e-mail</p>
+                  </div>
+                </div>
+                <div className="bg-blue-600 px-4 py-2 rounded-xl text-xs font-bold text-white opacity-0 group-hover:opacity-100 transition-all">
+                  Enviar e-mail
+                </div>
+              </button>
+            </div>
+          </motion.div>
+
+          {/* ASSINATURA (Apenas PRO) */}
+          {profile.isPro && (
+            <motion.div whileHover={{ scale: 1.01 }} className={cardClass}>
+              <div className="flex items-center gap-3 mb-5">
+                <CreditCard className="text-emerald-400" />
+                <h2 className="text-2xl font-bold">💎 Assinatura</h2>
+              </div>
+
+              <div className="space-y-3">
+                <div className="flex justify-between items-center bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+                  <span className="text-zinc-400">Plano</span>
+                  <span className="font-bold text-emerald-400">Ascend PRO</span>
+                </div>
+
+                <div className="flex justify-between items-center bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
+                  <span className="text-zinc-400">Status</span>
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" />
+                    <span className="font-bold text-emerald-500">Ativo</span>
+                  </div>
+                </div>
+              </div>
+            </motion.div>
+          )}
+
+          {/* SOLICITAR CANCELAMENTO (Apenas PRO) */}
+          {profile.isPro && (
+            <motion.div whileHover={{ scale: 1.01 }} className={cardClass}>
+              <div className="flex items-center gap-3 mb-5">
+                <XCircle className="text-red-400" />
+                <h2 className="text-2xl font-bold">⚠️ Cancelamento</h2>
+              </div>
+
+              <div className="space-y-4">
+                <p className="text-zinc-400 text-sm">
+                  Seu acesso ao Ascend PRO continuará disponível até o final do período já pago.
+                </p>
+
+                <button
+                  onClick={handleCancellationRequest}
+                  className="w-full flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl p-4 hover:bg-red-500/20 transition-all font-bold justify-center"
+                >
+                  <XCircle size={18} />
+                  Solicitar cancelamento
+                </button>
+              </div>
+            </motion.div>
+          )}
 
           {/* SOBRE */}
           <motion.div whileHover={{ scale: 1.01 }} className={cardClass}>
