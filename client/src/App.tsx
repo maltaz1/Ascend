@@ -50,6 +50,7 @@ import Academy from "./pages/Academy";
 import Evolution from "./pages/Evolution";
 import Settings from "./pages/Settings";
 import Financial from "./pages/Financial";
+import Notes from "./pages/Notes";
 import ResetPassword from "./pages/ResetPassword";
 import DownloadApp from "./pages/DownloadApp.tsx";
 
@@ -69,7 +70,8 @@ type Tab =
   | "academy"
   | "evolution"
   | "settings"
-  | "download";
+  | "download"
+  | "notes";
 
 function AppContent({
   isPro,
@@ -106,6 +108,8 @@ function AppContent({
         return <Evolution onTabChange={setActiveTab} />;
       case "settings":
         return <Settings />;
+      case "notes":
+        return <Notes />;
       case "download":
         return <DownloadApp />;
       default:

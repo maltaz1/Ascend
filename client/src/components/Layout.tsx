@@ -20,6 +20,7 @@ import {
   DollarSign,
   Download,
   AlertCircle,
+  FileText,
 } from "lucide-react";
 import { FREE_TABS } from "@/config/planLimits";
 import { useStore } from "@/hooks/useStore";
@@ -42,8 +43,9 @@ type Tab =
   | "calendar"
   | "academy"
   | "evolution"
+  | "download"
   | "settings"
-  | "download";
+  | "notes";
 
 interface LayoutProps {
   activeTab: Tab;
@@ -63,6 +65,7 @@ const navItems = [
   { id: "academy" as Tab, label: "Academia", icon: Dumbbell },
   { id: "diet" as Tab, label: "Dieta", icon: Apple },
   { id: "financial" as Tab, label: "Financeiro", icon: DollarSign },
+  { id: "notes" as Tab, label: "Notas", icon: FileText },
   { id: "calendar" as Tab, label: "Calendário", icon: Calendar },
   { id: "download" as Tab, label: "Baixar App", icon: Download },
   { id: "settings" as Tab, label: "Configurações", icon: Zap },
