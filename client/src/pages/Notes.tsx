@@ -24,7 +24,7 @@ import {
   Clock,
   CheckCircle2
 } from "lucide-react";
-import { motion, AnimatePresence } from "framer-motion";
+import { motion } from "framer-motion";
 
 const mockNotes = [
   { 
@@ -148,12 +148,10 @@ export default function Notes() {
             </div>
             
             <div className="space-y-1 px-1">
-              <AnimatePresence>
                 {isCreatingFolder && (
                   <motion.form 
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
-                    exit={{ opacity: 0, y: -10 }}
                     onSubmit={handleCreateFolder}
                     className="px-3 py-2 mb-2"
                   >
@@ -168,7 +166,6 @@ export default function Notes() {
                     />
                   </motion.form>
                 )}
-              </AnimatePresence>
 
               {userFolders.map(folder => (
                 <button 
@@ -327,55 +324,6 @@ function ToolbarButton({ icon, tooltip }: { icon: React.ReactNode, tooltip: stri
 function FormatButton({ icon, tooltip }: { icon: React.ReactNode, tooltip?: string }) {
   return (
     <button className="p-2 rounded-xl text-zinc-600 hover:text-zinc-200 hover:bg-white/5 transition-all active:scale-90" title={tooltip}>
-      {icon}
-    </button>
-  );
-}
-
-function NoteItem({ note, isSelected, onClick }: { note: any, isSelected: boolean, onClick: () => void }) {
-  return (
-    <motion.button 
-      whileHover={{ x: 4 }}
-      onClick={onClick}
-      className={`w-full text-left p-3 rounded-2xl transition-all group relative ${isSelected ? 'bg-blue-600/10 border border-blue-500/20 shadow-lg shadow-blue-600/5' : 'hover:bg-zinc-800/40 border border-transparent'}`}
-    >
-      <div className="flex items-start justify-between mb-1">
-        <h3 className={`font-bold text-sm truncate pr-4 ${isSelected ? 'text-blue-400' : 'text-zinc-200 group-hover:text-white'}`}>
-          {note.title}
-        </h3>
-        <div className="flex items-center gap-1 flex-shrink-0">
-          {note.fixed && <Pin size={10} className="text-blue-500 fill-blue-500" />}
-          {note.favorite && <Star size={10} className="text-yellow-500 fill-yellow-500" />}
-        </div>
-      </div>
-      <p className="text-xs text-zinc-500 line-clamp-2 mb-2 leading-relaxed">
-        {note.preview}
-      </p>
-      <div className="flex items-center justify-between">
-        <span className="text-[10px] font-bold text-zinc-600 uppercase tracking-tighter">{note.date}</span>
-        <span className="text-[10px] font-bold text-zinc-600 uppercase bg-zinc-800/50 px-1.5 py-0.5 rounded-md">{note.folder}</span>
-      </div>
-      {isSelected && (
-        <motion.div 
-          layoutId="activeNote"
-          className="absolute left-0 top-2 bottom-2 w-1 bg-blue-500 rounded-full"
-        />
-      )}
-    </motion.button>
-  );
-}
-
-function ToolbarButton({ icon, tooltip }: { icon: React.ReactNode, tooltip: string }) {
-  return (
-    <button className="p-2 rounded-xl text-zinc-400 hover:text-white hover:bg-zinc-800 transition-all" title={tooltip}>
-      {icon}
-    </button>
-  );
-}
-
-function FormatButton({ icon, tooltip }: { icon: React.ReactNode, tooltip?: string }) {
-  return (
-    <button className="p-1.5 rounded-lg text-zinc-500 hover:text-zinc-200 hover:bg-zinc-800 transition-all" title={tooltip}>
       {icon}
     </button>
   );
