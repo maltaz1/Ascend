@@ -69,7 +69,11 @@ const mockNotes = [
   { id: 10, title: "🍿 Filmes para Assistir", preview: "Duna Parte 2, Oppenheimer, Interestelar...", date: "13 Jun", favorite: false, fixed: false, folder: "Pessoal", tags: ["lazer"], content: "Lista de filmes..." },
 ];
 
+import { showToast } from "@/components/ui/FlowToast";
+import { Trash2, Check, X as CloseIcon } from "lucide-react";
+
 export default function Notes() {
+  const [notes, setNotes] = useState(mockNotes);
   const [selectedNoteId, setSelectedNoteId] = useState(1);
   const [search, setSearch] = useState("");
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
@@ -77,9 +81,9 @@ export default function Notes() {
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
 
-  const selectedNote = mockNotes.find(n => n.id === selectedNoteId) || mockNotes[0];
+  const selectedNote = notes.find(n => n.id === selectedNoteId) || notes[0];
 
-  const filteredNotes = mockNotes.filter(n => 
+  const filteredNotes = notes.filter(n => 
     n.title.toLowerCase().includes(search.toLowerCase()) &&
     (!activeFolder || n.folder === activeFolder)
   );
@@ -87,9 +91,55 @@ export default function Notes() {
   const handleCreateFolder = (e: React.FormEvent) => {
     e.preventDefault();
     if (newFolderName.trim()) {
+      if (userFolders.includes(newFolderName.trim())) {
+        showToast("Esta pasta já existe!", "error");
+        return;
+      }
       setUserFolders([...userFolders, newFolderName.trim()]);
       setNewFolderName("");
       setIsCreatingFolder(false);
+      showToast("Pasta criada com sucesso!", "success");
+    }
+  };
+
+  const handleCreateNote = () => {
+    const newNote = {
+      id: Date.now(),
+      title: "Nova Nota",
+      preview: "Comece a escrever...",
+      date: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }),
+      favorite: false,
+      fixed: false,
+      folder: activeFolder || "Sem pasta",
+      tags: [],
+      content: ""
+    };
+    setNotes([newNote, ...notes]);
+    setSelectedNoteId(newNote.id);
+    showToast("Nova nota criada!", "success");
+  };
+
+  const handleUpdateNote = (id: number, field: string, value: any) => {
+    setNotes(notes.map(n => n.id === id ? { ...n, [field]: value } : n));
+  };
+
+  const handleDeleteNote = (id: number) => {
+    if (confirm("Tem certeza que deseja excluir esta nota?")) {
+      const newNotes = notes.filter(n => n.id !== id);
+      setNotes(newNotes);
+      if (selectedNoteId === id && newNotes.length > 0) {
+        setSelectedNoteId(newNotes[0].id);
+      }
+      showToast("Nota excluída!", "success");
+    }
+  };
+
+  const handleDeleteFolder = (folder: string) => {
+    if (confirm(`Excluir a pasta "${folder}"? As notas desta pasta não serão excluídas.`)) {
+      setUserFolders(userFolders.filter(f => f !== folder));
+      setNotes(notes.map(n => n.folder === folder ? { ...n, folder: "Sem pasta" } : n));
+      if (activeFolder === folder) setActiveFolder(null);
+      showToast("Pasta removida!", "success");
     }
   };
 
@@ -109,7 +159,10 @@ export default function Notes() {
             />
           </div>
           
-          <button className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]">
+          <button 
+            onClick={handleCreateNote}
+            className="w-full bg-gradient-to-r from-blue-600 to-indigo-600 hover:from-blue-500 hover:to-indigo-500 text-white font-bold py-3.5 rounded-2xl flex items-center justify-center gap-2 transition-all shadow-lg shadow-blue-600/20 active:scale-[0.98]"
+          >
             <Plus size={20} />
             Nova Nota
           </button>
@@ -117,21 +170,23 @@ export default function Notes() {
 
         <div className="flex-1 overflow-y-auto px-3 pb-6 space-y-8 custom-scrollbar">
           {/* SEÇÕES FIXAS */}
-          <div>
-            <div className="px-4 mb-3 flex items-center gap-2 text-[11px] font-bold text-zinc-600 uppercase tracking-[0.2em]">
-              <Pin size={12} className="text-blue-500/60" /> Fixadas
+          {filteredNotes.some(n => n.fixed) && (
+            <div>
+              <div className="px-4 mb-3 flex items-center gap-2 text-[11px] font-bold text-zinc-600 uppercase tracking-[0.2em]">
+                <Pin size={12} className="text-blue-500/60" /> Fixadas
+              </div>
+              <div className="space-y-1.5">
+                {filteredNotes.filter(n => n.fixed).map(note => (
+                  <NoteItem 
+                    key={note.id} 
+                    note={note} 
+                    isSelected={selectedNoteId === note.id}
+                    onClick={() => setSelectedNoteId(note.id)}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="space-y-1.5">
-              {filteredNotes.filter(n => n.fixed).map(note => (
-                <NoteItem 
-                  key={note.id} 
-                  note={note} 
-                  isSelected={selectedNoteId === note.id}
-                  onClick={() => setSelectedNoteId(note.id)}
-                />
-              ))}
-            </div>
-          </div>
+          )}
 
           {/* PASTAS DINÂMICAS */}
           <div>
@@ -142,6 +197,7 @@ export default function Notes() {
               <button 
                 onClick={() => setIsCreatingFolder(true)}
                 className="hover:text-blue-400 transition-colors p-1"
+                title="Criar nova pasta"
               >
                 <Plus size={14} />
               </button>
@@ -153,32 +209,40 @@ export default function Notes() {
                     initial={{ opacity: 0, y: -10 }}
                     animate={{ opacity: 1, y: 0 }}
                     onSubmit={handleCreateFolder}
-                    className="px-3 py-2 mb-2"
+                    className="px-3 py-2 mb-2 flex items-center gap-2"
                   >
                     <input 
                       autoFocus
                       type="text"
-                      placeholder="Nome da pasta..."
+                      placeholder="Nome..."
                       value={newFolderName}
                       onChange={(e) => setNewFolderName(e.target.value)}
-                      onBlur={() => !newFolderName && setIsCreatingFolder(false)}
-                      className="w-full bg-black/60 border border-blue-500/30 rounded-xl px-3 py-2 text-sm text-white outline-none"
+                      className="flex-1 bg-black/60 border border-blue-500/30 rounded-xl px-3 py-2 text-sm text-white outline-none"
                     />
+                    <button type="submit" className="text-emerald-500 hover:text-emerald-400"><Check size={18} /></button>
+                    <button type="button" onClick={() => setIsCreatingFolder(false)} className="text-rose-500 hover:text-rose-400"><CloseIcon size={18} /></button>
                   </motion.form>
                 )}
 
               {userFolders.map(folder => (
-                <button 
-                  key={folder}
-                  onClick={() => setActiveFolder(activeFolder === folder ? null : folder)}
-                  className={`w-full flex items-center justify-between px-4 py-2.5 rounded-2xl text-sm font-medium transition-all ${activeFolder === folder ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20' : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300 border border-transparent'}`}
-                >
-                  <div className="flex items-center gap-3">
-                    <Folder size={16} className={activeFolder === folder ? 'text-blue-400' : 'text-zinc-600'} />
-                    {folder}
-                  </div>
-                  <ChevronRight size={14} className={`transition-transform duration-300 ${activeFolder === folder ? 'rotate-90' : 'opacity-40'}`} />
-                </button>
+                <div key={folder} className="group flex items-center gap-1">
+                  <button 
+                    onClick={() => setActiveFolder(activeFolder === folder ? null : folder)}
+                    className={`flex-1 flex items-center justify-between px-4 py-2.5 rounded-2xl text-sm font-medium transition-all ${activeFolder === folder ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20' : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300 border border-transparent'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Folder size={16} className={activeFolder === folder ? 'text-blue-400' : 'text-zinc-600'} />
+                      {folder}
+                    </div>
+                    <ChevronRight size={14} className={`transition-transform duration-300 ${activeFolder === folder ? 'rotate-90' : 'opacity-40'}`} />
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteFolder(folder)}
+                    className="opacity-0 group-hover:opacity-100 p-2 text-zinc-700 hover:text-rose-500 transition-all"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               ))}
             </div>
           </div>
@@ -204,78 +268,128 @@ export default function Notes() {
 
       {/* ÁREA PRINCIPAL */}
       <main className="flex-1 flex flex-col bg-[#0d0d12]/60">
-        {/* HEADER DA NOTA */}
-        <header className="px-8 py-8 border-b border-white/5 flex items-center justify-between bg-gradient-to-b from-white/5 to-transparent">
-          <div className="space-y-2">
-            <div className="flex items-center gap-4">
-              <h2 className="text-3xl font-bold text-white tracking-tight">{selectedNote.title}</h2>
-              <div className="flex items-center gap-1.5">
-                {selectedNote.tags.map(tag => (
-                  <span key={tag} className="px-2.5 py-1 rounded-lg bg-white/5 border border-white/10 text-[10px] font-bold text-zinc-400 uppercase tracking-wider">
-                    {tag}
-                  </span>
-                ))}
+        {selectedNote ? (
+          <>
+            {/* HEADER DA NOTA */}
+            <header className="px-8 py-8 border-b border-white/5 flex items-center justify-between bg-gradient-to-b from-white/5 to-transparent">
+              <div className="space-y-2 flex-1 mr-4">
+                <div className="flex items-center gap-4">
+                  <input 
+                    type="text"
+                    value={selectedNote.title}
+                    onChange={(e) => handleUpdateNote(selectedNote.id, "title", e.target.value)}
+                    className="bg-transparent text-3xl font-bold text-white tracking-tight outline-none w-full border-b border-transparent focus:border-white/10"
+                  />
+                </div>
+                <div className="flex items-center gap-5 text-[11px] font-bold text-zinc-600 uppercase tracking-widest">
+                  <span className="flex items-center gap-2"><Clock size={12} className="text-blue-500/60" /> {selectedNote.date}</span>
+                  <select 
+                    value={selectedNote.folder}
+                    onChange={(e) => handleUpdateNote(selectedNote.id, "folder", e.target.value)}
+                    className="bg-transparent outline-none cursor-pointer hover:text-zinc-400 transition-colors"
+                  >
+                    <option value="Sem pasta">Sem pasta</option>
+                    {userFolders.map(f => <option key={f} value={f}>{f}</option>)}
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-3">
+                <ToolbarButton 
+                  onClick={() => handleUpdateNote(selectedNote.id, "favorite", !selectedNote.favorite)}
+                  icon={<Star size={20} className={selectedNote.favorite ? "fill-yellow-500 text-yellow-500" : ""} />} 
+                  tooltip={selectedNote.favorite ? "Remover dos favoritos" : "Favoritar"} 
+                />
+                <ToolbarButton 
+                  onClick={() => handleUpdateNote(selectedNote.id, "fixed", !selectedNote.fixed)}
+                  icon={<Pin size={20} className={selectedNote.fixed ? "fill-blue-500 text-blue-500" : ""} />} 
+                  tooltip={selectedNote.fixed ? "Desafixar" : "Fixar nota"} 
+                />
+                <div className="w-px h-8 bg-white/5 mx-2" />
+                <ToolbarButton 
+                  onClick={() => handleDeleteNote(selectedNote.id)}
+                  icon={<Trash2 size={20} className="text-rose-500/70" />} 
+                  tooltip="Excluir nota" 
+                />
+              </div>
+            </header>
+
+            {/* TOOLBAR DE FORMATAÇÃO */}
+            <div className="px-8 py-3 border-b border-white/5 flex items-center gap-1 bg-black/20">
+              <FormatButton icon={<Bold size={18} />} tooltip="Negrito" />
+              <FormatButton icon={<Italic size={18} />} tooltip="Itálico" />
+              <FormatButton icon={<Underline size={18} />} tooltip="Sublinhado" />
+              <div className="w-px h-5 bg-white/10 mx-3" />
+              <FormatButton icon={<Heading1 size={18} />} tooltip="Título" />
+              <FormatButton icon={<List size={18} />} tooltip="Lista" />
+              <FormatButton icon={<CheckSquare size={18} />} tooltip="Checklist" />
+              <div className="w-px h-5 bg-white/10 mx-3" />
+              <FormatButton icon={<Quote size={18} />} tooltip="Citação" />
+              <FormatButton icon={<Code size={18} />} tooltip="Código" />
+            </div>
+
+            {/* EDITOR */}
+            <div className="flex-1 overflow-y-auto p-10 custom-scrollbar bg-gradient-to-b from-transparent to-blue-500/[0.02]">
+              <div className="max-w-4xl mx-auto h-full">
+                <textarea 
+                  className="w-full h-full bg-transparent text-zinc-300 text-xl leading-[1.8] resize-none outline-none placeholder-zinc-800 font-medium selection:bg-blue-500/30"
+                  placeholder="Escreva algo incrível..."
+                  value={selectedNote.content}
+                  onChange={(e) => handleUpdateNote(selectedNote.id, "content", e.target.value)}
+                />
               </div>
             </div>
-            <div className="flex items-center gap-5 text-[11px] font-bold text-zinc-600 uppercase tracking-widest">
-              <span className="flex items-center gap-2"><Clock size={12} className="text-blue-500/60" /> {selectedNote.date}</span>
-              <span className="flex items-center gap-2"><CheckCircle2 size={12} className="text-emerald-500/60" /> Editado hoje às 14:30</span>
-            </div>
-          </div>
 
-          <div className="flex items-center gap-3">
-            <ToolbarButton icon={<Star size={20} className={selectedNote.favorite ? "fill-yellow-500 text-yellow-500" : ""} />} tooltip="Favoritar" />
-            <ToolbarButton icon={<Pin size={20} className={selectedNote.fixed ? "fill-blue-500 text-blue-500" : ""} />} tooltip="Fixar" />
-            <div className="w-px h-8 bg-white/5 mx-2" />
-            <ToolbarButton icon={<MoreVertical size={20} />} tooltip="Mais opções" />
+            {/* RODAPÉ */}
+            <footer className="px-8 py-4 border-t border-white/5 flex items-center justify-between text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] bg-black/40">
+              <div className="flex items-center gap-6">
+                <span className="flex items-center gap-2 text-emerald-500/70"><CheckCircle2 size={12} /> Salvo automaticamente</span>
+                <span>{selectedNote.folder}</span>
+              </div>
+              <div className="flex items-center gap-6">
+                <span>{selectedNote.content.split(/\s+/).filter(Boolean).length} palavras</span>
+                <span>{selectedNote.content.length} caracteres</span>
+              </div>
+            </footer>
+          </>
+        ) : (
+          <div className="flex-1 flex flex-col items-center justify-center text-zinc-600 gap-4">
+            <FileText size={64} className="opacity-10" />
+            <p className="font-bold uppercase tracking-widest text-xs">Selecione uma nota para editar</p>
+            <button 
+              onClick={handleCreateNote}
+              className="px-6 py-2 bg-white/5 border border-white/10 rounded-xl hover:bg-white/10 transition-all text-white text-sm font-bold"
+            >
+              Criar minha primeira nota
+            </button>
           </div>
-        </header>
-
-        {/* TOOLBAR DE FORMATAÇÃO */}
-        <div className="px-8 py-3 border-b border-white/5 flex items-center gap-1 bg-black/20">
-          <FormatButton icon={<Bold size={18} />} />
-          <FormatButton icon={<Italic size={18} />} />
-          <FormatButton icon={<Underline size={18} />} />
-          <div className="w-px h-5 bg-white/10 mx-3" />
-          <FormatButton icon={<Heading1 size={18} />} />
-          <FormatButton icon={<List size={18} />} />
-          <FormatButton icon={<ListOrdered size={18} />} />
-          <FormatButton icon={<CheckSquare size={18} />} />
-          <div className="w-px h-5 bg-white/10 mx-3" />
-          <FormatButton icon={<Quote size={18} />} />
-          <FormatButton icon={<Code size={18} />} />
-          <div className="w-px h-5 bg-white/10 mx-3" />
-          <FormatButton icon={<Palette size={18} />} tooltip="Cor da nota" />
-          <FormatButton icon={<Copy size={18} />} tooltip="Duplicar" />
-          <FormatButton icon={<History size={18} />} tooltip="Histórico" />
-          <FormatButton icon={<Tag size={18} />} tooltip="Tags" />
-        </div>
-
-        {/* EDITOR */}
-        <div className="flex-1 overflow-y-auto p-10 custom-scrollbar bg-gradient-to-b from-transparent to-blue-500/[0.02]">
-          <div className="max-w-4xl mx-auto">
-            <textarea 
-              className="w-full h-full bg-transparent text-zinc-300 text-xl leading-[1.8] resize-none outline-none placeholder-zinc-800 font-medium selection:bg-blue-500/30"
-              placeholder="Comece a escrever sua ideia brilhante..."
-              defaultValue={selectedNote.content}
-            />
-          </div>
-        </div>
-
-        {/* RODAPÉ */}
-        <footer className="px-8 py-4 border-t border-white/5 flex items-center justify-between text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] bg-black/40">
-          <div className="flex items-center gap-6">
-            <span className="flex items-center gap-2 text-emerald-500/70"><CheckCircle2 size={12} /> Sincronizado</span>
-            <span>Editado há 5 min</span>
-          </div>
-          <div className="flex items-center gap-6">
-            <span>128 palavras</span>
-            <span>842 caracteres</span>
-            <span>2 min leitura</span>
-          </div>
-        </footer>
+        )}
       </main>
     </div>
+  );
+}
+
+function ToolbarButton({ icon, tooltip, onClick }: { icon: React.ReactNode, tooltip: string, onClick?: () => void }) {
+  return (
+    <button 
+      onClick={onClick}
+      className="p-2.5 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 hover:border-white/10 border border-transparent transition-all active:scale-90" 
+      title={tooltip}
+    >
+      {icon}
+    </button>
+  );
+}
+
+function FormatButton({ icon, tooltip, onClick }: { icon: React.ReactNode, tooltip?: string, onClick?: () => void }) {
+  return (
+    <button 
+      onClick={onClick}
+      className="p-2 rounded-xl text-zinc-600 hover:text-zinc-200 hover:bg-white/5 transition-all active:scale-90" 
+      title={tooltip}
+    >
+      {icon}
+    </button>
   );
 }
 
