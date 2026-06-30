@@ -11,20 +11,19 @@ import {
   Underline, 
   Heading1, 
   List, 
-  ListOrdered, 
   CheckSquare, 
   Quote, 
   Code, 
-  Tag, 
-  Copy, 
-  History, 
-  Palette,
   FileText,
   ChevronRight,
   Clock,
-  CheckCircle2
+  CheckCircle2,
+  Trash2,
+  Check,
+  X as CloseIcon
 } from "lucide-react";
 import { motion } from "framer-motion";
+import { showToast } from "@/components/ui/FlowToast";
 
 const mockNotes = [
   { 
@@ -69,9 +68,6 @@ const mockNotes = [
   { id: 10, title: "🍿 Filmes para Assistir", preview: "Duna Parte 2, Oppenheimer, Interestelar...", date: "13 Jun", favorite: false, fixed: false, folder: "Pessoal", tags: ["lazer"], content: "Lista de filmes..." },
 ];
 
-import { showToast } from "@/components/ui/FlowToast";
-import { Trash2, Check, X as CloseIcon } from "lucide-react";
-
 export default function Notes() {
   const [notes, setNotes] = useState(mockNotes);
   const [selectedNoteId, setSelectedNoteId] = useState(1);
@@ -81,7 +77,7 @@ export default function Notes() {
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
 
-  const selectedNote = notes.find(n => n.id === selectedNoteId) || notes[0];
+  const selectedNote = notes.find(n => n.id === selectedNoteId);
 
   const filteredNotes = notes.filter(n => 
     n.title.toLowerCase().includes(search.toLowerCase()) &&
@@ -92,13 +88,13 @@ export default function Notes() {
     e.preventDefault();
     if (newFolderName.trim()) {
       if (userFolders.includes(newFolderName.trim())) {
-        showToast("Esta pasta já existe!", "error");
+        showToast("Esta pasta já existe!", "info");
         return;
       }
       setUserFolders([...userFolders, newFolderName.trim()]);
       setNewFolderName("");
       setIsCreatingFolder(false);
-      showToast("Pasta criada com sucesso!", "success");
+      showToast("Pasta criada!", "success");
     }
   };
 
@@ -129,6 +125,8 @@ export default function Notes() {
       setNotes(newNotes);
       if (selectedNoteId === id && newNotes.length > 0) {
         setSelectedNoteId(newNotes[0].id);
+      } else if (newNotes.length === 0) {
+        setSelectedNoteId(-1);
       }
       showToast("Nota excluída!", "success");
     }
@@ -139,13 +137,12 @@ export default function Notes() {
       setUserFolders(userFolders.filter(f => f !== folder));
       setNotes(notes.map(n => n.folder === folder ? { ...n, folder: "Sem pasta" } : n));
       if (activeFolder === folder) setActiveFolder(null);
-      showToast("Pasta removida!", "success");
+      showToast("Pasta removida!", "info");
     }
   };
 
   return (
     <div className="flex h-[calc(100vh-40px)] bg-[#0d0d12] rounded-[32px] border border-white/5 overflow-hidden shadow-2xl">
-      {/* SIDEBAR DE NOTAS */}
       <aside className="w-80 border-r border-white/5 flex flex-col bg-[#16161e]/40 backdrop-blur-xl">
         <div className="p-6 space-y-4">
           <div className="relative group">
@@ -169,7 +166,6 @@ export default function Notes() {
         </div>
 
         <div className="flex-1 overflow-y-auto px-3 pb-6 space-y-8 custom-scrollbar">
-          {/* SEÇÕES FIXAS */}
           {filteredNotes.some(n => n.fixed) && (
             <div>
               <div className="px-4 mb-3 flex items-center gap-2 text-[11px] font-bold text-zinc-600 uppercase tracking-[0.2em]">
@@ -188,7 +184,6 @@ export default function Notes() {
             </div>
           )}
 
-          {/* PASTAS DINÂMICAS */}
           <div>
             <div className="px-4 mb-3 flex items-center justify-between text-[11px] font-bold text-zinc-600 uppercase tracking-[0.2em]">
               <div className="flex items-center gap-2">
@@ -197,7 +192,6 @@ export default function Notes() {
               <button 
                 onClick={() => setIsCreatingFolder(true)}
                 className="hover:text-blue-400 transition-colors p-1"
-                title="Criar nova pasta"
               >
                 <Plus size={14} />
               </button>
@@ -219,8 +213,8 @@ export default function Notes() {
                       onChange={(e) => setNewFolderName(e.target.value)}
                       className="flex-1 bg-black/60 border border-blue-500/30 rounded-xl px-3 py-2 text-sm text-white outline-none"
                     />
-                    <button type="submit" className="text-emerald-500 hover:text-emerald-400"><Check size={18} /></button>
-                    <button type="button" onClick={() => setIsCreatingFolder(false)} className="text-rose-500 hover:text-rose-400"><CloseIcon size={18} /></button>
+                    <button type="submit" className="text-emerald-500"><Check size={18} /></button>
+                    <button type="button" onClick={() => setIsCreatingFolder(false)} className="text-rose-500"><CloseIcon size={18} /></button>
                   </motion.form>
                 )}
 
@@ -247,7 +241,6 @@ export default function Notes() {
             </div>
           </div>
 
-          {/* TODAS AS NOTAS */}
           <div>
             <div className="px-4 mb-3 flex items-center gap-2 text-[11px] font-bold text-zinc-600 uppercase tracking-[0.2em]">
               <FileText size={12} className="text-zinc-500" /> Notas
@@ -266,11 +259,9 @@ export default function Notes() {
         </div>
       </aside>
 
-      {/* ÁREA PRINCIPAL */}
       <main className="flex-1 flex flex-col bg-[#0d0d12]/60">
         {selectedNote ? (
           <>
-            {/* HEADER DA NOTA */}
             <header className="px-8 py-8 border-b border-white/5 flex items-center justify-between bg-gradient-to-b from-white/5 to-transparent">
               <div className="space-y-2 flex-1 mr-4">
                 <div className="flex items-center gap-4">
@@ -314,7 +305,6 @@ export default function Notes() {
               </div>
             </header>
 
-            {/* TOOLBAR DE FORMATAÇÃO */}
             <div className="px-8 py-3 border-b border-white/5 flex items-center gap-1 bg-black/20">
               <FormatButton icon={<Bold size={18} />} tooltip="Negrito" />
               <FormatButton icon={<Italic size={18} />} tooltip="Itálico" />
@@ -328,7 +318,6 @@ export default function Notes() {
               <FormatButton icon={<Code size={18} />} tooltip="Código" />
             </div>
 
-            {/* EDITOR */}
             <div className="flex-1 overflow-y-auto p-10 custom-scrollbar bg-gradient-to-b from-transparent to-blue-500/[0.02]">
               <div className="max-w-4xl mx-auto h-full">
                 <textarea 
@@ -340,7 +329,6 @@ export default function Notes() {
               </div>
             </div>
 
-            {/* RODAPÉ */}
             <footer className="px-8 py-4 border-t border-white/5 flex items-center justify-between text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] bg-black/40">
               <div className="flex items-center gap-6">
                 <span className="flex items-center gap-2 text-emerald-500/70"><CheckCircle2 size={12} /> Salvo automaticamente</span>
@@ -366,30 +354,6 @@ export default function Notes() {
         )}
       </main>
     </div>
-  );
-}
-
-function ToolbarButton({ icon, tooltip, onClick }: { icon: React.ReactNode, tooltip: string, onClick?: () => void }) {
-  return (
-    <button 
-      onClick={onClick}
-      className="p-2.5 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 hover:border-white/10 border border-transparent transition-all active:scale-90" 
-      title={tooltip}
-    >
-      {icon}
-    </button>
-  );
-}
-
-function FormatButton({ icon, tooltip, onClick }: { icon: React.ReactNode, tooltip?: string, onClick?: () => void }) {
-  return (
-    <button 
-      onClick={onClick}
-      className="p-2 rounded-xl text-zinc-600 hover:text-zinc-200 hover:bg-white/5 transition-all active:scale-90" 
-      title={tooltip}
-    >
-      {icon}
-    </button>
   );
 }
 
@@ -427,17 +391,25 @@ function NoteItem({ note, isSelected, onClick }: { note: any, isSelected: boolea
   );
 }
 
-function ToolbarButton({ icon, tooltip }: { icon: React.ReactNode, tooltip: string }) {
+function ToolbarButton({ icon, tooltip, onClick }: { icon: React.ReactNode, tooltip: string, onClick?: () => void }) {
   return (
-    <button className="p-2.5 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 hover:border-white/10 border border-transparent transition-all active:scale-90" title={tooltip}>
+    <button 
+      onClick={onClick}
+      className="p-2.5 rounded-xl text-zinc-500 hover:text-white hover:bg-white/5 hover:border-white/10 border border-transparent transition-all active:scale-90" 
+      title={tooltip}
+    >
       {icon}
     </button>
   );
 }
 
-function FormatButton({ icon, tooltip }: { icon: React.ReactNode, tooltip?: string }) {
+function FormatButton({ icon, tooltip, onClick }: { icon: React.ReactNode, tooltip?: string, onClick?: () => void }) {
   return (
-    <button className="p-2 rounded-xl text-zinc-600 hover:text-zinc-200 hover:bg-white/5 transition-all active:scale-90" title={tooltip}>
+    <button 
+      onClick={onClick}
+      className="p-2 rounded-xl text-zinc-600 hover:text-zinc-200 hover:bg-white/5 transition-all active:scale-90" 
+      title={tooltip}
+    >
       {icon}
     </button>
   );
