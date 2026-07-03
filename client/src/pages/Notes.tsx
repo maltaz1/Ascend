@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useRef } from "react";
 import { 
   Search, 
   Plus, 
@@ -24,6 +24,8 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { showToast } from "@/components/ui/FlowToast";
+import ReactQuill from 'react-quill';
+import 'react-quill/dist/quill.snow.css';
 
 const mockNotes = [
   { 
@@ -34,7 +36,7 @@ const mockNotes = [
     favorite: true, 
     fixed: true, 
     folder: "Ideias",
-    content: "Implementar sistema de notas com suporte a Markdown, links bidirecionais e visualização em grafo."
+    content: "<h1>Ideias para o Ascend v2</h1><p>Implementar sistema de notas com suporte a Markdown, links bidirecionais e visualização em grafo.</p>"
   },
   { 
     id: 2, 
@@ -44,7 +46,7 @@ const mockNotes = [
     favorite: false, 
     fixed: true, 
     folder: "Trabalho",
-    content: "Garantir que a validação de assinatura suporte o formato JSON do Cakto."
+    content: "<p>Garantir que a validação de assinatura suporte o formato JSON do Cakto.</p>"
   },
   { 
     id: 3, 
@@ -54,7 +56,7 @@ const mockNotes = [
     favorite: false, 
     fixed: false, 
     folder: "Trabalho",
-    content: "Definição de escopo e prazos do projeto."
+    content: "<p>Definição de escopo e prazos do projeto.</p>"
   },
   { 
     id: 4, 
@@ -64,7 +66,7 @@ const mockNotes = [
     favorite: false, 
     fixed: false, 
     folder: "Pessoal",
-    content: "Finalizar UI de notas, testar deploy."
+    content: "<p>Finalizar UI de notas, testar deploy.</p>"
   },
   { 
     id: 5, 
@@ -86,37 +88,9 @@ export default function Notes() {
   const [userFolders, setUserFolders] = useState<string[]>(["Trabalho", "Estudos", "Pessoal", "Ideias"]);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
-  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
+  const quillRef = useRef<ReactQuill>(null);
 
   const selectedNote = notes.find(n => n.id === selectedNoteId);
-
-  const applyFormat = (prefix: string, suffix: string = "") => {
-    if (!textareaRef.current || !selectedNote) return;
-
-    const start = textareaRef.current.selectionStart;
-    const end = textareaRef.current.selectionEnd;
-    const text = selectedNote.content;
-    const before = text.substring(0, start);
-    const selection = text.substring(start, end);
-    const after = text.substring(end);
-
-    const newContent = before + prefix + selection + suffix + after;
-    handleUpdateNote(selectedNote.id, "content", newContent);
-
-    // Reposicionar cursor após o estado atualizar
-    setTimeout(() => {
-      if (textareaRef.current) {
-        textareaRef.current.focus();
-        const newPos = start + prefix.length + selection.length + suffix.length;
-        textareaRef.current.setSelectionRange(newPos, newPos);
-      }
-    }, 0);
-  };
-
-  const filteredNotes = notes.filter(n => 
-    n.title.toLowerCase().includes(search.toLowerCase()) &&
-    (!activeFolder || n.folder === activeFolder)
-  );
 
   const handleCreateFolder = (e: React.FormEvent) => {
     e.preventDefault();
@@ -152,18 +126,82 @@ export default function Notes() {
   };
 
   const handleDeleteNote = (id: number) => {
-    const newNotes = notes.filter(n => n.id !== id);
-    setNotes(newNotes);
-    if (selectedNoteId === id && newNotes.length > 0) {
-      setSelectedNoteId(newNotes[0].id);
-    } else if (newNotes.length === 0) {
-      setSelectedNoteId(-1);
+    if (confirm("Tem certeza que deseja excluir esta nota?")) {
+      const newNotes = notes.filter(n => n.id !== id);
+      setNotes(newNotes);
+      if (selectedNoteId === id && newNotes.length > 0) {
+        setSelectedNoteId(newNotes[0].id);
+      } else if (newNotes.length === 0) {
+        setSelectedNoteId(-1);
+      }
+      showToast("Nota excluída!", "success");
     }
-    showToast("Nota excluída!", "success");
   };
 
+  const handleDeleteFolder = (folder: string) => {
+    if (confirm(`Excluir a pasta "${folder}"? As notas desta pasta não serão excluídas.`)) {
+      setUserFolders(userFolders.filter(f => f !== folder));
+      setNotes(notes.map(n => n.folder === folder ? { ...n, folder: "Sem pasta" } : n));
+      if (activeFolder === folder) setActiveFolder(null);
+      showToast("Pasta removida!", "info");
+    }
+  };
+
+  const executeCommand = (command: string, value?: any) => {
+    const editor = quillRef.current?.getEditor();
+    if (editor) {
+      if (command === 'list' || command === 'header' || command === 'blockquote' || command === 'code-block') {
+        const format = editor.getFormat();
+        if (format[command] === value) {
+          editor.format(command, false);
+        } else {
+          editor.format(command, value);
+        }
+      } else {
+        const format = editor.getFormat();
+        editor.format(command, !format[command]);
+      }
+    }
+  };
+
+  const filteredNotes = notes.filter(n => 
+    n.title.toLowerCase().includes(search.toLowerCase()) &&
+    (!activeFolder || n.folder === activeFolder)
+  );
+
   return (
-    <div className="flex h-[calc(100vh-40px)] bg-[#0d0d12] rounded-[32px] border border-white/5 overflow-hidden shadow-2xl">
+    <div className="flex h-[calc(100vh-40px)] bg-[#0d0d12] rounded-[32px] border border-white/5 overflow-hidden shadow-2xl notes-page-container">
+      <style>{`
+        .quill {
+          height: 100%;
+          display: flex;
+          flex-direction: column;
+        }
+        .ql-container.ql-snow {
+          border: none !important;
+          flex: 1;
+          font-family: inherit;
+        }
+        .ql-editor {
+          font-size: 1.125rem;
+          line-height: 1.8;
+          color: #d1d5db;
+          padding: 0 !important;
+        }
+        .ql-editor.ql-blank::before {
+          color: #374151 !important;
+          font-style: normal !important;
+          left: 0 !important;
+        }
+        .ql-toolbar.ql-snow {
+          display: none !important;
+        }
+        .notes-page-container select option {
+          background-color: #16161e;
+          color: white;
+        }
+      `}</style>
+
       {/* SIDEBAR */}
       <aside className="w-72 flex flex-col border-r border-white/5 bg-[#16161e]/40 backdrop-blur-xl">
         <div className="p-5 space-y-4">
@@ -189,21 +227,23 @@ export default function Notes() {
 
         <div className="flex-1 overflow-y-auto px-3 pb-6 space-y-8 custom-scrollbar">
           {/* FIXADAS */}
-          <div>
-            <div className="px-4 mb-3 text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em]">
-              Fixadas
+          {filteredNotes.some(n => n.fixed) && (
+            <div>
+              <div className="px-4 mb-3 text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em]">
+                Fixadas
+              </div>
+              <div className="space-y-1">
+                {filteredNotes.filter(n => n.fixed).map(note => (
+                  <NoteItem 
+                    key={note.id} 
+                    note={note} 
+                    isSelected={selectedNoteId === note.id}
+                    onClick={() => setSelectedNoteId(note.id)}
+                  />
+                ))}
+              </div>
             </div>
-            <div className="space-y-1">
-              {filteredNotes.filter(n => n.fixed).map(note => (
-                <NoteItem 
-                  key={note.id} 
-                  note={note} 
-                  isSelected={selectedNoteId === note.id}
-                  onClick={() => setSelectedNoteId(note.id)}
-                />
-              ))}
-            </div>
-          </div>
+          )}
 
           {/* PASTAS */}
           <div>
@@ -234,15 +274,24 @@ export default function Notes() {
                 )}
               </AnimatePresence>
               {userFolders.map(folder => (
-                <button 
-                  key={folder}
-                  onClick={() => setActiveFolder(activeFolder === folder ? null : folder)}
-                  className={`w-full flex items-center gap-3 px-4 py-2.5 rounded-2xl text-sm font-medium transition-all ${activeFolder === folder ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20' : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300 border border-transparent'}`}
-                >
-                  <ChevronRight size={14} className={`transition-transform duration-300 ${activeFolder === folder ? 'rotate-90 text-blue-400' : 'opacity-40'}`} />
-                  <Folder size={16} className={activeFolder === folder ? 'text-blue-400' : 'text-zinc-600'} />
-                  {folder}
-                </button>
+                <div key={folder} className="group flex items-center gap-1">
+                  <button 
+                    onClick={() => setActiveFolder(activeFolder === folder ? null : folder)}
+                    className={`flex-1 flex items-center justify-between px-4 py-2.5 rounded-2xl text-sm font-medium transition-all ${activeFolder === folder ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20' : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300 border border-transparent'}`}
+                  >
+                    <div className="flex items-center gap-3">
+                      <Folder size={16} className={activeFolder === folder ? 'text-blue-400' : 'text-zinc-600'} />
+                      {folder}
+                    </div>
+                    <ChevronRight size={14} className={`transition-transform duration-300 ${activeFolder === folder ? 'rotate-90 text-blue-400' : 'opacity-40'}`} />
+                  </button>
+                  <button 
+                    onClick={() => handleDeleteFolder(folder)}
+                    className="opacity-0 group-hover:opacity-100 p-2 text-zinc-700 hover:text-rose-500 transition-all"
+                  >
+                    <Trash2 size={14} />
+                  </button>
+                </div>
               ))}
             </div>
           </div>
@@ -311,31 +360,34 @@ export default function Notes() {
 
             <div className="px-10 py-4 border-y border-white/5 flex items-center gap-8 text-zinc-600 bg-black/20">
               <div className="flex items-center gap-5">
-                <FormatButton onClick={() => applyFormat("**", "**")} icon={<Bold size={18} />} tooltip="Negrito" />
-                <FormatButton onClick={() => applyFormat("_", "_")} icon={<Italic size={18} />} tooltip="Itálico" />
-                <FormatButton onClick={() => applyFormat("<u>", "</u>")} icon={<Underline size={18} />} tooltip="Sublinhado" />
+                <FormatButton onClick={() => executeCommand('bold')} icon={<Bold size={18} />} tooltip="Negrito" />
+                <FormatButton onClick={() => executeCommand('italic')} icon={<Italic size={18} />} tooltip="Itálico" />
+                <FormatButton onClick={() => executeCommand('underline')} icon={<Underline size={18} />} tooltip="Sublinhado" />
               </div>
               <div className="w-px h-6 bg-white/5" />
               <div className="flex items-center gap-5">
-                <FormatButton onClick={() => applyFormat("# ", "")} icon={<Heading1 size={18} />} tooltip="Título" />
-                <FormatButton onClick={() => applyFormat("- ", "")} icon={<List size={18} />} tooltip="Lista" />
-                <FormatButton onClick={() => applyFormat("- [ ] ", "")} icon={<CheckSquare size={18} />} tooltip="Checklist" />
+                <FormatButton onClick={() => executeCommand('header', 1)} icon={<Heading1 size={18} />} tooltip="Título" />
+                <FormatButton onClick={() => executeCommand('list', 'bullet')} icon={<List size={18} />} tooltip="Lista" />
+                <FormatButton onClick={() => executeCommand('list', 'unchecked')} icon={<CheckSquare size={18} />} tooltip="Checklist" />
               </div>
               <div className="w-px h-6 bg-white/5" />
               <div className="flex items-center gap-5">
-                <FormatButton onClick={() => applyFormat("> ", "")} icon={<Quote size={18} />} tooltip="Citação" />
-                <FormatButton onClick={() => applyFormat("`", "`")} icon={<Code size={18} />} tooltip="Código" />
+                <FormatButton onClick={() => executeCommand('blockquote')} icon={<Quote size={18} />} tooltip="Citação" />
+                <FormatButton onClick={() => executeCommand('code-block')} icon={<Code size={18} />} tooltip="Código" />
               </div>
             </div>
 
             <div className="flex-1 px-10 py-10 overflow-y-auto custom-scrollbar">
               <div className="max-w-4xl mx-auto h-full">
-                <textarea 
-                  ref={textareaRef}
-                  className="w-full h-full bg-transparent text-zinc-300 text-xl leading-relaxed resize-none outline-none placeholder-zinc-800 font-medium selection:bg-blue-500/30"
-                  placeholder="Escreva algo incrível..."
+                <ReactQuill 
+                  ref={quillRef}
+                  theme="snow"
                   value={selectedNote.content}
-                  onChange={(e) => handleUpdateNote(selectedNote.id, "content", e.target.value)}
+                  onChange={(content) => handleUpdateNote(selectedNote.id, "content", content)}
+                  placeholder="Escreva algo incrível..."
+                  modules={{
+                    toolbar: false
+                  }}
                 />
               </div>
             </div>
@@ -348,8 +400,8 @@ export default function Notes() {
                 </span>
               </div>
               <div className="flex items-center gap-8">
-                <span>{selectedNote.content.split(/\s+/).filter(Boolean).length} palavras</span>
-                <span>{selectedNote.content.length} caracteres</span>
+                <span>{selectedNote.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length} palavras</span>
+                <span>{selectedNote.content.replace(/<[^>]*>/g, '').length} caracteres</span>
               </div>
             </footer>
           </>
