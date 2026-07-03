@@ -24,8 +24,10 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { showToast } from "@/components/ui/FlowToast";
-import ReactQuill from 'react-quill';
 import 'react-quill/dist/quill.snow.css';
+
+// Importação dinâmica do ReactQuill para evitar erros de SSR/Vite
+const ReactQuill = React.lazy(() => import('react-quill'));
 
 const mockNotes = [
   { 
@@ -88,7 +90,7 @@ export default function Notes() {
   const [userFolders, setUserFolders] = useState<string[]>(["Trabalho", "Estudos", "Pessoal", "Ideias"]);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
-  const quillRef = useRef<ReactQuill>(null);
+  const quillRef = useRef<any>(null);
 
   const selectedNote = notes.find(n => n.id === selectedNoteId);
 
@@ -379,16 +381,18 @@ export default function Notes() {
 
             <div className="flex-1 px-10 py-10 overflow-y-auto custom-scrollbar">
               <div className="max-w-4xl mx-auto h-full">
-                <ReactQuill 
-                  ref={quillRef}
-                  theme="snow"
-                  value={selectedNote.content}
-                  onChange={(content) => handleUpdateNote(selectedNote.id, "content", content)}
-                  placeholder="Escreva algo incrível..."
-                  modules={{
-                    toolbar: false
-                  }}
-                />
+                <React.Suspense fallback={<div className="text-zinc-800 animate-pulse">Carregando editor...</div>}>
+                  <ReactQuill 
+                    ref={quillRef}
+                    theme="snow"
+                    value={selectedNote.content}
+                    onChange={(content) => handleUpdateNote(selectedNote.id, "content", content)}
+                    placeholder="Escreva algo incrível..."
+                    modules={{
+                      toolbar: false
+                    }}
+                  />
+                </React.Suspense>
               </div>
             </div>
 
