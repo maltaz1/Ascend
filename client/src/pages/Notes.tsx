@@ -86,8 +86,32 @@ export default function Notes() {
   const [userFolders, setUserFolders] = useState<string[]>(["Trabalho", "Estudos", "Pessoal", "Ideias"]);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
+  const textareaRef = React.useRef<HTMLTextAreaElement>(null);
 
   const selectedNote = notes.find(n => n.id === selectedNoteId);
+
+  const applyFormat = (prefix: string, suffix: string = "") => {
+    if (!textareaRef.current || !selectedNote) return;
+
+    const start = textareaRef.current.selectionStart;
+    const end = textareaRef.current.selectionEnd;
+    const text = selectedNote.content;
+    const before = text.substring(0, start);
+    const selection = text.substring(start, end);
+    const after = text.substring(end);
+
+    const newContent = before + prefix + selection + suffix + after;
+    handleUpdateNote(selectedNote.id, "content", newContent);
+
+    // Reposicionar cursor após o estado atualizar
+    setTimeout(() => {
+      if (textareaRef.current) {
+        textareaRef.current.focus();
+        const newPos = start + prefix.length + selection.length + suffix.length;
+        textareaRef.current.setSelectionRange(newPos, newPos);
+      }
+    }, 0);
+  };
 
   const filteredNotes = notes.filter(n => 
     n.title.toLowerCase().includes(search.toLowerCase()) &&
@@ -287,26 +311,27 @@ export default function Notes() {
 
             <div className="px-10 py-4 border-y border-white/5 flex items-center gap-8 text-zinc-600 bg-black/20">
               <div className="flex items-center gap-5">
-                <FormatButton icon={<Bold size={18} />} tooltip="Negrito" />
-                <FormatButton icon={<Italic size={18} />} tooltip="Itálico" />
-                <FormatButton icon={<Underline size={18} />} tooltip="Sublinhado" />
+                <FormatButton onClick={() => applyFormat("**", "**")} icon={<Bold size={18} />} tooltip="Negrito" />
+                <FormatButton onClick={() => applyFormat("_", "_")} icon={<Italic size={18} />} tooltip="Itálico" />
+                <FormatButton onClick={() => applyFormat("<u>", "</u>")} icon={<Underline size={18} />} tooltip="Sublinhado" />
               </div>
               <div className="w-px h-6 bg-white/5" />
               <div className="flex items-center gap-5">
-                <FormatButton icon={<Heading1 size={18} />} tooltip="Título" />
-                <FormatButton icon={<List size={18} />} tooltip="Lista" />
-                <FormatButton icon={<CheckSquare size={18} />} tooltip="Checklist" />
+                <FormatButton onClick={() => applyFormat("# ", "")} icon={<Heading1 size={18} />} tooltip="Título" />
+                <FormatButton onClick={() => applyFormat("- ", "")} icon={<List size={18} />} tooltip="Lista" />
+                <FormatButton onClick={() => applyFormat("- [ ] ", "")} icon={<CheckSquare size={18} />} tooltip="Checklist" />
               </div>
               <div className="w-px h-6 bg-white/5" />
               <div className="flex items-center gap-5">
-                <FormatButton icon={<Quote size={18} />} tooltip="Citação" />
-                <FormatButton icon={<Code size={18} />} tooltip="Código" />
+                <FormatButton onClick={() => applyFormat("> ", "")} icon={<Quote size={18} />} tooltip="Citação" />
+                <FormatButton onClick={() => applyFormat("`", "`")} icon={<Code size={18} />} tooltip="Código" />
               </div>
             </div>
 
             <div className="flex-1 px-10 py-10 overflow-y-auto custom-scrollbar">
               <div className="max-w-4xl mx-auto h-full">
                 <textarea 
+                  ref={textareaRef}
                   className="w-full h-full bg-transparent text-zinc-300 text-xl leading-relaxed resize-none outline-none placeholder-zinc-800 font-medium selection:bg-blue-500/30"
                   placeholder="Escreva algo incrível..."
                   value={selectedNote.content}
