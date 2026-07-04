@@ -24,10 +24,10 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { showToast } from "@/components/ui/FlowToast";
-import 'react-quill/dist/quill.snow.css';
+import 'react-quill-new/dist/quill.snow.css';
 
 // Importação dinâmica do ReactQuill para evitar erros de SSR/Vite
-const ReactQuill = React.lazy(() => import('react-quill'));
+const ReactQuill = React.lazy(() => import('react-quill-new'));
 
 const mockNotes = [
   { 
