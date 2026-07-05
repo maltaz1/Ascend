@@ -196,6 +196,7 @@ export default function Notes() {
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
         .custom-scrollbar::-webkit-scrollbar-track { background: transparent; }
         .custom-scrollbar::-webkit-scrollbar-thumb { background: rgba(255,255,255,0.05); border-radius: 10px; }
+        .no-scrollbar::-webkit-scrollbar { display: none; }
       `}</style>
 
       {/* SIDEBAR (LISTA NO MOBILE) */}
@@ -332,17 +333,15 @@ export default function Notes() {
             <header className="px-6 lg:px-10 py-6 lg:py-10 flex flex-col gap-4 lg:gap-6">
               <div className="flex items-center justify-between gap-4">
                 <div className="flex items-center gap-4 flex-1">
-                  {isMobile && (
-                    <button onClick={() => setViewMode('list')} className="p-2 -ml-2 text-zinc-500 hover:text-white transition-colors">
-                      <ChevronLeft size={24} />
-                    </button>
-                  )}
-                  <input 
-                    type="text"
-                    value={selectedNote.title}
-                    onChange={(e) => handleUpdateNote(selectedNote.id, "title", e.target.value)}
-                    className="bg-transparent text-2xl lg:text-5xl font-bold text-white outline-none w-full tracking-tight"
-                  />
+                  {/* Recuo no mobile para não bater no hamburguer */}
+                  <div className={isMobile ? "pl-10" : ""}>
+                    <input 
+                      type="text"
+                      value={selectedNote.title}
+                      onChange={(e) => handleUpdateNote(selectedNote.id, "title", e.target.value)}
+                      className="bg-transparent text-2xl lg:text-5xl font-bold text-white outline-none w-full tracking-tight"
+                    />
+                  </div>
                 </div>
                 <div className="flex items-center gap-1 lg:gap-3">
                   <ToolbarButton 
@@ -357,7 +356,7 @@ export default function Notes() {
                   <ToolbarButton icon={<MoreVertical size={isMobile ? 18 : 20} />} />
                 </div>
               </div>
-              <div className="flex items-center gap-4 lg:gap-6 text-[10px] lg:text-[11px] font-bold text-zinc-600 uppercase tracking-[0.2em]">
+              <div className="flex items-center gap-4 lg:gap-6 text-[10px] lg:text-[11px] font-bold text-zinc-600 uppercase tracking-[0.2em] px-2 lg:px-0">
                 <span className="flex items-center gap-2"><Clock size={14} className="text-blue-500/60" /> {selectedNote.date}</span>
                 <div className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-xl px-2 lg:px-3 py-1 lg:py-1.5">
                   <Folder size={12} className="text-indigo-500/60" />
@@ -371,8 +370,8 @@ export default function Notes() {
                   </select>
                 </div>
                 {isMobile && (
-                  <button onClick={() => handleDeleteNote(selectedNote.id)} className="ml-auto text-rose-500/60">
-                    <Trash2 size={14} />
+                  <button onClick={() => handleDeleteNote(selectedNote.id)} className="ml-auto text-rose-500/60 p-2">
+                    <Trash2 size={16} />
                   </button>
                 )}
               </div>
@@ -397,7 +396,7 @@ export default function Notes() {
               </div>
             </div>
 
-            <div className="flex-1 px-6 lg:px-10 py-6 lg:py-10 overflow-y-auto custom-scrollbar">
+            <div className="flex-1 px-6 lg:px-10 py-6 lg:py-10 overflow-y-auto custom-scrollbar pb-32">
               <div className="max-w-4xl mx-auto h-full">
                 <React.Suspense fallback={<div className="text-zinc-800 animate-pulse">Carregando editor...</div>}>
                   <ReactQuill 
@@ -412,18 +411,38 @@ export default function Notes() {
               </div>
             </div>
 
-            <footer className="px-6 lg:px-10 py-4 border-t border-white/5 flex items-center justify-between text-[9px] lg:text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] bg-black/40">
-              <div className="flex items-center gap-4 lg:gap-6">
-                <span className="flex items-center gap-2 text-emerald-500/70">
-                  <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" /> 
-                  {!isMobile && "Salvo automaticamente"}
-                </span>
-              </div>
-              <div className="flex items-center gap-4 lg:gap-8">
-                <span>{selectedNote.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length} pal.</span>
-                {!isMobile && <span>{selectedNote.content.replace(/<[^>]*>/g, '').length} caracteres</span>}
-              </div>
-            </footer>
+            {/* RODAPÉ E NAVEGAÇÃO MOBILE */}
+            <div className="fixed bottom-0 left-0 right-0 z-40 lg:relative lg:z-auto">
+              {isMobile && viewMode === 'editor' && (
+                <div className="px-6 py-4 bg-[#16161e]/95 backdrop-blur-2xl border-t border-white/10 flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+                  <button 
+                    onClick={() => setViewMode('list')}
+                    className="flex items-center gap-3 bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-blue-900/40 active:scale-95 transition-all"
+                  >
+                    <ChevronLeft size={20} />
+                    VOLTAR PARA LISTA
+                  </button>
+                  <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
+                    {selectedNote.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length} PAL.
+                  </div>
+                </div>
+              )}
+              
+              {!isMobile && (
+                <footer className="px-10 py-4 border-t border-white/5 flex items-center justify-between text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] bg-black/40">
+                  <div className="flex items-center gap-6">
+                    <span className="flex items-center gap-2 text-emerald-500/70">
+                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" /> 
+                      Salvo automaticamente
+                    </span>
+                  </div>
+                  <div className="flex items-center gap-8">
+                    <span>{selectedNote.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length} palavras</span>
+                    <span>{selectedNote.content.replace(/<[^>]*>/g, '').length} caracteres</span>
+                  </div>
+                </footer>
+              )}
+            </div>
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-zinc-800 gap-4">
@@ -433,14 +452,16 @@ export default function Notes() {
         )}
       </main>
 
-      {/* BOTÃO FLUTUANTE (FAB) NO MOBILE */}
-      {isMobile && (
+      {/* BOTÃO FLUTUANTE (FAB) NO MOBILE - SÓ NA LISTA */}
+      {isMobile && viewMode === 'list' && (
         <motion.button
+          initial={{ scale: 0 }}
+          animate={{ scale: 1 }}
           whileTap={{ scale: 0.9 }}
           onClick={handleCreateNote}
-          className="fixed bottom-24 right-6 w-14 h-14 bg-blue-600 text-white rounded-full shadow-2xl shadow-blue-900/40 flex items-center justify-center z-50"
+          className="fixed bottom-24 right-6 w-16 h-16 bg-blue-600 text-white rounded-full shadow-2xl shadow-blue-900/40 flex items-center justify-center z-50 border-4 border-[#0d0d12]"
         >
-          <Plus size={28} />
+          <Plus size={32} />
         </motion.button>
       )}
     </div>
