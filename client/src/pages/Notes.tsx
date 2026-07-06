@@ -512,9 +512,9 @@ function NoteItem({ note, isSelected, onClick }: { note: any, isSelected: boolea
       onClick={onClick}
       className={`w-full text-left p-5 rounded-2xl transition-all group relative border ${isSelected ? 'bg-[#1a1a24] border-white/5 shadow-2xl' : 'bg-[#12121a] border-white/5 hover:bg-[#16161e] hover:border-white/10'}`}
     >
-      {/* Barra lateral de seleção discreta */}
+      {/* Barra lateral de seleção curva e fosca */}
       {isSelected && (
-        <div className="absolute left-0 top-3 bottom-3 w-1 bg-blue-500 rounded-r-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+        <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500 rounded-l-2xl" />
       )}
 
       <div className="flex items-start justify-between mb-2">
