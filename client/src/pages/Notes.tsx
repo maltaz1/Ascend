@@ -91,6 +91,7 @@ export default function Notes() {
   const [newFolderName, setNewFolderName] = useState("");
   const [isMobile, setIsMobile] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'editor'>('list');
+  const [activeFormats, setActiveFormats] = useState<any>({});
   const quillRef = useRef<any>(null);
 
   const selectedNote = notes.find(n => n.id === selectedNoteId);
@@ -176,6 +177,10 @@ export default function Notes() {
         const format = editor.getFormat();
         editor.format(command, !format[command]);
       }
+      // Atualizar estados ativos
+      setTimeout(() => {
+        setActiveFormats(editor.getFormat());
+      }, 50);
     }
   };
 
@@ -190,7 +195,12 @@ export default function Notes() {
         .quill { height: 100%; display: flex; flex-direction: column; }
         .ql-container.ql-snow { border: none !important; flex: 1; font-family: inherit; }
         .ql-editor { font-size: 1.125rem; line-height: 1.8; color: #d1d5db; padding: 0 !important; }
-        .ql-editor.ql-blank::before { color: #374151 !important; font-style: normal !important; left: 0 !important; }
+        .ql-editor.ql-blank::before { 
+          color: #27272a !important; 
+          font-style: normal !important; 
+          left: 0 !important;
+          content: 'Digite / para comandos...' !important;
+        }
         .ql-toolbar.ql-snow { display: none !important; }
         .notes-page-container select option { background-color: #16161e; color: white; }
         .custom-scrollbar::-webkit-scrollbar { width: 4px; }
@@ -201,10 +211,10 @@ export default function Notes() {
 
       {/* SIDEBAR (LISTA NO MOBILE) */}
       <aside className={`
-        ${isMobile ? (viewMode === 'list' ? 'flex w-full' : 'hidden') : 'flex w-72'} 
+        ${isMobile ? (viewMode === 'list' ? 'flex w-full' : 'hidden') : 'flex w-80'} 
         flex-col border-r border-white/5 bg-[#16161e]/40 backdrop-blur-xl
       `}>
-        <div className="p-5 space-y-4">
+        <div className="p-6 space-y-6">
           <div className="relative group">
             <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-blue-500 transition-colors" size={14} />
             <input 
@@ -212,14 +222,14 @@ export default function Notes() {
               placeholder="Pesquisar notas..." 
               value={search}
               onChange={(e) => setSearch(e.target.value)}
-              className="w-full bg-black/40 border border-white/5 rounded-2xl pl-10 pr-4 py-2.5 text-sm text-white focus:border-blue-500/30 focus:bg-black/60 outline-none transition-all placeholder:text-zinc-700"
+              className="w-full bg-black/40 border border-white/5 rounded-2xl pl-10 pr-4 py-3 text-sm text-white focus:border-blue-500/30 focus:bg-black/60 outline-none transition-all placeholder:text-zinc-700"
             />
           </div>
           
           {!isMobile && (
             <button 
               onClick={handleCreateNote}
-              className="flex items-center gap-2 text-sm font-bold text-zinc-500 hover:text-white transition-colors pl-2"
+              className="w-full flex items-center justify-center gap-2 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-900/20 transition-all active:scale-[0.98]"
             >
               <Plus size={18} />
               Nova nota
@@ -227,14 +237,15 @@ export default function Notes() {
           )}
         </div>
 
-        <div className="flex-1 overflow-y-auto px-3 pb-24 space-y-8 custom-scrollbar">
+        <div className="flex-1 overflow-y-auto px-4 pb-24 space-y-8 custom-scrollbar">
           {/* FIXADAS */}
           {filteredNotes.some(n => n.fixed) && (
             <div>
-              <div className="px-4 mb-3 text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em]">
+              <div className="px-4 mb-4 text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] flex items-center gap-2">
+                <Pin size={10} className="text-blue-500/50" />
                 Fixadas
               </div>
-              <div className="space-y-1">
+              <div className="space-y-2">
                 {filteredNotes.filter(n => n.fixed).map(note => (
                   <NoteItem 
                     key={note.id} 
@@ -252,28 +263,28 @@ export default function Notes() {
 
           {/* PASTAS */}
           <div>
-            <div className="px-4 mb-3 flex items-center justify-between text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em]">
+            <div className="px-4 mb-4 flex items-center justify-between text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em]">
               Pastas
-              <button onClick={() => setIsCreatingFolder(true)} className="hover:text-white p-1 transition-colors"><Plus size={14} /></button>
+              <button onClick={() => setIsCreatingFolder(true)} className="hover:text-white p-2 transition-colors min-w-[44px] min-h-[44px] flex items-center justify-center"><Plus size={14} /></button>
             </div>
-            <div className="space-y-0.5 px-1">
+            <div className="space-y-1 px-1">
               <AnimatePresence>
                 {isCreatingFolder && (
                   <motion.form 
-                    initial={{ opacity: 0, height: 0 }}
-                    animate={{ opacity: 1, height: 'auto' }}
-                    exit={{ opacity: 0, height: 0 }}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.95 }}
                     onSubmit={handleCreateFolder} 
-                    className="px-3 py-2 mb-2 bg-black/40 rounded-xl border border-blue-500/20 flex items-center gap-2"
+                    className="px-4 py-3 mb-3 bg-black/40 rounded-2xl border border-blue-500/20 flex items-center gap-2"
                   >
                     <input 
                       autoFocus
                       type="text"
-                      placeholder="Nome..."
+                      placeholder="Nome da pasta..."
                       value={newFolderName}
                       onChange={(e) => setNewFolderName(e.target.value)}
                       onBlur={() => !newFolderName && setIsCreatingFolder(false)}
-                      className="flex-1 bg-transparent text-xs text-white outline-none"
+                      className="flex-1 bg-transparent text-sm text-white outline-none"
                     />
                   </motion.form>
                 )}
@@ -282,7 +293,7 @@ export default function Notes() {
                 <div key={folder} className="group flex items-center gap-1">
                   <button 
                     onClick={() => setActiveFolder(activeFolder === folder ? null : folder)}
-                    className={`flex-1 flex items-center justify-between px-4 py-2.5 rounded-2xl text-sm font-medium transition-all ${activeFolder === folder ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20' : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300 border border-transparent'}`}
+                    className={`flex-1 flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all ${activeFolder === folder ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20' : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300 border border-transparent'}`}
                   >
                     <div className="flex items-center gap-3">
                       <Folder size={16} className={activeFolder === folder ? 'text-blue-400' : 'text-zinc-600'} />
@@ -290,12 +301,7 @@ export default function Notes() {
                     </div>
                     <ChevronRight size={14} className={`transition-transform duration-300 ${activeFolder === folder ? 'rotate-90 text-blue-400' : 'opacity-40'}`} />
                   </button>
-                  <button 
-                    onClick={() => handleDeleteFolder(folder)}
-                    className={`${isMobile ? 'opacity-40' : 'opacity-0 group-hover:opacity-100'} p-2 text-zinc-700 hover:text-rose-500 transition-all`}
-                  >
-                    <Trash2 size={14} />
-                  </button>
+                  <FolderMenu onDelete={() => handleDeleteFolder(folder)} />
                 </div>
               ))}
             </div>
@@ -303,10 +309,10 @@ export default function Notes() {
 
           {/* NOTAS */}
           <div>
-            <div className="px-4 mb-3 text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em]">
+            <div className="px-4 mb-4 text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em]">
               Notas
             </div>
-            <div className="space-y-1">
+            <div className="space-y-2">
               {filteredNotes.filter(n => !n.fixed).map(note => (
                 <NoteItem 
                   key={note.id} 
@@ -326,85 +332,102 @@ export default function Notes() {
       {/* EDITOR */}
       <main className={`
         ${isMobile ? (viewMode === 'editor' ? 'flex w-full' : 'hidden') : 'flex w-full'} 
-        flex-1 flex flex-col bg-[#0d0d12]/60
+        flex-1 flex flex-col bg-[#0d0d12]/60 relative
       `}>
         {selectedNote ? (
           <>
-            <header className="px-6 lg:px-10 py-6 lg:py-10 flex flex-col gap-4 lg:gap-6">
-              <div className="flex items-center justify-between gap-4">
-                <div className="flex items-center gap-4 flex-1">
+            <header className="px-6 lg:px-12 py-8 lg:py-12 flex flex-col gap-6 lg:gap-8">
+              <div className="flex items-center justify-between gap-6">
+                <div className="flex items-center gap-6 flex-1">
                   {/* Recuo no mobile para não bater no hamburguer */}
-                  <div className={isMobile ? "pl-10" : ""}>
+                  <div className={`${isMobile ? "pl-12" : ""} flex-1`}>
                     <input 
                       type="text"
                       value={selectedNote.title}
                       onChange={(e) => handleUpdateNote(selectedNote.id, "title", e.target.value)}
-                      className="bg-transparent text-2xl lg:text-5xl font-bold text-white outline-none w-full tracking-tight"
+                      className="bg-transparent text-3xl lg:text-5xl font-black text-white outline-none w-full tracking-tight"
                     />
                   </div>
                 </div>
-                <div className="flex items-center gap-1 lg:gap-3">
+                <div className="flex items-center gap-2 lg:gap-4">
+                  {!isMobile && (
+                    <div className="text-[10px] font-bold text-zinc-700 uppercase tracking-widest mr-4">
+                      {selectedNote.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length} PALAVRAS
+                    </div>
+                  )}
                   <ToolbarButton 
                     onClick={() => handleUpdateNote(selectedNote.id, "favorite", !selectedNote.favorite)} 
-                    icon={<Star size={isMobile ? 18 : 20} className={selectedNote.favorite ? "fill-yellow-500 text-yellow-500" : ""} />} 
+                    icon={<Star size={isMobile ? 20 : 22} className={selectedNote.favorite ? "fill-yellow-500 text-yellow-500" : ""} />} 
                   />
                   <ToolbarButton 
                     onClick={() => handleUpdateNote(selectedNote.id, "fixed", !selectedNote.fixed)} 
-                    icon={<Pin size={isMobile ? 18 : 20} className={selectedNote.fixed ? "fill-blue-500 text-blue-500" : ""} />} 
+                    icon={<Pin size={isMobile ? 20 : 22} className={selectedNote.fixed ? "fill-blue-500 text-blue-500" : ""} />} 
                   />
-                  {!isMobile && <ToolbarButton onClick={() => handleDeleteNote(selectedNote.id)} icon={<Trash2 size={20} className="text-rose-500/70" />} />}
-                  <ToolbarButton icon={<MoreVertical size={isMobile ? 18 : 20} />} />
+                  <ToolbarButton 
+                    icon={<MoreVertical size={isMobile ? 20 : 22} />} 
+                    menuItems={[
+                      { label: 'Excluir Nota', icon: <Trash2 size={14} />, onClick: () => handleDeleteNote(selectedNote.id), danger: true }
+                    ]}
+                  />
                 </div>
               </div>
-              <div className="flex items-center gap-4 lg:gap-6 text-[10px] lg:text-[11px] font-bold text-zinc-600 uppercase tracking-[0.2em] px-2 lg:px-0">
-                <span className="flex items-center gap-2"><Clock size={14} className="text-blue-500/60" /> {selectedNote.date}</span>
-                <div className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-xl px-2 lg:px-3 py-1 lg:py-1.5">
+              <div className="flex items-center gap-6 text-[10px] lg:text-[11px] font-bold text-zinc-600 uppercase tracking-[0.2em] px-2 lg:px-0">
+                {isMobile && (
+                  <div className="text-zinc-700">
+                    {selectedNote.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length} PALAVRAS
+                  </div>
+                )}
+                <span className="flex items-center gap-2 ml-auto lg:ml-0"><Clock size={14} className="text-blue-500/60" /> {selectedNote.date}</span>
+                <div className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-xl px-3 lg:px-4 py-2">
                   <Folder size={12} className="text-indigo-500/60" />
                   <select 
                     value={selectedNote.folder}
                     onChange={(e) => handleUpdateNote(selectedNote.id, "folder", e.target.value)}
-                    className="bg-transparent outline-none cursor-pointer hover:text-zinc-300 transition-colors max-w-[80px] lg:max-w-none truncate"
+                    className="bg-transparent outline-none cursor-pointer hover:text-zinc-300 transition-colors min-w-[120px] lg:min-w-[140px] truncate"
                   >
                     <option value="Sem pasta">Sem pasta</option>
                     {userFolders.map(f => <option key={f} value={f}>{f}</option>)}
                   </select>
                 </div>
-                {isMobile && (
-                  <button onClick={() => handleDeleteNote(selectedNote.id)} className="ml-auto text-rose-500/60 p-2">
-                    <Trash2 size={16} />
-                  </button>
-                )}
               </div>
             </header>
 
-            <div className="px-6 lg:px-10 py-3 lg:py-4 border-y border-white/5 flex items-center gap-4 lg:gap-8 text-zinc-600 bg-black/20 overflow-x-auto no-scrollbar">
-              <div className="flex items-center gap-4 lg:gap-5 flex-shrink-0">
-                <FormatButton onClick={() => executeCommand('bold')} icon={<Bold size={18} />} />
-                <FormatButton onClick={() => executeCommand('italic')} icon={<Italic size={18} />} />
-                <FormatButton onClick={() => executeCommand('underline')} icon={<Underline size={18} />} />
+            <div className="px-6 lg:px-12 py-4 lg:py-5 border-y border-white/5 flex items-center gap-5 lg:gap-10 text-zinc-600 bg-black/20 overflow-x-auto no-scrollbar">
+              <div className="flex items-center gap-4 lg:gap-6 flex-shrink-0">
+                <FormatButton active={activeFormats.bold} onClick={() => executeCommand('bold')} icon={<Bold size={20} />} />
+                <FormatButton active={activeFormats.italic} onClick={() => executeCommand('italic')} icon={<Italic size={20} />} />
+                <FormatButton active={activeFormats.underline} onClick={() => executeCommand('underline')} icon={<Underline size={20} />} />
               </div>
-              <div className="w-px h-6 bg-white/5 flex-shrink-0" />
-              <div className="flex items-center gap-4 lg:gap-5 flex-shrink-0">
-                <FormatButton onClick={() => executeCommand('header', 1)} icon={<Heading1 size={18} />} />
-                <FormatButton onClick={() => executeCommand('list', 'bullet')} icon={<List size={18} />} />
-                <FormatButton onClick={() => executeCommand('list', 'unchecked')} icon={<CheckSquare size={18} />} />
+              <div className="w-px h-8 bg-white/5 flex-shrink-0" />
+              <div className="flex items-center gap-4 lg:gap-6 flex-shrink-0">
+                <FormatButton active={activeFormats.header === 1} onClick={() => executeCommand('header', 1)} icon={<Heading1 size={20} />} />
+                <FormatButton active={activeFormats.list === 'bullet'} onClick={() => executeCommand('list', 'bullet')} icon={<List size={20} />} />
+                <FormatButton active={activeFormats.list === 'unchecked' || activeFormats.list === 'checked'} onClick={() => executeCommand('list', 'unchecked')} icon={<CheckSquare size={20} />} />
               </div>
-              <div className="w-px h-6 bg-white/5 flex-shrink-0" />
-              <div className="flex items-center gap-4 lg:gap-5 flex-shrink-0">
-                <FormatButton onClick={() => executeCommand('blockquote')} icon={<Quote size={18} />} />
-                <FormatButton onClick={() => executeCommand('code-block')} icon={<Code size={18} />} />
+              <div className="w-px h-8 bg-white/5 flex-shrink-0" />
+              <div className="flex items-center gap-4 lg:gap-6 flex-shrink-0">
+                <FormatButton active={activeFormats.blockquote} onClick={() => executeCommand('blockquote')} icon={<Quote size={20} />} />
+                <FormatButton active={activeFormats.code === 'block'} onClick={() => executeCommand('code-block')} icon={<Code size={20} />} />
               </div>
             </div>
 
-            <div className="flex-1 px-6 lg:px-10 py-6 lg:py-10 overflow-y-auto custom-scrollbar pb-32">
+            <div className="flex-1 px-6 lg:px-12 py-8 lg:py-12 overflow-y-auto custom-scrollbar pb-40">
               <div className="max-w-4xl mx-auto h-full">
                 <React.Suspense fallback={<div className="text-zinc-800 animate-pulse">Carregando editor...</div>}>
                   <ReactQuill 
                     ref={quillRef}
                     theme="snow"
                     value={selectedNote.content}
-                    onChange={(content) => handleUpdateNote(selectedNote.id, "content", content)}
-                    placeholder="Escreva algo incrível..."
+                    onChange={(content) => {
+                      handleUpdateNote(selectedNote.id, "content", content);
+                      const editor = quillRef.current?.getEditor();
+                      if (editor) setActiveFormats(editor.getFormat());
+                    }}
+                    onSelectionChange={() => {
+                      const editor = quillRef.current?.getEditor();
+                      if (editor) setActiveFormats(editor.getFormat());
+                    }}
+                    placeholder="Digite / para comandos..."
                     modules={{ toolbar: false }}
                   />
                 </React.Suspense>
@@ -412,37 +435,38 @@ export default function Notes() {
             </div>
 
             {/* RODAPÉ E NAVEGAÇÃO MOBILE */}
-            <div className="fixed bottom-0 left-0 right-0 z-40 lg:relative lg:z-auto">
+            <AnimatePresence>
               {isMobile && viewMode === 'editor' && (
-                <div className="px-6 py-4 bg-[#16161e]/95 backdrop-blur-2xl border-t border-white/10 flex items-center justify-between shadow-[0_-10px_30px_rgba(0,0,0,0.5)]">
+                <motion.div 
+                  initial={{ y: 100 }}
+                  animate={{ y: 0 }}
+                  exit={{ y: 100 }}
+                  className="fixed bottom-0 left-0 right-0 z-50 p-6 bg-gradient-to-t from-black to-transparent pointer-events-none"
+                >
                   <button 
                     onClick={() => setViewMode('list')}
-                    className="flex items-center gap-3 bg-blue-600 text-white px-6 py-3 rounded-2xl font-bold text-sm shadow-xl shadow-blue-900/40 active:scale-95 transition-all"
+                    className="w-full flex items-center justify-center gap-3 bg-blue-600 text-white py-4 rounded-2xl font-black text-sm shadow-2xl shadow-blue-900/40 active:scale-95 transition-all pointer-events-auto"
                   >
                     <ChevronLeft size={20} />
                     VOLTAR PARA LISTA
                   </button>
-                  <div className="text-[10px] font-bold text-zinc-500 uppercase tracking-widest">
-                    {selectedNote.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length} PAL.
-                  </div>
+                </motion.div>
+              )}
+            </AnimatePresence>
+            
+            {!isMobile && (
+              <footer className="px-12 py-5 border-t border-white/5 flex items-center justify-between text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] bg-black/40">
+                <div className="flex items-center gap-6">
+                  <span className="flex items-center gap-2 text-emerald-500/60">
+                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" /> 
+                    Sincronizado
+                  </span>
                 </div>
-              )}
-              
-              {!isMobile && (
-                <footer className="px-10 py-4 border-t border-white/5 flex items-center justify-between text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] bg-black/40">
-                  <div className="flex items-center gap-6">
-                    <span className="flex items-center gap-2 text-emerald-500/70">
-                      <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" /> 
-                      Salvo automaticamente
-                    </span>
-                  </div>
-                  <div className="flex items-center gap-8">
-                    <span>{selectedNote.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length} palavras</span>
-                    <span>{selectedNote.content.replace(/<[^>]*>/g, '').length} caracteres</span>
-                  </div>
-                </footer>
-              )}
-            </div>
+                <div className="flex items-center gap-8">
+                  <span>{selectedNote.content.replace(/<[^>]*>/g, '').length} caracteres</span>
+                </div>
+              </footer>
+            )}
           </>
         ) : (
           <div className="flex-1 flex flex-col items-center justify-center text-zinc-800 gap-4">
@@ -469,38 +493,86 @@ export default function Notes() {
 }
 
 function NoteItem({ note, isSelected, onClick }: { note: any, isSelected: boolean, onClick: () => void }) {
+  // Cores dinâmicas para as tags
+  const getTagStyle = (folder: string) => {
+    const colors: any = {
+      "Trabalho": "bg-yellow-500/10 text-yellow-500/80 border-yellow-500/10",
+      "Estudos": "bg-purple-500/10 text-purple-400/80 border-purple-500/10",
+      "Pessoal": "bg-emerald-500/10 text-emerald-400/80 border-emerald-500/10",
+      "Ideias": "bg-blue-500/10 text-blue-400/80 border-blue-500/10",
+      "Sem pasta": "bg-zinc-500/10 text-zinc-500/80 border-zinc-500/10"
+    };
+    return colors[folder] || colors["Sem pasta"];
+  };
+
   return (
     <motion.button 
       whileHover={{ x: 4 }}
       whileTap={{ scale: 0.98 }}
       onClick={onClick}
-      className={`w-full text-left p-4 rounded-2xl transition-all group relative border ${isSelected ? 'bg-blue-600/10 border-blue-500/20 shadow-xl shadow-blue-900/10' : 'bg-white/[0.02] border-transparent hover:bg-white/[0.05] hover:border-white/5'}`}
+      className={`w-full text-left p-5 rounded-2xl transition-all group relative border ${isSelected ? 'bg-[#1a1a24] border-white/5 shadow-2xl' : 'bg-[#12121a] border-white/5 hover:bg-[#16161e] hover:border-white/10'}`}
     >
+      {/* Barra lateral de seleção discreta */}
+      {isSelected && (
+        <div className="absolute left-0 top-3 bottom-3 w-1 bg-blue-500 rounded-r-full shadow-[0_0_10px_rgba(59,130,246,0.5)]" />
+      )}
+
       <div className="flex items-start justify-between mb-2">
         <div className="flex items-center gap-3 truncate">
-          <FileText size={14} className={isSelected ? 'text-blue-400' : 'text-zinc-700 group-hover:text-zinc-500'} />
-          <h3 className={`font-bold text-[15px] truncate tracking-tight ${isSelected ? 'text-white' : 'text-zinc-400 group-hover:text-zinc-200'}`}>
+          <h3 className={`font-black text-[16px] truncate tracking-tight ${isSelected ? 'text-white' : 'text-zinc-300 group-hover:text-white'}`}>
             {note.title}
           </h3>
         </div>
-        {note.fixed && <Pin size={12} className="text-blue-500/60 mt-0.5" />}
+        {note.fixed && <Pin size={12} className="text-blue-500 fill-blue-500/20 mt-1 flex-shrink-0" />}
       </div>
-      <p className="text-xs text-zinc-600 line-clamp-1 mb-3 leading-relaxed font-medium pl-6">
+      <p className="text-sm text-zinc-500 line-clamp-1 mb-4 leading-relaxed font-medium">
         {note.preview}
       </p>
-      <div className="flex items-center justify-between pl-6">
+      <div className="flex items-center justify-between">
         <span className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest">{note.date}</span>
-        <span className="text-[9px] font-bold text-zinc-600 bg-white/5 px-2 py-0.5 rounded-lg border border-white/5 uppercase tracking-tighter">{note.folder}</span>
+        <span className={`text-[9px] font-black px-2.5 py-1 rounded-lg border uppercase tracking-tight ${getTagStyle(note.folder)}`}>
+          {note.folder}
+        </span>
       </div>
     </motion.button>
   );
 }
 
-function ToolbarButton({ icon, tooltip, onClick }: { icon: React.ReactNode, tooltip?: string, onClick?: () => void }) {
+function ToolbarButton({ icon, tooltip, onClick, menuItems }: { icon: React.ReactNode, tooltip?: string, onClick?: () => void, menuItems?: any[] }) {
+  const [showMenu, setShowMenu] = useState(false);
+
+  return (
+    <div className="relative">
+      <button 
+        onClick={() => menuItems ? setShowMenu(!showMenu) : onClick?.()}
+        className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-2xl text-zinc-600 hover:text-white hover:bg-white/5 transition-all active:scale-90" 
+        title={tooltip}
+      >
+        {icon}
+      </button>
+      {showMenu && menuItems && (
+        <div className="absolute right-0 top-full mt-2 w-48 bg-[#1a1a24] border border-white/10 rounded-2xl shadow-2xl py-2 z-50">
+          {menuItems.map((item, idx) => (
+            <button
+              key={idx}
+              onClick={() => { item.onClick(); setShowMenu(false); }}
+              className={`w-full flex items-center gap-3 px-4 py-3 text-xs font-bold transition-colors ${item.danger ? 'text-rose-500 hover:bg-rose-500/10' : 'text-zinc-400 hover:bg-white/5 hover:text-white'}`}
+            >
+              {item.icon}
+              {item.label}
+            </button>
+          ))}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function FormatButton({ icon, tooltip, onClick, active }: { icon: React.ReactNode, tooltip?: string, onClick?: () => void, active?: boolean }) {
   return (
     <button 
       onClick={onClick}
-      className="p-2 lg:p-2.5 rounded-2xl text-zinc-600 hover:text-white hover:bg-white/5 transition-all active:scale-90" 
+      className={`min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl transition-all active:scale-90 ${active ? 'text-blue-500 bg-blue-500/10' : 'text-zinc-600 hover:text-zinc-200 hover:bg-white/5'}`} 
       title={tooltip}
     >
       {icon}
@@ -508,14 +580,28 @@ function ToolbarButton({ icon, tooltip, onClick }: { icon: React.ReactNode, tool
   );
 }
 
-function FormatButton({ icon, tooltip, onClick }: { icon: React.ReactNode, tooltip?: string, onClick?: () => void }) {
+function FolderMenu({ onDelete }: { onDelete: () => void }) {
+  const [showMenu, setShowMenu] = useState(false);
+
   return (
-    <button 
-      onClick={onClick}
-      className="p-2 lg:p-2.5 rounded-xl text-zinc-600 hover:text-zinc-200 hover:bg-white/5 transition-all active:scale-90" 
-      title={tooltip}
-    >
-      {icon}
-    </button>
+    <div className="relative">
+      <button 
+        onClick={() => setShowMenu(!showMenu)}
+        className="min-w-[44px] min-h-[44px] flex items-center justify-center text-zinc-700 hover:text-white transition-all"
+      >
+        <MoreVertical size={14} />
+      </button>
+      {showMenu && (
+        <div className="absolute left-full ml-2 top-0 w-40 bg-[#1a1a24] border border-white/10 rounded-2xl shadow-2xl py-2 z-50">
+          <button
+            onClick={() => { onDelete(); setShowMenu(false); }}
+            className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold text-rose-500 hover:bg-rose-500/10 transition-colors"
+          >
+            <Trash2 size={14} />
+            Excluir Pasta
+          </button>
+        </div>
+      )}
+    </div>
   );
 }
