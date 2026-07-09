@@ -1,4 +1,5 @@
 import React, { useState, useRef, useEffect } from "react";
+import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { 
   Search, 
   Plus, 
@@ -93,6 +94,10 @@ export default function Notes() {
   const [viewMode, setViewMode] = useState<'list' | 'editor'>('list');
   const [activeFormats, setActiveFormats] = useState<any>({});
   const quillRef = useRef<any>(null);
+  
+  // Estados para os diálogos de confirmação
+  const [deleteNoteDialog, setDeleteNoteDialog] = useState({ open: false, noteId: null as number | null });
+  const [deleteFolderDialog, setDeleteFolderDialog] = useState({ open: false, folderName: null as string | null });
 
   const selectedNote = notes.find(n => n.id === selectedNoteId);
 
@@ -143,23 +148,33 @@ export default function Notes() {
   };
 
   const handleDeleteNote = (id: number) => {
-    if (confirm("Tem certeza que deseja excluir esta nota?")) {
-      const newNotes = notes.filter(n => n.id !== id);
+    setDeleteNoteDialog({ open: true, noteId: id });
+  };
+
+  const confirmDeleteNote = () => {
+    if (deleteNoteDialog.noteId !== null) {
+      const newNotes = notes.filter(n => n.id !== deleteNoteDialog.noteId);
       setNotes(newNotes);
-      if (selectedNoteId === id) {
+      if (selectedNoteId === deleteNoteDialog.noteId) {
         setSelectedNoteId(newNotes.length > 0 ? newNotes[0].id : null);
         if (isMobile) setViewMode('list');
       }
       showToast("Nota excluída!", "success");
+      setDeleteNoteDialog({ open: false, noteId: null });
     }
   };
 
   const handleDeleteFolder = (folder: string) => {
-    if (confirm(`Excluir a pasta "${folder}"? As notas desta pasta não serão excluídas.`)) {
-      setUserFolders(userFolders.filter(f => f !== folder));
-      setNotes(notes.map(n => n.folder === folder ? { ...n, folder: "Sem pasta" } : n));
-      if (activeFolder === folder) setActiveFolder(null);
+    setDeleteFolderDialog({ open: true, folderName: folder });
+  };
+
+  const confirmDeleteFolder = () => {
+    if (deleteFolderDialog.folderName !== null) {
+      setUserFolders(userFolders.filter(f => f !== deleteFolderDialog.folderName));
+      setNotes(notes.map(n => n.folder === deleteFolderDialog.folderName ? { ...n, folder: "Sem pasta" } : n));
+      if (activeFolder === deleteFolderDialog.folderName) setActiveFolder(null);
       showToast("Pasta removida!", "info");
+      setDeleteFolderDialog({ open: false, folderName: null });
     }
   };
 
@@ -488,6 +503,27 @@ export default function Notes() {
           <Plus size={32} />
         </motion.button>
       )}
+
+      {/* DIÁLOGOS DE CONFIRMAÇÃO */}
+      <ConfirmDialog
+        open={deleteNoteDialog.open}
+        onOpenChange={(open) => setDeleteNoteDialog({ ...deleteNoteDialog, open })}
+        title="Excluir nota?"
+        description="Tem certeza que deseja excluir esta nota? Esta ação não pode ser desfeita."
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDeleteNote}
+      />
+
+      <ConfirmDialog
+        open={deleteFolderDialog.open}
+        onOpenChange={(open) => setDeleteFolderDialog({ ...deleteFolderDialog, open })}
+        title="Excluir pasta?"
+        description={`Tem certeza que deseja excluir a pasta "${deleteFolderDialog.folderName}"? As notas desta pasta serão movidas para "Sem pasta".`}
+        confirmLabel="Excluir"
+        cancelLabel="Cancelar"
+        onConfirm={confirmDeleteFolder}
+      />
     </div>
   );
 }
