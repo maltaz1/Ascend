@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useCallback } from "react";
+import React, { useState, useRef, useEffect, useCallback, useMemo } from "react";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { 
   Search, 
@@ -17,10 +17,8 @@ import {
   Code, 
   FileText,
   ChevronRight,
-  Clock,
   Trash2,
-  ChevronLeft,
-  X as CloseIcon
+  ChevronLeft
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { showToast } from "@/components/ui/FlowToast";
@@ -32,12 +30,12 @@ import 'react-quill-new/dist/quill.snow.css';
 // Importação dinâmica do ReactQuill para evitar erros de SSR/Vite
 const ReactQuill = React.lazy(() => import('react-quill-new'));
 
-// Utilitários
-function generatePreview(htmlContent: string): string {
+// Utilitários (memoizados para evitar recriação)
+const generatePreview = (htmlContent: string): string => {
   return htmlContent.replace(/<[^>]*>/g, '').slice(0, 120);
-}
+};
 
-function formatDate(dateString: string): string {
+const formatDate = (dateString: string): string => {
   const date = new Date(dateString);
   const today = new Date();
   const yesterday = new Date(today);
@@ -50,7 +48,7 @@ function formatDate(dateString: string): string {
   }
 
   return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).toLowerCase();
-}
+};
 
 interface NoteUI extends NoteDatabaseRow {
   folder: string;
@@ -59,6 +57,11 @@ interface NoteUI extends NoteDatabaseRow {
 interface SyncState {
   status: 'idle' | 'typing' | 'saving' | 'synced';
   lastSyncTime?: Date;
+}
+
+interface DialogState {
+  open: boolean;
+  id: string | null;
 }
 
 export default function Notes() {
@@ -75,23 +78,34 @@ export default function Notes() {
   const [newFolderName, setNewFolderName] = useState("");
   const [isMobile, setIsMobile] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'editor'>('list');
-  const [activeFormats, setActiveFormats] = useState<any>({});
+  const [activeFormats, setActiveFormats] = useState<Record<string, any>>({});
 
   // Estados de sincronização
   const [syncState, setSyncState] = useState<SyncState>({ status: 'idle' });
 
-  // Estados de diálogos
-  const [deleteNoteDialog, setDeleteNoteDialog] = useState({ open: false, noteId: null as string | null });
-  const [deleteFolderDialog, setDeleteFolderDialog] = useState({ open: false, folderId: null as string | null });
+  // Estados de diálogos (consolidados)
+  const [deleteNoteDialog, setDeleteNoteDialog] = useState<DialogState>({ open: false, id: null });
+  const [deleteFolderDialog, setDeleteFolderDialog] = useState<DialogState>({ open: false, id: null });
 
   // Refs
   const quillRef = useRef<any>(null);
-  const autosaveTimeoutRef = useRef<NodeJS.Timeout>();
+  const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
   const lastSavedContentRef = useRef<string>("");
+  const isMountedRef = useRef(true);
 
-  const selectedNote = notes.find(n => n.id === selectedNoteId);
+  const selectedNote = useMemo(() => notes.find(n => n.id === selectedNoteId), [notes, selectedNoteId]);
 
-  // Carregar dados iniciais
+  // Cleanup no unmount
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+      if (autosaveTimeoutRef.current) {
+        clearTimeout(autosaveTimeoutRef.current);
+      }
+    };
+  }, []);
+
+  // Carregar dados iniciais (apenas uma vez)
   useEffect(() => {
     const loadData = async () => {
       try {
@@ -101,7 +115,9 @@ export default function Notes() {
           getFolders(),
         ]);
 
-        // Mapear notas com folder como string (nome da pasta ou "Sem pasta")
+        if (!isMountedRef.current) return;
+
+        // Mapear notas com folder como string
         const mappedNotes: NoteUI[] = notesData.map(note => ({
           ...note,
           folder: note.folder_id ? (foldersData.find(f => f.id === note.folder_id)?.name || "Sem pasta") : "Sem pasta",
@@ -115,57 +131,72 @@ export default function Notes() {
           setSelectedNoteId(mappedNotes[0].id);
         }
       } catch (error) {
+        if (!isMountedRef.current) return;
         console.error("Erro ao carregar dados:", error);
         showToast("Erro ao carregar notas", "error");
       } finally {
-        setIsLoading(false);
+        if (isMountedRef.current) {
+          setIsLoading(false);
+        }
       }
     };
 
     loadData();
   }, []);
 
-  // Detecção de mobile
+  // Detecção de mobile (com cleanup)
   useEffect(() => {
     const checkMobile = () => {
+      if (!isMountedRef.current) return;
       const mobile = window.innerWidth < 1024;
       setIsMobile(mobile);
       if (!mobile) setViewMode('editor');
     };
+    
     checkMobile();
     window.addEventListener('resize', checkMobile);
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  // Autosave com debounce
+  // Autosave com debounce (otimizado para evitar race conditions)
   const scheduleAutosave = useCallback(() => {
-    if (!selectedNote) return;
+    if (!selectedNote || !isMountedRef.current) return;
 
     setSyncState({ status: 'typing' });
 
+    // Limpar timeout anterior
     if (autosaveTimeoutRef.current) {
       clearTimeout(autosaveTimeoutRef.current);
     }
 
     autosaveTimeoutRef.current = setTimeout(async () => {
-      if (!selectedNote) return;
+      if (!isMountedRef.current || !selectedNote) return;
 
       const currentContent = selectedNote.content;
+      
+      // Evitar salvar se o conteúdo não mudou
       if (currentContent === lastSavedContentRef.current) {
-        setSyncState({ status: 'synced', lastSyncTime: new Date() });
+        if (isMountedRef.current) {
+          setSyncState({ status: 'synced', lastSyncTime: new Date() });
+        }
         return;
       }
 
       try {
-        setSyncState({ status: 'saving' });
+        if (isMountedRef.current) {
+          setSyncState({ status: 'saving' });
+        }
 
         await updateNote(selectedNote.id, {
           content: currentContent,
         });
 
+        if (!isMountedRef.current) return;
+
         lastSavedContentRef.current = currentContent;
         setSyncState({ status: 'synced', lastSyncTime: new Date() });
       } catch (error) {
+        if (!isMountedRef.current) return;
         console.error("Erro ao salvar nota:", error);
         setSyncState({ status: 'idle' });
         showToast("Erro ao salvar nota", "error");
@@ -173,7 +204,8 @@ export default function Notes() {
     }, 800);
   }, [selectedNote]);
 
-  const handleCreateFolder = async (e: React.FormEvent) => {
+  // Handlers memoizados
+  const handleCreateFolder = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     if (!newFolderName.trim()) return;
 
@@ -185,20 +217,20 @@ export default function Notes() {
       }
 
       const newFolder = await createFolder({ name: newFolderName.trim() });
-      if (newFolder) {
-        // Atualizar apenas a lista de pastas (otimização)
-        setUserFolders([...userFolders, newFolder]);
+      if (newFolder && isMountedRef.current) {
+        setUserFolders(prev => [...prev, newFolder]);
         setNewFolderName("");
         setIsCreatingFolder(false);
         showToast("Pasta criada!", "success");
       }
     } catch (error) {
+      if (!isMountedRef.current) return;
       console.error("Erro ao criar pasta:", error);
       showToast("Erro ao criar pasta", "error");
     }
-  };
+  }, [newFolderName, userFolders]);
 
-  const handleCreateNote = async () => {
+  const handleCreateNote = useCallback(async () => {
     try {
       const newNote = await createNote({
         title: "Nova nota",
@@ -208,27 +240,27 @@ export default function Notes() {
         folder_id: activeFolder ? userFolders.find(f => f.name === activeFolder)?.id || null : null,
       });
 
-      if (newNote) {
+      if (newNote && isMountedRef.current) {
         const noteUI: NoteUI = {
           ...newNote,
           folder: activeFolder || "Sem pasta",
         };
-        // Adicionar apenas a nova nota ao estado (otimização)
-        setNotes([noteUI, ...notes]);
+        setNotes(prev => [noteUI, ...prev]);
         setSelectedNoteId(newNote.id);
         if (isMobile) setViewMode('editor');
         lastSavedContentRef.current = "";
         showToast("Nota criada!", "success");
       }
     } catch (error) {
+      if (!isMountedRef.current) return;
       console.error("Erro ao criar nota:", error);
       showToast("Erro ao criar nota", "error");
     }
-  };
+  }, [activeFolder, userFolders, isMobile]);
 
-  const handleUpdateNote = async (id: string, field: string, value: any) => {
-    // Atualizar apenas a nota específica no estado (otimização)
-    setNotes(notes.map(n => n.id === id ? { ...n, [field]: value } : n));
+  const handleUpdateNote = useCallback(async (id: string, field: string, value: any) => {
+    // Atualizar estado localmente
+    setNotes(prev => prev.map(n => n.id === id ? { ...n, [field]: value } : n));
 
     if (field === 'content') {
       scheduleAutosave();
@@ -237,56 +269,62 @@ export default function Notes() {
       try {
         await updateNote(id, { [field]: value });
       } catch (error) {
+        if (!isMountedRef.current) return;
         console.error("Erro ao atualizar nota:", error);
         showToast("Erro ao atualizar nota", "error");
       }
     }
-  };
+  }, [scheduleAutosave]);
 
-  const handleDeleteNote = (id: string) => {
-    setDeleteNoteDialog({ open: true, noteId: id });
-  };
+  const handleDeleteNote = useCallback((id: string) => {
+    setDeleteNoteDialog({ open: true, id });
+  }, []);
 
-  const confirmDeleteNote = async () => {
-    if (!deleteNoteDialog.noteId) return;
+  const confirmDeleteNote = useCallback(async () => {
+    if (!deleteNoteDialog.id) return;
 
     try {
-      await deleteNote(deleteNoteDialog.noteId);
-      // Remover apenas a nota excluída do estado (otimização)
-      const newNotes = notes.filter(n => n.id !== deleteNoteDialog.noteId);
+      await deleteNote(deleteNoteDialog.id);
+      
+      if (!isMountedRef.current) return;
+
+      const newNotes = notes.filter(n => n.id !== deleteNoteDialog.id);
       setNotes(newNotes);
 
-      if (selectedNoteId === deleteNoteDialog.noteId) {
+      if (selectedNoteId === deleteNoteDialog.id) {
         setSelectedNoteId(newNotes.length > 0 ? newNotes[0].id : null);
         if (isMobile) setViewMode('list');
       }
 
       showToast("Nota excluída!", "success");
-      setDeleteNoteDialog({ open: false, noteId: null });
+      setDeleteNoteDialog({ open: false, id: null });
     } catch (error) {
+      if (!isMountedRef.current) return;
       console.error("Erro ao excluir nota:", error);
       showToast("Erro ao excluir nota", "error");
     }
-  };
+  }, [deleteNoteDialog.id, notes, selectedNoteId, isMobile]);
 
-  const handleDeleteFolder = (folderId: string) => {
-    setDeleteFolderDialog({ open: true, folderId });
-  };
+  const handleDeleteFolder = useCallback((folderId: string) => {
+    setDeleteFolderDialog({ open: true, id: folderId });
+  }, []);
 
-  const confirmDeleteFolder = async () => {
-    if (!deleteFolderDialog.folderId) return;
+  const confirmDeleteFolder = useCallback(async () => {
+    if (!deleteFolderDialog.id) return;
 
     try {
-      const folderToDelete = userFolders.find(f => f.id === deleteFolderDialog.folderId);
+      const folderToDelete = userFolders.find(f => f.id === deleteFolderDialog.id);
       if (!folderToDelete) return;
 
-      await deleteFolder(deleteFolderDialog.folderId);
-      // Remover apenas a pasta excluída do estado (otimização)
-      setUserFolders(userFolders.filter(f => f.id !== deleteFolderDialog.folderId));
+      await deleteFolder(deleteFolderDialog.id);
+      
+      if (!isMountedRef.current) return;
 
-      // Mover apenas as notas da pasta excluída para "Sem pasta" (otimização)
-      setNotes(notes.map(n => 
-        n.folder_id === deleteFolderDialog.folderId 
+      setUserFolders(prev => prev.filter(f => f.id !== deleteFolderDialog.id));
+
+      // Mover notas da pasta excluída para "Sem pasta"
+      setNotes(prev => prev.map(n => 
+        n.folder_id === deleteFolderDialog.id 
           ? { ...n, folder_id: null, folder: "Sem pasta" } 
           : n
       ));
@@ -296,14 +334,15 @@ export default function Notes() {
       }
 
       showToast("Pasta removida!", "info");
-      setDeleteFolderDialog({ open: false, folderId: null });
+      setDeleteFolderDialog({ open: false, id: null });
     } catch (error) {
+      if (!isMountedRef.current) return;
       console.error("Erro ao excluir pasta:", error);
       showToast("Erro ao excluir pasta", "error");
     }
-  };
+  }, [deleteFolderDialog.id, userFolders, activeFolder]);
 
-  const executeCommand = (command: string, value?: any) => {
+  const executeCommand = useCallback((command: string, value?: any) => {
     const editor = quillRef.current?.getEditor();
     if (editor) {
       if (command === 'list' || command === 'header' || command === 'blockquote' || command === 'code-block') {
@@ -318,14 +357,20 @@ export default function Notes() {
         editor.format(command, !format[command]);
       }
       setTimeout(() => {
-        setActiveFormats(editor.getFormat());
+        if (isMountedRef.current) {
+          setActiveFormats(editor.getFormat());
+        }
       }, 50);
     }
-  };
+  }, []);
 
-  const filteredNotes = notes.filter(n => 
-    n.title.toLowerCase().includes(search.toLowerCase()) &&
-    (!activeFolder || n.folder === activeFolder)
+  // Memoizar notas filtradas
+  const filteredNotes = useMemo(() => 
+    notes.filter(n => 
+      n.title.toLowerCase().includes(search.toLowerCase()) &&
+      (!activeFolder || n.folder === activeFolder)
+    ),
+    [notes, search, activeFolder]
   );
 
   if (isLoading) {
@@ -528,7 +573,7 @@ export default function Notes() {
                     const folderId = e.target.value || null;
                     const folderName = folderId ? userFolders.find(f => f.id === folderId)?.name || "Sem pasta" : "Sem pasta";
                     handleUpdateNote(selectedNote.id, "folder_id", folderId);
-                    setNotes(notes.map(n => n.id === selectedNote.id ? { ...n, folder_id: folderId, folder: folderName } : n));
+                    setNotes(prev => prev.map(n => n.id === selectedNote.id ? { ...n, folder_id: folderId, folder: folderName } : n));
                   }}
                   className="bg-black/40 border border-white/5 rounded-2xl px-4 py-2 text-sm text-white focus:border-blue-500/30 outline-none transition-all"
                 >
@@ -659,8 +704,9 @@ export default function Notes() {
   );
 }
 
-function NoteItem({ note, isSelected, onClick }: { note: NoteUI, isSelected: boolean, onClick: () => void }) {
-  const getTagStyle = (folder: string) => {
+// Componentes memoizados para evitar re-renders desnecessários
+const NoteItem = React.memo(function NoteItem({ note, isSelected, onClick }: { note: NoteUI, isSelected: boolean, onClick: () => void }) {
+  const getTagStyle = useCallback((folder: string) => {
     const colors: Record<string, string> = {
       "Trabalho": "bg-red-500/10 text-red-400/80 border-red-500/10",
       "Estudos": "bg-purple-500/10 text-purple-400/80 border-purple-500/10",
@@ -669,9 +715,9 @@ function NoteItem({ note, isSelected, onClick }: { note: NoteUI, isSelected: boo
       "Sem pasta": "bg-zinc-500/10 text-zinc-500/80 border-zinc-500/10"
     };
     return colors[folder] || colors["Sem pasta"];
-  };
+  }, []);
 
-  const preview = generatePreview(note.content) || "Escreva algo incrível...";
+  const preview = useMemo(() => generatePreview(note.content) || "Escreva algo incrível...", [note.content]);
 
   return (
     <motion.button 
@@ -704,9 +750,9 @@ function NoteItem({ note, isSelected, onClick }: { note: NoteUI, isSelected: boo
       </div>
     </motion.button>
   );
-}
+});
 
-function ToolbarButton({ icon, tooltip, onClick, menuItems }: { icon: React.ReactNode, tooltip?: string, onClick?: () => void, menuItems?: any[] }) {
+const ToolbarButton = React.memo(function ToolbarButton({ icon, tooltip, onClick, menuItems }: { icon: React.ReactNode, tooltip?: string, onClick?: () => void, menuItems?: any[] }) {
   const [showMenu, setShowMenu] = useState(false);
 
   return (
@@ -734,9 +780,9 @@ function ToolbarButton({ icon, tooltip, onClick, menuItems }: { icon: React.Reac
       )}
     </div>
   );
-}
+});
 
-function FormatButton({ icon, tooltip, onClick, active }: { icon: React.ReactNode, tooltip?: string, onClick?: () => void, active?: boolean }) {
+const FormatButton = React.memo(function FormatButton({ icon, tooltip, onClick, active }: { icon: React.ReactNode, tooltip?: string, onClick?: () => void, active?: boolean }) {
   return (
     <button 
       onClick={onClick}
@@ -746,9 +792,9 @@ function FormatButton({ icon, tooltip, onClick, active }: { icon: React.ReactNod
       {icon}
     </button>
   );
-}
+});
 
-function FolderMenu({ onDelete }: { onDelete: () => void }) {
+const FolderMenu = React.memo(function FolderMenu({ onDelete }: { onDelete: () => void }) {
   const [showMenu, setShowMenu] = useState(false);
 
   return (
@@ -772,4 +818,4 @@ function FolderMenu({ onDelete }: { onDelete: () => void }) {
       )}
     </div>
   );
-}
+});
