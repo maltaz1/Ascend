@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect } from "react";
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import { ConfirmDialog } from "@/components/ui/ConfirmDialog";
 import { 
   Search, 
@@ -24,82 +24,107 @@ import {
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { showToast } from "@/components/ui/FlowToast";
+import { getNotes, createNote, updateNote, deleteNote } from "@/lib/notes";
+import { getFolders, createFolder, deleteFolder } from "@/lib/noteFolders";
+import type { NoteDatabaseRow, NoteFolderDatabaseRow } from "@/lib/database/types";
 import 'react-quill-new/dist/quill.snow.css';
 
 // Importação dinâmica do ReactQuill para evitar erros de SSR/Vite
 const ReactQuill = React.lazy(() => import('react-quill-new'));
 
-const mockNotes = [
-  { 
-    id: 1, 
-    title: "Ideias para o Ascend v2", 
-    preview: "Implementar sistema de notas com suporte a Markdown...", 
-    date: "22 jun", 
-    favorite: true, 
-    fixed: true, 
-    folder: "Ideias",
-    content: "<h1>Ideias para o Ascend v2</h1><p>Implementar sistema de notas com suporte a Markdown, links bidirecionais e visualização em grafo.</p>"
-  },
-  { 
-    id: 2, 
-    title: "Refatoração do Webhook", 
-    preview: "Validação de assinatura no formato JSON do Cakto...", 
-    date: "20 jun", 
-    favorite: false, 
-    fixed: true, 
-    folder: "Trabalho",
-    content: "<p>Garantir que a validação de assinatura suporte o formato JSON do Cakto.</p>"
-  },
-  { 
-    id: 3, 
-    title: "Reunião com cliente", 
-    preview: "Definição de escopo e prazos do projeto...", 
-    date: "19 jun", 
-    favorite: false, 
-    fixed: false, 
-    folder: "Trabalho",
-    content: "<p>Definição de escopo e prazos do projeto.</p>"
-  },
-  { 
-    id: 4, 
-    title: "Objetivos da semana", 
-    preview: "Finalizar UI de notas, testar deploy...", 
-    date: "18 jun", 
-    favorite: false, 
-    fixed: false, 
-    folder: "Pessoal",
-    content: "<p>Finalizar UI de notas, testar deploy.</p>"
-  },
-  { 
-    id: 5, 
-    title: "No", 
-    preview: "Escreva algo incrível...", 
-    date: "30 de jun.", 
-    favorite: false, 
-    fixed: false, 
-    folder: "Sem pasta",
-    content: ""
+// Utilitários
+function generatePreview(htmlContent: string): string {
+  const plainText = htmlContent.replace(/<[^>]*>/g, '').trim();
+  return plainText.length > 120 ? plainText.substring(0, 120) + '...' : plainText;
+}
+
+function formatDate(dateString: string): string {
+  const date = new Date(dateString);
+  const today = new Date();
+  const yesterday = new Date(today);
+  yesterday.setDate(yesterday.getDate() - 1);
+
+  if (date.toDateString() === today.toDateString()) {
+    return 'hoje';
+  } else if (date.toDateString() === yesterday.toDateString()) {
+    return 'ontem';
   }
-];
+
+  return date.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).toLowerCase();
+}
+
+interface NoteUI extends NoteDatabaseRow {
+  folder: string;
+}
+
+interface SyncState {
+  status: 'idle' | 'typing' | 'saving' | 'synced';
+  lastSyncTime?: Date;
+}
 
 export default function Notes() {
-  const [notes, setNotes] = useState(mockNotes);
-  const [selectedNoteId, setSelectedNoteId] = useState<number | null>(5);
+  // Estados de dados
+  const [notes, setNotes] = useState<NoteUI[]>([]);
+  const [userFolders, setUserFolders] = useState<NoteFolderDatabaseRow[]>([]);
+  const [isLoading, setIsLoading] = useState(true);
+
+  // Estados de UI
+  const [selectedNoteId, setSelectedNoteId] = useState<string | null>(null);
   const [search, setSearch] = useState("");
   const [activeFolder, setActiveFolder] = useState<string | null>(null);
-  const [userFolders, setUserFolders] = useState<string[]>(["Trabalho", "Estudos", "Pessoal", "Ideias"]);
   const [isCreatingFolder, setIsCreatingFolder] = useState(false);
   const [newFolderName, setNewFolderName] = useState("");
   const [isMobile, setIsMobile] = useState(false);
   const [viewMode, setViewMode] = useState<'list' | 'editor'>('list');
   const [activeFormats, setActiveFormats] = useState<any>({});
+
+  // Estados de sincronização
+  const [syncState, setSyncState] = useState<SyncState>({ status: 'idle' });
+
+  // Estados de diálogos
+  const [deleteNoteDialog, setDeleteNoteDialog] = useState({ open: false, noteId: null as string | null });
+  const [deleteFolderDialog, setDeleteFolderDialog] = useState({ open: false, folderId: null as string | null });
+
+  // Refs
   const quillRef = useRef<any>(null);
-  
-  // Estados para os diálogos de confirmação
-  const [deleteNoteDialog, setDeleteNoteDialog] = useState({ open: false, noteId: null as number | null });
-  const [deleteFolderDialog, setDeleteFolderDialog] = useState({ open: false, folderName: null as string | null });
+  const autosaveTimeoutRef = useRef<NodeJS.Timeout>();
+  const lastSavedContentRef = useRef<string>("");
 
   const selectedNote = notes.find(n => n.id === selectedNoteId);
+
+  // Carregar dados iniciais
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoading(true);
+        const [notesData, foldersData] = await Promise.all([
+          getNotes(),
+          getFolders(),
+        ]);
+
+        // Mapear notas com folder como string (nome da pasta ou "Sem pasta")
+        const mappedNotes: NoteUI[] = notesData.map(note => ({
+          ...note,
+          folder: note.folder_id ? (foldersData.find(f => f.id === note.folder_id)?.name || "Sem pasta") : "Sem pasta",
+        }));
+
+        setNotes(mappedNotes);
+        setUserFolders(foldersData);
+
+        // Selecionar a primeira nota se houver
+        if (mappedNotes.length > 0) {
+          setSelectedNoteId(mappedNotes[0].id);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar dados:", error);
+        showToast("Erro ao carregar notas", "error");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadData();
+  }, []);
 
   // Detecção de mobile
   useEffect(() => {
@@ -113,68 +138,168 @@ export default function Notes() {
     return () => window.removeEventListener('resize', checkMobile);
   }, []);
 
-  const handleCreateFolder = (e: React.FormEvent) => {
+  // Autosave com debounce
+  const scheduleAutosave = useCallback(() => {
+    if (!selectedNote) return;
+
+    setSyncState({ status: 'typing' });
+
+    if (autosaveTimeoutRef.current) {
+      clearTimeout(autosaveTimeoutRef.current);
+    }
+
+    autosaveTimeoutRef.current = setTimeout(async () => {
+      if (!selectedNote) return;
+
+      const currentContent = selectedNote.content;
+      if (currentContent === lastSavedContentRef.current) {
+        setSyncState({ status: 'synced', lastSyncTime: new Date() });
+        return;
+      }
+
+      try {
+        setSyncState({ status: 'saving' });
+        const preview = generatePreview(currentContent);
+
+        await updateNote(selectedNote.id, {
+          content: currentContent,
+          preview,
+        });
+
+        lastSavedContentRef.current = currentContent;
+        setSyncState({ status: 'synced', lastSyncTime: new Date() });
+        showToast("Nota salva automaticamente", "success");
+      } catch (error) {
+        console.error("Erro ao salvar nota:", error);
+        setSyncState({ status: 'idle' });
+        showToast("Erro ao salvar nota", "error");
+      }
+    }, 800);
+  }, [selectedNote]);
+
+  const handleCreateFolder = async (e: React.FormEvent) => {
     e.preventDefault();
-    if (newFolderName.trim()) {
-      if (userFolders.includes(newFolderName.trim())) {
+    if (!newFolderName.trim()) return;
+
+    try {
+      const existingFolder = userFolders.find(f => f.name.toLowerCase() === newFolderName.trim().toLowerCase());
+      if (existingFolder) {
         showToast("Esta pasta já existe!", "info");
         return;
       }
-      setUserFolders([...userFolders, newFolderName.trim()]);
-      setNewFolderName("");
-      setIsCreatingFolder(false);
-      showToast("Pasta criada!", "success");
+
+      const newFolder = await createFolder({ name: newFolderName.trim() });
+      if (newFolder) {
+        setUserFolders([...userFolders, newFolder]);
+        setNewFolderName("");
+        setIsCreatingFolder(false);
+        showToast("Pasta criada!", "success");
+      }
+    } catch (error) {
+      console.error("Erro ao criar pasta:", error);
+      showToast("Erro ao criar pasta", "error");
     }
   };
 
-  const handleCreateNote = () => {
-    const newNote = {
-      id: Date.now(),
-      title: "Nova nota",
-      preview: "Escreva algo incrível...",
-      date: new Date().toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }).toLowerCase(),
-      favorite: false,
-      fixed: false,
-      folder: activeFolder || "Sem pasta",
-      content: ""
-    };
-    setNotes([newNote, ...notes]);
-    setSelectedNoteId(newNote.id);
-    if (isMobile) setViewMode('editor');
+  const handleCreateNote = async () => {
+    try {
+      const newNote = await createNote({
+        title: "Nova nota",
+        content: "",
+        preview: "",
+        date: new Date().toISOString(),
+        favorite: false,
+        fixed: false,
+        folder_id: activeFolder ? userFolders.find(f => f.name === activeFolder)?.id || null : null,
+      });
+
+      if (newNote) {
+        const noteUI: NoteUI = {
+          ...newNote,
+          folder: activeFolder || "Sem pasta",
+        };
+        setNotes([noteUI, ...notes]);
+        setSelectedNoteId(newNote.id);
+        if (isMobile) setViewMode('editor');
+        lastSavedContentRef.current = "";
+        showToast("Nota criada!", "success");
+      }
+    } catch (error) {
+      console.error("Erro ao criar nota:", error);
+      showToast("Erro ao criar nota", "error");
+    }
   };
 
-  const handleUpdateNote = (id: number, field: string, value: any) => {
+  const handleUpdateNote = async (id: string, field: string, value: any) => {
     setNotes(notes.map(n => n.id === id ? { ...n, [field]: value } : n));
+
+    if (field === 'content') {
+      scheduleAutosave();
+    } else {
+      // Salvar imediatamente para outros campos
+      try {
+        await updateNote(id, { [field]: value });
+      } catch (error) {
+        console.error("Erro ao atualizar nota:", error);
+      }
+    }
   };
 
-  const handleDeleteNote = (id: number) => {
+  const handleDeleteNote = (id: string) => {
     setDeleteNoteDialog({ open: true, noteId: id });
   };
 
-  const confirmDeleteNote = () => {
-    if (deleteNoteDialog.noteId !== null) {
+  const confirmDeleteNote = async () => {
+    if (!deleteNoteDialog.noteId) return;
+
+    try {
+      await deleteNote(deleteNoteDialog.noteId);
       const newNotes = notes.filter(n => n.id !== deleteNoteDialog.noteId);
       setNotes(newNotes);
+
       if (selectedNoteId === deleteNoteDialog.noteId) {
         setSelectedNoteId(newNotes.length > 0 ? newNotes[0].id : null);
         if (isMobile) setViewMode('list');
       }
+
       showToast("Nota excluída!", "success");
       setDeleteNoteDialog({ open: false, noteId: null });
+    } catch (error) {
+      console.error("Erro ao excluir nota:", error);
+      showToast("Erro ao excluir nota", "error");
     }
   };
 
-  const handleDeleteFolder = (folder: string) => {
-    setDeleteFolderDialog({ open: true, folderName: folder });
+  const handleDeleteFolder = (folderId: string) => {
+    setDeleteFolderDialog({ open: true, folderId });
   };
 
-  const confirmDeleteFolder = () => {
-    if (deleteFolderDialog.folderName !== null) {
-      setUserFolders(userFolders.filter(f => f !== deleteFolderDialog.folderName));
-      setNotes(notes.map(n => n.folder === deleteFolderDialog.folderName ? { ...n, folder: "Sem pasta" } : n));
-      if (activeFolder === deleteFolderDialog.folderName) setActiveFolder(null);
+  const confirmDeleteFolder = async () => {
+    if (!deleteFolderDialog.folderId) return;
+
+    try {
+      const folderToDelete = userFolders.find(f => f.id === deleteFolderDialog.folderId);
+      if (!folderToDelete) return;
+
+      await deleteFolder(deleteFolderDialog.folderId);
+      setUserFolders(userFolders.filter(f => f.id !== deleteFolderDialog.folderId));
+
+      // Mover notas da pasta excluída para "Sem pasta"
+      setNotes(notes.map(n => 
+        n.folder_id === deleteFolderDialog.folderId 
+          ? { ...n, folder_id: null, folder: "Sem pasta" } 
+          : n
+      ));
+
+      if (activeFolder === folderToDelete.name) {
+        setActiveFolder(null);
+      }
+
       showToast("Pasta removida!", "info");
-      setDeleteFolderDialog({ open: false, folderName: null });
+      setDeleteFolderDialog({ open: false, folderId: null });
+    } catch (error) {
+      console.error("Erro ao excluir pasta:", error);
+      showToast("Erro ao excluir pasta", "error");
     }
   };
 
@@ -192,7 +317,6 @@ export default function Notes() {
         const format = editor.getFormat();
         editor.format(command, !format[command]);
       }
-      // Atualizar estados ativos
       setTimeout(() => {
         setActiveFormats(editor.getFormat());
       }, 50);
@@ -203,6 +327,14 @@ export default function Notes() {
     n.title.toLowerCase().includes(search.toLowerCase()) &&
     (!activeFolder || n.folder === activeFolder)
   );
+
+  if (isLoading) {
+    return (
+      <div className="flex h-[calc(100vh-40px)] bg-[#0d0d12] lg:rounded-[32px] lg:border lg:border-white/5 overflow-hidden shadow-2xl items-center justify-center">
+        <div className="text-zinc-600">Carregando notas...</div>
+      </div>
+    );
+  }
 
   return (
     <div className="flex h-[calc(100vh-40px)] bg-[#0d0d12] lg:rounded-[32px] lg:border lg:border-white/5 overflow-hidden shadow-2xl notes-page-container relative">
@@ -305,18 +437,18 @@ export default function Notes() {
                 )}
               </AnimatePresence>
               {userFolders.map(folder => (
-                <div key={folder} className="group flex items-center gap-1">
+                <div key={folder.id} className="group flex items-center gap-1">
                   <button 
-                    onClick={() => setActiveFolder(activeFolder === folder ? null : folder)}
-                    className={`flex-1 flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all ${activeFolder === folder ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20' : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300 border border-transparent'}`}
+                    onClick={() => setActiveFolder(activeFolder === folder.name ? null : folder.name)}
+                    className={`flex-1 flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all ${activeFolder === folder.name ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20' : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300 border border-transparent'}`}
                   >
                     <div className="flex items-center gap-3">
-                      <Folder size={16} className={activeFolder === folder ? 'text-blue-400' : 'text-zinc-600'} />
-                      {folder}
+                      <Folder size={16} className={activeFolder === folder.name ? 'text-blue-400' : 'text-zinc-600'} />
+                      {folder.name}
                     </div>
-                    <ChevronRight size={14} className={`transition-transform duration-300 ${activeFolder === folder ? 'rotate-90 text-blue-400' : 'opacity-40'}`} />
+                    <ChevronRight size={14} className={`transition-transform duration-300 ${activeFolder === folder.name ? 'rotate-90 text-blue-400' : 'opacity-40'}`} />
                   </button>
-                  <FolderMenu onDelete={() => handleDeleteFolder(folder)} />
+                  <FolderMenu onDelete={() => handleDeleteFolder(folder.id)} />
                 </div>
               ))}
             </div>
@@ -386,67 +518,53 @@ export default function Notes() {
                   />
                 </div>
               </div>
-              <div className="flex items-center gap-6 text-[10px] lg:text-[11px] font-bold text-zinc-600 uppercase tracking-[0.2em] px-2 lg:px-0">
-                {isMobile && (
-                  <div className="text-zinc-700">
-                    {selectedNote.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length} PALAVRAS
-                  </div>
-                )}
-                <span className="flex items-center gap-2 ml-auto lg:ml-0"><Clock size={14} className="text-blue-500/60" /> {selectedNote.date}</span>
-                <div className="flex items-center gap-2 bg-white/5 border border-white/5 rounded-xl px-3 lg:px-4 py-2">
-                  <Folder size={12} className="text-indigo-500/60" />
-                  <select 
-                    value={selectedNote.folder}
-                    onChange={(e) => handleUpdateNote(selectedNote.id, "folder", e.target.value)}
-                    className="bg-transparent outline-none cursor-pointer hover:text-zinc-300 transition-colors min-w-[120px] lg:min-w-[140px] truncate"
-                  >
-                    <option value="Sem pasta">Sem pasta</option>
-                    {userFolders.map(f => <option key={f} value={f}>{f}</option>)}
-                  </select>
-                </div>
+
+              {/* SELETOR DE PASTA */}
+              <div className="flex items-center gap-3">
+                <Folder size={16} className="text-zinc-600" />
+                <select 
+                  value={selectedNote.folder_id || ""}
+                  onChange={(e) => {
+                    const folderId = e.target.value || null;
+                    const folderName = folderId ? userFolders.find(f => f.id === folderId)?.name || "Sem pasta" : "Sem pasta";
+                    handleUpdateNote(selectedNote.id, "folder_id", folderId);
+                    setNotes(notes.map(n => n.id === selectedNote.id ? { ...n, folder_id: folderId, folder: folderName } : n));
+                  }}
+                  className="bg-black/40 border border-white/5 rounded-2xl px-4 py-2 text-sm text-white focus:border-blue-500/30 outline-none transition-all"
+                >
+                  <option value="">Sem pasta</option>
+                  {userFolders.map(folder => (
+                    <option key={folder.id} value={folder.id}>{folder.name}</option>
+                  ))}
+                </select>
               </div>
             </header>
 
-            <div className="px-6 lg:px-12 py-4 lg:py-5 border-y border-white/5 flex items-center gap-5 lg:gap-10 text-zinc-600 bg-black/20 overflow-x-auto no-scrollbar">
-              <div className="flex items-center gap-4 lg:gap-6 flex-shrink-0">
-                <FormatButton active={activeFormats.bold} onClick={() => executeCommand('bold')} icon={<Bold size={20} />} />
-                <FormatButton active={activeFormats.italic} onClick={() => executeCommand('italic')} icon={<Italic size={20} />} />
-                <FormatButton active={activeFormats.underline} onClick={() => executeCommand('underline')} icon={<Underline size={20} />} />
-              </div>
-              <div className="w-px h-8 bg-white/5 flex-shrink-0" />
-              <div className="flex items-center gap-4 lg:gap-6 flex-shrink-0">
-                <FormatButton active={activeFormats.header === 1} onClick={() => executeCommand('header', 1)} icon={<Heading1 size={20} />} />
-                <FormatButton active={activeFormats.list === 'bullet'} onClick={() => executeCommand('list', 'bullet')} icon={<List size={20} />} />
-                <FormatButton active={activeFormats.list === 'unchecked' || activeFormats.list === 'checked'} onClick={() => executeCommand('list', 'unchecked')} icon={<CheckSquare size={20} />} />
-              </div>
-              <div className="w-px h-8 bg-white/5 flex-shrink-0" />
-              <div className="flex items-center gap-4 lg:gap-6 flex-shrink-0">
-                <FormatButton active={activeFormats.blockquote} onClick={() => executeCommand('blockquote')} icon={<Quote size={20} />} />
-                <FormatButton active={activeFormats.code === 'block'} onClick={() => executeCommand('code-block')} icon={<Code size={20} />} />
-              </div>
+            {/* EDITOR DE CONTEÚDO */}
+            <div className="flex-1 overflow-hidden px-6 lg:px-12 py-8">
+              <React.Suspense fallback={<div className="text-zinc-600">Carregando editor...</div>}>
+                <ReactQuill
+                  ref={quillRef}
+                  value={selectedNote.content}
+                  onChange={(content) => handleUpdateNote(selectedNote.id, "content", content)}
+                  theme="snow"
+                  modules={{ toolbar: false }}
+                  readOnly={false}
+                />
+              </React.Suspense>
             </div>
 
-            <div className="flex-1 px-6 lg:px-12 py-8 lg:py-12 overflow-y-auto custom-scrollbar pb-40">
-              <div className="max-w-4xl mx-auto h-full">
-                <React.Suspense fallback={<div className="text-zinc-800 animate-pulse">Carregando editor...</div>}>
-                  <ReactQuill 
-                    ref={quillRef}
-                    theme="snow"
-                    value={selectedNote.content}
-                    onChange={(content) => {
-                      handleUpdateNote(selectedNote.id, "content", content);
-                      const editor = quillRef.current?.getEditor();
-                      if (editor) setActiveFormats(editor.getFormat());
-                    }}
-                    onSelectionChange={() => {
-                      const editor = quillRef.current?.getEditor();
-                      if (editor) setActiveFormats(editor.getFormat());
-                    }}
-                    placeholder="Digite / para comandos..."
-                    modules={{ toolbar: false }}
-                  />
-                </React.Suspense>
-              </div>
+            {/* TOOLBAR DE FORMATAÇÃO */}
+            <div className="px-6 lg:px-12 py-6 border-t border-white/5 flex items-center gap-2 bg-black/40 flex-wrap">
+              <FormatButton icon={<Bold size={18} />} tooltip="Negrito" onClick={() => executeCommand('bold')} active={activeFormats.bold} />
+              <FormatButton icon={<Italic size={18} />} tooltip="Itálico" onClick={() => executeCommand('italic')} active={activeFormats.italic} />
+              <FormatButton icon={<Underline size={18} />} tooltip="Sublinhado" onClick={() => executeCommand('underline')} active={activeFormats.underline} />
+              <div className="w-px h-6 bg-white/10 mx-2" />
+              <FormatButton icon={<Heading1 size={18} />} tooltip="Título" onClick={() => executeCommand('header', 1)} active={activeFormats.header === 1} />
+              <FormatButton icon={<List size={18} />} tooltip="Lista" onClick={() => executeCommand('list', 'ordered')} active={activeFormats.list === 'ordered'} />
+              <FormatButton icon={<CheckSquare size={18} />} tooltip="Checklist" onClick={() => executeCommand('list', 'bullet')} active={activeFormats.list === 'bullet'} />
+              <FormatButton icon={<Quote size={18} />} tooltip="Citação" onClick={() => executeCommand('blockquote')} active={activeFormats.blockquote} />
+              <FormatButton icon={<Code size={18} />} tooltip="Código" onClick={() => executeCommand('code-block')} active={activeFormats['code-block']} />
             </div>
 
             {/* RODAPÉ E NAVEGAÇÃO MOBILE */}
@@ -472,9 +590,22 @@ export default function Notes() {
             {!isMobile && (
               <footer className="px-12 py-5 border-t border-white/5 flex items-center justify-between text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] bg-black/40">
                 <div className="flex items-center gap-6">
-                  <span className="flex items-center gap-2 text-emerald-500/60">
-                    <div className="w-1.5 h-1.5 rounded-full bg-emerald-500 shadow-[0_0_8px_#10b981]" /> 
-                    Sincronizado
+                  <span className={`flex items-center gap-2 transition-colors ${
+                    syncState.status === 'synced' ? 'text-emerald-500/60' :
+                    syncState.status === 'saving' ? 'text-yellow-500/60' :
+                    syncState.status === 'typing' ? 'text-blue-500/60' :
+                    'text-zinc-600'
+                  }`}>
+                    <div className={`w-1.5 h-1.5 rounded-full shadow-[0_0_8px] transition-colors ${
+                      syncState.status === 'synced' ? 'bg-emerald-500 shadow-emerald-500' :
+                      syncState.status === 'saving' ? 'bg-yellow-500 shadow-yellow-500' :
+                      syncState.status === 'typing' ? 'bg-blue-500 shadow-blue-500' :
+                      'bg-zinc-600'
+                    }`} /> 
+                    {syncState.status === 'synced' ? 'Sincronizado' :
+                     syncState.status === 'saving' ? 'Salvando...' :
+                     syncState.status === 'typing' ? 'Digitando...' :
+                     'Ocioso'}
                   </span>
                 </div>
                 <div className="flex items-center gap-8">
@@ -519,7 +650,7 @@ export default function Notes() {
         open={deleteFolderDialog.open}
         onOpenChange={(open) => setDeleteFolderDialog({ ...deleteFolderDialog, open })}
         title="Excluir pasta?"
-        description={`Tem certeza que deseja excluir a pasta "${deleteFolderDialog.folderName}"? As notas desta pasta serão movidas para "Sem pasta".`}
+        description={`Tem certeza que deseja excluir a pasta? As notas desta pasta serão movidas para "Sem pasta".`}
         confirmLabel="Excluir"
         cancelLabel="Cancelar"
         onConfirm={confirmDeleteFolder}
@@ -528,11 +659,10 @@ export default function Notes() {
   );
 }
 
-function NoteItem({ note, isSelected, onClick }: { note: any, isSelected: boolean, onClick: () => void }) {
-  // Cores dinâmicas para as tags
+function NoteItem({ note, isSelected, onClick }: { note: NoteUI, isSelected: boolean, onClick: () => void }) {
   const getTagStyle = (folder: string) => {
-    const colors: any = {
-      "Trabalho": "bg-yellow-500/10 text-yellow-500/80 border-yellow-500/10",
+    const colors: Record<string, string> = {
+      "Trabalho": "bg-red-500/10 text-red-400/80 border-red-500/10",
       "Estudos": "bg-purple-500/10 text-purple-400/80 border-purple-500/10",
       "Pessoal": "bg-emerald-500/10 text-emerald-400/80 border-emerald-500/10",
       "Ideias": "bg-blue-500/10 text-blue-400/80 border-blue-500/10",
@@ -562,10 +692,10 @@ function NoteItem({ note, isSelected, onClick }: { note: any, isSelected: boolea
         {note.fixed && <Pin size={12} className="text-blue-500 fill-blue-500/20 mt-1 flex-shrink-0" />}
       </div>
       <p className="text-sm text-zinc-500 line-clamp-1 mb-4 leading-relaxed font-medium">
-        {note.preview}
+        {note.preview || "Escreva algo incrível..."}
       </p>
       <div className="flex items-center justify-between">
-        <span className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest">{note.date}</span>
+        <span className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest">{formatDate(note.date)}</span>
         <span className={`text-[9px] font-black px-2.5 py-1 rounded-lg border uppercase tracking-tight ${getTagStyle(note.folder)}`}>
           {note.folder}
         </span>
