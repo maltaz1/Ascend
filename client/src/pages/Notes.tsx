@@ -32,7 +32,13 @@ const ReactQuill = React.lazy(() => import('react-quill-new'));
 
 // Utilitários (memoizados para evitar recriação)
 const generatePreview = (htmlContent: string): string => {
-  return htmlContent.replace(/<[^>]*>/g, '').slice(0, 120);
+  // Remove tags HTML
+  let text = htmlContent.replace(/<[^>]*>/g, '');
+  // Remove entidades HTML comuns
+  text = text.replace(/&nbsp;/g, ' ').replace(/&amp;/g, '&').replace(/&lt;/g, '<').replace(/&gt;/g, '>').replace(/&quot;/g, '"').replace(/&#39;/g, "'");
+  // Remove espaços múltiplos e quebras de linha
+  text = text.replace(/\s+/g, ' ').trim();
+  return text.slice(0, 120);
 };
 
 const formatDate = (dateString: string): string => {
