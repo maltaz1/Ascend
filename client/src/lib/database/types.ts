@@ -73,8 +73,6 @@ export interface NoteDatabaseRow {
   user_id: string;
   title: string;
   content: string;
-  preview: string;
-  date: string;
   favorite: boolean;
   fixed: boolean;
   folder_id: string | null;

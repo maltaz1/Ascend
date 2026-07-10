@@ -34,8 +34,7 @@ const ReactQuill = React.lazy(() => import('react-quill-new'));
 
 // Utilitários
 function generatePreview(htmlContent: string): string {
-  const plainText = htmlContent.replace(/<[^>]*>/g, '').trim();
-  return plainText.length > 120 ? plainText.substring(0, 120) + '...' : plainText;
+  return htmlContent.replace(/<[^>]*>/g, '').slice(0, 120);
 }
 
 function formatDate(dateString: string): string {
@@ -159,16 +158,13 @@ export default function Notes() {
 
       try {
         setSyncState({ status: 'saving' });
-        const preview = generatePreview(currentContent);
 
         await updateNote(selectedNote.id, {
           content: currentContent,
-          preview,
         });
 
         lastSavedContentRef.current = currentContent;
         setSyncState({ status: 'synced', lastSyncTime: new Date() });
-        showToast("Nota salva automaticamente", "success");
       } catch (error) {
         console.error("Erro ao salvar nota:", error);
         setSyncState({ status: 'idle' });
@@ -190,6 +186,7 @@ export default function Notes() {
 
       const newFolder = await createFolder({ name: newFolderName.trim() });
       if (newFolder) {
+        // Atualizar apenas a lista de pastas (otimização)
         setUserFolders([...userFolders, newFolder]);
         setNewFolderName("");
         setIsCreatingFolder(false);
@@ -206,8 +203,6 @@ export default function Notes() {
       const newNote = await createNote({
         title: "Nova nota",
         content: "",
-        preview: "",
-        date: new Date().toISOString(),
         favorite: false,
         fixed: false,
         folder_id: activeFolder ? userFolders.find(f => f.name === activeFolder)?.id || null : null,
@@ -218,6 +213,7 @@ export default function Notes() {
           ...newNote,
           folder: activeFolder || "Sem pasta",
         };
+        // Adicionar apenas a nova nota ao estado (otimização)
         setNotes([noteUI, ...notes]);
         setSelectedNoteId(newNote.id);
         if (isMobile) setViewMode('editor');
@@ -231,6 +227,7 @@ export default function Notes() {
   };
 
   const handleUpdateNote = async (id: string, field: string, value: any) => {
+    // Atualizar apenas a nota específica no estado (otimização)
     setNotes(notes.map(n => n.id === id ? { ...n, [field]: value } : n));
 
     if (field === 'content') {
@@ -241,6 +238,7 @@ export default function Notes() {
         await updateNote(id, { [field]: value });
       } catch (error) {
         console.error("Erro ao atualizar nota:", error);
+        showToast("Erro ao atualizar nota", "error");
       }
     }
   };
@@ -254,6 +252,7 @@ export default function Notes() {
 
     try {
       await deleteNote(deleteNoteDialog.noteId);
+      // Remover apenas a nota excluída do estado (otimização)
       const newNotes = notes.filter(n => n.id !== deleteNoteDialog.noteId);
       setNotes(newNotes);
 
@@ -282,9 +281,10 @@ export default function Notes() {
       if (!folderToDelete) return;
 
       await deleteFolder(deleteFolderDialog.folderId);
+      // Remover apenas a pasta excluída do estado (otimização)
       setUserFolders(userFolders.filter(f => f.id !== deleteFolderDialog.folderId));
 
-      // Mover notas da pasta excluída para "Sem pasta"
+      // Mover apenas as notas da pasta excluída para "Sem pasta" (otimização)
       setNotes(notes.map(n => 
         n.folder_id === deleteFolderDialog.folderId 
           ? { ...n, folder_id: null, folder: "Sem pasta" } 
@@ -671,6 +671,8 @@ function NoteItem({ note, isSelected, onClick }: { note: NoteUI, isSelected: boo
     return colors[folder] || colors["Sem pasta"];
   };
 
+  const preview = generatePreview(note.content) || "Escreva algo incrível...";
+
   return (
     <motion.button 
       whileHover={{ x: 4 }}
@@ -692,10 +694,10 @@ function NoteItem({ note, isSelected, onClick }: { note: NoteUI, isSelected: boo
         {note.fixed && <Pin size={12} className="text-blue-500 fill-blue-500/20 mt-1 flex-shrink-0" />}
       </div>
       <p className="text-sm text-zinc-500 line-clamp-1 mb-4 leading-relaxed font-medium">
-        {note.preview || "Escreva algo incrível..."}
+        {preview}
       </p>
       <div className="flex items-center justify-between">
-        <span className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest">{formatDate(note.date)}</span>
+        <span className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest">{formatDate(note.updated_at)}</span>
         <span className={`text-[9px] font-black px-2.5 py-1 rounded-lg border uppercase tracking-tight ${getTagStyle(note.folder)}`}>
           {note.folder}
         </span>
