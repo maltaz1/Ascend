@@ -31,6 +31,7 @@ import 'react-quill-new/dist/quill.snow.css';
 const ReactQuill = React.lazy(() => import('react-quill-new'));
 
 // Utilitários (memoizados para evitar recriação)
+// Geração de prévia otimizada com limpeza de entidades HTML
 const generatePreview = (htmlContent: string | null | undefined): string => {
   if (!htmlContent || typeof htmlContent !== 'string') return '';
   // Remove tags HTML
