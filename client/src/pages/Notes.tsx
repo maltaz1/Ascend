@@ -536,36 +536,31 @@ export default function Notes() {
       `}>
         {selectedNote ? (
           <>
-            <header className="px-6 lg:px-12 py-8 lg:py-12 flex flex-col gap-6 lg:gap-8">
-              <div className="flex items-center justify-between gap-6">
-                <div className="flex items-center gap-6 flex-1">
+            <header className="px-6 lg:px-12 py-6 lg:py-8 flex flex-col gap-4 lg:gap-5">
+              <div className="flex items-start justify-between gap-4">
+                <div className="flex-1 min-w-0">
                   {/* Recuo no mobile para não bater no hamburguer */}
-                  <div className={`${isMobile ? "pl-12" : ""} flex-1`}>
+                  <div className={`${isMobile ? "pl-12" : ""}`}>
                     <input 
                       type="text"
                       value={selectedNote.title}
                       onChange={(e) => handleUpdateNote(selectedNote.id, "title", e.target.value)}
-                      className="bg-transparent text-3xl lg:text-5xl font-black text-white outline-none w-full tracking-tight"
+                      className="bg-transparent text-xl lg:text-3xl font-black text-white outline-none w-full tracking-tight truncate"
+                      placeholder="Título da nota"
                     />
                   </div>
                 </div>
-                <div className="flex items-center gap-2 lg:gap-4">
+                <div className="flex items-center gap-1 flex-shrink-0">
                   {!isMobile && (
-                    <div className="text-[10px] font-bold text-zinc-700 uppercase tracking-widest mr-4">
-                      {selectedNote.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length} PALAVRAS
+                    <div className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest px-3 py-2 rounded-xl bg-white/5">
+                      {selectedNote.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length} palavras
                     </div>
                   )}
                   <ToolbarButton 
-                    onClick={() => handleUpdateNote(selectedNote.id, "favorite", !selectedNote.favorite)} 
-                    icon={<Star size={isMobile ? 20 : 22} className={selectedNote.favorite ? "fill-yellow-500 text-yellow-500" : ""} />} 
-                  />
-                  <ToolbarButton 
-                    onClick={() => handleUpdateNote(selectedNote.id, "fixed", !selectedNote.fixed)} 
-                    icon={<Pin size={isMobile ? 20 : 22} className={selectedNote.fixed ? "fill-blue-500 text-blue-500" : ""} />} 
-                  />
-                  <ToolbarButton 
-                    icon={<MoreVertical size={isMobile ? 20 : 22} />} 
+                    icon={<MoreVertical size={isMobile ? 18 : 20} />} 
                     menuItems={[
+                      { label: 'Favoritar', icon: <Star size={14} className={selectedNote.favorite ? "fill-yellow-500 text-yellow-500" : ""} />, onClick: () => handleUpdateNote(selectedNote.id, "favorite", !selectedNote.favorite) },
+                      { label: 'Fixar', icon: <Pin size={14} className={selectedNote.fixed ? "fill-blue-500 text-blue-500" : ""} />, onClick: () => handleUpdateNote(selectedNote.id, "fixed", !selectedNote.fixed) },
                       { label: 'Excluir Nota', icon: <Trash2 size={14} />, onClick: () => handleDeleteNote(selectedNote.id), danger: true }
                     ]}
                   />
@@ -573,8 +568,7 @@ export default function Notes() {
               </div>
 
               {/* SELETOR DE PASTA */}
-              <div className="flex items-center gap-3">
-                <Folder size={16} className="text-zinc-600" />
+              <div className="flex items-center gap-2">
                 <select 
                   value={selectedNote.folder_id || ""}
                   onChange={(e) => {
@@ -583,11 +577,11 @@ export default function Notes() {
                     handleUpdateNote(selectedNote.id, "folder_id", folderId);
                     setNotes(prev => prev.map(n => n.id === selectedNote.id ? { ...n, folder_id: folderId, folder: folderName } : n));
                   }}
-                  className="bg-black/40 border border-white/5 rounded-2xl px-4 py-2 text-sm text-white focus:border-blue-500/30 outline-none transition-all"
+                  className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-zinc-300 hover:text-white hover:border-white/20 focus:border-blue-500/50 outline-none transition-all cursor-pointer"
                 >
-                  <option value="">Sem pasta</option>
+                  <option value="">📁 Sem pasta</option>
                   {userFolders.map(folder => (
-                    <option key={folder.id} value={folder.id}>{folder.name}</option>
+                    <option key={folder.id} value={folder.id}>📁 {folder.name}</option>
                   ))}
                 </select>
               </div>
