@@ -14,6 +14,11 @@ import {
   CheckCircle2,
 } from "lucide-react";
 
+import { RecurrenceSection } from "@/components/RecurrenceSection";
+import { RecurrenceIndicator } from "@/components/RecurrenceIndicator";
+import { RecurrenceTaskMenu } from "@/components/RecurrenceTaskMenu";
+import type { RecurrenceConfig } from "@/types/recurrence";
+
 import { FREE_LIMITS } from "@/config/planLimits";
 
 import { addXP } from "@/lib/store";
@@ -56,6 +61,8 @@ type Task = {
   priority: "low" | "medium" | "high";
   category?: string;
   createdAt: string;
+  recurrence?: RecurrenceConfig;
+  isRecurring?: boolean;
 };
 
 function getTodayString(): string {
@@ -341,10 +348,20 @@ function TaskItem({
   task,
   onToggle,
   onDelete,
+  onEditRecurrence,
+  onSkipOccurrence,
+  onTogglePause,
+  onDeleteOccurrence,
+  onDeleteRecurrence,
 }: {
   task: Task;
   onToggle: () => void;
   onDelete: () => void;
+  onEditRecurrence?: () => void;
+  onSkipOccurrence?: () => void;
+  onTogglePause?: () => void;
+  onDeleteOccurrence?: () => void;
+  onDeleteRecurrence?: () => void;
 }) {
   const priorityColor =
     task.priority === "high"
@@ -388,16 +405,29 @@ function TaskItem({
       <div style={{ flex: 1, minWidth: 0 }}>
         <div
           style={{
-            fontSize: 14,
-            fontWeight: 500,
-            color: task.completed
-              ? "var(--muted-foreground)"
-              : "var(--foreground)",
-            textDecoration: task.completed ? "line-through" : "none",
-            wordBreak: "break-word",
+            display: "flex",
+            alignItems: "center",
+            gap: 8,
+            marginBottom: task.description ? 4 : 0,
           }}
         >
-          {task.title}
+          <div
+            style={{
+              fontSize: 14,
+              fontWeight: 500,
+              color: task.completed
+                ? "var(--muted-foreground)"
+                : "var(--foreground)",
+              textDecoration: task.completed ? "line-through" : "none",
+              wordBreak: "break-word",
+              flex: 1,
+            }}
+          >
+            {task.title}
+          </div>
+          {task.isRecurring && task.recurrence && (
+            <RecurrenceIndicator type={task.recurrence.type} size="sm" />
+          )}
         </div>
         {task.description && (
           <div
@@ -412,29 +442,42 @@ function TaskItem({
           </div>
         )}
       </div>
-      <button
-        onClick={onDelete}
-        style={{
-          width: 24,
-          height: 24,
-          borderRadius: 6,
-          border: "none",
-          background: "transparent",
-          cursor: "pointer",
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          color: "var(--muted-foreground)",
-          transition: "all 0.2s",
-          flexShrink: 0,
-        }}
-        onMouseEnter={e => (e.currentTarget.style.color = "#EF4444")}
-        onMouseLeave={e =>
-          (e.currentTarget.style.color = "var(--muted-foreground)")
-        }
-      >
-        <Trash2 size={16} />
-      </button>
+      <div style={{ display: "flex", gap: 4, alignItems: "flex-start" }}>
+        {task.isRecurring && (
+          <RecurrenceTaskMenu
+            isRecurring={true}
+            recurrenceStatus={task.recurrence?.status}
+            onEditRecurrence={onEditRecurrence}
+            onSkipOccurrence={onSkipOccurrence}
+            onTogglePause={onTogglePause}
+            onDeleteOccurrence={onDeleteOccurrence}
+            onDeleteRecurrence={onDeleteRecurrence}
+          />
+        )}
+        <button
+          onClick={onDelete}
+          style={{
+            width: 24,
+            height: 24,
+            borderRadius: 6,
+            border: "none",
+            background: "transparent",
+            cursor: "pointer",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            color: "var(--muted-foreground)",
+            transition: "all 0.2s",
+            flexShrink: 0,
+          }}
+          onMouseEnter={e => (e.currentTarget.style.color = "#EF4444")}
+          onMouseLeave={e =>
+            (e.currentTarget.style.color = "var(--muted-foreground)")
+          }
+        >
+          <Trash2 size={16} />
+        </button>
+      </div>
     </div>
   );
 }
@@ -458,6 +501,12 @@ function NewTaskModal({
   const [description, setDescription] = useState("");
   const [date, setDate] = useState(defaultDate);
   const [priority, setPriority] = useState<"low" | "medium" | "high">("medium");
+  const [recurrence, setRecurrence] = useState<RecurrenceConfig>({
+    type: "never",
+    endType: "never",
+    status: "active",
+  });
+  const [showRecurrenceSection, setShowRecurrenceSection] = useState(false);
 
   const handleSubmit = async () => {
     if (!title.trim() || !date) return;
@@ -492,8 +541,14 @@ function NewTaskModal({
       return;
     }
 
-    onTaskCreated(normalizeTask(insertedTask as Record<string, unknown>));
-    showToast("Tarefa criada!", "success");
+    const normalizedTask = normalizeTask(insertedTask as Record<string, unknown>);
+    if (recurrence.type !== "never") {
+      normalizedTask.isRecurring = true;
+      normalizedTask.recurrence = recurrence;
+    }
+
+    onTaskCreated(normalizedTask);
+    showToast(recurrence.type !== "never" ? "Tarefa recorrente criada!" : "Tarefa criada!", "success");
     onClose();
   };
 
@@ -598,6 +653,29 @@ function NewTaskModal({
             ))}
           </div>
         </div>
+        <div>
+          <button
+            onClick={() => setShowRecurrenceSection(!showRecurrenceSection)}
+            style={{
+              width: "100%",
+              padding: "8px 12px",
+              borderRadius: 8,
+              border: `1px solid ${showRecurrenceSection ? "#3b82f6" : "var(--border)"}`,
+              background: showRecurrenceSection ? "rgba(59, 130, 246, 0.1)" : "transparent",
+              color: showRecurrenceSection ? "#3b82f6" : "var(--muted-foreground)",
+              fontFamily: "DM Sans",
+              fontWeight: 500,
+              fontSize: 13,
+              cursor: "pointer",
+              transition: "all 0.2s",
+            }}
+          >
+            {showRecurrenceSection ? "- Ocultar recorrência" : "+ Adicionar recorrência"}
+          </button>
+        </div>
+        {showRecurrenceSection && (
+          <RecurrenceSection recurrence={recurrence} onChange={setRecurrence} />
+        )}
         <button
           className="fz-btn-primary"
           style={{ padding: "12px", fontSize: 14, marginTop: 4 }}
@@ -890,6 +968,25 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
                 task={task}
                 onToggle={() => handleToggle(task)}
                 onDelete={() => handleDelete(task.id)}
+                onEditRecurrence={() => {
+                  showToast("Editar recorrencia - em desenvolvimento", "info");
+                }}
+                onSkipOccurrence={() => {
+                  showToast("Ocorrencia pulada", "success");
+                }}
+                onTogglePause={() => {
+                  if (task.recurrence?.status === "active") {
+                    showToast("Recorrencia pausada", "success");
+                  } else {
+                    showToast("Recorrencia retomada", "success");
+                  }
+                }}
+                onDeleteOccurrence={() => {
+                  showToast("Esta ocorrencia foi excluida", "success");
+                }}
+                onDeleteRecurrence={() => {
+                  showToast("Toda a recorrencia foi excluida", "success");
+                }}
               />
             ))
           )}

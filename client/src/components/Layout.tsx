@@ -21,6 +21,7 @@ import {
   Download,
   AlertCircle,
   FileText,
+  RotateCw,
 } from "lucide-react";
 import { FREE_TABS } from "@/config/planLimits";
 import { useStore } from "@/hooks/useStore";
@@ -45,7 +46,8 @@ type Tab =
   | "evolution"
   | "download"
   | "settings"
-  | "notes";
+  | "notes"
+  | "recurrence-history";
 
 interface LayoutProps {
   activeTab: Tab;
@@ -66,6 +68,7 @@ const navItems = [
   { id: "diet" as Tab, label: "Dieta", icon: Apple },
   { id: "financial" as Tab, label: "Financeiro", icon: DollarSign },
   { id: "notes" as Tab, label: "Notas", icon: FileText },
+  { id: "recurrence-history" as Tab, label: "Histórico Recorrente", icon: RotateCw },
   { id: "calendar" as Tab, label: "Calendário", icon: Calendar },
   { id: "download" as Tab, label: "Baixar App", icon: Download },
   { id: "settings" as Tab, label: "Configurações", icon: Zap },
