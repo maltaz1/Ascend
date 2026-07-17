@@ -1,6 +1,5 @@
 import React, { useState } from 'react';
 import { MoreVertical, Edit, SkipForward, Pause, Play, Trash2 } from 'lucide-react';
-import type { RecurrenceConfig } from '@/types/recurrence';
 
 interface RecurrenceTaskMenuProps {
   isRecurring: boolean;
@@ -26,66 +25,27 @@ export function RecurrenceTaskMenu({
   if (!isRecurring) return null;
 
   return (
-    <div style={{ position: 'relative' }}>
+    <div className="relative">
       <button
-        onClick={() => setShowMenu(!showMenu)}
-        style={{
-          width: 24,
-          height: 24,
-          borderRadius: 6,
-          border: 'none',
-          background: 'transparent',
-          cursor: 'pointer',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'center',
-          color: 'var(--muted-foreground)',
-          transition: 'all 0.2s',
+        onClick={(e) => {
+          e.stopPropagation();
+          setShowMenu(!showMenu);
         }}
-        onMouseEnter={e => (e.currentTarget.style.color = '#A855F7')}
-        onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted-foreground)')}
+        className="w-6 h-6 rounded-md flex items-center justify-center text-muted-foreground hover:text-primary transition-colors"
       >
         <MoreVertical size={16} />
       </button>
 
       {showMenu && (
-        <div
-          style={{
-            position: 'absolute',
-            top: '100%',
-            right: 0,
-            marginTop: 4,
-            background: 'var(--card)',
-            border: '1px solid var(--border)',
-            borderRadius: 8,
-            boxShadow: '0 4px 12px rgba(0, 0, 0, 0.15)',
-            zIndex: 1000,
-            minWidth: 200,
-          }}
-        >
+        <div className="absolute bottom-full right-0 mb-2 bg-card border border-border rounded-xl shadow-xl z-[100] min-w-[200px] overflow-hidden animate-in fade-in slide-in-from-bottom-2 duration-200">
           {onEditRecurrence && (
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 onEditRecurrence();
                 setShowMenu(false);
               }}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                textAlign: 'left',
-                border: 'none',
-                background: 'transparent',
-                color: 'var(--foreground)',
-                fontFamily: 'DM Sans',
-                fontSize: 13,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'var(--secondary)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+              className="w-full px-3 py-2 text-left hover:bg-secondary text-foreground text-[13px] font-medium flex items-center gap-2 transition-colors"
             >
               <Edit size={14} />
               Editar recorrência
@@ -94,27 +54,12 @@ export function RecurrenceTaskMenu({
 
           {onSkipOccurrence && (
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 onSkipOccurrence();
                 setShowMenu(false);
               }}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                textAlign: 'left',
-                border: 'none',
-                background: 'transparent',
-                color: 'var(--foreground)',
-                fontFamily: 'DM Sans',
-                fontSize: 13,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'var(--secondary)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+              className="w-full px-3 py-2 text-left hover:bg-secondary text-foreground text-[13px] font-medium flex items-center gap-2 transition-colors"
             >
               <SkipForward size={14} />
               Pular esta ocorrência
@@ -123,27 +68,12 @@ export function RecurrenceTaskMenu({
 
           {onTogglePause && (
             <button
-              onClick={() => {
+              onClick={(e) => {
+                e.stopPropagation();
                 onTogglePause();
                 setShowMenu(false);
               }}
-              style={{
-                width: '100%',
-                padding: '8px 12px',
-                textAlign: 'left',
-                border: 'none',
-                background: 'transparent',
-                color: 'var(--foreground)',
-                fontFamily: 'DM Sans',
-                fontSize: 13,
-                cursor: 'pointer',
-                display: 'flex',
-                alignItems: 'center',
-                gap: 8,
-                transition: 'all 0.2s',
-              }}
-              onMouseEnter={e => (e.currentTarget.style.background = 'var(--secondary)')}
-              onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+              className="w-full px-3 py-2 text-left hover:bg-secondary text-foreground text-[13px] font-medium flex items-center gap-2 transition-colors"
             >
               {recurrenceStatus === 'active' ? (
                 <>
@@ -160,30 +90,15 @@ export function RecurrenceTaskMenu({
           )}
 
           {(onDeleteOccurrence || onDeleteRecurrence) && (
-            <div style={{ borderTop: '1px solid var(--border)' }}>
+            <div className="border-t border-border">
               {onDeleteOccurrence && (
                 <button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     onDeleteOccurrence();
                     setShowMenu(false);
                   }}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    textAlign: 'left',
-                    border: 'none',
-                    background: 'transparent',
-                    color: '#EF4444',
-                    fontFamily: 'DM Sans',
-                    fontSize: 13,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  className="w-full px-3 py-2 text-left hover:bg-destructive/10 text-destructive text-[13px] font-medium flex items-center gap-2 transition-colors"
                 >
                   <Trash2 size={14} />
                   Excluir esta ocorrência
@@ -192,27 +107,12 @@ export function RecurrenceTaskMenu({
 
               {onDeleteRecurrence && (
                 <button
-                  onClick={() => {
+                  onClick={(e) => {
+                    e.stopPropagation();
                     onDeleteRecurrence();
                     setShowMenu(false);
                   }}
-                  style={{
-                    width: '100%',
-                    padding: '8px 12px',
-                    textAlign: 'left',
-                    border: 'none',
-                    background: 'transparent',
-                    color: '#EF4444',
-                    fontFamily: 'DM Sans',
-                    fontSize: 13,
-                    cursor: 'pointer',
-                    display: 'flex',
-                    alignItems: 'center',
-                    gap: 8,
-                    transition: 'all 0.2s',
-                  }}
-                  onMouseEnter={e => (e.currentTarget.style.background = 'rgba(239, 68, 68, 0.1)')}
-                  onMouseLeave={e => (e.currentTarget.style.background = 'transparent')}
+                  className="w-full px-3 py-2 text-left hover:bg-destructive/10 text-destructive text-[13px] font-medium flex items-center gap-2 transition-colors"
                 >
                   <Trash2 size={14} />
                   Excluir toda a recorrência
@@ -223,14 +123,13 @@ export function RecurrenceTaskMenu({
         </div>
       )}
 
-      {/* Fechar menu ao clicar fora */}
+      {/* Overlay invisível para fechar menu */}
       {showMenu && (
         <div
-          onClick={() => setShowMenu(false)}
-          style={{
-            position: 'fixed',
-            inset: 0,
-            zIndex: 999,
+          className="fixed inset-0 z-[99]"
+          onClick={(e) => {
+            e.stopPropagation();
+            setShowMenu(false);
           }}
         />
       )}

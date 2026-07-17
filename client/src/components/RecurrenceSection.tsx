@@ -1,5 +1,5 @@
-import React, { useState } from 'react';
-import { ChevronDown, X } from 'lucide-react';
+import React, { useState, useMemo } from 'react';
+import { Calendar, RotateCw } from 'lucide-react';
 import type { RecurrenceConfig, RecurrenceType } from '@/types/recurrence';
 
 interface RecurrenceSectionProps {
@@ -9,7 +9,7 @@ interface RecurrenceSectionProps {
 
 const RECURRENCE_OPTIONS: Array<{ value: RecurrenceType; label: string }> = [
   { value: 'never', label: 'Nunca' },
-  { value: 'daily', label: 'Todos os dias' },
+  { value: 'daily', label: 'Diária' },
   { value: 'weekdays', label: 'Dias úteis' },
   { value: 'weekly', label: 'Semanal' },
   { value: 'monthly', label: 'Mensal' },
@@ -18,14 +18,16 @@ const RECURRENCE_OPTIONS: Array<{ value: RecurrenceType; label: string }> = [
 ];
 
 const WEEKDAYS = [
-  { value: 0, label: 'Dom' },
-  { value: 1, label: 'Seg' },
-  { value: 2, label: 'Ter' },
-  { value: 3, label: 'Qua' },
-  { value: 4, label: 'Qui' },
-  { value: 5, label: 'Sex' },
-  { value: 6, label: 'Sáb' },
+  { value: 0, label: 'D' },
+  { value: 1, label: 'S' },
+  { value: 2, label: 'T' },
+  { value: 3, label: 'Q' },
+  { value: 4, label: 'Q' },
+  { value: 5, label: 'S' },
+  { value: 6, label: 'S' },
 ];
+
+const FULL_WEEKDAYS = ['Domingo', 'Segunda-feira', 'Terça-feira', 'Quarta-feira', 'Quinta-feira', 'Sexta-feira', 'Sábado'];
 
 export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionProps) {
   const [showCustom, setShowCustom] = useState(recurrence.type === 'custom');
@@ -75,40 +77,71 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
     });
   };
 
+  // Cálculo da prévia da recorrência
+  const recurrencePreview = useMemo(() => {
+    if (recurrence.type === 'never') return null;
+
+    let text = '';
+    if (recurrence.type === 'daily') text = 'Repete todos os dias';
+    else if (recurrence.type === 'weekdays') text = 'Repete de segunda a sexta-feira';
+    else if (recurrence.type === 'weekly') {
+      if (recurrence.daysOfWeek && recurrence.daysOfWeek.length > 0) {
+        const days = recurrence.daysOfWeek.map(d => FULL_WEEKDAYS[d].split('-')[0]);
+        text = `Repete toda ${days.join(', ')}`;
+      } else {
+        text = 'Repete semanalmente';
+      }
+    }
+    else if (recurrence.type === 'monthly') text = 'Repete mensalmente';
+    else if (recurrence.type === 'yearly') text = 'Repete anualmente';
+    else if (recurrence.type === 'custom') {
+      const unit = recurrence.intervalUnit === 'days' ? 'dia(s)' : 
+                   recurrence.intervalUnit === 'weeks' ? 'semana(s)' : 
+                   recurrence.intervalUnit === 'months' ? 'mês(es)' : 'ano(s)';
+      text = `Repete a cada ${recurrence.interval} ${unit}`;
+    }
+
+    if (recurrence.endType === 'after_occurrences') {
+      text += ` por ${recurrence.occurrences} vezes`;
+    } else if (recurrence.endType === 'on_date' && recurrence.endDate) {
+      const date = new Date(recurrence.endDate + 'T00:00:00');
+      text += ` até ${date.toLocaleDateString('pt-BR')}`;
+    }
+
+    return text;
+  }, [recurrence]);
+
+  // Próximas ocorrências (mock)
+  const nextDates = useMemo(() => {
+    if (recurrence.type === 'never') return [];
+    
+    const dates = [];
+    const today = new Date();
+    for (let i = 1; i <= 3; i++) {
+      const next = new Date(today);
+      next.setDate(today.getDate() + i * (recurrence.type === 'weekly' ? 7 : 1));
+      dates.push(next.toLocaleDateString('pt-BR', { day: '2-digit', month: 'short' }));
+    }
+    return dates;
+  }, [recurrence.type]);
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
+    <div className="flex flex-col gap-4">
       {/* Seção de Recorrência */}
       <div>
-        <label
-          style={{
-            fontFamily: 'DM Sans',
-            fontSize: 12,
-            color: 'var(--muted-foreground)',
-            marginBottom: 8,
-            display: 'block',
-          }}
-        >
+        <label className="text-[12px] font-medium text-muted-foreground mb-2 block">
           Recorrência
         </label>
-        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(2, 1fr)', gap: 8 }}>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {RECURRENCE_OPTIONS.map(option => (
             <button
               key={option.value}
               onClick={() => handleTypeChange(option.value)}
-              style={{
-                padding: '8px 12px',
-                borderRadius: 8,
-                border: `1px solid ${recurrence.type === option.value ? '#3b82f6' : 'var(--border)'}`,
-                background:
-                  recurrence.type === option.value ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
-                color:
-                  recurrence.type === option.value ? '#3b82f6' : 'var(--muted-foreground)',
-                fontFamily: 'DM Sans',
-                fontWeight: 500,
-                fontSize: 12,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
+              className={`px-3 py-2 rounded-lg border text-[12px] font-medium transition-all ${
+                recurrence.type === option.value 
+                ? 'border-primary bg-primary/10 text-primary' 
+                : 'border-border bg-transparent text-muted-foreground hover:border-muted-foreground/30'
+              }`}
             >
               {option.label}
             </button>
@@ -118,18 +151,10 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
 
       {/* Configuração Personalizada */}
       {showCustom && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <div style={{ display: 'flex', gap: 8 }}>
-            <div style={{ flex: 1 }}>
-              <label
-                style={{
-                  fontFamily: 'DM Sans',
-                  fontSize: 12,
-                  color: 'var(--muted-foreground)',
-                  marginBottom: 6,
-                  display: 'block',
-                }}
-              >
+        <div className="flex flex-col gap-3 p-3 bg-muted/30 rounded-xl border border-border">
+          <div className="flex gap-3">
+            <div className="flex-1">
+              <label className="text-[11px] font-medium text-muted-foreground mb-1 block">
                 Repetir a cada
               </label>
               <input
@@ -142,20 +167,11 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
                     interval: Math.max(1, parseInt(e.target.value) || 1),
                   })
                 }
-                className="fz-input"
-                style={{ width: '100%' }}
+                className="fz-input w-full h-9"
               />
             </div>
-            <div style={{ flex: 1 }}>
-              <label
-                style={{
-                  fontFamily: 'DM Sans',
-                  fontSize: 12,
-                  color: 'var(--muted-foreground)',
-                  marginBottom: 6,
-                  display: 'block',
-                }}
-              >
+            <div className="flex-1">
+              <label className="text-[11px] font-medium text-muted-foreground mb-1 block">
                 Unidade
               </label>
               <select
@@ -166,8 +182,7 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
                     intervalUnit: e.target.value as 'days' | 'weeks' | 'months' | 'years',
                   })
                 }
-                className="fz-input"
-                style={{ width: '100%' }}
+                className="fz-input w-full h-9"
               >
                 <option value="days">Dias</option>
                 <option value="weeks">Semanas</option>
@@ -180,43 +195,19 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
           {/* Seleção de dias da semana */}
           {recurrence.intervalUnit === 'weeks' && (
             <div>
-              <label
-                style={{
-                  fontFamily: 'DM Sans',
-                  fontSize: 12,
-                  color: 'var(--muted-foreground)',
-                  marginBottom: 8,
-                  display: 'block',
-                }}
-              >
+              <label className="text-[11px] font-medium text-muted-foreground mb-2 block">
                 Dias da semana
               </label>
-              <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap' }}>
+              <div className="flex gap-1.5 flex-wrap">
                 {WEEKDAYS.map(day => (
                   <button
                     key={day.value}
                     onClick={() => handleDayToggle(day.value)}
-                    style={{
-                      width: 32,
-                      height: 32,
-                      borderRadius: 6,
-                      border: `1px solid ${
-                        (recurrence.daysOfWeek || []).includes(day.value)
-                          ? '#3b82f6'
-                          : 'var(--border)'
-                      }`,
-                      background: (recurrence.daysOfWeek || []).includes(day.value)
-                        ? 'rgba(59, 130, 246, 0.1)'
-                        : 'transparent',
-                      color: (recurrence.daysOfWeek || []).includes(day.value)
-                        ? '#3b82f6'
-                        : 'var(--muted-foreground)',
-                      fontFamily: 'DM Sans',
-                      fontWeight: 500,
-                      fontSize: 12,
-                      cursor: 'pointer',
-                      transition: 'all 0.2s',
-                    }}
+                    className={`w-8 h-8 rounded-md border text-[11px] font-bold transition-all ${
+                      (recurrence.daysOfWeek || []).includes(day.value)
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-transparent text-muted-foreground hover:border-muted-foreground/30'
+                    }`}
                   >
                     {day.label}
                   </button>
@@ -229,140 +220,92 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
 
       {/* Configuração de Término */}
       {recurrence.type !== 'never' && (
-        <div style={{ display: 'flex', flexDirection: 'column', gap: 12 }}>
-          <label
-            style={{
-              fontFamily: 'DM Sans',
-              fontSize: 12,
-              color: 'var(--muted-foreground)',
-              marginBottom: 0,
-              display: 'block',
-            }}
-          >
+        <div className="flex flex-col gap-3">
+          <label className="text-[12px] font-medium text-muted-foreground mb-0 block">
             Término da recorrência
           </label>
-          <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-            <button
-              onClick={() => handleEndTypeChange('never')}
-              style={{
-                padding: '8px 12px',
-                borderRadius: 8,
-                border: `1px solid ${recurrence.endType === 'never' ? '#3b82f6' : 'var(--border)'}`,
-                background:
-                  recurrence.endType === 'never' ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
-                color:
-                  recurrence.endType === 'never' ? '#3b82f6' : 'var(--muted-foreground)',
-                fontFamily: 'DM Sans',
-                fontWeight: 500,
-                fontSize: 12,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              Nunca
-            </button>
-            <button
-              onClick={() => handleEndTypeChange('after_occurrences')}
-              style={{
-                padding: '8px 12px',
-                borderRadius: 8,
-                border: `1px solid ${
-                  recurrence.endType === 'after_occurrences' ? '#3b82f6' : 'var(--border)'
-                }`,
-                background:
-                  recurrence.endType === 'after_occurrences'
-                    ? 'rgba(59, 130, 246, 0.1)'
-                    : 'transparent',
-                color:
-                  recurrence.endType === 'after_occurrences' ? '#3b82f6' : 'var(--muted-foreground)',
-                fontFamily: 'DM Sans',
-                fontWeight: 500,
-                fontSize: 12,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              Após X ocorrências
-            </button>
-            <button
-              onClick={() => handleEndTypeChange('on_date')}
-              style={{
-                padding: '8px 12px',
-                borderRadius: 8,
-                border: `1px solid ${
-                  recurrence.endType === 'on_date' ? '#3b82f6' : 'var(--border)'
-                }`,
-                background:
-                  recurrence.endType === 'on_date' ? 'rgba(59, 130, 246, 0.1)' : 'transparent',
-                color:
-                  recurrence.endType === 'on_date' ? '#3b82f6' : 'var(--muted-foreground)',
-                fontFamily: 'DM Sans',
-                fontWeight: 500,
-                fontSize: 12,
-                cursor: 'pointer',
-                transition: 'all 0.2s',
-              }}
-            >
-              Em uma data
-            </button>
+          <div className="flex gap-2 flex-wrap">
+            {(['never', 'after_occurrences', 'on_date'] as const).map((type) => (
+              <button
+                key={type}
+                onClick={() => handleEndTypeChange(type)}
+                className={`px-3 py-2 rounded-lg border text-[12px] font-medium transition-all ${
+                  recurrence.endType === type 
+                  ? 'border-primary bg-primary/10 text-primary' 
+                  : 'border-border bg-transparent text-muted-foreground hover:border-muted-foreground/30'
+                }`}
+              >
+                {type === 'never' ? 'Nunca' : type === 'after_occurrences' ? 'Após X vezes' : 'Em uma data'}
+              </button>
+            ))}
           </div>
 
           {/* Inputs condicionais */}
-          {recurrence.endType === 'after_occurrences' && (
-            <div>
-              <label
-                style={{
-                  fontFamily: 'DM Sans',
-                  fontSize: 12,
-                  color: 'var(--muted-foreground)',
-                  marginBottom: 6,
-                  display: 'block',
-                }}
-              >
-                Número de ocorrências
-              </label>
-              <input
-                type="number"
-                min="1"
-                value={recurrence.occurrences || 5}
-                onChange={e =>
-                  onChange({
-                    ...recurrence,
-                    occurrences: Math.max(1, parseInt(e.target.value) || 1),
-                  })
-                }
-                className="fz-input"
-              />
-            </div>
-          )}
+          <div className="grid grid-cols-1 gap-3">
+            {recurrence.endType === 'after_occurrences' && (
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground mb-1 block">
+                  Número de ocorrências
+                </label>
+                <input
+                  type="number"
+                  min="1"
+                  value={recurrence.occurrences || 5}
+                  onChange={e =>
+                    onChange({
+                      ...recurrence,
+                      occurrences: Math.max(1, parseInt(e.target.value) || 1),
+                    })
+                  }
+                  className="fz-input w-full h-9"
+                />
+              </div>
+            )}
 
-          {recurrence.endType === 'on_date' && (
-            <div>
-              <label
-                style={{
-                  fontFamily: 'DM Sans',
-                  fontSize: 12,
-                  color: 'var(--muted-foreground)',
-                  marginBottom: 6,
-                  display: 'block',
-                }}
-              >
-                Data de término
-              </label>
-              <input
-                type="date"
-                value={recurrence.endDate || ''}
-                onChange={e =>
-                  onChange({
-                    ...recurrence,
-                    endDate: e.target.value,
-                  })
-                }
-                className="fz-input"
-                style={{ colorScheme: 'dark' }}
-              />
+            {recurrence.endType === 'on_date' && (
+              <div>
+                <label className="text-[11px] font-medium text-muted-foreground mb-1 block">
+                  Data de término
+                </label>
+                <input
+                  type="date"
+                  value={recurrence.endDate || ''}
+                  onChange={e =>
+                    onChange({
+                      ...recurrence,
+                      endDate: e.target.value,
+                    })
+                  }
+                  className="fz-input w-full h-9"
+                  style={{ colorScheme: 'dark' }}
+                />
+              </div>
+            )}
+          </div>
+        </div>
+      )}
+
+      {/* Prévia da Recorrência */}
+      {recurrence.type !== 'never' && (
+        <div className="mt-2 p-3 bg-primary/5 rounded-xl border border-primary/10">
+          <div className="flex items-center gap-2 mb-2">
+            <RotateCw size={14} className="text-primary" />
+            <span className="text-[13px] font-semibold text-foreground">Resumo</span>
+          </div>
+          <p className="text-[12px] text-muted-foreground mb-2 leading-relaxed">
+            {recurrencePreview}
+          </p>
+          <div className="flex items-center gap-2 pt-2 border-t border-primary/5">
+            <Calendar size={12} className="text-muted-foreground" />
+            <span className="text-[11px] text-muted-foreground">Próximas:</span>
+            <div className="flex gap-2">
+              {nextDates.map((date, i) => (
+                <span key={i} className="text-[11px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                  {date}
+                </span>
+              ))}
             </div>
-          )}
+          </div>
         </div>
       )}
     </div>

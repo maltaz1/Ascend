@@ -53,7 +53,7 @@ import Financial from "./pages/Financial";
 import Notes from "./pages/Notes";
 import ResetPassword from "./pages/ResetPassword";
 import DownloadApp from "./pages/DownloadApp.tsx";
-import RecurrenceHistory from "./pages/RecurrenceHistory";
+
 
 // Login
 import Login from "./pages/Login";
@@ -72,8 +72,7 @@ type Tab =
   | "evolution"
   | "settings"
   | "download"
-  | "notes"
-  | "recurrence-history";
+  | "notes";
 
 function AppContent({
   isPro,
@@ -114,8 +113,6 @@ function AppContent({
         return <Notes />;
       case "download":
         return <DownloadApp />;
-      case "recurrence-history":
-        return <RecurrenceHistory />;
       default:
         return <Dashboard />;
     }

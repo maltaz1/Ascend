@@ -21,27 +21,13 @@ export function RecurrenceIndicator({ type, size = 'sm' }: RecurrenceIndicatorPr
   if (type === 'never') return null;
 
   const label = RECURRENCE_LABELS[type];
-  const iconSize = size === 'sm' ? 12 : 14;
-  const fontSize = size === 'sm' ? 11 : 12;
+  const iconSize = size === 'sm' ? 10 : 12;
 
   return (
-    <div
-      style={{
-        display: 'inline-flex',
-        alignItems: 'center',
-        gap: 4,
-        padding: size === 'sm' ? '3px 6px' : '4px 8px',
-        background: 'rgba(168, 85, 247, 0.1)',
-        border: '1px solid rgba(168, 85, 247, 0.2)',
-        borderRadius: 4,
-        color: '#A855F7',
-        fontSize,
-        fontFamily: 'DM Sans',
-        fontWeight: 500,
-        whiteSpace: 'nowrap',
-      }}
-    >
-      <RotateCw size={iconSize} style={{ opacity: 0.7 }} />
+    <div className={`inline-flex items-center gap-1 px-1.5 py-0.5 bg-primary/10 border border-primary/20 rounded text-primary font-medium whitespace-nowrap ${
+      size === 'sm' ? 'text-[10px]' : 'text-[11px]'
+    }`}>
+      <RotateCw size={iconSize} className="opacity-70" />
       {label}
     </div>
   );
