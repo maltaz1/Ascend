@@ -109,7 +109,7 @@ function AppContent({
       case "settings":
         return <Settings />;
       case "notes":
-        return <Notes />;
+        return <Notes isPro={isPro} onOpenUpgrade={onOpenUpgrade} />;
       case "download":
         return <DownloadApp />;
       default:

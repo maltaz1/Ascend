@@ -10,6 +10,18 @@ export async function getFolders(): Promise<NoteFolderDatabaseRow[]> {
 
     if (!user) return [];
 
+    // Verificar se o usuário é Pro
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_pro")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile?.is_pro) {
+      logger.warn("noteFolders", "User is not Pro, cannot access note folders");
+      return [];
+    }
+
     const { data, error } = await supabase
       .from("note_folders")
       .select("*")
@@ -35,6 +47,17 @@ export async function createFolder(payload: Omit<NoteFolderDatabaseRow, "id" | "
     } = await supabase.auth.getUser();
 
     if (!user) return null;
+
+    // Verificar se o usuário é Pro
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_pro")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile?.is_pro) {
+      throw new Error("Only Pro users can create note folders");
+    }
 
     const { data, error } = await supabase
       .from("note_folders")
@@ -64,6 +87,17 @@ export async function deleteFolder(id: string): Promise<void> {
     } = await supabase.auth.getUser();
 
     if (!user) throw new Error("User not authenticated.");
+
+    // Verificar se o usuário é Pro
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_pro")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile?.is_pro) {
+      throw new Error("Only Pro users can delete note folders");
+    }
 
     const { error } = await supabase
       .from("note_folders")

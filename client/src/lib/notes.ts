@@ -10,6 +10,18 @@ export async function getNotes(): Promise<NoteDatabaseRow[]> {
 
     if (!user) return [];
 
+    // Verificar se o usuário é Pro
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_pro")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile?.is_pro) {
+      logger.warn("notes", "User is not Pro, cannot access notes");
+      return [];
+    }
+
     const { data, error } = await supabase
       .from("notes")
       .select("*")
@@ -35,6 +47,17 @@ export async function createNote(payload: Omit<NoteDatabaseRow, "id" | "user_id"
     } = await supabase.auth.getUser();
 
     if (!user) return null;
+
+    // Verificar se o usuário é Pro
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_pro")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile?.is_pro) {
+      throw new Error("Only Pro users can create notes");
+    }
 
     const { data, error } = await supabase
       .from("notes")
@@ -64,6 +87,17 @@ export async function updateNote(id: string, payload: Partial<Omit<NoteDatabaseR
     } = await supabase.auth.getUser();
 
     if (!user) return null;
+
+    // Verificar se o usuário é Pro
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_pro")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile?.is_pro) {
+      throw new Error("Only Pro users can update notes");
+    }
 
     const { data, error } = await supabase
       .from("notes")
@@ -95,6 +129,17 @@ export async function deleteNote(id: string): Promise<void> {
     } = await supabase.auth.getUser();
 
     if (!user) throw new Error("User not authenticated.");
+
+    // Verificar se o usuário é Pro
+    const { data: profile } = await supabase
+      .from("profiles")
+      .select("is_pro")
+      .eq("id", user.id)
+      .single();
+
+    if (!profile?.is_pro) {
+      throw new Error("Only Pro users can delete notes");
+    }
 
     const { error } = await supabase
       .from("notes")

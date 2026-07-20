@@ -12,5 +12,4 @@ export const FREE_TABS = [
   "calendar",
   "settings",
   "download",
-  "notes",
 ];

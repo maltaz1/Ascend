@@ -72,7 +72,7 @@ interface DialogState {
   id: string | null;
 }
 
-export default function Notes() {
+export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpenUpgrade?: () => void }) {
   // Estados de dados
   const [notes, setNotes] = useState<NoteUI[]>([]);
   const [userFolders, setUserFolders] = useState<NoteFolderDatabaseRow[]>([]);
@@ -115,6 +115,10 @@ export default function Notes() {
 
   // Carregar dados iniciais (apenas uma vez)
   useEffect(() => {
+    if (!isPro) {
+      setIsLoading(false);
+      return;
+    }
     const loadData = async () => {
       try {
         setIsLoading(true);
@@ -385,6 +389,31 @@ export default function Notes() {
     return (
       <div className="flex h-[calc(100vh-40px)] bg-[#0d0d12] lg:rounded-[32px] lg:border lg:border-white/5 overflow-hidden shadow-2xl items-center justify-center">
         <div className="text-zinc-600">Carregando notas...</div>
+      </div>
+    );
+  }
+
+  if (!isPro) {
+    return (
+      <div className="flex h-[calc(100vh-40px)] bg-[#0d0d12] lg:rounded-[32px] lg:border lg:border-white/5 overflow-hidden shadow-2xl items-center justify-center p-6 text-center">
+        <div className="max-w-md space-y-6">
+          <div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto">
+            <FileText className="text-blue-500" size={40} />
+          </div>
+          <div className="space-y-2">
+            <h2 className="text-2xl font-bold text-white">Notas é um recurso Pro</h2>
+            <p className="text-zinc-400">
+              Organize seus pensamentos, ideias e projetos com nosso sistema de notas completo. 
+              Faça o upgrade para o Pro para desbloquear este recurso.
+            </p>
+          </div>
+          <button
+            onClick={onOpenUpgrade}
+            className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-blue-500/20"
+          >
+            Assinar Pro Agora
+          </button>
+        </div>
       </div>
     );
   }
