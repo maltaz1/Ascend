@@ -632,26 +632,43 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
     showToast(newCompleted ? "Tarefa concluída!" : "Tarefa desmarcada", "success");
   };
 
+  // Estado para modal de exclusão de recorrência
+  const [deleteRecurringTask, setDeleteRecurringTask] = useState<Task | null>(null);
+  const [deletingAll, setDeletingAll] = useState(false);
+
   const handleDelete = async (id: string) => {
-    // Verificar se é tarefa recorrente (mãe ou ocorrência)
     const task = tasks.find(t => t.id === id);
     
     if (task?.isRecurring && !task.parentId) {
-      // É a tarefa mãe - perguntar se quer deletar todas as ocorrências
-      const confirmed = window.confirm("Deseja excluir todas as ocorrências desta tarefa recorrente?\n\nOK = Excluir tudo\nCancelar = Excluir apenas esta tarefa");
-      if (confirmed) {
-        // Deletar mãe e todas as ocorrências (cascade)
-        const { error } = await supabase.from("tasks").delete().eq("id", id);
-        if (!error) fetchTasks();
-      } else {
-        // Deletar apenas a tarefa mãe (ocorrências ficam órfãs mas visíveis)
-        const { error } = await supabase.from("tasks").update({ is_recurring: false, recurrence: null }).eq("id", id);
-        if (!error) fetchTasks();
-      }
+      // É a tarefa mãe - abrir modal de escolha
+      setDeleteRecurringTask(task);
     } else {
       const { error } = await supabase.from("tasks").delete().eq("id", id);
       if (!error) fetchTasks();
     }
+  };
+
+  const handleDeleteThisOccurrence = async () => {
+    if (!deleteRecurringTask) return;
+    // Deletar apenas a tarefa mãe (ocorrências ficam órfãs mas visíveis)
+    const { error } = await supabase
+      .from("tasks")
+      .update({ is_recurring: false, recurrence: null })
+      .eq("id", deleteRecurringTask.id);
+    if (!error) fetchTasks();
+    setDeleteRecurringTask(null);
+    showToast("Recorrência removida desta tarefa", "success");
+  };
+
+  const handleDeleteAllOccurrences = async () => {
+    if (!deleteRecurringTask) return;
+    setDeletingAll(true);
+    // Deletar mãe e todas as ocorrências (cascade)
+    const { error } = await supabase.from("tasks").delete().eq("id", deleteRecurringTask.id);
+    setDeletingAll(false);
+    if (!error) fetchTasks();
+    setDeleteRecurringTask(null);
+    showToast("Tarefa recorrente e todas as ocorrências excluídas", "success");
   };
 
   const handleDeleteOccurrence = async (id: string) => {
@@ -771,6 +788,73 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
         tasks={tasks}
         onTaskSaved={fetchTasks}
       />
+
+      {/* Modal de exclusão de tarefa recorrente */}
+      <Modal
+        open={!!deleteRecurringTask}
+        onClose={() => {
+          setDeleteRecurringTask(null);
+          setDeletingAll(false);
+        }}
+        title="Excluir tarefa recorrente"
+      >
+        <div className="flex flex-col gap-5">
+          <p className="text-[14px] text-muted-foreground leading-relaxed">
+            Como você deseja excluir <strong className="text-foreground">{deleteRecurringTask?.title}</strong>?
+          </p>
+
+          <button
+            onClick={() => {
+              handleDeleteAllOccurrences();
+            }}
+            disabled={deletingAll}
+            className="w-full flex items-center gap-3 p-4 rounded-2xl border border-destructive/30 bg-destructive/10 hover:bg-destructive/20 transition-all text-left group disabled:opacity-60"
+          >
+            <div className="w-10 h-10 rounded-xl bg-destructive/20 flex items-center justify-center flex-shrink-0">
+              <Trash2 size={18} className="text-destructive" />
+            </div>
+            <div className="flex-1">
+              <div className="text-[14px] font-bold text-destructive group-hover:text-destructive transition-colors">
+                {deletingAll ? "Excluindo..." : "Excluir de todos os dias"}
+              </div>
+              <div className="text-[12px] text-muted-foreground mt-0.5">
+                Remove a recorrência e todas as ocorrências já criadas
+              </div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => {
+              handleDeleteThisOccurrence();
+            }}
+            disabled={deletingAll}
+            className="w-full flex items-center gap-3 p-4 rounded-2xl border border-border bg-white/5 hover:bg-white/10 transition-all text-left group disabled:opacity-60"
+          >
+            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
+              <AlertCircle size={18} className="text-muted-foreground" />
+            </div>
+            <div className="flex-1">
+              <div className="text-[14px] font-bold text-foreground group-hover:text-foreground transition-colors">
+                {deletingAll ? "Excluindo..." : "Excluir apenas esta ocorrência"}
+              </div>
+              <div className="text-[12px] text-muted-foreground mt-0.5">
+                Remove apenas deste dia, mantém a recorrência nos demais
+              </div>
+            </div>
+          </button>
+
+          <button
+            onClick={() => {
+              setDeleteRecurringTask(null);
+              setDeletingAll(false);
+            }}
+            disabled={deletingAll}
+            className="w-full py-3 rounded-xl border border-border text-[13px] font-bold text-muted-foreground hover:text-foreground hover:border-muted-foreground/50 transition-all disabled:opacity-60"
+          >
+            Cancelar
+          </button>
+        </div>
+      </Modal>
     </div>
   );
 }
