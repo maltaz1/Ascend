@@ -27,19 +27,22 @@ export async function addTask(
       throw new Error("Usuário não encontrado");
     }
 
+    const dbPayload: Record<string, unknown> = {
+      user_id: user.id,
+      title: task.title,
+      description: task.description,
+      date: task.date,
+      completed: task.completed,
+      priority: task.priority,
+      category: task.category,
+    };
+
+    if ("isRecurring" in task) dbPayload.is_recurring = task.isRecurring;
+    if ("recurrence" in task) dbPayload.recurrence = task.recurrence;
+
     const { data, error } = await supabase
       .from("tasks")
-      .insert([
-        {
-          user_id: user.id,
-          title: task.title,
-          description: task.description,
-          date: task.date,
-          completed: task.completed,
-          priority: task.priority,
-          category: task.category,
-        },
-      ])
+      .insert([dbPayload])
       .select()
       .single();
 
@@ -87,6 +90,8 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<vo
     if (updates.completed !== undefined) updatesToDb.completed = updates.completed;
     if (updates.priority !== undefined) updatesToDb.priority = updates.priority;
     if (updates.category !== undefined) updatesToDb.category = updates.category;
+    if (updates.isRecurring !== undefined) updatesToDb.is_recurring = updates.isRecurring;
+    if (updates.recurrence !== undefined) updatesToDb.recurrence = updates.recurrence;
 
     if (Object.keys(updatesToDb).length === 0) return;
 
@@ -221,6 +226,8 @@ export async function loadTasksData(): Promise<void> {
     priority: task.priority,
     category: task.category,
     createdAt: task.created_at,
+    isRecurring: task.is_recurring ?? false,
+    recurrence: task.recurrence as Record<string, unknown> | undefined,
   }));
 
   notify();
