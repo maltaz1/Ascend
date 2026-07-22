@@ -1,6 +1,6 @@
-// Calendário integrado + tarefas por dia + status visual + filtros
+// Calendário integrado + tarefas por dia + status visual + filtros + ocorrências recorrentes
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 import {
   Plus,
   Trash2,
@@ -26,6 +26,7 @@ import { supabase } from "@/lib/supabase";
 import { useXPAnimation } from "@/hooks/useStore";
 import { Modal } from "@/components/ui/Modal";
 import { showToast } from "@/components/ui/FlowToast";
+import { generateAllRecurringOccurrences, generateOccurrenceForNewTask } from "@/lib/recurrence";
 
 const WEEKDAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 const MONTHS = [
@@ -59,6 +60,7 @@ type Task = {
   createdAt: string;
   recurrence?: RecurrenceConfig;
   isRecurring?: boolean;
+  parentId?: string;
 };
 
 function getTodayString(): string {
@@ -87,6 +89,7 @@ function normalizeTask(task: Record<string, unknown>): Task {
     createdAt,
     isRecurring: Boolean(task.is_recurring),
     recurrence: task.recurrence as RecurrenceConfig | undefined,
+    parentId: typeof task.parent_id === "string" ? task.parent_id : undefined,
   };
 }
 
@@ -377,6 +380,8 @@ function TaskModal({
     };
 
     let error;
+    let insertedId: string | undefined;
+
     if (task) {
       const { error: updateError } = await supabase
         .from("tasks")
@@ -384,15 +389,26 @@ function TaskModal({
         .eq("id", task.id);
       error = updateError;
     } else {
-      const { error: insertError } = await supabase
+      const { data, error: insertError } = await supabase
         .from("tasks")
-        .insert({ ...taskData, completed: false });
+        .insert({ ...taskData, completed: false })
+        .select("id")
+        .single();
       error = insertError;
+      if (data) insertedId = data.id;
     }
 
     if (error) {
       showToast("Erro ao salvar tarefa", "info");
       return;
+    }
+
+    // Se é uma nova tarefa recorrente, gerar ocorrências automaticamente
+    if (!task && recurrence.type !== "never" && insertedId) {
+      const generated = await generateOccurrenceForNewTask(insertedId, user.id);
+      if (generated.length > 0) {
+        console.log(`Geradas ${generated.length} ocorrências recorrentes`);
+      }
     }
 
     showToast(task ? "Tarefa atualizada!" : "Tarefa criada!", "success");
@@ -453,7 +469,6 @@ function TaskModal({
                   className="fz-input w-full"
                   value={date}
                   onChange={e => setDate(e.target.value)}
-                  style={{ colorScheme: "dark" }}
                 />
               </div>
               <div>
@@ -548,12 +563,9 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
   const [search, setSearch] = useState("");
   const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "completed" | "overdue">("all");
   const [tasks, setTasks] = useState<Task[]>([]);
+  const [generating, setGenerating] = useState(false);
 
-  useEffect(() => {
-    fetchTasks();
-  }, []);
-
-  const fetchTasks = async () => {
+  const fetchTasks = useCallback(async () => {
     const { data, error } = await supabase
       .from("tasks")
       .select("*")
@@ -562,7 +574,40 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
     if (!error && data) {
       setTasks(data.map(task => normalizeTask(task as Record<string, unknown>)));
     }
-  };
+  }, []);
+
+  // Quando seleciona uma nova data, gerar ocorrências recorrentes para os próximos 30 dias
+  const handleSelectDate = useCallback(async (date: string) => {
+    setSelectedDate(date);
+    setGenerating(true);
+    try {
+      const generated = await generateAllRecurringOccurrences(date);
+      if (generated > 0) {
+        console.log(`Geradas ${generated} ocorrências recorrentes para a data ${date}`);
+        await fetchTasks();
+      }
+    } catch (err) {
+      console.error("Erro ao gerar ocorrências:", err);
+    } finally {
+      setGenerating(false);
+    }
+  }, [fetchTasks]);
+
+  useEffect(() => {
+    // Ao carregar, gerar ocorrências para hoje e buscar tarefas
+    const init = async () => {
+      setGenerating(true);
+      try {
+        await generateAllRecurringOccurrences(today);
+        await fetchTasks();
+      } catch (err) {
+        console.error("Erro ao inicializar:", err);
+      } finally {
+        setGenerating(false);
+      }
+    };
+    init();
+  }, [fetchTasks, today]);
 
   const selectedTasks = useMemo(() => {
     return tasks.filter(t => {
@@ -588,6 +633,29 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
   };
 
   const handleDelete = async (id: string) => {
+    // Verificar se é tarefa recorrente (mãe ou ocorrência)
+    const task = tasks.find(t => t.id === id);
+    
+    if (task?.isRecurring && !task.parentId) {
+      // É a tarefa mãe - perguntar se quer deletar todas as ocorrências
+      const confirmed = window.confirm("Deseja excluir todas as ocorrências desta tarefa recorrente?\n\nOK = Excluir tudo\nCancelar = Excluir apenas esta tarefa");
+      if (confirmed) {
+        // Deletar mãe e todas as ocorrências (cascade)
+        const { error } = await supabase.from("tasks").delete().eq("id", id);
+        if (!error) fetchTasks();
+      } else {
+        // Deletar apenas a tarefa mãe (ocorrências ficam órfãs mas visíveis)
+        const { error } = await supabase.from("tasks").update({ is_recurring: false, recurrence: null }).eq("id", id);
+        if (!error) fetchTasks();
+      }
+    } else {
+      const { error } = await supabase.from("tasks").delete().eq("id", id);
+      if (!error) fetchTasks();
+    }
+  };
+
+  const handleDeleteOccurrence = async (id: string) => {
+    // Deletar apenas esta ocorrência, não afeta a mãe nem outras ocorrências
     const { error } = await supabase.from("tasks").delete().eq("id", id);
     if (!error) fetchTasks();
   };
@@ -602,14 +670,14 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
     <div className="flex gap-6 p-5 max-w-full overflow-y-auto pb-10 flex-wrap">
       {/* Sidebar com Calendário */}
       <div className="hidden lg:block w-[280px] flex-shrink-0">
-        <MiniCalendar selectedDate={selectedDate} onSelectDate={setSelectedDate} tasks={tasks} />
+        <MiniCalendar selectedDate={selectedDate} onSelectDate={handleSelectDate} tasks={tasks} />
       </div>
 
       {/* Coluna Principal */}
       <div className="flex-1 min-w-0">
         {/* Mini Calendário em Mobile */}
         <div className="lg:hidden w-full mb-5">
-          <MiniCalendar selectedDate={selectedDate} onSelectDate={setSelectedDate} tasks={tasks} />
+          <MiniCalendar selectedDate={selectedDate} onSelectDate={handleSelectDate} tasks={tasks} />
         </div>
 
         {/* Header */}
@@ -661,7 +729,13 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
 
         {/* Tasks List */}
         <div className="space-y-1">
-          {selectedTasks.length === 0 ? (
+          {generating && (
+            <div className="flex items-center justify-center gap-2 py-4 text-muted-foreground text-[13px]">
+              <RotateCw size={14} className="animate-spin" />
+              Gerando ocorrências recorrentes...
+            </div>
+          )}
+          {selectedTasks.length === 0 && !generating ? (
             <div className="text-center py-12 text-muted-foreground bg-white/5 rounded-3xl border border-dashed border-border">
               <CheckCircle2 size={48} className="mx-auto mb-3 opacity-20" />
               <p className="text-[14px] font-medium">
@@ -669,12 +743,12 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
               </p>
             </div>
           ) : (
-            selectedTasks.map(task => (
+            !generating && selectedTasks.map(task => (
               <TaskItem
                 key={task.id}
                 task={task}
                 onToggle={() => handleToggle(task)}
-                onDelete={() => handleDelete(task.id)}
+                onDelete={() => task.parentId ? handleDeleteOccurrence(task.id) : handleDelete(task.id)}
                 onEdit={() => {
                   setEditingTask(task);
                   setShowModal(true);
