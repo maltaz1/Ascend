@@ -636,13 +636,15 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
   const [deleteRecurringTask, setDeleteRecurringTask] = useState<Task | null>(null);
   const [deletingAll, setDeletingAll] = useState(false);
 
+  // Quando clica em excluir uma tarefa recorrente (mãe ou ocorrência) → abre modal
   const handleDelete = async (id: string) => {
     const task = tasks.find(t => t.id === id);
     
-    if (task?.isRecurring && !task.parentId) {
-      // É a tarefa mãe - abrir modal de escolha
+    if (task?.isRecurring) {
+      // Qualquer tarefa recorrente (mãe ou filha) → abrir modal de escolha
       setDeleteRecurringTask(task);
     } else {
+      // Tarefa normal → deletar direto
       const { error } = await supabase.from("tasks").delete().eq("id", id);
       if (!error) fetchTasks();
     }
@@ -650,32 +652,36 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
 
   const handleDeleteThisOccurrence = async () => {
     if (!deleteRecurringTask) return;
-    // Deletar apenas a tarefa mãe (ocorrências ficam órfãs mas visíveis)
-    const { error } = await supabase
-      .from("tasks")
-      .update({ is_recurring: false, recurrence: null })
-      .eq("id", deleteRecurringTask.id);
+    // Deletar apenas esta ocorrência (seja mãe ou filha)
+    const { error } = await supabase.from("tasks").delete().eq("id", deleteRecurringTask.id);
     if (!error) fetchTasks();
     setDeleteRecurringTask(null);
-    showToast("Recorrência removida desta tarefa", "success");
+    showToast("Ocorrência excluída deste dia", "success");
   };
 
   const handleDeleteAllOccurrences = async () => {
     if (!deleteRecurringTask) return;
     setDeletingAll(true);
-    // Deletar mãe e todas as ocorrências (cascade)
-    const { error } = await supabase.from("tasks").delete().eq("id", deleteRecurringTask.id);
+    // Precisa encontrar a mãe para deletar via cascade
+    const taskToDelete = deleteRecurringTask.parentId
+      ? tasks.find(t => t.id === deleteRecurringTask.parentId)
+      : deleteRecurringTask;
+    
+    if (taskToDelete) {
+      // Deletar a mãe → cascade deleta todas as ocorrências
+      const { error } = await supabase.from("tasks").delete().eq("id", taskToDelete.id);
+      if (!error) fetchTasks();
+    } else {
+      // Fallback: deletar apenas esta
+      const { error } = await supabase.from("tasks").delete().eq("id", deleteRecurringTask.id);
+      if (!error) fetchTasks();
+    }
     setDeletingAll(false);
-    if (!error) fetchTasks();
     setDeleteRecurringTask(null);
     showToast("Tarefa recorrente e todas as ocorrências excluídas", "success");
   };
 
-  const handleDeleteOccurrence = async (id: string) => {
-    // Deletar apenas esta ocorrência, não afeta a mãe nem outras ocorrências
-    const { error } = await supabase.from("tasks").delete().eq("id", id);
-    if (!error) fetchTasks();
-  };
+  // handleDeleteOccurrence removido - agora tudo passa pelo handleDelete
 
   const selectedDateFormatted = new Date(selectedDate + "T00:00:00").toLocaleDateString("pt-BR", {
     weekday: "long",
@@ -765,7 +771,7 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
                 key={task.id}
                 task={task}
                 onToggle={() => handleToggle(task)}
-                onDelete={() => task.parentId ? handleDeleteOccurrence(task.id) : handleDelete(task.id)}
+                onDelete={() => handleDelete(task.id)}
                 onEdit={() => {
                   setEditingTask(task);
                   setShowModal(true);
