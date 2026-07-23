@@ -5,6 +5,24 @@
 import type { RecurrenceConfig } from "@/types/recurrence";
 import { supabase } from "@/lib/supabase";
 
+function dateToString(date: Date): string {
+  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
+}
+
+function addDays(date: Date, days: number): Date {
+  const result = new Date(date);
+  result.setDate(result.getDate() + days);
+  return result;
+}
+
+function isSameDay(a: Date, b: Date): boolean {
+  return (
+    a.getFullYear() === b.getFullYear() &&
+    a.getMonth() === b.getMonth() &&
+    a.getDate() === b.getDate()
+  );
+}
+
 export function getRecurrenceDates(
   recurrence: RecurrenceConfig,
   startDate: string, // YYYY-MM-DD
@@ -12,7 +30,8 @@ export function getRecurrenceDates(
   baseDate: string   // YYYY-MM-DD - data da tarefa original (primeira ocorrência)
 ): string[] {
   if (recurrence.type === "never") return [];
-  if (recurrence.status === "paused") return [];
+  // Não verificar paused aqui - a geração deve rodar independente
+  // O pause é verificado na UI, não na geração
 
   const start = new Date(startDate + "T00:00:00");
   const end = new Date(endDate + "T23:59:59");
@@ -84,10 +103,18 @@ function shouldGenerateOccurrence(
       // Se não tem dias específicos, usa o dia da semana da tarefa original
       return dayOfWeek === baseDate.getDay();
 
-    case "monthly":
+    case "monthly": {
       // Mesmo dia do mês da tarefa original
       // Cuidado com meses que não têm o dia (ex: 31 em fevereiro)
-      return currentDate.getDate() === baseDate.getDate();
+      const lastDayOfMonth = new Date(
+        currentDate.getFullYear(),
+        currentDate.getMonth() + 1,
+        0
+      ).getDate();
+      const baseDay = baseDate.getDate();
+      // Se o mês não tem o dia base, usar o último dia do mês
+      return currentDate.getDate() === Math.min(baseDay, lastDayOfMonth);
+    }
 
     case "yearly":
       // Mesmo dia e mês da tarefa original
@@ -119,15 +146,30 @@ function shouldGenerateOccurrence(
         const monthsDiff =
           (currentDate.getFullYear() - baseDate.getFullYear()) * 12 +
           (currentDate.getMonth() - baseDate.getMonth());
-        return monthsDiff % interval === 0 && currentDate.getDate() === baseDate.getDate();
+        const lastDayOfMonth = new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth() + 1,
+          0
+        ).getDate();
+        return (
+          monthsDiff >= 0 &&
+          monthsDiff % interval === 0 &&
+          currentDate.getDate() === Math.min(baseDate.getDate(), lastDayOfMonth)
+        );
       }
 
       if (unit === "years") {
         const yearsDiff = currentDate.getFullYear() - baseDate.getFullYear();
+        const lastDayOfMonth = new Date(
+          currentDate.getFullYear(),
+          currentDate.getMonth() + 1,
+          0
+        ).getDate();
         return (
+          yearsDiff >= 0 &&
           yearsDiff % interval === 0 &&
           currentDate.getMonth() === baseDate.getMonth() &&
-          currentDate.getDate() === baseDate.getDate()
+          currentDate.getDate() === Math.min(baseDate.getDate(), lastDayOfMonth)
         );
       }
 
@@ -139,16 +181,8 @@ function shouldGenerateOccurrence(
   }
 }
 
-function dateToString(date: Date): string {
-  return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, "0")}-${String(date.getDate()).padStart(2, "0")}`;
-}
-
 /**
  * Gera ocorrências faltantes para uma tarefa recorrente.
- * Procura tarefas com mesmo title+priority que são recorrentes
- * e gera ocorrências no range de datas se ainda não existirem.
- * 
- * Retorna array de datas das novas ocorrências criadas.
  */
 export async function generateRecurringOccurrence(
   task: {
@@ -165,7 +199,6 @@ export async function generateRecurringOccurrence(
   rangeEnd: string
 ): Promise<string[]> {
   if (!task.recurrence || task.recurrence.type === "never") return [];
-  if (task.recurrence.status === "paused") return [];
 
   // Calcular todas as datas de ocorrência no range
   const allDates = getRecurrenceDates(
@@ -177,10 +210,11 @@ export async function generateRecurringOccurrence(
 
   if (allDates.length === 0) return [];
 
-  // Verificar quais datas já existem
+  // Verificar quais datas já existem (como ocorrência filha ou como a tarefa mãe)
   const { data: existingTasks } = await supabase
     .from("tasks")
-    .select("date, parent_id")
+    .select("date")
+    .eq("user_id", userId)
     .eq("parent_id", task.id)
     .in("date", allDates);
 
@@ -188,15 +222,14 @@ export async function generateRecurringOccurrence(
     (existingTasks || []).map((t: { date: string }) => t.date)
   );
 
-  const missingDates = allDates.filter(d => !existingDates.has(d));
+  // A data base (primeira ocorrência) já existe como a tarefa mãe, não precisa criar
+  const baseDateStr = task.date;
+  const missingDates = allDates.filter(d => d !== baseDateStr && !existingDates.has(d));
 
-  // Remover a data base (primeira ocorrência já existe como a tarefa original)
-  const datesToCreate = missingDates.filter(d => d !== task.date);
-
-  if (datesToCreate.length === 0) return [];
+  if (missingDates.length === 0) return [];
 
   // Criar as ocorrências faltantes
-  const tasksToInsert = datesToCreate.map(date => ({
+  const tasksToInsert = missingDates.map(date => ({
     user_id: userId,
     title: task.title,
     description: task.description,
@@ -216,12 +249,13 @@ export async function generateRecurringOccurrence(
     return [];
   }
 
-  return datesToCreate;
+  return missingDates;
 }
 
 /**
  * Gera ocorrências para TODAS as tarefas recorrentes no range de datas.
  * Chamado quando o usuário navega para uma data ou carrega a página.
+ * Range: de hoje até 60 dias no futuro.
  */
 export async function generateAllRecurringOccurrences(
   selectedDate: string
@@ -229,11 +263,11 @@ export async function generateAllRecurringOccurrences(
   const userId = (await supabase.auth.getUser()).data.user?.id;
   if (!userId) return 0;
 
-  // Range: 30 dias a partir da data selecionada
-  const start = new Date(selectedDate + "T00:00:00");
-  const end = new Date(start);
-  end.setDate(end.getDate() + 30);
-  const endDateStr = dateToString(end);
+  // Range: sempre de hoje até 60 dias no futuro
+  // Isso garante que ocorrências futuras sejam geradas independente da data selecionada
+  const today = new Date();
+  const start = dateToString(today);
+  const end = dateToString(addDays(today, 60));
 
   // Buscar apenas tarefas "mãe" (parent_id IS NULL) que são recorrentes
   const { data: recurringTasks, error } = await supabase
@@ -250,7 +284,6 @@ export async function generateAllRecurringOccurrences(
   for (const task of recurringTasks) {
     const recurrence = task.recurrence as RecurrenceConfig;
     if (!recurrence || recurrence.type === "never") continue;
-    if (recurrence.status === "paused") continue;
 
     const generated = await generateRecurringOccurrence(
       {
@@ -263,8 +296,8 @@ export async function generateAllRecurringOccurrences(
         recurrence,
       },
       userId,
-      selectedDate,
-      endDateStr
+      start,
+      end
     );
 
     totalGenerated += generated.length;
@@ -275,6 +308,7 @@ export async function generateAllRecurringOccurrences(
 
 /**
  * Gera ocorrências imediatamente após criar uma nova tarefa recorrente.
+ * Gera para os próximos 60 dias a partir de hoje.
  */
 export async function generateOccurrenceForNewTask(
   taskId: string,
@@ -291,11 +325,10 @@ export async function generateOccurrenceForNewTask(
   const recurrence = task.recurrence as RecurrenceConfig;
   if (!recurrence || recurrence.type === "never") return [];
 
-  // Gerar para os próximos 30 dias
-  const start = new Date(task.date + "T00:00:00");
-  const end = new Date(start);
-  end.setDate(end.getDate() + 30);
-  const endDateStr = dateToString(end);
+  // Gerar para os próximos 60 dias a partir de hoje
+  const today = new Date();
+  const start = dateToString(today);
+  const end = dateToString(addDays(today, 60));
 
   return generateRecurringOccurrence(
     {
@@ -308,7 +341,7 @@ export async function generateOccurrenceForNewTask(
       recurrence,
     },
     userId,
-    task.date,
-    endDateStr
+    start,
+    end
   );
 }
