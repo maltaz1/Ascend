@@ -52,3 +52,13 @@ export async function getPendingCancellationRequest(): Promise<CancellationReque
 
   return data as CancellationRequest;
 }
+
+export async function cancelCancellationRequest(requestId: string): Promise<{ error: any }> {
+  const { error } = await supabase
+    .from("cancellation_requests")
+    .delete()
+    .eq("id", requestId)
+    .eq("status", "pending");
+
+  return { error };
+}

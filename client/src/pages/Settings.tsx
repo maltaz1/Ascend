@@ -487,7 +487,10 @@ export default function Settings() {
 
               <div className="space-y-4">
                 {pendingRequest ? (
-                  <CancellationStatusCard request={pendingRequest} />
+                  <CancellationStatusCard 
+                    request={pendingRequest} 
+                    onCancelSuccess={loadPendingCancellation} 
+                  />
                 ) : (
                   <>
                     <p className="text-zinc-400 text-sm">
