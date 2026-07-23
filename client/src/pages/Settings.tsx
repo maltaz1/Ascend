@@ -19,6 +19,9 @@ import { notifyError, notifySuccess } from "@/lib/notifications";
 
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { CancellationModal } from "@/components/CancellationModal";
+import { CancellationStatusCard } from "@/components/CancellationStatusCard";
+import { getPendingCancellationRequest, CancellationRequest } from "@/lib/cancellation";
 
 const defaultAvatar = "/user-anon.jpg";
 
@@ -37,10 +40,18 @@ export default function Settings() {
   });
 
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
+  const [isCancellationModalOpen, setIsCancellationModalOpen] = useState(false);
+  const [pendingRequest, setPendingRequest] = useState<CancellationRequest | null>(null);
 
   useEffect(() => {
     loadProfile();
+    loadPendingCancellation();
   }, []);
+
+  async function loadPendingCancellation() {
+    const request = await getPendingCancellationRequest();
+    setPendingRequest(request);
+  }
 
   async function loadProfile() {
     const {
@@ -91,13 +102,8 @@ export default function Settings() {
     window.location.href = "mailto:ascendprod1@gmail.com";
   };
 
-  const handleCancellationRequest = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    const subject = encodeURIComponent("Solicitação de cancelamento - Ascend PRO");
-    const body = encodeURIComponent(
-      `Olá!\n\nGostaria de solicitar o cancelamento da minha assinatura do Ascend PRO.\n\nNome: ${profile.name || "Não informado"}\nE-mail da conta: ${user?.email || "Não informado"}\n\nMotivo do cancelamento (opcional):\n\nObrigado.`
-    );
-    window.location.href = `mailto:ascendprod1@gmail.com?subject=${subject}&body=${body}`;
+  const handleCancellationRequest = () => {
+    setIsCancellationModalOpen(true);
   };
 
   function toggleNotification(type: keyof typeof notifications) {
@@ -480,17 +486,23 @@ export default function Settings() {
               </div>
 
               <div className="space-y-4">
-                <p className="text-zinc-400 text-sm">
-                  Seu acesso ao Ascend PRO continuará disponível até o final do período já pago.
-                </p>
+                {pendingRequest ? (
+                  <CancellationStatusCard request={pendingRequest} />
+                ) : (
+                  <>
+                    <p className="text-zinc-400 text-sm">
+                      Seu acesso ao Ascend PRO continuará disponível até o final do período já pago.
+                    </p>
 
-                <button
-                  onClick={handleCancellationRequest}
-                  className="w-full flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl p-4 hover:bg-red-500/20 transition-all font-bold justify-center"
-                >
-                  <XCircle size={18} />
-                  Solicitar cancelamento
-                </button>
+                    <button
+                      onClick={handleCancellationRequest}
+                      className="w-full flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl p-4 hover:bg-red-500/20 transition-all font-bold justify-center"
+                    >
+                      <XCircle size={18} />
+                      Solicitar cancelamento
+                    </button>
+                  </>
+                )}
               </div>
             </motion.div>
           )}
@@ -516,6 +528,12 @@ export default function Settings() {
           </motion.div>
         </div>
       </div>
+
+      <CancellationModal
+        isOpen={isCancellationModalOpen}
+        onClose={() => setIsCancellationModalOpen(false)}
+        onSuccess={loadPendingCancellation}
+      />
     </div>
   );
 }
