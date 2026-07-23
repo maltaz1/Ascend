@@ -499,10 +499,20 @@ export default function Settings() {
 
                     <button
                       onClick={handleCancellationRequest}
-                      className="w-full flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl p-4 hover:bg-red-500/20 transition-all font-bold justify-center"
+                      className="w-full flex items-center gap-3 bg-zinc-950 border border-zinc-800 rounded-2xl p-4 hover:border-red-500/40 transition-all group justify-center"
                     >
-                      <XCircle size={18} />
-                      Solicitar cancelamento
+                      <div className="flex items-center gap-3">
+                        <div className="w-10 h-10 rounded-xl bg-red-500/10 flex items-center justify-center">
+                          <XCircle size={18} className="text-red-500" />
+                        </div>
+                        <div className="text-left">
+                          <p className="font-medium text-zinc-200">Solicitar cancelamento</p>
+                          <p className="text-xs text-zinc-500">Clique para iniciar o processo</p>
+                        </div>
+                      </div>
+                      <div className="ml-auto bg-red-600 px-4 py-2 rounded-xl text-xs font-bold text-white opacity-0 group-hover:opacity-100 transition-all">
+                        Solicitar
+                      </div>
                     </button>
                   </>
                 )}
