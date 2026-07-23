@@ -13,6 +13,7 @@ import {
   RotateCw,
   History,
   Info,
+  CalendarDays,
 } from "lucide-react";
 
 import { RecurrenceSection } from "@/components/RecurrenceSection";
@@ -804,58 +805,66 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
         }}
         title="Excluir tarefa recorrente"
       >
-        <div className="flex flex-col gap-5">
-          <p className="text-[14px] text-muted-foreground leading-relaxed">
-            Como você deseja excluir <strong className="text-foreground">{deleteRecurringTask?.title}</strong>?
+        <div className="flex flex-col">
+          <p className="text-[13px] text-muted-foreground mb-3" style={{ color: 'var(--muted-foreground)' }}>
+            Como excluir <span className="font-medium" style={{ color: 'var(--foreground)' }}>{deleteRecurringTask?.title}</span>?
           </p>
 
-          <button
-            onClick={() => {
-              handleDeleteAllOccurrences();
-            }}
-            disabled={deletingAll}
-            className="w-full flex items-center gap-3 p-4 rounded-2xl border border-destructive/30 bg-destructive/10 hover:bg-destructive/20 transition-all text-left group disabled:opacity-60"
-          >
-            <div className="w-10 h-10 rounded-xl bg-destructive/20 flex items-center justify-center flex-shrink-0">
-              <Trash2 size={18} className="text-destructive" />
-            </div>
-            <div className="flex-1">
-              <div className="text-[14px] font-bold text-destructive group-hover:text-destructive transition-colors">
-                {deletingAll ? "Excluindo..." : "Excluir de todos os dias"}
+          {/* Container unificado estilo Raycast/Linear */}
+          <div className="rounded-xl border border-border overflow-hidden">
+            {/* Opção: Excluir de todos os dias */}
+            <button
+              onClick={() => {
+                handleDeleteAllOccurrences();
+              }}
+              disabled={deletingAll}
+              className="w-full flex items-center gap-3 py-3.5 px-4 hover:bg-white/5 transition-colors text-left disabled:opacity-60"
+            >
+              <Trash2 size={16} className="flex-shrink-0" style={{ color: '#ef4444' }} />
+              <div className="flex-1 min-w-0">
+                <div className="text-[13px] font-semibold" style={{ color: '#ef4444' }}>
+                  {deletingAll ? "Excluindo..." : "Excluir de todos os dias"}
+                </div>
+                <div className="text-[12px] mt-0.5" style={{ color: 'var(--muted-foreground)', opacity: 0.7 }}>
+                  Remove a recorrência e as ocorrências já criadas
+                </div>
               </div>
-              <div className="text-[12px] text-muted-foreground mt-0.5">
-                Remove a recorrência e todas as ocorrências já criadas
-              </div>
-            </div>
-          </button>
+            </button>
 
-          <button
-            onClick={() => {
-              handleDeleteThisOccurrence();
-            }}
-            disabled={deletingAll}
-            className="w-full flex items-center gap-3 p-4 rounded-2xl border border-border bg-white/5 hover:bg-white/10 transition-all text-left group disabled:opacity-60"
-          >
-            <div className="w-10 h-10 rounded-xl bg-white/10 flex items-center justify-center flex-shrink-0">
-              <AlertCircle size={18} className="text-muted-foreground" />
-            </div>
-            <div className="flex-1">
-              <div className="text-[14px] font-bold text-foreground group-hover:text-foreground transition-colors">
-                {deletingAll ? "Excluindo..." : "Excluir apenas esta ocorrência"}
-              </div>
-              <div className="text-[12px] text-muted-foreground mt-0.5">
-                Remove apenas deste dia, mantém a recorrência nos demais
-              </div>
-            </div>
-          </button>
+            {/* Divisor */}
+            <div className="h-px mx-4" style={{ backgroundColor: 'rgba(255,255,255,0.07)' }} />
 
+            {/* Opção: Excluir apenas esta ocorrência */}
+            <button
+              onClick={() => {
+                handleDeleteThisOccurrence();
+              }}
+              disabled={deletingAll}
+              className="w-full flex items-center gap-3 py-3.5 px-4 hover:bg-white/5 transition-colors text-left disabled:opacity-60"
+            >
+              <CalendarDays size={16} className="flex-shrink-0" style={{ color: 'var(--muted-foreground)' }} />
+              <div className="flex-1 min-w-0">
+                <div className="text-[13px] font-semibold" style={{ color: 'var(--foreground)' }}>
+                  {deletingAll ? "Excluindo..." : "Excluir apenas esta ocorrência"}
+                </div>
+                <div className="text-[12px] mt-0.5" style={{ color: 'var(--muted-foreground)', opacity: 0.7 }}>
+                  Mantém a recorrência nos demais dias
+                </div>
+              </div>
+            </button>
+          </div>
+
+          {/* Botão Cancelar - texto simples */}
           <button
             onClick={() => {
               setDeleteRecurringTask(null);
               setDeletingAll(false);
             }}
             disabled={deletingAll}
-            className="w-full py-3 rounded-xl border border-border text-[13px] font-bold text-muted-foreground hover:text-foreground hover:border-muted-foreground/50 transition-all disabled:opacity-60"
+            className="mt-4 text-[13px] font-medium mx-auto transition-colors disabled:opacity-60"
+            style={{ color: 'var(--muted-foreground)' }}
+            onMouseEnter={e => (e.currentTarget.style.color = 'var(--foreground)')}
+            onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted-foreground)')}
           >
             Cancelar
           </button>
