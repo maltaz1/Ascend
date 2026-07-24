@@ -263,13 +263,16 @@ export async function generateAllRecurringOccurrences(
   const userId = (await supabase.auth.getUser()).data.user?.id;
   if (!userId) return 0;
 
+  console.log("[generateAllRecurringOccurrences] Iniciando geração de ocorrências...");
+  const t0 = performance.now();
+
   // Range: sempre de hoje até 60 dias no futuro
   // Isso garante que ocorrências futuras sejam geradas independente da data selecionada
   const today = new Date();
   const start = dateToString(today);
   const end = dateToString(addDays(today, 60));
 
-  // Buscar apenas tarefas "mãe" (parent_id IS NULL) que são recorrentes
+  // Buscar apenas tarefas “mãe” (parent_id IS NULL) que são recorrentes
   const { data: recurringTasks, error } = await supabase
     .from("tasks")
     .select("id, title, description, priority, category, date, recurrence")
@@ -277,7 +280,17 @@ export async function generateAllRecurringOccurrences(
     .eq("is_recurring", true)
     .eq("user_id", userId);
 
-  if (error || !recurringTasks) return 0;
+  if (error) {
+    console.error("[generateAllRecurringOccurrences] Erro ao buscar tarefas recorrentes:", error);
+    return 0;
+  }
+
+  if (!recurringTasks || recurringTasks.length === 0) {
+    console.log("[generateAllRecurringOccurrences] Nenhuma tarefa recorrente encontrada.");
+    return 0;
+  }
+
+  console.log(`[generateAllRecurringOccurrences] ${recurringTasks.length} tarefas recorrentes encontradas.`);
 
   let totalGenerated = 0;
 
@@ -302,6 +315,9 @@ export async function generateAllRecurringOccurrences(
 
     totalGenerated += generated.length;
   }
+
+  const elapsed = performance.now() - t0;
+  console.log(`[generateAllRecurringOccurrences] Concluído em ${elapsed.toFixed(0)}ms. Total gerado: ${totalGenerated}`);
 
   return totalGenerated;
 }

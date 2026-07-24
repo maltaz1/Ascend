@@ -74,15 +74,28 @@ export function getGoalProgress(goal: Goal): number {
 }
 
 export async function loadGoalsData(): Promise<void> {
+  console.log("[loadGoalsData] Iniciando carregamento de metas...");
+  const t0 = performance.now();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return;
+  if (!user) {
+    console.log("[loadGoalsData] Usuário não autenticado, abortando.");
+    return;
+  }
+
+  console.log("[loadGoalsData] Buscando metas do usuário:", user.id);
+  const t1 = performance.now();
 
   const { data, error } = await supabase.from("goals").select("*").eq("user_id", user.id);
+
+  const t2 = performance.now();
+  console.log(`[loadGoalsData] Metas retornaram em ${(t2 - t1).toFixed(0)}ms. Erro:`, error);
+
   if (error) {
-    console.error("Erro ao carregar metas:", error);
+    console.error("[loadGoalsData] Erro ao carregar metas:", error);
     return;
   }
 
@@ -97,6 +110,9 @@ export async function loadGoalsData(): Promise<void> {
     createdAt: item.created_at,
     completedAt: item.completed_at,
   }));
+
+  const t3 = performance.now();
+  console.log(`[loadGoalsData] Concluído em ${(t3 - t0).toFixed(0)}ms total. Metas carregadas: ${_data.goals.length}`);
 
   notify();
   persistState();

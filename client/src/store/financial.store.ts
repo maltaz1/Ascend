@@ -4,19 +4,30 @@ import { _data, notify, persistState } from "./state";
 import { generateId } from "./utils";
 
 export async function loadFinancialData(): Promise<void> {
+  console.log("[loadFinancialData] Iniciando carregamento de dados financeiros...");
+  const t0 = performance.now();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return;
+  if (!user) {
+    console.log("[loadFinancialData] Usuário não autenticado, abortando.");
+    return;
+  }
 
+  console.log("[loadFinancialData] Buscando transações...");
+  const t1 = performance.now();
   const { data, error } = await supabase
     .from("financial_transactions")
     .select("*")
     .eq("user_id", user.id);
 
+  const t2 = performance.now();
+  console.log(`[loadFinancialData] Transações retornaram em ${(t2 - t1).toFixed(0)}ms. Erro:`, error);
+
   if (error) {
-    console.error("Erro ao carregar finanças:", error);
+    console.error("[loadFinancialData] Erro ao carregar finanças:", error);
     return;
   }
 
@@ -29,6 +40,9 @@ export async function loadFinancialData(): Promise<void> {
     date: item.date,
     createdAt: item.created_at,
   }));
+
+  const t3 = performance.now();
+  console.log(`[loadFinancialData] Concluído em ${(t3 - t0).toFixed(0)}ms total.`);
 
   notify();
   persistState();

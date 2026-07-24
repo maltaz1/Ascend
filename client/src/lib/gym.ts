@@ -89,13 +89,31 @@ export async function addWorkoutSession(session: any) {
 }
 
 export async function loadGymData() {
+  console.log("[loadGymData] Iniciando carregamento de dados de ginásio...");
+  const t0 = performance.now();
+
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) {
+    console.log("[loadGymData] Usuário não autenticado, abortando.");
+    return;
+  }
+
   // TREINOS
+  console.log("[loadGymData] Buscando workouts...");
+  const t1 = performance.now();
   const { data: workouts, error: workoutsError } = await supabase
     .from("workouts")
-    .select("*");
+    .select("*")
+    .eq("user_id", user.id);
+
+  const t2 = performance.now();
+  console.log(`[loadGymData] Workouts retornaram em ${(t2 - t1).toFixed(0)}ms. Erro:`, workoutsError);
 
   if (workoutsError) {
-    console.error(workoutsError);
+    console.error("[loadGymData] Erro ao carregar workouts:", workoutsError);
   } else {
     _data.workouts = (workouts || []).map(workout => ({
       id: workout.id,
@@ -107,13 +125,18 @@ export async function loadGymData() {
   }
 
   // SESSÕES
-
+  console.log("[loadGymData] Buscando workout_sessions...");
+  const t3 = performance.now();
   const { data: sessions, error: sessionsError } = await supabase
     .from("workout_sessions")
-    .select("*");
+    .select("*")
+    .eq("user_id", user.id);
+
+  const t4 = performance.now();
+  console.log(`[loadGymData] Sessions retornaram em ${(t4 - t3).toFixed(0)}ms. Erro:`, sessionsError);
 
   if (sessionsError) {
-    console.error(sessionsError);
+    console.error("[loadGymData] Erro ao carregar sessions:", sessionsError);
   } else {
     _data.workoutSessions = (sessions || []).map(session => ({
       id: session.id,
@@ -126,4 +149,7 @@ export async function loadGymData() {
       completedAt: session.completed_at,
     }));
   }
+
+  const t5 = performance.now();
+  console.log(`[loadGymData] Concluído em ${(t5 - t0).toFixed(0)}ms total.`);
 }
