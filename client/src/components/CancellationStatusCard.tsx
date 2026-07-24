@@ -2,6 +2,7 @@ import React, { useState } from "react";
 import { CancellationRequest, cancelCancellationRequest } from "@/lib/cancellation";
 import { Clock, Undo2, Loader2 } from "lucide-react";
 import { notifySuccess, notifyError } from "@/lib/notifications";
+import { ConfirmDialog } from "./ui/ConfirmDialog";
 
 interface CancellationStatusCardProps {
   request: CancellationRequest;
@@ -10,6 +11,7 @@ interface CancellationStatusCardProps {
 
 export function CancellationStatusCard({ request, onCancelSuccess }: CancellationStatusCardProps) {
   const [isCancelling, setIsCancelling] = useState(false);
+  const [isConfirmDialogOpen, setIsConfirmDialogOpen] = useState(false);
 
   const formattedDate = new Date(request.created_at).toLocaleDateString("pt-BR", {
     day: "2-digit",
@@ -22,8 +24,7 @@ export function CancellationStatusCard({ request, onCancelSuccess }: Cancellatio
   const statusLabel = request.status === "pending" ? "Pendente" : "Processado";
 
   const handleCancelRequest = async () => {
-    if (!confirm("Deseja realmente desistir do cancelamento e manter sua assinatura ativa?")) return;
-
+    setIsConfirmDialogOpen(false);
     setIsCancelling(true);
     try {
       const { error } = await cancelCancellationRequest(request.id);
@@ -67,7 +68,7 @@ export function CancellationStatusCard({ request, onCancelSuccess }: Cancellatio
       </div>
 
       <button
-        onClick={handleCancelRequest}
+        onClick={() => setIsConfirmDialogOpen(true)}
         disabled={isCancelling}
         className="w-full flex items-center justify-center gap-2 bg-zinc-800 hover:bg-zinc-700 text-white font-bold px-5 py-3 rounded-2xl transition-all border border-zinc-700 hover:border-zinc-600"
       >
@@ -78,6 +79,17 @@ export function CancellationStatusCard({ request, onCancelSuccess }: Cancellatio
         )}
         Desistir do cancelamento
       </button>
+
+      <ConfirmDialog
+        open={isConfirmDialogOpen}
+        onOpenChange={setIsConfirmDialogOpen}
+        title="Desistir do cancelamento?"
+        description="Tem certeza que deseja manter sua assinatura ativa? Esta ação removerá sua solicitação de cancelamento atual."
+        confirmLabel="Manter assinatura"
+        cancelLabel="Voltar"
+        onConfirm={handleCancelRequest}
+        loading={isCancelling}
+      />
     </div>
   );
 }
