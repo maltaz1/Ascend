@@ -5,7 +5,17 @@ const RESEND_API_KEY = Deno.env.get('RESEND_API_KEY')
 const SUPABASE_URL = Deno.env.get('SUPABASE_URL')
 const SUPABASE_SERVICE_ROLE_KEY = Deno.env.get('SUPABASE_SERVICE_ROLE_KEY')
 
+const corsHeaders = {
+  'Access-Control-Allow-Origin': '*',
+  'Access-Control-Allow-Headers': 'authorization, x-client-info, apikey, content-type',
+}
+
 serve(async (req) => {
+  // Handle CORS preflight requests
+  if (req.method === 'OPTIONS') {
+    return new Response('ok', { headers: corsHeaders })
+  }
+
   try {
     const payload = await req.json()
     const { record } = payload
@@ -33,7 +43,7 @@ serve(async (req) => {
         'Authorization': `Bearer ${RESEND_API_KEY}`,
       },
       body: JSON.stringify({
-        from: 'Ascend <notifications@resend.dev>', // Substituir pelo domínio configurado em produção
+        from: 'Ascend <notifications@resend.dev>',
         to: ['ascendprod1@gmail.com'],
         subject: `Nova Solicitação de Cancelamento - ${userName}`,
         html: `
@@ -60,12 +70,12 @@ serve(async (req) => {
     const data = await res.json()
 
     return new Response(JSON.stringify(data), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 200,
     })
   } catch (error) {
     return new Response(JSON.stringify({ error: error.message }), {
-      headers: { 'Content-Type': 'application/json' },
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
       status: 500,
     })
   }
