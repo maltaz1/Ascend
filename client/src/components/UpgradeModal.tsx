@@ -85,7 +85,7 @@ export default function UpgradeModal({
               {/* Title */}
               <h2
                 className="mb-2 text-[30px] font-semibold leading-[1.15] text-violet-50"
-                style={{ fontFamily: "'Cormorant Garamond', serif" }}
+                style={{ fontFamily: "'Space Grotesk', sans-serif" }}
               >
                 Ascend <em className="not-italic text-violet-400">PRO</em>
               </h2>

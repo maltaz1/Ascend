@@ -294,9 +294,9 @@ export function Layout({
                             fontSize: 11,
                             padding: "4px 10px",
                             borderRadius: 999,
-                            background: "rgba(168, 85, 247, 0.15)",
-                            border: "1px solid rgba(168, 85, 247, 0.4)",
-                            color: "#A855F7",
+                            background: "rgba(139, 92, 246, 0.12)",
+                            border: "1px solid rgba(139, 92, 246, 0.3)",
+                            color: "#A78BFA",
                             cursor: "pointer",
                             userSelect: "none",
                             whiteSpace: "nowrap",
@@ -364,8 +364,8 @@ export function Layout({
                 gap: 8,
                 padding: "12px 14px",
                 borderRadius: 12,
-                border: "1px solid rgba(168, 85, 247, 0.35)",
-                background: "linear-gradient(135deg, rgba(168, 85, 247, 0.15), rgba(59, 130, 246, 0.15))",
+                border: "1px solid rgba(139, 92, 246, 0.3)",
+                background: "rgba(139, 92, 246, 0.15)",
                 color: "#fff",
                 cursor: "pointer",
                 fontSize: 13,
@@ -434,26 +434,23 @@ export function Layout({
               width: "100%",
               padding: collapsed ? "10px" : "10px 12px",
               borderRadius: 10,
-              background: "linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(59, 130, 246, 0.2))",
-              border: "1.5px solid rgba(168, 85, 247, 0.4)",
-              color: "#A855F7",
+                background: "rgba(139, 92, 246, 0.12)",
+                border: "1.5px solid rgba(139, 92, 246, 0.3)",
+                color: "#A78BFA",
               cursor: "pointer",
               transition: "all 0.3s ease",
               marginTop: !collapsed && data.user.streak > 0 ? 0 : "auto",
               marginBottom: 12,
               gap: collapsed ? 0 : 8,
-              animation: "pulse 2s cubic-bezier(0.4, 0, 0.6, 1) infinite",
-            }}
-            onMouseEnter={e => {
-              e.currentTarget.style.background = "linear-gradient(135deg, rgba(168, 85, 247, 0.3), rgba(59, 130, 246, 0.3))";
-              e.currentTarget.style.borderColor = "rgba(168, 85, 247, 0.6)";
-              e.currentTarget.style.transform = "scale(1.05)";
-            }}
-            onMouseLeave={e => {
-              e.currentTarget.style.background = "linear-gradient(135deg, rgba(168, 85, 247, 0.2), rgba(59, 130, 246, 0.2))";
-              e.currentTarget.style.borderColor = "rgba(168, 85, 247, 0.4)";
-              e.currentTarget.style.transform = "scale(1)";
-            }}
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.background = "rgba(139, 92, 246, 0.2)";
+                e.currentTarget.style.borderColor = "rgba(139, 92, 246, 0.45)";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.background = "rgba(139, 92, 246, 0.12)";
+                e.currentTarget.style.borderColor = "rgba(139, 92, 246, 0.3)";
+              }}
             title={collapsed ? "Instalar App" : undefined}
           >
             {!collapsed ? (
@@ -646,19 +643,19 @@ export function Layout({
                       padding: "14px 16px",
                       borderRadius: 14,
                       background: isActive
-                        ? "rgba(59, 130, 246, 0.1)"
+                        ? "rgba(139, 92, 246, 0.12)"
                         : "transparent",
                       border: "1px solid transparent",
-                      color: isActive ? "#3B82F6" : "rgba(255,255,255,0.65)",
+                      color: isActive ? "#8B5CF6" : "rgba(255,255,255,0.65)",
                       cursor: "pointer",
                       transition: "all 0.2s ease",
-                      fontFamily: "Sora",
+                      fontFamily: "DM Sans",
                       fontSize: 15,
                       fontWeight: isActive ? 600 : 400,
                       textAlign: "left",
                     }}
                   >
-                    <Icon size={20} style={{ flexShrink: 0, color: isActive ? "#3B82F6" : "inherit" }} />
+                    <Icon size={20} style={{ flexShrink: 0, color: isActive ? "#8B5CF6" : "inherit" }} />
                     <div className="flex-1 flex items-center justify-between">
                       <span>{item.label}</span>
 
