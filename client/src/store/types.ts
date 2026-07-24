@@ -1,3 +1,5 @@
+import type { RecurrenceConfig } from "@/types/recurrence";
+
 export interface Task {
   id: string;
   title: string;
@@ -7,6 +9,8 @@ export interface Task {
   priority: "low" | "medium" | "high";
   category?: string;
   createdAt: string;
+  isRecurring?: boolean;
+  recurrence?: RecurrenceConfig;
 }
 
 export interface GoalStep {

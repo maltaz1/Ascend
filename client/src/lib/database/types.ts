@@ -7,6 +7,9 @@ export interface TaskDatabaseRow {
   completed: boolean;
   priority: "low" | "medium" | "high";
   category?: string;
+  is_recurring: boolean;
+  recurrence?: Record<string, unknown>;
+  parent_id?: string;
   created_at: string;
 }
 

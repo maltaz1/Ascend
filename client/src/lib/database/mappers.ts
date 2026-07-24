@@ -14,6 +14,7 @@ import type {
   Meal,
   FinancialTransaction,
 } from "@/store/types";
+import type { RecurrenceConfig } from "@/types/recurrence";
 
 export function taskFromRow(row: TaskDatabaseRow): Task {
   return {
@@ -25,6 +26,8 @@ export function taskFromRow(row: TaskDatabaseRow): Task {
     priority: row.priority,
     category: row.category,
     createdAt: row.created_at,
+    isRecurring: row.is_recurring ?? false,
+    recurrence: row.recurrence as RecurrenceConfig | undefined,
   };
 }
 

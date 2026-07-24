@@ -9,7 +9,7 @@ interface ModalProps {
   maxWidth?: string;
 }
 
-export function Modal({ open, onClose, title, children, maxWidth = '480px' }: ModalProps) {
+export function Modal({ open, onClose, title, children, maxWidth = '420px' }: ModalProps) {
   useEffect(() => {
     if (open) {
       document.body.style.overflow = 'hidden';
@@ -34,7 +34,7 @@ export function Modal({ open, onClose, title, children, maxWidth = '480px' }: Mo
       <div className="fz-modal" style={{ maxWidth }}>
         {title && (
           <div className="flex items-center justify-between mb-6">
-            <h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: '20px', color: 'rgba(255,255,255,0.95)' }}>
+            <h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 500, fontSize: '20px', color: 'rgba(255,255,255,0.95)' }}>
               {title}
             </h2>
             <button

@@ -21,6 +21,7 @@ import {
   Download,
   AlertCircle,
   FileText,
+  RotateCw,
 } from "lucide-react";
 import { FREE_TABS } from "@/config/planLimits";
 import { useStore } from "@/hooks/useStore";
