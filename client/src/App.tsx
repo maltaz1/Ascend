@@ -185,6 +185,9 @@ function App() {
   };
 
   async function preloadStartupData(): Promise<void> {
+    console.log("[preloadStartupData] Iniciando carregamento de todos os loaders...");
+    const t0 = performance.now();
+
     const loaders = [
       { name: "gym", fn: loadGymData },
       { name: "diet", fn: loadDietData },
@@ -193,15 +196,26 @@ function App() {
       { name: "goals", fn: loadGoalsData },
     ];
 
-    await Promise.allSettled(
+    const results = await Promise.allSettled(
       loaders.map(async ({ name, fn }) => {
+        const start = performance.now();
+        console.log(`[preloadStartupData] Loader "${name}" iniciado...`);
         try {
           await timeoutPromise(fn(), 7000);
+          const elapsed = performance.now() - start;
+          console.log(`[preloadStartupData] Loader "${name}" concluído em ${elapsed.toFixed(0)}ms`);
         } catch (error) {
-          console.warn(`Startup data loader ${name} falhou`, error);
+          const elapsed = performance.now() - start;
+          console.warn(`[preloadStartupData] Loader "${name}" falhou após ${elapsed.toFixed(0)}ms`, error);
         }
       })
     );
+
+    const total = performance.now() - t0;
+    console.log(`[preloadStartupData] Todos os loaders finalizados em ${total.toFixed(0)}ms total`);
+    results.forEach((r, i) => {
+      console.log(`[preloadStartupData]   ${loaders[i].name}: ${r.status}`);
+    });
   }
 
   useEffect(() => {

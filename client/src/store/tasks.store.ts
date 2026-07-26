@@ -201,21 +201,36 @@ export function getTaskStatus(task: Task): "completed" | "pending" | "overdue" {
 }
 
 export async function loadTasksData(): Promise<void> {
+  console.log("[loadTasksData] Iniciando carregamento de tarefas...");
+  const t0 = performance.now();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return;
+  if (!user) {
+    console.log("[loadTasksData] Usuário não autenticado, abortando.");
+    return;
+  }
+
+  console.log("[loadTasksData] Buscando tarefas do usuário:", user.id);
+  const t1 = performance.now();
 
   const { data, error } = await supabase
     .from("tasks")
-    .select("*")
-    .eq("user_id", user.id);
+    .select("id, title, description, date, completed, priority, category, created_at, is_recurring, recurrence")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  const t2 = performance.now();
+  console.log(`[loadTasksData] Query retornou em ${(t2 - t1).toFixed(0)}ms. Erro:`, error);
 
   if (error) {
-    console.error("Erro ao carregar tarefas:", error);
+    console.error("[loadTasksData] Erro ao carregar tarefas:", error);
     return;
   }
+
+  console.log(`[loadTasksData] Mapeando ${(data || []).length} tarefas...`);
 
   _data.tasks = (data || []).map(task => ({
     id: task.id,
@@ -229,6 +244,9 @@ export async function loadTasksData(): Promise<void> {
     isRecurring: task.is_recurring ?? false,
     recurrence: task.recurrence as Record<string, unknown> | undefined,
   }));
+
+  const t3 = performance.now();
+  console.log(`[loadTasksData] Concluído em ${(t3 - t0).toFixed(0)}ms total. Tarefas carregadas: ${_data.tasks.length}`);
 
   notify();
   persistState();

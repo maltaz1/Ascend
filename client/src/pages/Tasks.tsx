@@ -567,14 +567,32 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
   const [generating, setGenerating] = useState(false);
 
   const fetchTasks = useCallback(async () => {
+    console.log("[fetchTasks] Iniciando busca de tarefas...");
+    const t0 = performance.now();
+
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      console.log("[fetchTasks] Usuário não autenticado, abortando.");
+      return;
+    }
+
+    const t1 = performance.now();
+    console.log(`[fetchTasks] Auth resolvida em ${(t1 - t0).toFixed(0)}ms. Buscando tarefas...`);
+
     const { data, error } = await supabase
       .from("tasks")
       .select("*")
+      .eq("user_id", userData.user.id)
       .order("created_at", { ascending: false });
+
+    const t2 = performance.now();
+    console.log(`[fetchTasks] Query retornou em ${(t2 - t1).toFixed(0)}ms. Total: ${(data || []).length} tarefas. Erro:`, error);
 
     if (!error && data) {
       setTasks(data.map(task => normalizeTask(task as Record<string, unknown>)));
     }
+
+    console.log(`[fetchTasks] Concluído em ${(performance.now() - t0).toFixed(0)}ms total`);
   }, []);
 
   // Quando seleciona uma nova data, gerar ocorrências recorrentes para os próximos 30 dias
@@ -596,16 +614,36 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
 
   useEffect(() => {
     // Ao carregar, gerar ocorrências para hoje e buscar tarefas
+    // IMPORTANTE: gerar ocorrências assíncronamente SEM bloquear a UI
+    // e buscar tarefas localmente (que já inclui ocorrências existentes)
     const init = async () => {
-      setGenerating(true);
-      try {
-        await generateAllRecurringOccurrences(today);
-        await fetchTasks();
-      } catch (err) {
-        console.error("Erro ao inicializar:", err);
-      } finally {
-        setGenerating(false);
-      }
+      console.log("[Tasks] useEffect init - carregando tarefas locais...");
+      // Primeiro carrega as tarefas que já existem
+      await fetchTasks();
+
+      console.log("[Tasks] useEffect init - gerando ocorrências recorrentes em background...");
+      // Depois gera ocorrências faltantes em background (fire-and-forget)
+      // Não bloqueia a UI, não espera o resultado
+      const generatePromise = (async () => {
+        const t0 = performance.now();
+        setGenerating(true);
+        try {
+          const generated = await generateAllRecurringOccurrences(today);
+          const elapsed = performance.now() - t0;
+          console.log(`[Tasks] Ocorrências geradas: ${generated} em ${elapsed.toFixed(0)}ms`);
+          if (generated > 0) {
+            // Se gerou novas ocorrências, recarrega as tarefas
+            await fetchTasks();
+          }
+        } catch (err) {
+          console.error("[Tasks] Erro ao gerar ocorrências:", err);
+        } finally {
+          setGenerating(false);
+        }
+      })();
+
+      // Não fazemos await aqui para não bloquear a renderização
+      void generatePromise;
     };
     init();
   }, [fetchTasks, today]);

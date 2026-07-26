@@ -4,19 +4,30 @@ import { _data, notify, persistState } from "./state";
 import { generateId, getTodayString } from "./utils";
 
 export async function loadDietData(): Promise<void> {
+  console.log("[loadDietData] Iniciando carregamento de dados de dieta...");
+  const t0 = performance.now();
+
   const {
     data: { user },
   } = await supabase.auth.getUser();
 
-  if (!user) return;
+  if (!user) {
+    console.log("[loadDietData] Usuário não autenticado, abortando.");
+    return;
+  }
 
+  console.log("[loadDietData] Buscando refeições...");
+  const t1 = performance.now();
   const { data: mealsData, error: mealsError } = await supabase
     .from("meals")
     .select("*")
     .eq("user_id", user.id);
 
+  const t2 = performance.now();
+  console.log(`[loadDietData] Refeições retornaram em ${(t2 - t1).toFixed(0)}ms. Erro:`, mealsError);
+
   if (mealsError) {
-    console.error("Erro ao carregar refeições:", mealsError);
+    console.error("[loadDietData] Erro ao carregar refeições:", mealsError);
     return;
   }
 
@@ -32,13 +43,18 @@ export async function loadDietData(): Promise<void> {
     timestamp: meal.timestamp,
   }));
 
+  console.log("[loadDietData] Buscando hidratação...");
+  const t3 = performance.now();
   const { data: hydrationData, error: hydrationError } = await supabase
     .from("hydration_logs")
     .select("*")
     .eq("user_id", user.id);
 
+  const t4 = performance.now();
+  console.log(`[loadDietData] Hidratação retornou em ${(t4 - t3).toFixed(0)}ms. Erro:`, hydrationError);
+
   if (hydrationError) {
-    console.error("Erro ao carregar hidratação:", hydrationError);
+    console.error("[loadDietData] Erro ao carregar hidratação:", hydrationError);
     return;
   }
 
@@ -48,11 +64,16 @@ export async function loadDietData(): Promise<void> {
     goal: h.goal,
   }));
 
+  console.log("[loadDietData] Buscando configurações de dieta...");
+  const t5 = performance.now();
   const { data: settingsData } = await supabase
     .from("diet_settings")
     .select("*")
     .eq("user_id", user.id)
     .single();
+
+  const t6 = performance.now();
+  console.log(`[loadDietData] Settings retornaram em ${(t6 - t5).toFixed(0)}ms.`);
 
   if (settingsData) {
     _data.diet.settings = {
@@ -65,6 +86,9 @@ export async function loadDietData(): Promise<void> {
       preferences: settingsData.preferences || [],
     };
   }
+
+  const t7 = performance.now();
+  console.log(`[loadDietData] Concluído em ${(t7 - t0).toFixed(0)}ms total.`);
 
   notify();
   persistState();
