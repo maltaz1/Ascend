@@ -16,6 +16,7 @@ export interface RecurrenceConfig {
   nextOccurrence?: string; // YYYY-MM-DD
   createdAt?: string;
   updatedAt?: string;
+  exceptions?: string[]; // YYYY-MM-DD - datas onde a recorrência foi excluída
 }
 
 export interface RecurringTask {

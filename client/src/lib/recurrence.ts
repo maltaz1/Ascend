@@ -42,6 +42,9 @@ export function getRecurrenceDates(
 
   if (effectiveStart > end) return [];
 
+  // Converter exceções em um Set para busca rápida
+  const exceptions = new Set(recurrence.exceptions || []);
+
   const dates: string[] = [];
   let occurrenceCount = 0;
 
@@ -55,7 +58,8 @@ export function getRecurrenceDates(
       break;
     }
 
-    if (shouldGenerateOccurrence(recurrence, current, base, occurrenceCount)) {
+    // Pular datas que foram excluídas
+    if (!exceptions.has(currentStr) && shouldGenerateOccurrence(recurrence, current, base, occurrenceCount)) {
       dates.push(currentStr);
       occurrenceCount++;
     }
