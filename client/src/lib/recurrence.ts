@@ -42,6 +42,9 @@ export function getRecurrenceDates(
 
   if (effectiveStart > end) return [];
 
+  // Converter exceções em um Set para busca rápida
+  const exceptions = new Set(recurrence.exceptions || []);
+
   const dates: string[] = [];
   let occurrenceCount = 0;
 
@@ -55,7 +58,8 @@ export function getRecurrenceDates(
       break;
     }
 
-    if (shouldGenerateOccurrence(recurrence, current, base, occurrenceCount)) {
+    // Pular datas que foram excluídas
+    if (!exceptions.has(currentStr) && shouldGenerateOccurrence(recurrence, current, base, occurrenceCount)) {
       dates.push(currentStr);
       occurrenceCount++;
     }
@@ -213,7 +217,7 @@ export async function generateRecurringOccurrence(
   // Verificar quais datas já existem (como ocorrência filha ou como a tarefa mãe)
   const { data: existingTasks } = await supabase
     .from("tasks")
-    .select("date")
+    .select("date, id")
     .eq("user_id", userId)
     .eq("parent_id", task.id)
     .in("date", allDates);
@@ -223,8 +227,10 @@ export async function generateRecurringOccurrence(
   );
 
   // A data base (primeira ocorrência) já existe como a tarefa mãe, não precisa criar
+  // Também pular datas que estão nas exceções da recorrência
   const baseDateStr = task.date;
-  const missingDates = allDates.filter(d => d !== baseDateStr && !existingDates.has(d));
+  const exceptions = new Set(task.recurrence.exceptions || []);
+  const missingDates = allDates.filter(d => d !== baseDateStr && !existingDates.has(d) && !exceptions.has(d));
 
   if (missingDates.length === 0) return [];
 
