@@ -653,7 +653,48 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
 
   const handleDeleteThisOccurrence = async () => {
     if (!deleteRecurringTask) return;
-    // Deletar apenas esta ocorrência (seja mãe ou filha)
+
+    // Se é uma tarefa filha (tem parentId), apenas deletar a ocorrência
+    if (deleteRecurringTask.parentId) {
+      const { error } = await supabase.from("tasks").delete().eq("id", deleteRecurringTask.id);
+      if (!error) {
+        // Adicionar a data às exceções da tarefa-mãe
+        const parentTask = tasks.find(t => t.id === deleteRecurringTask.parentId);
+        if (parentTask && parentTask.recurrence) {
+          const updatedRecurrence = {
+            ...parentTask.recurrence,
+            exceptions: [...(parentTask.recurrence.exceptions || []), deleteRecurringTask.date]
+          };
+          await supabase
+            .from("tasks")
+            .update({ recurrence: updatedRecurrence })
+            .eq("id", deleteRecurringTask.parentId);
+        }
+        fetchTasks();
+      }
+      setDeleteRecurringTask(null);
+      showToast("Ocorrência excluída deste dia", "success");
+      return;
+    }
+
+    // Se é a tarefa-mãe (parentId é null) e é recorrente, converter para ocorrência filha
+    // e adicionar a data às exceções
+    if (deleteRecurringTask.isRecurring && deleteRecurringTask.recurrence) {
+      const updatedRecurrence = {
+        ...deleteRecurringTask.recurrence,
+        exceptions: [...(deleteRecurringTask.recurrence.exceptions || []), deleteRecurringTask.date]
+      };
+      const { error } = await supabase
+        .from("tasks")
+        .update({ recurrence: updatedRecurrence })
+        .eq("id", deleteRecurringTask.id);
+      if (!error) fetchTasks();
+      setDeleteRecurringTask(null);
+      showToast("Ocorrência excluída deste dia", "success");
+      return;
+    }
+
+    // Fallback: deletar tarefa normal
     const { error } = await supabase.from("tasks").delete().eq("id", deleteRecurringTask.id);
     if (!error) fetchTasks();
     setDeleteRecurringTask(null);
@@ -663,17 +704,18 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
   const handleDeleteAllOccurrences = async () => {
     if (!deleteRecurringTask) return;
     setDeletingAll(true);
-    // Precisa encontrar a mãe para deletar via cascade
-    const taskToDelete = deleteRecurringTask.parentId
-      ? tasks.find(t => t.id === deleteRecurringTask.parentId)
-      : deleteRecurringTask;
     
-    if (taskToDelete) {
-      // Deletar a mãe → cascade deleta todas as ocorrências
-      const { error } = await supabase.from("tasks").delete().eq("id", taskToDelete.id);
+    // Encontrar a tarefa-mãe (aquela com parentId === null)
+    const parentTask = deleteRecurringTask.parentId
+      ? tasks.find(t => t.id === deleteRecurringTask.parentId)
+      : deleteRecurringTask.isRecurring ? deleteRecurringTask : null;
+    
+    if (parentTask) {
+      // Deletar a tarefa-mãe → cascade deleta todas as ocorrências filhas
+      const { error } = await supabase.from("tasks").delete().eq("id", parentTask.id);
       if (!error) fetchTasks();
     } else {
-      // Fallback: deletar apenas esta
+      // Fallback: deletar apenas esta tarefa (não recorrente)
       const { error } = await supabase.from("tasks").delete().eq("id", deleteRecurringTask.id);
       if (!error) fetchTasks();
     }
