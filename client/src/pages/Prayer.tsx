@@ -344,13 +344,7 @@ const loadFavorites = async () => {
                   </p>
                 </div>
 
-                <div style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))',
-                  gap: 10,
-                  width: '100%',
-                  maxWidth: 500,
-                }}>
+                <div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2.5 w-full max-w-[500px]">
                   {PRAYER_SUGGESTIONS.map((suggestion, idx) => (
                     <button
                       key={idx}
@@ -437,7 +431,7 @@ const loadFavorites = async () => {
                           style={{
                             background: 'transparent',
                             border: 'none',
-                            color: favoritePrayers.some(p => p.content === msg.content) ? '#3B82F6' : 'var(--muted-foreground)',
+                            color: favoritePrayers.some(p => p.content === msg.content) ? '#8B5CF6' : 'var(--muted-foreground)',
                             cursor: 'pointer',
                             padding: '4px',
                             display: 'flex',
@@ -446,10 +440,10 @@ const loadFavorites = async () => {
                             transition: 'color 0.2s',
                           }}
                           onMouseEnter={(e) => {
-                            e.currentTarget.style.color = '#3B82F6';
+                            e.currentTarget.style.color = '#8B5CF6';
                           }}
                           onMouseLeave={(e) => {
-                            e.currentTarget.style.color = favoritePrayers.some(p => p.content === msg.content) ? '#3B82F6' : 'var(--muted-foreground)';
+                            e.currentTarget.style.color = favoritePrayers.some(p => p.content === msg.content) ? '#8B5CF6' : 'var(--muted-foreground)';
                           }}
                           title={favoritePrayers.some(p => p.content === msg.content) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
                         >
@@ -651,20 +645,7 @@ const loadFavorites = async () => {
         </div>
       )}
 
-      <style>{`
-        @media (max-width: 768px) {
-          div[style*="maxWidth: 500px"] {
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important;
-          }
-          div[style*="maxWidth: 75%"] {
-            max-width: 85% !important;
-          }
-        }
-        @keyframes pulse {
-          0%, 100% { opacity: 0.3; }
-          50% { opacity: 1; }
-        }
-      `}</style>
+
     </div>
   );
 }

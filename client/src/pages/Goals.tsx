@@ -89,7 +89,7 @@ const COLORS = [
   "#F59E0B",
   "#A855F7",
   "#10B981",
-  "#3B82F6",
+  "#8B5CF6",
   "#EF4444",
   "#EC4899",
   "#06B6D4",
@@ -122,10 +122,10 @@ const GOAL_COLORS_MAP: Record<
     light: "rgba(16,185,129,0.08)",
   },
 
-  "#3B82F6": {
-    gradient: "linear-gradient(135deg, #3B82F6, #60A5FA)",
-    glow: "rgba(59,130,246,0.2)",
-    light: "rgba(59,130,246,0.08)",
+  "#8B5CF6": {
+    gradient: "linear-gradient(135deg, #8B5CF6, #A78BFA)",
+    glow: "rgba(139,92,246,0.2)",
+    light: "rgba(139,92,246,0.08)",
   },
 
   "#EF4444": {

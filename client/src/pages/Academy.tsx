@@ -264,13 +264,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
     <div className="animate-fade-in">
       {/* Summary Cards */}
       <div
-        className="academy-summary"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "repeat(auto-fit, minmax(180px, 1fr))",
-          gap: 16,
-          marginBottom: 28,
-        }}
+        className="grid gap-4 mb-7 grid-cols-[repeat(auto-fit,minmax(180px,1fr))] md:gap-6 md:mb-8 sm:gap-3"
       >
         <div
           className="fz-card"
@@ -295,7 +289,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
           <div style={{ fontSize: 24, marginBottom: 8 }}>📋</div>
           <div
             className="fz-metric-number"
-            style={{ fontSize: 28, color: "#3B82F6", marginBottom: 4 }}
+            style={{ fontSize: 28, color: "#8B5CF6", marginBottom: 4 }}
           >
             <AnimatedCounter value={stats.totalWorkoutPlans} />
           </div>
@@ -322,7 +316,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
       </div>
 
       {/* Main Layout */}
-      <div className="academy-main-grid">
+      <div className="grid gap-6 lg:grid-cols-[1fr_350px] grid-cols-1 md:gap-4">
         {/* Workouts Section */}
         <div>
           <div
@@ -838,7 +832,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
                     >
                       Exercícios
                     </div>
-                    <div style={{ color: "#3B82F6", fontWeight: 600 }}>
+                    <div style={{ color: "#8B5CF6", fontWeight: 600 }}>
                       {session.exercises.length}
                     </div>
                   </div>
@@ -1301,7 +1295,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
                               Séries:
                               <span
                                 style={{
-                                  color: "#3B82F6",
+                                  color: "#8B5CF6",
                                   marginLeft: 4,
                                   fontWeight: 700,
                                 }}
@@ -1401,7 +1395,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
                                 height: 36,
                                 borderRadius: 12,
                                 background:
-                                  "linear-gradient(135deg,#3B82F6,#2563EB)",
+                                  "linear-gradient(135deg,#8B5CF6,#7C3AED)",
                                 display: "flex",
                                 alignItems: "center",
                                 justifyContent: "center",
@@ -1584,12 +1578,12 @@ export default function Academy({ onTabChange }: AcademyProps) {
                   height: 58,
                   borderRadius: 18,
                   border: "none",
-                  background: "linear-gradient(135deg,#3B82F6,#2563EB)",
+                  background: "linear-gradient(135deg,#8B5CF6,#7C3AED)",
                   color: "white",
                   fontSize: 18,
                   fontWeight: 800,
                   cursor: "pointer",
-                  boxShadow: "0 10px 30px rgba(59,130,246,0.3)",
+                  boxShadow: "0 10px 30px rgba(139,92,246,0.3)",
                 }}
               >
                 ✓ Finalizar Treino (+{XP_PER_WORKOUT} XP)
@@ -1599,30 +1593,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
         )}
       </Modal>
 
-      {/* Media queries */}
       <style>{`
-        .academy-main-grid {
-          display: grid;
-          grid-template-columns: 1fr;
-          gap: 24px;
-        }
-        @media (min-width: 1024px) {
-          .academy-main-grid {
-            grid-template-columns: 1fr 350px;
-          }
-        }
-        @media (max-width: 1024px) {
-          .academy-main-grid { grid-template-columns: 1fr !important; }
-        }
-        @media (max-width: 768px) {
-          .academy-summary { grid-template-columns: 1fr !important; }
-          .academy-main-grid { grid-template-columns: 1fr !important; }
-        }
-        @media (max-width: 480px) {
-          .academy-summary { gap: 12px !important; }
-          .academy-main-grid { gap: 16px !important; }
-        }
-
         /* Modal — garante que não corta conteúdo no mobile */
         .fz-modal-content {
           width: min(92vw, 500px) !important;

@@ -112,7 +112,7 @@ export default function Settings() {
   }
 
   const cardClass =
-    "bg-zinc-900/80 border border-zinc-800 rounded-3xl p-6 hover:border-[#3B82F6]/40 hover:bg-zinc-800/60 transition-all";
+    "bg-zinc-900/80 border border-zinc-800 rounded-3xl p-6 hover:border-[#8B5CF6]/40 hover:bg-zinc-800/60 transition-all";
 
   async function resetPassword() {
     const {
@@ -239,7 +239,7 @@ export default function Settings() {
           {/* PERFIL */}
           <motion.div whileHover={{ scale: 1.01 }} className={cardClass}>
             <div className="flex items-center gap-3 mb-5">
-              <User className="text-[#3B82F6]" />
+              <User className="text-[#8B5CF6]" />
               <h2 className="text-2xl font-bold">👤 Perfil</h2>
             </div>
 
@@ -261,10 +261,10 @@ export default function Settings() {
                 <div className="flex items-center gap-4">
                   <img
                     src={profile.avatar}
-                    className="w-24 h-24 rounded-full object-cover border-4 border-[#3B82F6]"
+                    className="w-24 h-24 rounded-full object-cover border-4 border-[#8B5CF6]"
                   />
 
-                  <label className="cursor-pointer bg-[#3B82F6] hover:bg-[#2563EB] transition-all px-5 py-3 rounded-2xl font-semibold text-white">
+                  <label className="cursor-pointer bg-[#8B5CF6] hover:bg-[#7C3AED] transition-all px-5 py-3 rounded-2xl font-semibold text-white">
                     Escolher Foto
                     <input
                       type="file"
@@ -293,7 +293,7 @@ export default function Settings() {
 
               <button
                 onClick={saveProfile}
-                className="bg-[#3B82F6] hover:bg-[#2563EB] text-white font-bold px-5 py-3 rounded-2xl flex items-center gap-2 transition-all shadow-lg shadow-[#3B82F6]/20 hover:shadow-[#3B82F6]/30"
+                className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold px-5 py-3 rounded-2xl flex items-center gap-2 transition-all shadow-lg shadow-[#8B5CF6]/20 hover:shadow-[#8B5CF6]/30"
               >
                 <Save size={18} />
                 Salvar Perfil
@@ -322,7 +322,7 @@ export default function Settings() {
                   onClick={toggleAnimations}
                   className={`px-4 py-2 rounded-xl font-medium transition-all ${
                     animationsEnabled
-                      ? "bg-[#3B82F6] text-white shadow-lg shadow-[#3B82F6]/20"
+                      ? "bg-[#8B5CF6] text-white shadow-lg shadow-[#8B5CF6]/20"
                       : "bg-zinc-700"
                   }`}
                 >
@@ -366,7 +366,7 @@ export default function Settings() {
                     }
                     className={`w-14 h-7 rounded-full relative transition-all ${
                       notifications[item.key as keyof typeof notifications]
-                        ? "bg-[#3B82F6] shadow-lg shadow-[#3B82F6]/30"
+                        ? "bg-[#8B5CF6] shadow-lg shadow-[#8B5CF6]/30"
                         : "bg-zinc-700"
                     }`}
                   >
@@ -393,7 +393,7 @@ export default function Settings() {
             <div className="space-y-4">
               <button
                 onClick={resetPassword}
-                className="w-full flex items-center gap-3 bg-zinc-950 border border-zinc-800 rounded-2xl p-4 hover:border-[#3B82F6]/40 transition-all"
+                className="w-full flex items-center gap-3 bg-zinc-950 border border-zinc-800 rounded-2xl p-4 hover:border-[#8B5CF6]/40 transition-all"
               >
                 <Lock />
                 Alterar senha
@@ -510,7 +510,7 @@ export default function Settings() {
 
               <div className="flex justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
                 <span>Status</span>
-                <span className="text-[#3B82F6]">Online</span>
+                <span className="text-[#8B5CF6]">Online</span>
               </div>
             </div>
           </motion.div>

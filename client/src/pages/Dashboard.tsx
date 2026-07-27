@@ -27,33 +27,7 @@ import { supabase } from "@/lib/supabase";
 
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 
-const dashboardChartsResponsiveStyle = `
-  .dashboard-charts-responsive {
-    display: flex;
-    gap: 24px;
-    margin-bottom: 0;
-    flex-wrap: wrap;
-  }
 
-  .dashboard-chart-item {
-    flex: 1;
-    min-width: 320px;
-    padding: 22px 24px;
-    box-sizing: border-box;
-  }
-
-  @media (max-width: 1100px) {
-    .dashboard-charts-responsive {
-      flex-direction: column;
-      gap: 16px;
-    }
-
-    .dashboard-chart-item {
-      min-width: 0 !important;
-      width: 100%;
-    }
-  }
-`;
 
 function toYYYYMMDD(date: Date) {
   const year = date.getFullYear();
@@ -389,7 +363,7 @@ export default function Dashboard() {
             position: "absolute",
             inset: 0,
             background:
-              "linear-gradient(135deg, rgba(7,10,20,0.85) 0%, rgba(15,23,42,0.65) 50%, rgba(88,28,135,0.45) 100%)",
+              "linear-gradient(135deg, rgba(15,23,42,0.85) 0%, rgba(88,28,135,0.45) 100%)"
           }}
         />
 
@@ -450,7 +424,7 @@ export default function Dashboard() {
                   width: `${xpPercent}%`,
                   height: "100%",
                   background:
-                    "linear-gradient(90deg,#38BDF8 0%, #3B82F6 45%, #A855F7 100%)",
+                    "linear-gradient(90deg,#38BDF8 0%, #8B5CF6 45%, #A855F7 100%)",
                 }}
               />
             </div>
@@ -472,7 +446,7 @@ export default function Dashboard() {
           label="XP Total"
           value={totalXP}
           sub={`Nível ${profile?.level || 1}`}
-          color="#3B82F6"
+          color="#8B5CF6"
           trend="up"
         />
 
@@ -505,10 +479,8 @@ export default function Dashboard() {
       </div>
 
       {/* CHARTS */}
-      <style>{dashboardChartsResponsiveStyle}</style>
-
-      <div className="dashboard-charts-responsive">
-        <div className="fz-card dashboard-chart-item">
+      <div className="flex flex-wrap gap-6 mb-0 lg:flex-row flex-col">
+        <div className="fz-card flex-1 min-w-[320px] p-5 lg:p-6 box-border min-w-0 lg:min-w-[320px] w-full lg:w-auto">
           <div
             style={{
               display: "flex",
@@ -517,7 +489,7 @@ export default function Dashboard() {
               marginBottom: 20,
             }}
           >
-            <TrendingUp size={16} color="#3B82F6" />
+            <TrendingUp size={16} color="#8B5CF6" />
             <h3
               style={{
                 fontWeight: 700,
@@ -531,8 +503,8 @@ export default function Dashboard() {
             <AreaChart data={activityData}>
               <defs>
                 <linearGradient id="gradTasks" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.3} />
-                  <stop offset="95%" stopColor="#3B82F6" stopOpacity={0} />
+                  <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.3} />
+                  <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
                 </linearGradient>
                 <linearGradient id="gradHabits" x1="0" y1="0" x2="0" y2="1">
                   <stop offset="5%" stopColor="#A855F7" stopOpacity={0.3} />
@@ -548,7 +520,7 @@ export default function Dashboard() {
                 type="monotone"
                 dataKey="tasks"
                 name="Tarefas"
-                stroke="#3B82F6"
+                stroke="#8B5CF6"
                 fill="url(#gradTasks)"
               />
               <Area
@@ -561,7 +533,7 @@ export default function Dashboard() {
             </AreaChart>
           </ResponsiveContainer>
         </div>
-        <div className="fz-card dashboard-chart-item">
+        <div className="fz-card flex-1 min-w-[320px] p-5 lg:p-6 box-border min-w-0 lg:min-w-[320px] w-full lg:w-auto">
           <div
             style={{
               display: "flex",
@@ -590,7 +562,7 @@ export default function Dashboard() {
               <Bar
                 dataKey="tasks"
                 name="Tarefas"
-                fill="#3B82F6"
+                fill="#8B5CF6"
                 radius={[4, 4, 0, 0]}
               />
               <Bar

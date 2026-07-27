@@ -551,14 +551,7 @@ function AddFoodModal({
         </div>
 
         {/* Nutrition Inputs */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 12,
-            width: "100%",
-          }}
-        >
+        <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full">
           <div style={{ minWidth: 0 }}>
             <label
               style={{
@@ -1067,13 +1060,7 @@ export default function Diet() {
       </div>
 
       {/* Nutrition Summary */}
-      <div
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr 1fr 1fr",
-          gap: 12,
-        }}
-      >
+      <div className="grid grid-cols-2 sm:grid-cols-4 gap-3">
         <NutritionCircle
           value={todayNutrition.protein}
           goal={dietSettings.proteinGoal}
@@ -1084,7 +1071,7 @@ export default function Diet() {
           value={todayNutrition.carbs}
           goal={dietSettings.carbsGoal}
           label="Carboidratos"
-          color="#3B82F6"
+          color="#8B5CF6"
         />
         <NutritionCircle
           value={todayNutrition.fat}
@@ -1103,8 +1090,8 @@ export default function Diet() {
       {/* Hydration */}
       <div
         style={{
-          background: "rgba(59,182,246,0.1)",
-          border: "1px solid rgba(59,182,246,0.2)",
+          background: "rgba(56,189,248,0.1)",
+          border: "1px solid rgba(56,189,248,0.18)",
           borderRadius: 12,
           padding: "16px",
           display: "flex",
@@ -1113,13 +1100,13 @@ export default function Diet() {
         }}
       >
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <Droplet size={24} color="#3B82F6" />
+          <Droplet size={24} color="#38BDF8" />
           <div>
             <div
               style={{
                 fontSize: 13,
                 fontWeight: 600,
-                color: "#3B82F6",
+                color: "#38BDF8",
                 fontFamily: "Space Grotesk",
               }}
             >
@@ -1142,7 +1129,7 @@ export default function Diet() {
             width: 40,
             height: 40,
             borderRadius: 8,
-            background: "#3B82F6",
+            background: "#38BDF8",
             border: "none",
             color: "white",
             cursor: "pointer",
@@ -1274,19 +1261,7 @@ export default function Diet() {
         onSave={handleSaveDietSettings}
       />
 
-      {/* Responsive Styles */}
-      <style>{`
-        @media (max-width: 1024px) {
-          div[style*="gridTemplateColumns: '1fr 1fr 1fr 1fr'"] {
-            grid-template-columns: 1fr 1fr !important;
-          }
-        }
-        @media (max-width: 768px) {
-          div[style*="gridTemplateColumns: 1fr 1fr"] {
-            grid-template-columns: 1fr !important;
-          }
-        }
-      `}</style>
+
     </div>
   );
 }

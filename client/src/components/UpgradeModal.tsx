@@ -50,7 +50,7 @@ export default function UpgradeModal({
     <AnimatePresence>
       {open && (
         <motion.div
-          className="fixed inset-0 z-[9999] flex items-center justify-center bg-black/60 backdrop-blur-xl p-4"
+          className="fz-modal-overlay p-4"
           initial={{ opacity: 0 }}
           animate={{ opacity: 1 }}
           exit={{ opacity: 0 }}
