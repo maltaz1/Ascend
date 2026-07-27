@@ -48,28 +48,15 @@ export default async function handler(req: any, res: any) {
       STRIPE_WEBHOOK_SECRET
     );
   } catch (err: any) {
-    console.error(`[STRIPE] Webhook signature verification failed: ${err.message}`);
-    return res.status(400).send(`Webhook Error: ${err.message}`);
+    console.error(\`[STRIPE] Webhook signature verification failed: \${err.message}\`);
+    return res.status(400).send(\`Webhook Error: \${err.message}\`);
   }
 
   const eventId = event.id;
   const eventType = event.type;
   const payload = event.data.object as any;
   
-  // Extrair e-mail do cliente
-  let email = payload.customer_email || payload.email;
-  
-  // Se não houver e-mail direto, tentar buscar no objeto customer se for um ID
-  if (!email && typeof payload.customer === "string") {
-    try {
-      const customer = await stripe.customers.retrieve(payload.customer) as Stripe.Customer;
-      email = customer.email;
-    } catch (e) {
-      console.error("[STRIPE] Erro ao buscar cliente:", e);
-    }
-  }
-
-  console.log(`[STRIPE] Processando evento: ${eventType} | ID: ${eventId}`);
+  console.log(\`[STRIPE] Evento recebido: \${eventType} | ID: \${eventId}\`);
 
   try {
     // 1. Idempotência
@@ -79,40 +66,61 @@ export default async function handler(req: any, res: any) {
         event_id: eventId,
         event_type: eventType,
         status: payload.status || "unknown",
-        customer_email: email,
+        customer_email: payload.customer_email || payload.email || "unknown",
         payload: event,
       });
 
-    if (idempotencyError) {
-      if (idempotencyError.code === "23505") {
-        return res.status(200).json({ received: true, message: "Already processed" });
-      }
-      throw idempotencyError;
+    if (idempotencyError && idempotencyError.code === "23505") {
+      return res.status(200).json({ received: true, message: "Already processed" });
     }
 
-    // 2. Lógica de Negócio (Status PRO)
+    // 2. Determinar e-mail e status PRO
+    let email = payload.customer_email || payload.email;
+    
+    // Se for um evento de assinatura, buscar o e-mail do cliente via ID do customer
+    if (!email && payload.customer) {
+      const customer = await stripe.customers.retrieve(payload.customer as string) as Stripe.Customer;
+      email = customer.email;
+    }
+
+    if (!email) {
+      console.error("[STRIPE] E-mail não encontrado no payload ou cliente.");
+      return res.status(200).json({ received: true, error: "email_not_found" });
+    }
+
     let desiredIsPro: boolean | null = null;
 
+    // Lógica de Ativação
     if (
       eventType === "checkout.session.completed" ||
       eventType === "invoice.paid" ||
-      eventType === "customer.subscription.created" ||
-      eventType === "customer.subscription.updated"
+      eventType === "customer.subscription.created"
     ) {
-      // Verificar se o status da assinatura é ativo ou se o pagamento foi concluído
       const status = payload.status || payload.payment_status;
       if (["active", "paid", "complete", "trialing"].includes(status)) {
         desiredIsPro = true;
       }
-    } else if (
-      eventType === "customer.subscription.deleted" ||
+    } 
+    
+    // Lógica de Desativação
+    if (
+      eventType === "customer.subscription.deleted" || 
+      eventType === "customer.subscription.updated" ||
       eventType === "invoice.payment_failed"
     ) {
-      desiredIsPro = false;
+      // Se a assinatura foi deletada ou o status mudou para algo não ativo
+      const status = payload.status;
+      if (eventType === "customer.subscription.deleted" || ["canceled", "unpaid", "incomplete_expired"].includes(status)) {
+        desiredIsPro = false;
+      } else if (["active", "trialing"].includes(status)) {
+        desiredIsPro = true;
+      }
     }
 
-    if (desiredIsPro !== null && email) {
-      // Localizar usuário pelo e-mail
+    if (desiredIsPro !== null) {
+      console.log(\`[STRIPE] Atualizando status PRO para \${desiredIsPro} (Email: \${email})\`);
+      
+      // Buscar usuário no Supabase Auth
       const { data: usersData, error: authError } = await supabase.auth.admin.listUsers();
       if (authError) throw authError;
 
@@ -121,24 +129,21 @@ export default async function handler(req: any, res: any) {
       );
 
       if (targetUser) {
-        const userId = targetUser.id;
-        
-        // Atualizar perfil
         const { error: updateError } = await supabase
           .from("profiles")
           .update({ is_pro: desiredIsPro })
-          .eq("id", userId);
+          .eq("id", targetUser.id);
         
         if (updateError) throw updateError;
-        console.log(`[STRIPE] Perfil ${userId} (${email}) atualizado para PRO: ${desiredIsPro}`);
+        console.log(\`[STRIPE] Sucesso: Usuário \${targetUser.id} atualizado.\`);
       } else {
-        console.warn(`[STRIPE] Usuário não encontrado para o e-mail: ${email}`);
+        console.warn(\`[STRIPE] Usuário com e-mail \${email} não encontrado no sistema.\`);
       }
     }
 
     return res.status(200).json({ received: true });
   } catch (err: any) {
-    console.error(`[STRIPE ERROR] ${err.message}`);
+    console.error(\`[STRIPE ERROR] \${err.message}\`);
     return res.status(500).json({ error: "Internal server error" });
   }
 }
