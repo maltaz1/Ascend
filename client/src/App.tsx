@@ -353,17 +353,16 @@ function App() {
             open={showUpgradeModal}
             onClose={() => setShowUpgradeModal(false)}
             onUpgrade={() => {
-              const checkoutUrl = import.meta.env.VITE_CAKTO_CHECKOUT_URL;
+              const checkoutUrl = import.meta.env.VITE_STRIPE_CHECKOUT_URL;
 
               if (!checkoutUrl) {
-                console.error("VITE_CAKTO_CHECKOUT_URL não configurada.");
+                console.error("VITE_STRIPE_CHECKOUT_URL não configurada.");
                 return;
               }
 
-              // Adiciona o e-mail do usuário como parâmetro para facilitar a identificação no Cakto
               const url = new URL(checkoutUrl);
               if (user?.email) {
-                url.searchParams.set("email", user.email);
+                url.searchParams.set("prefilled_email", user.email);
               }
               
               window.open(
