@@ -97,8 +97,6 @@ export default function Login() {
   return (
     <>
       <style>{`
-        @import url('https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=JetBrains+Mono:wght@400;500&display=swap');
-
         * { box-sizing: border-box; }
 
         @keyframes fadeUp {
@@ -106,45 +104,16 @@ export default function Login() {
           to   { opacity: 1; transform: translateY(0); }
         }
 
-        @keyframes orb1 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          50%       { transform: translate(30px, -20px) scale(1.1); }
-        }
-
-        @keyframes orb2 {
-          0%, 100% { transform: translate(0, 0) scale(1); }
-          50%       { transform: translate(-20px, 30px) scale(0.95); }
-        }
-
-        @keyframes floatCard {
-          0%, 100% { transform: translateY(0px) rotate(-1.5deg); }
-          50%       { transform: translateY(-14px) rotate(-1.5deg); }
-        }
-
-        @keyframes floatBadgeA {
-          0%, 100% { transform: translateY(0px) rotate(3deg); }
-          50%       { transform: translateY(-10px) rotate(3deg); }
-        }
-
-        @keyframes floatBadgeB {
-          0%, 100% { transform: translateY(0px) rotate(-2deg); }
-          50%       { transform: translateY(-8px) rotate(-2deg); }
-        }
-
         @keyframes progressFill {
           from { width: 0%; }
           to   { width: 72%; }
         }
 
-        @keyframes checkPop1 { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.2); } 100% { transform: scale(1); opacity: 1; } }
-        @keyframes checkPop2 { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.2); } 100% { transform: scale(1); opacity: 1; } }
-        @keyframes checkPop3 { 0% { transform: scale(0); opacity: 0; } 70% { transform: scale(1.2); } 100% { transform: scale(1); opacity: 1; } }
-
         .asc-root {
           height: 100vh;
           min-height: 600px;
           display: flex;
-          font-family: 'Sora', sans-serif;
+          font-family: 'DM Sans', sans-serif;
           background: #07080f;
           position: relative;
           overflow: hidden;
@@ -167,8 +136,8 @@ export default function Login() {
           position: absolute;
           inset: 0;
           background:
-            radial-gradient(ellipse 60% 55% at 30% 20%, rgba(99, 70, 220, 0.22) 0%, transparent 70%),
-            radial-gradient(ellipse 50% 40% at 80% 80%, rgba(255, 140, 50, 0.08) 0%, transparent 60%);
+            radial-gradient(ellipse 60% 55% at 30% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 70%),
+            radial-gradient(ellipse 50% 40% at 80% 80%, rgba(245, 158, 11, 0.04) 0%, transparent 60%);
           pointer-events: none;
         }
 
@@ -176,9 +145,8 @@ export default function Login() {
           position: absolute;
           width: 320px; height: 320px;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(99, 70, 220, 0.18) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%);
           top: -60px; left: -60px;
-          animation: orb1 12s ease-in-out infinite;
           pointer-events: none;
         }
 
@@ -186,9 +154,8 @@ export default function Login() {
           position: absolute;
           width: 250px; height: 250px;
           border-radius: 50%;
-          background: radial-gradient(circle, rgba(255, 140, 50, 0.1) 0%, transparent 70%);
+          background: radial-gradient(circle, rgba(245, 158, 11, 0.06) 0%, transparent 70%);
           bottom: 80px; right: 40px;
-          animation: orb2 15s ease-in-out infinite;
           pointer-events: none;
         }
 
@@ -217,8 +184,8 @@ export default function Login() {
           display: inline-flex;
           align-items: center;
           gap: 6px;
-          background: rgba(99, 70, 220, 0.12);
-          border: 1px solid rgba(99, 70, 220, 0.25);
+          background: rgba(139, 92, 246, 0.1);
+          border: 1px solid rgba(139, 92, 246, 0.2);
           border-radius: 20px;
           padding: 5px 14px;
           font-size: 11px;
@@ -247,7 +214,7 @@ export default function Login() {
         }
 
         .asc-hero-title span {
-          background: linear-gradient(135deg, #a78bfa 0%, #6346dc 50%, #ff8c32 100%);
+          background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 50%, #f59e0b 100%);
           -webkit-background-clip: text;
           -webkit-text-fill-color: transparent;
           background-clip: text;
@@ -277,15 +244,12 @@ export default function Login() {
           width: min(40vw, 520px);
           max-width: 520px;
           background: rgba(13, 14, 28, 0.95);
-          backdrop-filter: blur(26px);
-          border: 1px solid rgba(99, 70, 220, 0.25);
-          border-radius: 22px;
+          border: 1px solid rgba(139, 92, 246, 0.15);
+          border-radius: 16px;
           padding: 26px;
-          animation: floatCard 10s ease-in-out infinite;
           box-shadow:
-            0 28px 70px rgba(0,0,0,0.55),
-            0 0 0 1px rgba(99,70,220,0.08),
-            inset 0 1px 0 rgba(255,255,255,0.05);
+            0 16px 40px rgba(0,0,0,0.4),
+            0 0 0 1px rgba(139,92,246,0.06);
           position: relative;
         }
 
@@ -294,7 +258,7 @@ export default function Login() {
           position: absolute;
           top: 0; left: 24px; right: 24px;
           height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(99,70,220,0.6), transparent);
+          background: linear-gradient(90deg, transparent, rgba(139,92,246,0.4), transparent);
         }
 
         .asc-mock-header {
@@ -316,14 +280,14 @@ export default function Login() {
           display: flex;
           align-items: center;
           gap: 5px;
-          background: rgba(99, 70, 220, 0.15);
-          border: 1px solid rgba(99, 70, 220, 0.25);
+          background: rgba(139, 92, 246, 0.12);
+          border: 1px solid rgba(139, 92, 246, 0.2);
           border-radius: 20px;
           padding: 3px 10px;
           font-size: 11px;
           font-weight: 700;
           color: #a78bfa;
-          font-family: 'JetBrains Mono', monospace;
+          font-family: 'DM Sans', sans-serif;
         }
 
         .asc-mock-ring-row {
@@ -357,7 +321,7 @@ export default function Login() {
           font-size: 12px;
           font-weight: 700;
           color: #fff;
-          font-family: 'JetBrains Mono', monospace;
+          font-family: 'DM Sans', sans-serif;
         }
 
         .asc-progress-info { flex: 1; }
@@ -385,7 +349,7 @@ export default function Login() {
 
         .asc-xp-mini-fill {
           height: 100%;
-          background: linear-gradient(90deg, #6346dc, #a78bfa);
+          background: linear-gradient(90deg, #8b5cf6, #a78bfa);
           border-radius: 99px;
           animation: progressFill 1.8s 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
@@ -464,15 +428,15 @@ export default function Login() {
           gap: 4px;
           font-size: 12px;
           font-weight: 700;
-          color: #ff8c32;
-          font-family: 'JetBrains Mono', monospace;
+          color: #f59e0b;
+          font-family: 'DM Sans', sans-serif;
         }
 
         .asc-xp-gained {
           font-size: 11px;
           color: #a78bfa;
           font-weight: 600;
-          font-family: 'JetBrains Mono', monospace;
+          font-family: 'DM Sans', sans-serif;
           background: rgba(99,70,220,0.1);
           border: 1px solid rgba(99,70,220,0.2);
           border-radius: 12px;
@@ -484,7 +448,7 @@ export default function Login() {
           position: absolute;
           top: -18px; right: -20px;
           background: rgba(15, 14, 22, 0.92);
-          border: 1px solid rgba(255,140,50,0.35);
+          border: 1px solid rgba(245,158,11,0.25);
           border-radius: 12px;
           padding: 7px 13px;
           display: flex;
@@ -492,18 +456,16 @@ export default function Login() {
           gap: 5px;
           font-size: 12px;
           font-weight: 700;
-          color: #ff8c32;
-          font-family: 'JetBrains Mono', monospace;
-          backdrop-filter: blur(12px);
-          animation: floatBadgeA 6s 1s ease-in-out infinite;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+          color: #f59e0b;
+          font-family: 'DM Sans', sans-serif;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.3);
         }
 
         .asc-badge-xp {
           position: absolute;
           bottom: 0px; left: -36px;
           background: rgba(15, 14, 22, 0.92);
-          border: 1px solid rgba(99,70,220,0.35);
+          border: 1px solid rgba(139,92,246,0.25);
           border-radius: 12px;
           padding: 7px 13px;
           display: flex;
@@ -512,10 +474,8 @@ export default function Login() {
           font-size: 11px;
           font-weight: 600;
           color: #a78bfa;
-          font-family: 'Sora', sans-serif;
-          backdrop-filter: blur(12px);
-          animation: floatBadgeB 7s 2.5s ease-in-out infinite;
-          box-shadow: 0 8px 24px rgba(0,0,0,0.4);
+          font-family: 'DM Sans', sans-serif;
+          box-shadow: 0 4px 16px rgba(0,0,0,0.3);
         }
 
         .badge-dot {
@@ -542,11 +502,11 @@ export default function Login() {
           font-size: 20px;
           font-weight: 700;
           color: #fff;
-          font-family: 'JetBrains Mono', monospace;
+          font-family: 'DM Sans', sans-serif;
           letter-spacing: -0.02em;
         }
 
-        .asc-stat-num.orange { color: #ff8c32; }
+        .asc-stat-num.orange { color: #f59e0b; }
         .asc-stat-num.purple { color: #a78bfa; }
 
         .asc-stat-label {
@@ -575,7 +535,7 @@ export default function Login() {
           overflow-y: auto;
           background: rgba(10, 11, 20, 0.9);
           border-right: none;
-          border-left: 1px solid rgba(99, 70, 220, 0.1);
+          border-left: 1px solid rgba(139, 92, 246, 0.08);
           position: relative;
         }
 
@@ -584,7 +544,7 @@ export default function Login() {
           position: absolute;
           top: 0; left: 0; right: 0;
           height: 2px;
-          background: linear-gradient(90deg, transparent, rgba(99, 70, 220, 0.6), rgba(255, 140, 50, 0.4), transparent);
+          background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.4), rgba(245, 158, 11, 0.25), transparent);
         }
 
         .asc-form-wrap {
@@ -611,7 +571,7 @@ export default function Login() {
           display: flex;
           gap: 0;
           background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(99, 70, 220, 0.12);
+          border: 1px solid rgba(139, 92, 246, 0.1);
           border-radius: 10px;
           padding: 3px;
           margin-bottom: 36px;
@@ -623,7 +583,7 @@ export default function Login() {
           border: none;
           background: transparent;
           color: rgba(255,255,255,0.4);
-          font-family: 'Sora', sans-serif;
+          font-family: 'DM Sans', sans-serif;
           font-size: 13px;
           font-weight: 600;
           cursor: pointer;
@@ -635,9 +595,9 @@ export default function Login() {
         .asc-tab:hover { color: rgba(255,255,255,0.7); }
 
         .asc-tab.active {
-          background: linear-gradient(135deg, rgba(99, 70, 220, 0.3) 0%, rgba(99, 70, 220, 0.15) 100%);
+          background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(139, 92, 246, 0.1) 100%);
           color: #fff;
-          border: 1px solid rgba(99, 70, 220, 0.3);
+          border: 1px solid rgba(139, 92, 246, 0.2);
         }
 
         /* ── Greeting ─────────────────────────────────── */
@@ -687,7 +647,7 @@ export default function Login() {
           left: 13px;
           top: 50%;
           transform: translateY(-50%);
-          color: rgba(99, 70, 220, 0.5);
+          color: rgba(139, 92, 246, 0.4);
           pointer-events: none;
           display: flex;
         }
@@ -705,10 +665,10 @@ export default function Login() {
           width: 100%;
           padding: 11px 12px 11px 40px;
           background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(99, 70, 220, 0.15);
+          border: 1px solid rgba(139, 92, 246, 0.15);
           border-radius: 8px;
           color: rgba(255,255,255,0.9);
-          font-family: 'Sora', sans-serif;
+          font-family: 'DM Sans', sans-serif;
           font-size: 13px;
           font-weight: 400;
           outline: none;
@@ -719,9 +679,9 @@ export default function Login() {
         .asc-input::placeholder { color: rgba(255,255,255,0.2); }
 
         .asc-input:focus {
-          border-color: rgba(99, 70, 220, 0.45);
-          background: rgba(99, 70, 220, 0.07);
-          box-shadow: 0 0 0 3px rgba(99, 70, 220, 0.08);
+          border-color: rgba(139, 92, 246, 0.45);
+          background: rgba(139, 92, 246, 0.06);
+          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.06);
         }
 
         .asc-input:-webkit-autofill,
@@ -738,7 +698,7 @@ export default function Login() {
           transform: translateY(-50%);
           background: none;
           border: none;
-          color: rgba(99, 70, 220, 0.4);
+          color: rgba(139, 92, 246, 0.4);
           cursor: pointer;
           padding: 0;
           display: flex;
@@ -746,7 +706,7 @@ export default function Login() {
           transition: color 0.2s;
         }
 
-        .asc-eye-btn:hover { color: rgba(99, 70, 220, 0.8); }
+        .asc-eye-btn:hover { color: rgba(139, 92, 246, 0.7); }
 
         .asc-eye-btn svg {
           width: 15px; height: 15px;
@@ -764,7 +724,7 @@ export default function Login() {
           text-align: right;
           margin-top: 7px;
           font-size: 11px;
-          color: rgba(99, 70, 220, 0.8);
+          color: rgba(139, 92, 246, 0.7);
           cursor: pointer;
           text-decoration: none;
           font-weight: 600;
@@ -779,10 +739,10 @@ export default function Login() {
           width: 100%;
           padding: 13px;
           border: none;
-          border-radius: 8px;
-          background: linear-gradient(135deg, #6346dc 0%, #4f35b8 100%);
+          border-radius: 10px;
+          background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
           color: #fff;
-          font-family: 'Sora', sans-serif;
+          font-family: 'DM Sans', sans-serif;
           font-size: 13px;
           font-weight: 700;
           letter-spacing: 0.03em;
@@ -791,15 +751,13 @@ export default function Login() {
           align-items: center;
           justify-content: center;
           gap: 8px;
-          position: relative;
-          overflow: hidden;
           transition: all 0.2s;
-          box-shadow: 0 4px 20px rgba(99, 70, 220, 0.25);
+          box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
         }
 
         .asc-btn:hover:not(:disabled) {
           transform: translateY(-1px);
-          box-shadow: 0 8px 28px rgba(99, 70, 220, 0.38);
+          box-shadow: 0 6px 24px rgba(139, 92, 246, 0.4);
         }
 
         .asc-btn:active:not(:disabled) { transform: translateY(0); }
@@ -826,7 +784,7 @@ export default function Login() {
           background: none;
           border: none;
           color: #a78bfa;
-          font-family: 'Sora', sans-serif;
+          font-family: 'DM Sans', sans-serif;
           font-size: 12px;
           font-weight: 700;
           cursor: pointer;
@@ -858,7 +816,7 @@ export default function Login() {
         }
 
         .asc-xp-label .l { color: rgba(255,255,255,0.3); }
-        .asc-xp-label .r { color: #ff8c32; }
+        .asc-xp-label .r { color: #f59e0b; }
 
         .asc-xp-track {
           height: 3px;
@@ -870,7 +828,7 @@ export default function Login() {
         .asc-xp-fill {
           height: 100%;
           width: 0%;
-          background: linear-gradient(90deg, #6346dc, #ff8c32);
+          background: linear-gradient(90deg, #8b5cf6, #f59e0b);
           border-radius: 99px;
           transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
         }
@@ -889,11 +847,11 @@ export default function Login() {
             min-height: 90vh;
             order: -1;
             border-left: none;
-            border-bottom: 1px solid rgba(99, 70, 220, 0.1);
+            border-bottom: 1px solid rgba(139, 92, 246, 0.08);
             padding: 40px 28px 36px;
             overflow-y: auto;
           }
-          .asc-right::before { top: auto; bottom: 0; background: linear-gradient(90deg, transparent, rgba(99, 70, 220, 0.4), transparent); }
+          .asc-right::before { top: auto; bottom: 0; background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.3), transparent); }
           .asc-left {
             display: flex;
             flex-direction: column;
@@ -983,7 +941,7 @@ export default function Login() {
                         x2="100%"
                         y2="0%"
                       >
-                        <stop offset="0%" stopColor="#6346dc" />
+                        <stop offset="0%" stopColor="#8b5cf6" />
                         <stop offset="100%" stopColor="#a78bfa" />
                       </linearGradient>
                     </defs>
@@ -1035,7 +993,7 @@ export default function Login() {
                 <div className="asc-habit-row">
                   <div
                     className="asc-habit-dot"
-                    style={{ background: "#ff8c32" }}
+                    style={{ background: "#f59e0b" }}
                   />
                   <span className="asc-habit-name">Estudar</span>
                   <div className="asc-habit-check done">

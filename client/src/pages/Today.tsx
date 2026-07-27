@@ -233,15 +233,12 @@ export default function Today() {
       {/* Overall Progress Ring */}
 
       <div
-        className="fz-card today-summary-card"
+        className="fz-card flex lg:flex-row flex-col gap-4 lg:gap-6 p-6 mb-5"
         style={{
-          padding: "24px",
-          marginBottom: 20,
-
           background:
-            "linear-gradient(135deg, rgba(168,85,247,0.08), rgba(168,85,247,0.05))",
+            "linear-gradient(135deg, rgba(139,92,246,0.08), rgba(139,92,246,0.05))",
 
-          border: "1px solid rgba(168,85,247,0.15)",
+          border: "1px solid rgba(139,92,246,0.12)",
 
           display: "flex",
           alignItems: "center",
@@ -299,12 +296,7 @@ export default function Today() {
           </p>
 
           <div
-            className="today-stats-grid"
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(3, 1fr)",
-              gap: 12,
-            }}
+            className="grid grid-cols-3 sm:grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-3"
           >
             {[
               {
@@ -429,14 +421,7 @@ export default function Today() {
         </div>
       </div>
 
-      <div
-        className="today-grid"
-        style={{
-          display: "grid",
-          gridTemplateColumns: "1fr 1fr",
-          gap: 20,
-        }}
-      >
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Today's Tasks */}
 
         <div className="fz-card" style={{ padding: "20px 22px" }}>
@@ -905,34 +890,7 @@ export default function Today() {
         </div>
       )}
 
-      <style>{`
-        @media (max-width: 1024px) {
-          .today-summary-card {
-            flex-direction: column !important;
-            gap: 16px !important;
-          }
 
-          .today-grid {
-            grid-template-columns: 1fr !important;
-          }
-        }
-
-        @media (max-width: 768px) {
-          .today-summary-card {
-            flex-direction: column !important;
-            gap: 12px !important;
-          }
-
-          .today-grid {
-            grid-template-columns: 1fr !important;
-            gap: 12px !important;
-          }
-
-          .today-stats-grid {
-            grid-template-columns: repeat(auto-fit, minmax(100px, 1fr)) !important;
-          }
-        }
-      `}</style>
     </div>
   );
 }

@@ -142,7 +142,7 @@ export function DietSettingsModal({
         >
           <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
             <span style={{ fontSize: 20 }}>💧</span>
-            <label style={{ fontFamily: 'Space Grotesk', fontSize: 13, fontWeight: 600, color: '#3B82F6', margin: 0 }}>
+            <label style={{ fontFamily: 'Space Grotesk', fontSize: 13, fontWeight: 600, color: '#38BDF8', margin: 0 }}>
               Meta de Hidratação
             </label>
           </div>
