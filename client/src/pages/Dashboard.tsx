@@ -45,7 +45,6 @@ import {
   getGymStats,
 } from "@/store/workouts.store";
 import { getTodayString, toYYYYMMDD } from "@/store/utils";
-import { getHabitStreak } from "@/store/habits.store";
 import {
   getTodayMeals,
   getTodayNutrition,
@@ -609,13 +608,49 @@ export default function Dashboard() {
     [goals]
   );
 
-  // --- Habit streaks from store ---
+  // --- Calculate global streak from tasks + habits (Supabase data) ---
+  const globalStreak = useMemo(() => {
+    let streak = 0;
+    const today = new Date();
+    for (let offset = 0; offset < 365; offset++) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - offset);
+      const ds = toYYYYMMDD(d);
+      const completedTask = tasks.some((t) => t.completed && t.date === ds);
+      const completedHabit = habits.some(
+        (h) => h.completed_dates && Array.isArray(h.completed_dates) && h.completed_dates.includes(ds)
+      );
+      if (completedTask || completedHabit) {
+        streak++;
+      } else {
+        break;
+      }
+    }
+    return streak;
+  }, [tasks, habits]);
+
+  // --- Habit streaks from Supabase data (normalized) ---
   const habitStreaks = useMemo(() => {
-    return store.habits.map((h: any) => ({
-      name: h.title || "Hábito",
-      streak: getHabitStreak(h),
-    }));
-  }, [store.habits]);
+    return habits.map((h: any) => {
+      const completedDates = h.completed_dates || [];
+      let streak = 0;
+      const today = new Date();
+      for (let offset = 0; offset < 365; offset++) {
+        const d = new Date(today);
+        d.setDate(d.getDate() - offset);
+        const dateKey = toYYYYMMDD(d);
+        if (completedDates.includes(dateKey)) {
+          streak++;
+        } else {
+          break;
+        }
+      }
+      return {
+        name: h.title || "Hábito",
+        streak,
+      };
+    });
+  }, [habits]);
 
   const bestHabitStreak = useMemo(() => {
     if (habitStreaks.length === 0) return { name: "-", streak: 0 };
@@ -895,7 +930,7 @@ export default function Dashboard() {
 
       {/* ===== STREAK BADGE ===== */}
       <div style={{ marginBottom: 20 }}>
-        <StreakBadge streak={profile?.streak || 0} />
+        <StreakBadge streak={globalStreak} />
       </div>
 
       {/* ===== HEATMAP ===== */}
