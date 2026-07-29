@@ -5,8 +5,6 @@ import {
   Area,
   BarChart,
   Bar,
-  LineChart,
-  Line,
   PieChart,
   Pie,
   Cell,
@@ -29,53 +27,23 @@ import {
   ChevronDown,
   ChevronUp,
   Target,
-  Dumbbell,
   Wallet,
-  Droplets,
-  Trophy,
   Calendar,
-  Activity,
 } from "lucide-react";
 
 import { supabase } from "@/lib/supabase";
 import { useStore } from "@/hooks/useStore";
-import {
-  getWorkoutProgressData,
-  getWorkoutSessions,
-  getGymStats,
-} from "@/store/workouts.store";
 import { getTodayString, toYYYYMMDD } from "@/store/utils";
-import {
-  getTodayMeals,
-  getTodayNutrition,
-  getTodayHydration,
-} from "@/store/diet.store";
+
 import { getFinancialData } from "@/store/financial.store";
-import { getGoalProgress } from "@/store/goals.store";
-
-import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { CircularProgress } from "@/components/ui/CircularProgress";
+import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 
 // =========================
-// TYPES
-// =========================
-type Goal = {
-  id: string;
-  title: string;
-  description?: string;
-  emoji: string;
-  color: string;
-  deadline?: string;
-  steps: { id: string; title: string; completed: boolean }[];
-  completedAt?: string | null;
-  createdAt: string;
-};
-
-// =========================
-// EXPANDABLE SECTION
+// STREAK BADGE
 // =========================
 function ExpandableSection({
-  icon,
+  icon: Icon,
   title,
   subtitle,
   defaultOpen = false,
@@ -122,7 +90,7 @@ function ExpandableSection({
             justifyContent: "center",
           }}
         >
-          <icon size={16} color="#8B5CF6" />
+          <Icon size={16} color="#8B5CF6" />
         </div>
         <div style={{ flex: 1, textAlign: "left" }}>
           <div style={{ fontWeight: 700, fontSize: 15 }}>{title}</div>
@@ -587,26 +555,7 @@ export default function Dashboard() {
   const levelXP = (profile?.level || 1) * 100;
   const xpPercent = profile?.xp ? Math.min((profile.xp / levelXP) * 100, 100) : 0;
 
-  // --- Workout data from store ---
-  const sessions = useMemo(() => getWorkoutSessions(), []);
-  const workoutProgress = useMemo(() => getWorkoutProgressData(), []);
-  const gymStats = useMemo(() => getGymStats(), []);
 
-  const lastWorkout = useMemo(() => {
-    if (sessions.length === 0) return null;
-    return sessions[0];
-  }, [sessions]);
-
-  // --- Goals from store ---
-  const goals: Goal[] = store.goals || [];
-  const activeGoals = useMemo(
-    () => goals.filter((g) => !g.completedAt).slice(0, 5),
-    [goals]
-  );
-  const completedGoals = useMemo(
-    () => goals.filter((g) => g.completedAt).length,
-    [goals]
-  );
 
   // --- Calculate global streak from tasks + habits (Supabase data) ---
   const globalStreak = useMemo(() => {
@@ -659,37 +608,6 @@ export default function Dashboard() {
       habitStreaks[0]
     );
   }, [habitStreaks]);
-
-  // --- Diet / Hydration ---
-  const todayMeals = useMemo(() => getTodayMeals(), []);
-  const todayNutrition = useMemo(() => getTodayNutrition(), []);
-  const todayHydration = useMemo(() => getTodayHydration(), []);
-
-  const dietSettings = store.diet?.settings;
-
-  const macrosData = useMemo(() => {
-    const n = todayNutrition;
-    return [
-      {
-        name: "Proteína",
-        value: n.totalProtein || 0,
-        goal: dietSettings?.proteinGoal || 120,
-        color: "#8B5CF6",
-      },
-      {
-        name: "Carbs",
-        value: n.totalCarbs || 0,
-        goal: dietSettings?.carbsGoal || 200,
-        color: "#10B981",
-      },
-      {
-        name: "Gordura",
-        value: n.totalFat || 0,
-        goal: dietSettings?.fatGoal || 70,
-        color: "#F97316",
-      },
-    ];
-  }, [todayNutrition, dietSettings]);
 
   // --- Financial data from store (income/expense model) ---
   const financialData = useMemo(() => getFinancialData(), []);
@@ -749,47 +667,6 @@ export default function Dashboard() {
       .map(([category, value]) => ({ category, value }))
       .sort((a, b) => b.value - a.value);
   }, [financialTransactions]);
-
-  // --- Achievements ---
-  const achievements = store.achievements || [];
-  const unlockedAchievements = useMemo(
-    () => achievements.filter((a: any) => a.unlockedAt),
-    [achievements]
-  );
-  const recentAchievements = useMemo(() => {
-    return [...unlockedAchievements]
-      .sort(
-        (a: any, b: any) =>
-          new Date(b.unlockedAt).getTime() - new Date(a.unlockedAt).getTime()
-      )
-      .slice(0, 3);
-  }, [unlockedAchievements]);
-
-  // --- Monthly summary ---
-  const monthlySummary = useMemo(() => {
-    const now = new Date();
-    const thisMonth = now.getMonth();
-    const thisYear = now.getFullYear();
-    const thisMonthStr = `${thisYear}-${String(thisMonth + 1).padStart(2, "0")}`;
-
-    const monthTasks = tasks.filter((t) => {
-      if (!t.date) return false;
-      return t.date.startsWith(thisMonthStr) && t.completed;
-    }).length;
-
-    const monthHabits = habits
-      .filter((h) => h.completed_dates && Array.isArray(h.completed_dates))
-      .reduce((sum, h) => {
-        const count = (h.completed_dates as string[]).filter(
-          (d: string) => d.startsWith(thisMonthStr)
-        ).length;
-        return sum + count;
-      }, 0);
-
-    const monthWorkouts = sessions.filter((s) => s.date?.startsWith(thisMonthStr)).length;
-
-    return { monthTasks, monthHabits, monthWorkouts };
-  }, [tasks, habits, sessions]);
 
   // --- Consistency ---
   const monthlyCompletionRate = useMemo(() => {
@@ -944,8 +821,8 @@ export default function Dashboard() {
       </ExpandableSection>
 
       {/* ===== MAIN CHARTS ===== */}
-      <div className="flex flex-wrap gap-6 mb-4 lg:flex-row flex-col">
-        <div className="fz-card flex-1 min-w-[320px] p-5 lg:p-6 box-border min-w-0 lg:min-w-[320px] w-full lg:w-auto">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-4">
+        <div className="fz-card p-5 lg:p-6" style={{ minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
             <TrendingUp size={16} color="#8B5CF6" />
             <h3 style={{ fontWeight: 700, fontSize: 15 }}>
@@ -986,7 +863,7 @@ export default function Dashboard() {
             </AreaChart>
           </ResponsiveContainer>
         </div>
-        <div className="fz-card flex-1 min-w-[320px] p-5 lg:p-6 box-border min-w-0 lg:min-w-[320px] w-full lg:w-auto">
+        <div className="fz-card p-5 lg:p-6" style={{ minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}>
             <Award size={16} color="#A855F7" />
             <h3 style={{ fontWeight: 700, fontSize: 15 }}>Semana Atual</h3>
@@ -1016,8 +893,8 @@ export default function Dashboard() {
       </div>
 
       {/* ===== CONSISTENCY ===== */}
-      <div className="flex flex-wrap gap-6 mb-4 lg:flex-row flex-col">
-        <div className="fz-card flex-1 min-w-[280px] p-5 lg:p-6">
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-4">
+        <div className="fz-card p-5 lg:p-6">
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
             <Target size={16} color="#10B981" />
             <h3 style={{ fontWeight: 700, fontSize: 15 }}>Taxa de Consistência</h3>
@@ -1043,7 +920,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="fz-card flex-1 min-w-[280px] p-5 lg:p-6">
+        <div className="fz-card p-5 lg:p-6">
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
             <Flame size={16} color="#F59E0B" />
             <h3 style={{ fontWeight: 700, fontSize: 15 }}>Melhor Hábito</h3>
@@ -1073,156 +950,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ===== GOALS ===== */}
-      <ExpandableSection
-        icon={Target}
-        title="Metas em Andamento"
-        subtitle={`${activeGoals.length} metas ativas • ${completedGoals} concluídas`}
-        defaultOpen={true}
-      >
-        <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {activeGoals.length === 0 ? (
-            <div
-              style={{
-                textAlign: "center",
-                padding: 20,
-                color: "var(--muted-foreground)",
-                fontSize: 13,
-              }}
-            >
-              Nenhuma meta ativa. Crie uma na aba de Metas!
-            </div>
-          ) : (
-            activeGoals.map((goal) => {
-              const progress = getGoalProgress(goal);
-              return (
-                <div
-                  key={goal.id}
-                  style={{
-                    display: "flex",
-                    alignItems: "center",
-                    gap: 14,
-                    padding: "12px 14px",
-                    borderRadius: 12,
-                    background: `${goal.color}08`,
-                    border: `1px solid ${goal.color}20`,
-                  }}
-                >
-                  <CircularProgress
-                    value={progress}
-                    size={42}
-                    strokeWidth={3}
-                    color={goal.color}
-                  >
-                    <span style={{ fontSize: 16 }}>{goal.emoji}</span>
-                  </CircularProgress>
-                  <div style={{ flex: 1 }}>
-                    <div style={{ fontSize: 14, fontWeight: 600 }}>
-                      {goal.title}
-                    </div>
-                    <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 2 }}>
-                      {progress}% concluído
-                    </div>
-                  </div>
-                </div>
-              );
-            })
-          )}
-        </div>
-      </ExpandableSection>
 
-      {/* ===== TREINOS ===== */}
-      <ExpandableSection
-        icon={Dumbbell}
-        title="Treinos"
-        subtitle={`${gymStats.totalWorkouts} treinos realizados`}
-        defaultOpen={false}
-      >
-        {sessions.length > 0 ? (
-          <>
-            {lastWorkout && (
-              <div
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 14,
-                  padding: "12px 14px",
-                  borderRadius: 12,
-                  background: "rgba(168,85,247,0.08)",
-                  border: "1px solid rgba(168,85,247,0.2)",
-                  marginBottom: 16,
-                }}
-              >
-                <div
-                  style={{
-                    width: 44,
-                    height: 44,
-                    borderRadius: 12,
-                    background: "rgba(168,85,247,0.15)",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                  }}
-                >
-                  <Dumbbell size={20} color="#A855F7" />
-                </div>
-                <div style={{ flex: 1 }}>
-                  <div style={{ fontSize: 14, fontWeight: 600 }}>
-                    {lastWorkout.workoutName}
-                  </div>
-                  <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
-                    Volume: {lastWorkout.totalVolume?.toFixed(0) || 0} kg •{" "}
-                    {lastWorkout.durationMinutes || 0} min
-                  </div>
-                </div>
-              </div>
-            )}
-            {workoutProgress.length > 1 && (
-              <div style={{ marginTop: 8 }}>
-                <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>
-                  Evolução do Peso Médio
-                </div>
-                <ResponsiveContainer width="100%" height={200}>
-                  <LineChart data={workoutProgress.slice(-14)}>
-                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                    <XAxis
-                      dataKey="date"
-                      tick={{ fontSize: 11, fill: "var(--muted-foreground)" }}
-                      tickFormatter={(date) =>
-                        new Date(date).toLocaleDateString("pt-BR", {
-                          day: "2-digit",
-                          month: "short",
-                        })
-                      }
-                    />
-                    <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
-                    <Tooltip content={<CustomTooltip />} />
-                    <Line
-                      type="monotone"
-                      dataKey="weight"
-                      name="Peso Médio"
-                      stroke="#A855F7"
-                      dot={{ fill: "#A855F7", r: 4 }}
-                      strokeWidth={2}
-                    />
-                  </LineChart>
-                </ResponsiveContainer>
-              </div>
-            )}
-          </>
-        ) : (
-          <div
-            style={{
-              textAlign: "center",
-              padding: 20,
-              color: "var(--muted-foreground)",
-              fontSize: 13,
-            }}
-          >
-            Nenhum treino registrado ainda.
-          </div>
-        )}
-      </ExpandableSection>
 
       {/* ===== FINANÇAS ===== */}
       <ExpandableSection
@@ -1232,8 +960,8 @@ export default function Dashboard() {
         defaultOpen={false}
       >
         {balanceEvolution.length > 0 ? (
-          <>
-            <div style={{ marginBottom: 16 }}>
+          <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+            <div>
               <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>
                 Evolução do Saldo
               </div>
@@ -1267,7 +995,7 @@ export default function Dashboard() {
                 <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 10 }}>
                   Gastos por Categoria
                 </div>
-                <ResponsiveContainer width="100%" height={180}>
+                <ResponsiveContainer width="100%" height={200}>
                   <PieChart>
                     <Pie
                       data={expensesByCategory}
@@ -1286,7 +1014,7 @@ export default function Dashboard() {
                     <Tooltip />
                   </PieChart>
                 </ResponsiveContainer>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8 }}>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8, marginTop: 8, justifyContent: "center" }}>
                   {expensesByCategory.map((entry: any, index: number) => (
                     <div
                       key={index}
@@ -1312,7 +1040,7 @@ export default function Dashboard() {
                 </div>
               </div>
             )}
-          </>
+          </div>
         ) : (
           <div
             style={{
@@ -1327,211 +1055,7 @@ export default function Dashboard() {
         )}
       </ExpandableSection>
 
-      {/* ===== DIETA / HIDRATAÇÃO ===== */}
-      <ExpandableSection
-        icon={Droplets}
-        title="Dieta & Hidratação"
-        subtitle={`${todayMeals.length} refeições hoje`}
-        defaultOpen={false}
-      >
-        <div style={{ marginBottom: 16 }}>
-          <div style={{ fontSize: 13, fontWeight: 600, marginBottom: 12 }}>
-            Macros do Dia
-          </div>
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {macrosData.map((macro) => {
-              const pct = Math.min((macro.value / macro.goal) * 100, 100);
-              return (
-                <div key={macro.name}>
-                  <div
-                    style={{
-                      display: "flex",
-                      justifyContent: "space-between",
-                      fontSize: 12,
-                      marginBottom: 4,
-                    }}
-                  >
-                    <span style={{ color: macro.color, fontWeight: 500 }}>
-                      {macro.name}
-                    </span>
-                    <span style={{ color: "var(--muted-foreground)" }}>
-                      {macro.value}g / {macro.goal}g
-                    </span>
-                  </div>
-                  <div
-                    style={{
-                      height: 8,
-                      borderRadius: 999,
-                      background: "rgba(255,255,255,0.08)",
-                      overflow: "hidden",
-                    }}
-                  >
-                    <div
-                      style={{
-                        width: `${pct}%`,
-                        height: "100%",
-                        background: macro.color,
-                        borderRadius: 999,
-                        transition: "width 0.3s ease",
-                      }}
-                    />
-                  </div>
-                </div>
-              );
-            })}
-          </div>
-        </div>
 
-        <div
-          style={{
-            display: "flex",
-            alignItems: "center",
-            gap: 14,
-            padding: "12px 14px",
-            borderRadius: 12,
-            background: "rgba(6,182,212,0.08)",
-            border: "1px solid rgba(6,182,212,0.2)",
-          }}
-        >
-          <div
-            style={{
-              width: 44,
-              height: 44,
-              borderRadius: 12,
-              background: "rgba(6,182,212,0.15)",
-              display: "flex",
-              alignItems: "center",
-              justifyContent: "center",
-            }}
-          >
-            <Droplets size={20} color="#06B6D4" />
-          </div>
-          <div style={{ flex: 1 }}>
-            <div style={{ fontSize: 14, fontWeight: 600 }}>Hidratação</div>
-            <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
-              {todayHydration.cupsConsumed || 0} / {todayHydration.goal || 8} copos
-            </div>
-          </div>
-          <div style={{ fontSize: 20, fontWeight: 800, color: "#06B6D4" }}>
-            {Math.round(
-              ((todayHydration.cupsConsumed || 0) / Math.max(todayHydration.goal || 1, 1)) *
-                100
-            )}
-            %
-          </div>
-        </div>
-      </ExpandableSection>
-
-      {/* ===== CONQUISTAS ===== */}
-      <ExpandableSection
-        icon={Trophy}
-        title="Conquistas"
-        subtitle={`${unlockedAchievements.length} desbloqueadas`}
-        defaultOpen={false}
-      >
-        {recentAchievements.length > 0 ? (
-          <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-            {recentAchievements.map((a: any) => (
-              <div
-                key={a.id}
-                style={{
-                  display: "flex",
-                  alignItems: "center",
-                  gap: 12,
-                  padding: "10px 14px",
-                  borderRadius: 10,
-                  background: "rgba(245,158,11,0.06)",
-                  border: "1px solid rgba(245,158,11,0.15)",
-                }}
-              >
-                <span style={{ fontSize: 24 }}>{a.emoji}</span>
-                <div>
-                  <div style={{ fontSize: 13, fontWeight: 600 }}>{a.title}</div>
-                  <div style={{ fontSize: 11, color: "var(--muted-foreground)" }}>
-                    {a.description}
-                  </div>
-                </div>
-              </div>
-            ))}
-          </div>
-        ) : (
-          <div
-            style={{
-              textAlign: "center",
-              padding: 20,
-              color: "var(--muted-foreground)",
-              fontSize: 13,
-            }}
-          >
-            Complete tarefas e hábitos para desbloquear conquistas!
-          </div>
-        )}
-      </ExpandableSection>
-
-      {/* ===== RESUMO DO MÊS ===== */}
-      <ExpandableSection
-        icon={Activity}
-        title="Resumo do Mês"
-        subtitle="Seu progresso mensal consolidado"
-        defaultOpen={false}
-      >
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
-            gap: 12,
-          }}
-        >
-          <div
-            style={{
-              textAlign: "center",
-              padding: "14px 10px",
-              borderRadius: 12,
-              background: "rgba(139,92,246,0.08)",
-              border: "1px solid rgba(139,92,246,0.15)",
-            }}
-          >
-            <div style={{ fontSize: 22, fontWeight: 800, color: "#8B5CF6" }}>
-              <AnimatedCounter value={monthlySummary.monthTasks} />
-            </div>
-            <div style={{ fontSize: 11, color: "var(--muted-foreground)", marginTop: 4 }}>
-              Tarefas feitas
-            </div>
-          </div>
-          <div
-            style={{
-              textAlign: "center",
-              padding: "14px 10px",
-              borderRadius: 12,
-              background: "rgba(249,115,22,0.08)",
-              border: "1px solid rgba(249,115,22,0.15)",
-            }}
-          >
-            <div style={{ fontSize: 22, fontWeight: 800, color: "#F97316" }}>
-              <AnimatedCounter value={monthlySummary.monthHabits} />
-            </div>
-            <div style={{ fontSize: 11, color: "var(--muted-foreground)", marginTop: 4 }}>
-              Hábitos feitos
-            </div>
-          </div>
-          <div
-            style={{
-              textAlign: "center",
-              padding: "14px 10px",
-              borderRadius: 12,
-              background: "rgba(168,85,247,0.08)",
-              border: "1px solid rgba(168,85,247,0.15)",
-            }}
-          >
-            <div style={{ fontSize: 22, fontWeight: 800, color: "#A855F7" }}>
-              <AnimatedCounter value={monthlySummary.monthWorkouts} />
-            </div>
-            <div style={{ fontSize: 11, color: "var(--muted-foreground)", marginTop: 4 }}>
-              Treinos
-            </div>
-          </div>
-        </div>
-      </ExpandableSection>
     </div>
   );
 }
