@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
+import { useLocation, useNavigate } from "react-router-dom";
 import { loadGymData } from "./lib/gym";
 import { supabase } from "./lib/supabase";
 import { initializeAuth, subscribeAuthChanges } from "@/lib/auth";
@@ -54,7 +55,6 @@ import Notes from "./pages/Notes";
 import ResetPassword from "./pages/ResetPassword";
 import DownloadApp from "./pages/DownloadApp.tsx";
 
-
 // Login
 import Login from "./pages/Login";
 
@@ -74,6 +74,51 @@ type Tab =
   | "download"
   | "notes";
 
+// Mapeamento de URL -> Tab
+const TAB_ROUTES: Record<string, Tab> = {
+  "/": "dashboard",
+  "/dashboard": "dashboard",
+  "/today": "today",
+  "/tasks": "tasks",
+  "/goals": "goals",
+  "/habits": "habits",
+  "/prayer": "prayer",
+  "/diet": "diet",
+  "/financial": "financial",
+  "/calendar": "calendar",
+  "/academy": "academy",
+  "/evolution": "evolution",
+  "/settings": "settings",
+  "/download": "download",
+  "/notes": "notes",
+};
+
+// Mapeamento de Tab -> URL
+const ROUTE_TABS: Record<Tab, string> = {
+  dashboard: "/dashboard",
+  today: "/today",
+  tasks: "/tasks",
+  goals: "/goals",
+  habits: "/habits",
+  prayer: "/prayer",
+  diet: "/diet",
+  financial: "/financial",
+  calendar: "/calendar",
+  academy: "/academy",
+  evolution: "/evolution",
+  settings: "/settings",
+  download: "/download",
+  notes: "/notes",
+};
+
+function getTabFromPathname(pathname: string): Tab {
+  const tab = TAB_ROUTES[pathname];
+  if (tab) return tab;
+  // Sub-pastas como /academy/evolution
+  if (pathname.startsWith("/academy")) return "academy";
+  return "dashboard";
+}
+
 function AppContent({
   isPro,
   onOpenUpgrade,
@@ -81,7 +126,24 @@ function AppContent({
   isPro: boolean;
   onOpenUpgrade: () => void;
 }) {
-  const [activeTab, setActiveTab] = useState<Tab>("dashboard");
+  const location = useLocation();
+  const navigate = useNavigate();
+
+  const [activeTab, setActiveTab] = useState<Tab>(() =>
+    getTabFromPathname(location.pathname)
+  );
+
+  // Sincronizar activeTab quando a URL muda (ex: back/forward do browser)
+  useEffect(() => {
+    const newTab = getTabFromPathname(location.pathname);
+    setActiveTab(newTab);
+  }, [location.pathname]);
+
+  // Função que atualiza a URL quando a tab muda
+  const handleTabChange = (tab: Tab) => {
+    setActiveTab(tab);
+    navigate(ROUTE_TABS[tab]);
+  };
 
   const renderPage = () => {
     switch (activeTab) {
@@ -104,9 +166,9 @@ function AppContent({
       case "calendar":
         return <CalendarView />;
       case "academy":
-        return <Academy onTabChange={setActiveTab} />;
+        return <Academy onTabChange={(subTab) => handleTabChange(subTab as Tab)} />;
       case "evolution":
-        return <Evolution onTabChange={setActiveTab} />;
+        return <Evolution onTabChange={(subTab) => handleTabChange(subTab as Tab)} />;
       case "settings":
         return <Settings />;
       case "notes":
@@ -121,7 +183,7 @@ function AppContent({
   return (
     <Layout
       activeTab={activeTab}
-      onTabChange={setActiveTab}
+      onTabChange={handleTabChange}
       isPro={isPro}
       onOpenUpgrade={onOpenUpgrade}
     >
@@ -137,6 +199,9 @@ function App() {
   const [isPro, setIsPro] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
 
+  const location = useLocation();
+  const navigate = useNavigate();
+
   usePWA();
 
   const syncProfileState = async (currentUser: User | null = user) => {
@@ -149,7 +214,7 @@ function App() {
       .from("profiles")
       .select("id, is_pro, xp, level, streak, name")
       .eq("id", currentUser.id)
-      .maybeSingle(); // Usar maybeSingle para evitar erro de log se não existir
+      .maybeSingle();
 
     if (error) {
       console.error("ERRO AO SINCRONIZAR PERFIL:", error);
@@ -249,6 +314,10 @@ function App() {
         setUser(authResult.user);
 
         if (authResult.user) {
+          // Redirecionar para dashboard se estiver na home
+          if (location.pathname === "/") {
+            navigate("/dashboard");
+          }
           // Executa em paralelo para melhorar o tempo de startup
           await Promise.all([
             syncProfileState(authResult.user),
@@ -291,7 +360,7 @@ function App() {
   }, []);
 
   useEffect(() => {
-    if (window.location.pathname === "/reset-password") return;
+    if (location.pathname === "/reset-password") return;
     
     if (!user?.id) {
       stopRealtimeSync();
@@ -303,9 +372,8 @@ function App() {
     });
   }, [user?.id]);
 
-  const path = typeof window !== "undefined" ? window.location.pathname : "";
-
-  if (path === "/reset-password") {
+  // Página de reset de senha é independente
+  if (location.pathname === "/reset-password") {
     return <ResetPassword />;
   }
 
@@ -322,10 +390,7 @@ function App() {
     <ErrorBoundary>
       <ThemeProvider defaultTheme="dark">
         <TooltipProvider>
-          {/* 🔑 AQUI É A MÁGICA */}
-          {window.location.pathname === "/reset-password" ? (
-            <ResetPassword />
-          ) : !user ? (
+          {!user ? (
             <>
               {startupError ? (
                 <div
@@ -360,7 +425,6 @@ function App() {
                 return;
               }
 
-              // Adiciona o e-mail do usuário como parâmetro para facilitar a identificação no Cakto
               const url = new URL(checkoutUrl);
               if (user?.email) {
                 url.searchParams.set("email", user.email);

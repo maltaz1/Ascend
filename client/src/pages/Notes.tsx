@@ -541,6 +541,21 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
             <div className="px-4 mb-4 text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em]">
               Notas
             </div>
+            {!isMobile && userFolders.length === 0 && filteredNotes.length === 0 && (
+              <div className="text-center py-16 px-4">
+                <div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                  <FileText size={28} className="text-zinc-600" />
+                </div>
+                <p className="text-zinc-400 text-sm font-medium mb-2">Nenhuma nota ainda</p>
+                <p className="text-zinc-600 text-xs mb-4">Comece criando sua primeira nota para organizar seus pensamentos.</p>
+                <button 
+                  onClick={handleCreateNote}
+                  className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-blue-900/20"
+                >
+                  + Criar primeira nota
+                </button>
+              </div>
+            )}
             <div className="space-y-2">
               {filteredNotes.filter(n => !n.fixed).map(note => (
                 <NoteItem 

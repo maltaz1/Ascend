@@ -1,9 +1,10 @@
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect } from 'react';
+import { X } from 'lucide-react';
 
 interface Toast {
   id: string;
   message: string;
-  type: 'success' | 'xp' | 'achievement' | 'info';
+  type: 'success' | 'xp' | 'achievement' | 'info' | 'error';
   emoji?: string;
 }
 
@@ -22,12 +23,17 @@ export function showToast(message: string, type: Toast['type'] = 'success', emoj
 export function FlowToastContainer() {
   const [toasts, setToasts] = useState<Toast[]>([]);
 
+  const removeToast = (id: string) => {
+    setToasts(prev => prev.filter(t => t.id !== id));
+  };
+
   useEffect(() => {
     const listener = (toast: Toast) => {
       setToasts(prev => [...prev, toast]);
+      const duration = toast.type === 'error' ? 5000 : 3000;
       setTimeout(() => {
-        setToasts(prev => prev.filter(t => t.id !== toast.id));
-      }, 3000);
+        removeToast(toast.id);
+      }, duration);
     };
     toastListeners.push(listener);
     return () => {
@@ -40,56 +46,80 @@ export function FlowToastContainer() {
     xp: '#F59E0B',
     achievement: '#A855F7',
     info: '#60A5FA',
+    error: '#EF4444',
   };
 
   return (
-    <div style={{ position: 'fixed', bottom: 20, right: 20, zIndex: 9999, display: 'flex', flexDirection: 'column', gap: 10, pointerEvents: 'none' }}>
+    <div style={{
+      position: 'fixed',
+      top: 20,
+      right: 20,
+      zIndex: 9999,
+      display: 'flex',
+      flexDirection: 'column',
+      gap: 10,
+      pointerEvents: 'none',
+      maxWidth: 'calc(100vw - 40px)',
+    }}>
       {toasts.map((toast, i) => {
+        const isError = toast.type === 'error';
         const isInfo = toast.type === 'info';
-        const bg = isInfo
-          ? 'linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.94))'
-          : 'linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(24, 24, 38, 0.92))';
+        const bg = isError
+          ? 'linear-gradient(135deg, rgba(30, 15, 15, 0.98), rgba(42, 20, 20, 0.94))'
+          : isInfo
+            ? 'linear-gradient(135deg, rgba(15, 23, 42, 0.98), rgba(30, 41, 59, 0.94))'
+            : 'linear-gradient(135deg, rgba(15, 23, 42, 0.96), rgba(24, 24, 38, 0.92))';
 
         return (
           <div
             key={toast.id}
             className="fz-toast"
             style={{
-              borderColor: isInfo ? 'rgba(96, 165, 250, 0.35)' : `${colors[toast.type]}55`,
+              borderColor: isError
+                ? 'rgba(239, 68, 68, 0.45)'
+                : isInfo
+                  ? 'rgba(96, 165, 250, 0.35)'
+                  : `${colors[toast.type]}55`,
               borderWidth: 1,
               borderStyle: 'solid',
-              borderRadius: 18,
+              borderRadius: 14,
               padding: '12px 14px',
               minWidth: 280,
-              maxWidth: 340,
+              maxWidth: 360,
               display: 'flex',
               alignItems: 'center',
-              gap: 12,
+              gap: 10,
               background: bg,
               backdropFilter: 'blur(18px)',
-              boxShadow: '0 14px 40px rgba(15, 23, 42, 0.35)',
+              boxShadow: isError
+                ? '0 8px 32px rgba(239, 68, 68, 0.25)'
+                : '0 14px 40px rgba(15, 23, 42, 0.35)',
               animationDelay: `${i * 50}ms`,
               pointerEvents: 'auto',
             }}
           >
             <div
               style={{
-                width: 34,
-                height: 34,
-                borderRadius: 12,
+                width: 32,
+                height: 32,
+                borderRadius: 10,
                 display: 'flex',
                 alignItems: 'center',
                 justifyContent: 'center',
-                background: isInfo
-                  ? 'linear-gradient(135deg, rgba(96, 165, 250, 0.22), rgba(59, 130, 246, 0.18))'
-                  : 'rgba(255,255,255,0.05)',
+                background: isError
+                  ? 'rgba(239, 68, 68, 0.18)'
+                  : isInfo
+                    ? 'linear-gradient(135deg, rgba(96, 165, 250, 0.22), rgba(59, 130, 246, 0.18))'
+                    : 'rgba(255,255,255,0.05)',
                 flexShrink: 0,
               }}
             >
               {toast.emoji ? (
-                <span style={{ fontSize: 18 }}>{toast.emoji}</span>
+                <span style={{ fontSize: 16 }}>{toast.emoji}</span>
+              ) : isError ? (
+                <span style={{ fontSize: 16, color: colors[toast.type] }}>!</span>
               ) : (
-                <span style={{ fontSize: 18, color: colors[toast.type] }}>●</span>
+                <span style={{ fontSize: 16, color: colors[toast.type] }}>●</span>
               )}
             </div>
 
@@ -108,16 +138,30 @@ export function FlowToastContainer() {
               </p>
             </div>
 
-            <div
+            <button
+              onClick={() => removeToast(toast.id)}
               style={{
-                width: 10,
-                height: 10,
-                borderRadius: '50%',
-                background: colors[toast.type],
-                boxShadow: `0 0 14px ${colors[toast.type]}`,
+                background: 'none',
+                border: 'none',
+                cursor: 'pointer',
+                padding: '2px',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
                 flexShrink: 0,
+                opacity: 0.6,
+                transition: 'opacity 0.2s',
+                borderRadius: 6,
               }}
-            />
+              onMouseEnter={e => {
+                (e.currentTarget as HTMLElement).style.opacity = '1';
+              }}
+              onMouseLeave={e => {
+                (e.currentTarget as HTMLElement).style.opacity = '0.6';
+              }}
+            >
+              <X size={14} color="rgba(255,255,255,0.7)" />
+            </button>
           </div>
         );
       })}
