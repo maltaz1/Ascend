@@ -839,11 +839,27 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
             </div>
           )}
           {selectedTasks.length === 0 && !generating ? (
-            <div className="text-center py-12 text-muted-foreground bg-white/5 rounded-3xl border border-dashed border-border">
-              <CheckCircle2 size={48} className="mx-auto mb-3 opacity-20" />
-              <p className="text-[14px] font-medium">
+            <div className="text-center py-14 bg-white/5 rounded-3xl border border-dashed border-border">
+              <div className="w-16 h-16 bg-emerald-500/10 rounded-2xl flex items-center justify-center mx-auto mb-4">
+                <CheckCircle2 size={32} className="text-emerald-500/40" />
+              </div>
+              <p className="text-white/80 text-[15px] font-semibold mb-1">
                 {search ? "Nenhuma tarefa encontrada" : "Nenhuma tarefa para este dia"}
               </p>
+              <p className="text-zinc-500 text-xs mb-4">
+                {search
+                  ? "Tente buscar por outro termo."
+                  : "Adicione uma tarefa para começar a evoluir. Cada tarefa concluída te dá XP!"
+                }
+              </p>
+              {!search && (
+                <button
+                  onClick={() => { setShowModal(true); setEditingTask(null); }}
+                  className="px-5 py-2.5 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-violet-900/20"
+                >
+                  + Adicionar tarefa
+                </button>
+              )}
             </div>
           ) : (
             !generating && selectedTasks.map(task => (

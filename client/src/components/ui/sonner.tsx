@@ -17,8 +17,8 @@ const Toaster = ({ ...props }: ToasterProps) => {
       }
       richColors
       closeButton
-      duration={4000}
-      position="top-center"
+      duration={5000}
+      position="top-right"
       {...props}
     />
   );

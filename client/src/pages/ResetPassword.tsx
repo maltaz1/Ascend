@@ -2,11 +2,13 @@
 
 
 import React, { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "../lib/supabase";
 import { notifyError, notifySuccess } from "@/lib/notifications";
 import { Lock, Eye, EyeOff, Loader2, ArrowLeft } from "lucide-react";
 
 export default function ResetPassword() {
+  const navigate = useNavigate();
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
   const [loading, setLoading] = useState(false);
@@ -36,7 +38,7 @@ export default function ResetPassword() {
       } else {
         notifySuccess("Senha atualizada com sucesso!");
         setTimeout(() => {
-          window.location.href = "/";
+          navigate("/dashboard");
         }, 2000);
       }
     } catch (err) {
@@ -115,7 +117,7 @@ export default function ResetPassword() {
 
         <div className="mt-8 pt-6 border-t border-zinc-800/50">
           <button 
-            onClick={() => window.location.href = "/"}
+            onClick={() => navigate("/")}
             className="flex items-center justify-center gap-2 text-zinc-500 hover:text-zinc-300 transition-all text-sm w-full"
           >
             <ArrowLeft size={16} />

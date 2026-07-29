@@ -12,6 +12,7 @@ import {
   TrendingUp,
   Search,
   Download,
+  Flame,
 } from "lucide-react";
 
 import { addXP } from "@/lib/store";
@@ -801,13 +802,27 @@ export default function Habits({ isPro }: { isPro: boolean }) {
         }}
       >
         {filteredHabits.length === 0 ? (
-          <div
-            style={{
-              textAlign: "center",
-              padding: 40,
-            }}
-          >
-            Nenhum hábito criado
+          <div className="flex flex-col items-center justify-center text-center py-16 px-6">
+            <div className="w-20 h-20 bg-amber-500/10 rounded-3xl flex items-center justify-center mb-6">
+              <Flame size={36} className="text-amber-500/50" />
+            </div>
+            <h3 className="text-white text-lg font-bold mb-2">
+              {searchTerm ? "Nenhum hábito encontrado" : "Nenhum hábito criado"}
+            </h3>
+            <p className="text-zinc-400 text-sm mb-6 max-w-sm">
+              {searchTerm
+                ? "Tente buscar por outro termo."
+                : "Hábitos são o alicerce da sua evolução. Comece criando seu primeiro hábito e construa sua streak!"
+              }
+            </p>
+            {!searchTerm && (
+              <button
+                onClick={() => setShowNewHabit(true)}
+                className="px-6 py-3 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-violet-900/20"
+              >
+                + Criar primeiro hábito
+              </button>
+            )}
           </div>
         ) : (
           <div className="habit-table-scroll">
