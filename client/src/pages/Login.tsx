@@ -1,10 +1,12 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { supabase } from "@/lib/supabase";
 import { notifyError, notifySuccess, notifyWarning } from "@/lib/notifications";
 
 type Tab = "login" | "signup";
 
 export default function Login() {
+  const navigate = useNavigate();
   const [tab, setTab] = useState<Tab>("login");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
@@ -92,6 +94,7 @@ export default function Login() {
     console.log("LOGIN ERROR:", error);
 
     setLoading(false);
+    navigate("/dashboard");
   };
 
   return (
