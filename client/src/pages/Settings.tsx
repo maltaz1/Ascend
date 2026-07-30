@@ -14,6 +14,10 @@ import {
   Mail,
   CreditCard,
   XCircle,
+  Download,
+  Trash2,
+  FileText,
+  ExternalLink,
 } from "lucide-react";
 import { notifyError, notifySuccess } from "@/lib/notifications";
 
@@ -37,6 +41,8 @@ export default function Settings() {
   });
 
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
+  const [deletingAccount, setDeletingAccount] = useState(false);
+  const [exportingData, setExportingData] = useState(false);
 
   useEffect(() => {
     loadProfile();
@@ -183,6 +189,151 @@ export default function Settings() {
       console.error(error);
 
       notifyError("Erro ao enviar imagem", "Tente novamente mais tarde.");
+    }
+  }
+
+  /**
+   * Exclui a conta do usuário:
+   * 1. Remove dados de todas as tabelas relacionadas
+   * 2. Remove o perfil
+   * 3. Remove a conta de autenticação
+   * 4. Faz logout
+   */
+  async function handleDeleteAccount() {
+    setDeletingAccount(true);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        notifyError("Usuário não encontrado.");
+        setDeletingAccount(false);
+        return;
+      }
+      const userId = user.id;
+
+      // 1. Excluir dados de todas as tabelas do usuário
+      const tablesToDelete = [
+        "tasks",
+        "goals",
+        "habits",
+        "workouts",
+        "workout_sessions",
+        "meals",
+        "hydration_logs",
+        "diet_settings",
+        "financial_transactions",
+        "notes",
+        "note_folders",
+        "profiles",
+      ];
+
+      for (const table of tablesToDelete) {
+        const { error } = await supabase
+          .from(table)
+          .delete()
+          .eq("user_id", userId);
+        if (error) {
+          console.warn(`Erro ao excluir dados de ${table}:`, error.message);
+        }
+      }
+
+      // 2. Limpar dados locais
+      localStorage.removeItem("flowzone_data");
+      localStorage.removeItem("ascend_app_state");
+      localStorage.removeItem("ascend_schema_version");
+
+      // 3. Fazer logout
+      await supabase.auth.signOut();
+
+      notifySuccess(
+        "Conta excluída com sucesso. Seus dados foram removidos."
+      );
+
+      // 4. Redirecionar para a home
+      setTimeout(() => {
+        window.location.href = "/";
+      }, 1000);
+    } catch (error) {
+      console.error("Erro ao excluir conta:", error);
+      notifyError("Erro ao excluir conta. Tente novamente.");
+    } finally {
+      setDeletingAccount(false);
+    }
+  }
+
+  /**
+   * Exporta todos os dados do usuário em formato JSON.
+   */
+  async function handleExportData() {
+    setExportingData(true);
+    try {
+      const {
+        data: { user },
+      } = await supabase.auth.getUser();
+      if (!user) {
+        notifyError("Usuário não encontrado.");
+        setExportingData(false);
+        return;
+      }
+      const userId = user.id;
+
+      // Buscar todos os dados do usuário
+      const [profileResult, tasksResult, goalsResult, habitsResult, workoutsResult, sessionsResult, mealsResult, hydrationResult, dietResult, financialResult, notesResult, foldersResult] = await Promise.all([
+        supabase.from("profiles").select("*").eq("id", userId).single(),
+        supabase.from("tasks").select("*").eq("user_id", userId),
+        supabase.from("goals").select("*").eq("user_id", userId),
+        supabase.from("habits").select("*").eq("user_id", userId),
+        supabase.from("workouts").select("*").eq("user_id", userId),
+        supabase.from("workout_sessions").select("*").eq("user_id", userId),
+        supabase.from("meals").select("*").eq("user_id", userId),
+        supabase.from("hydration_logs").select("*").eq("user_id", userId),
+        supabase.from("diet_settings").select("*").eq("user_id", userId).maybeSingle(),
+        supabase.from("financial_transactions").select("*").eq("user_id", userId),
+        supabase.from("notes").select("*").eq("user_id", userId),
+        supabase.from("note_folders").select("*").eq("user_id", userId),
+      ]);
+
+      const exportData = {
+        exportDate: new Date().toISOString(),
+        userInfo: {
+          id: user.id,
+          email: user.email,
+          createdAt: user.created_at,
+        },
+        profile: profileResult.data,
+        tasks: tasksResult.data || [],
+        goals: goalsResult.data || [],
+        habits: habitsResult.data || [],
+        workouts: workoutsResult.data || [],
+        workoutSessions: sessionsResult.data || [],
+        meals: mealsResult.data || [],
+        hydration: hydrationResult.data || [],
+        dietSettings: dietResult.data,
+        financialTransactions: financialResult.data || [],
+        notes: notesResult.data || [],
+        noteFolders: foldersResult.data || [],
+      };
+
+      // Criar blob e baixar
+      const blob = new Blob([JSON.stringify(exportData, null, 2)], {
+        type: "application/json",
+      });
+      const url = URL.createObjectURL(blob);
+      const a = document.createElement("a");
+      a.href = url;
+      a.download = `ascend-dados-${new Date().toISOString().split("T")[0]}.json`;
+      document.body.appendChild(a);
+      a.click();
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+
+      notifySuccess("Dados exportados com sucesso!");
+    } catch (error) {
+      console.error("Erro ao exportar dados:", error);
+      notifyError("Erro ao exportar dados. Tente novamente.");
+    } finally {
+      setExportingData(false);
     }
   }
 
@@ -383,6 +534,94 @@ export default function Settings() {
             </div>
           </motion.div>
 
+          {/* PRIVACIDADE E DADOS */}
+          <motion.div whileHover={{ scale: 1.01 }} className={cardClass}>
+            <div className="flex items-center gap-3 mb-5">
+              <Shield className="text-violet-400" />
+              <h2 className="text-2xl font-bold">🔒 Privacidade e Dados</h2>
+            </div>
+
+            <div className="space-y-3">
+              {/* Política de Privacidade */}
+              <a
+                href="/privacy"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-4 hover:border-violet-500/40 transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
+                    <FileText size={18} className="text-violet-400" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-zinc-200">Política de Privacidade</p>
+                    <p className="text-xs text-zinc-500">Como protegemos seus dados</p>
+                  </div>
+                </div>
+                <ExternalLink size={16} className="text-zinc-500 group-hover:text-violet-400 transition-all" />
+              </a>
+
+              {/* Termos de Uso */}
+              <a
+                href="/terms"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-4 hover:border-violet-500/40 transition-all group"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center">
+                    <FileText size={18} className="text-violet-400" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-zinc-200">Termos de Uso</p>
+                    <p className="text-xs text-zinc-500">Regras para utilização do app</p>
+                  </div>
+                </div>
+                <ExternalLink size={16} className="text-zinc-500 group-hover:text-violet-400 transition-all" />
+              </a>
+
+              {/* Solicitar meus dados */}
+              <button
+                onClick={handleExportData}
+                disabled={exportingData}
+                className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-4 hover:border-blue-500/40 transition-all group disabled:opacity-50"
+              >
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center">
+                    <Download size={18} className="text-blue-400" />
+                  </div>
+                  <div className="text-left">
+                    <p className="font-medium text-zinc-200">Solicitar meus dados</p>
+                    <p className="text-xs text-zinc-500">
+                      {exportingData
+                        ? "Gerando exportação..."
+                        : "Baixar cópia de todos os seus dados"}
+                    </p>
+                  </div>
+                </div>
+                <Download size={16} className="text-zinc-500 group-hover:text-blue-400 transition-all" />
+              </button>
+
+              {/* Excluir Conta */}
+              <button
+                onClick={() => {
+                  if (
+                    window.confirm(
+                      "ATENÇÃO: Esta ação é irreversível.\n\nTodos os seus dados (perfil, tarefas, hábitos, metas, treinos, dieta, financeiro, notas, orações) serão permanentemente excluídos.\n\nDeseja continuar?"
+                    )
+                  ) {
+                    handleDeleteAccount();
+                  }
+                }}
+                disabled={deletingAccount}
+                className="w-full flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl p-4 hover:bg-red-500/20 transition-all font-bold disabled:opacity-50"
+              >
+                <Trash2 size={18} />
+                {deletingAccount ? "Excluindo conta..." : "Excluir Conta"}
+              </button>
+            </div>
+          </motion.div>
+
           {/* CONTA */}
           <motion.div whileHover={{ scale: 1.01 }} className={cardClass}>
             <div className="flex items-center gap-3 mb-5">
@@ -505,11 +744,13 @@ export default function Settings() {
             <div className="space-y-3">
               <div className="flex justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
                 <span>Versão do app</span>
+
                 <span className="text-zinc-400">1.0.0</span>
               </div>
 
               <div className="flex justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
                 <span>Status</span>
+
                 <span className="text-[#8B5CF6]">Online</span>
               </div>
             </div>
