@@ -781,19 +781,21 @@ export default function Diet() {
   const [showDietSettings, setShowDietSettings] = useState(false);
   const [dietSettings, setDietSettings] = useState(data.diet.settings);
 
-  const [todayMeals, setTodayMeals] = useState<Meal[]>([]);
-
-  const [todayNutrition, setTodayNutrition] = useState({
-    calories: 0,
-    protein: 0,
-    carbs: 0,
-    fat: 0,
-  });
-
-  const [hydration, setHydration] = useState({
+  // Derivar dados do store diretamente para reatividade imediata (Bug 1 fix)
+  const today = getTodayString();
+  const todayMeals = data.diet.meals.filter(m => m.date === today);
+  const todayNutrition = {
+    calories: todayMeals.reduce((sum, meal) => sum + meal.totalCalories, 0),
+    protein: todayMeals.reduce((sum, meal) => sum + meal.totalProtein, 0),
+    carbs: todayMeals.reduce((sum, meal) => sum + meal.totalCarbs, 0),
+    fat: todayMeals.reduce((sum, meal) => sum + meal.totalFat, 0),
+  };
+  const hydrationLog = data.diet.hydration.find(h => h.date === today);
+  const hydration = hydrationLog || {
+    date: today,
     cupsConsumed: 0,
-    goal: 8,
-  });
+    goal: (dietSettings.waterGoal || 2) * 4,
+  };
 
   const mealsByType = useMemo(() => {
     const grouped: Record<string, Meal[]> = {
@@ -808,14 +810,11 @@ export default function Diet() {
     return grouped;
   }, [todayMeals]);
 
-  const handleAddMeal = async (
+  const handleAddMeal = (
     type: "breakfast" | "lunch" | "dinner" | "snack"
   ) => {
     setSelectedMealType(type);
     setShowAddFood(true);
-
-    setTodayMeals(await getTodayMeals());
-    setTodayNutrition(await getTodayNutrition());
   };
 
   const handleDeleteMeal = async (id: string) => {
@@ -834,27 +833,8 @@ export default function Diet() {
     setShowDietSettings(false);
   };
 
-  // Atualizar dietSettings quando data.diet.settings muda
+  // Carregar profile e settings do Supabase
   useEffect(() => {
-    async function refreshMeals() {
-      setTodayMeals(await getTodayMeals());
-      setTodayNutrition(await getTodayNutrition());
-      setHydration(await getTodayHydration());
-
-      const settings = await getDietSettings();
-
-      setDietSettings(
-        settings || {
-          dailyCalorieGoal: 2000,
-          proteinGoal: 150,
-          carbsGoal: 250,
-          fatGoal: 70,
-          waterGoal: 8,
-          restrictions: [],
-          preferences: [],
-        }
-      );
-    }
 
     async function loadProfile() {
       const { data: userData } = await supabase.auth.getUser();
@@ -872,8 +852,14 @@ export default function Diet() {
       }
     }
 
-    refreshMeals();
     loadProfile();
+    async function loadSettings() {
+      const settings = await getDietSettings();
+      if (settings) {
+        setDietSettings(settings);
+      }
+    }
+    loadSettings();
 
 
     const channel = supabase
@@ -886,7 +872,8 @@ export default function Diet() {
           table: "meals",
         },
         async () => {
-          await refreshMeals();
+          // Store já atualiza via optimistic update + realtime, nada a fazer aqui
+          // Os dados derivam automaticamente de data.diet.meals
         }
       )
 
@@ -903,6 +890,19 @@ export default function Diet() {
           if (settings) {
             setDietSettings(settings);
           }
+        }
+      )
+
+      .on(
+        "postgres_changes",
+        {
+          event: "*",
+          schema: "public",
+          table: "hydration_logs",
+        },
+        async () => {
+          // Store já atualiza hydration via loadDietData ou addWaterCup
+          // Dados derivam automaticamente de data.diet.hydration
         }
       )
       .subscribe();
@@ -1119,7 +1119,7 @@ export default function Diet() {
                 fontFamily: "DM Sans",
               }}
             >
-              {hydration.cupsConsumed} / {hydration.goal} copos
+              {hydration.cupsConsumed} copo{hydration.cupsConsumed !== 1 ? 's' : ''} ({(hydration.cupsConsumed * 250 / 1000).toFixed(1)}L) / {(hydration.goal * 250 / 1000).toFixed(1)}L
             </div>
           </div>
         </div>

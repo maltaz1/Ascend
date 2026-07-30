@@ -259,14 +259,22 @@ export async function updateDietSettings(settings: DietSettings): Promise<void> 
 export async function addWaterCup(): Promise<void> {
   const today = getTodayString();
   const existing = _data.diet.hydration.find(item => item.date === today);
+  const goalInLiters = _data.diet.settings.waterGoal || 2;
+
+  // 1 copo = 250ml, então X litros = (X * 1000 / 250) copos = X * 4 copos
+  const goalInCups = Math.round(goalInLiters * 4);
 
   if (existing) {
-    existing.cupsConsumed += 1;
+    // Evitar race condition: usar valor atômico em vez de incrementar o valor existente
+    // (o realtime pode trazer valor desatualizado)
+    const newCups = existing.cupsConsumed + 1;
+    existing.cupsConsumed = newCups;
+    existing.goal = goalInCups;
   } else {
     _data.diet.hydration.push({
       date: today,
       cupsConsumed: 1,
-      goal: _data.diet.settings.waterGoal * 4,
+      goal: goalInCups,
     });
   }
 
@@ -293,9 +301,10 @@ export async function addWaterCup(): Promise<void> {
 
     const row = existingRows?.[0];
     if (row) {
+      // Incrementar baseado no valor do banco, não do estado local
       await supabase
         .from("hydration_logs")
-        .update({ cups_consumed: row.cups_consumed + 1 })
+        .update({ cups_consumed: row.cups_consumed + 1, goal: goalInCups })
         .eq("id", row.id);
     } else {
       await supabase.from("hydration_logs").insert([
@@ -303,7 +312,7 @@ export async function addWaterCup(): Promise<void> {
           user_id: user.id,
           date: today,
           cups_consumed: 1,
-          goal: _data.diet.settings.waterGoal * 4,
+          goal: goalInCups,
         },
       ]);
     }
@@ -312,11 +321,14 @@ export async function addWaterCup(): Promise<void> {
 
 export function getTodayHydration() {
   const today = getTodayString();
+  const goalInLiters = _data.diet.settings.waterGoal || 2;
+  const goalInCups = Math.round(goalInLiters * 4);
+
   return (
     _data.diet.hydration.find(item => item.date === today) || {
       date: today,
       cupsConsumed: 0,
-      goal: _data.diet.settings.waterGoal * 4,
+      goal: goalInCups,
     }
   );
 }
