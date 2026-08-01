@@ -24,9 +24,10 @@ import {
 
 interface EvolutionProps {
   onTabChange?: (tab: 'academy') => void;
+  hideHeader?: boolean;
 }
 
-export default function Evolution({ onTabChange }: EvolutionProps) {
+export default function Evolution({ onTabChange, hideHeader }: EvolutionProps) {
   const data = useStore();
   const sessions = useMemo(() => getWorkoutSessions(), [data]);
   const generalProgress = useMemo(() => getWorkoutProgressData(), [data]);
@@ -110,18 +111,20 @@ export default function Evolution({ onTabChange }: EvolutionProps) {
   return (
     <div className="animate-fade-in">
       {/* Header */}
-      <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
-        <button
-          onClick={() => onTabChange?.('academy')}
-          className="fz-btn-ghost"
-          style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
-        >
-          <ChevronLeft size={18} />
-        </button>
-        <h1 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 24, color: 'var(--foreground)' }}>
-          Evolução
-        </h1>
-      </div>
+      {!hideHeader && (
+        <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}>
+          <button
+            onClick={() => onTabChange?.('academy')}
+            className="fz-btn-ghost"
+            style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
+          >
+            <ChevronLeft size={18} />
+          </button>
+          <h1 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 24, color: 'var(--foreground)' }}>
+            Evolução
+          </h1>
+        </div>
+      )}
 
       {/* General Stats */}
       <div

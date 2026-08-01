@@ -1,9 +1,95 @@
 import { supabase } from "@/lib/supabase";
-import { Workout, WorkoutSession } from "./types";
+import { Workout, WorkoutSession, CatalogExercise, Exercise } from "./types";
 import { _data, notify, persistState, markActiveToday } from "./state";
 import { generateId } from "./utils";
 import { addXP } from "./xp-system";
 import { evaluateAchievements } from "./achievements";
+
+// --- Catalog Functions ---
+
+export async function addCatalogExercise(
+  exercise: Omit<CatalogExercise, "id" | "createdAt">
+): Promise<CatalogExercise | null> {
+  const newExercise: CatalogExercise = {
+    id: generateId(),
+    name: exercise.name,
+    targetMuscleGroup: exercise.targetMuscleGroup,
+    createdAt: new Date().toISOString(),
+  };
+
+  _data.exerciseCatalog.push(newExercise);
+  notify();
+  persistState();
+
+  void (async () => {
+    const { data: userData } = await supabase.auth.getUser();
+    if (!userData.user) {
+      console.error("Usuário não encontrado");
+      _data.exerciseCatalog = _data.exerciseCatalog.filter(item => item.id !== newExercise.id);
+      notify();
+      persistState();
+      return;
+    }
+
+    const { data, error } = await supabase
+      .from("exercise_catalog")
+      .insert([
+        {
+          user_id: userData.user.id,
+          name: exercise.name,
+          target_muscle_group: exercise.targetMuscleGroup,
+          created_at: new Date().toISOString(),
+        },
+      ])
+      .select()
+      .single();
+
+    if (error || !data) {
+      console.error("Erro ao salvar exercício no catálogo:", error);
+      _data.exerciseCatalog = _data.exerciseCatalog.filter(item => item.id !== newExercise.id);
+      notify();
+      persistState();
+      return;
+    }
+
+    const index = _data.exerciseCatalog.findIndex(item => item.id === newExercise.id);
+    if (index !== -1) {
+      _data.exerciseCatalog[index] = {
+        ...newExercise,
+        id: data.id,
+        createdAt: data.created_at,
+      };
+      notify();
+      persistState();
+    }
+  })();
+
+  return newExercise;
+}
+
+export async function deleteCatalogExercise(id: string): Promise<void> {
+  const previousCatalog = [..._data.exerciseCatalog];
+  _data.exerciseCatalog = _data.exerciseCatalog.filter(item => item.id !== id);
+
+  notify();
+  persistState();
+
+  void (async () => {
+    const { error } = await supabase.from("exercise_catalog").delete().eq("id", id);
+    if (error) {
+      console.error("Erro ao deletar exercício do catálogo:", error);
+      _data.exerciseCatalog = previousCatalog;
+      notify();
+      persistState();
+    }
+  })();
+}
+
+export function getCatalogExercises(): CatalogExercise[] {
+  return _data.exerciseCatalog;
+}
+
+// --- Workout Functions ---
 
 export async function addWorkout(
   workout: Omit<Workout, "id" | "createdAt">
@@ -12,6 +98,7 @@ export async function addWorkout(
     id: generateId(),
     name: workout.name,
     dayOfWeek: workout.dayOfWeek,
+    daysOfWeek: workout.daysOfWeek || [workout.dayOfWeek],
     exercises: workout.exercises || [],
     createdAt: new Date().toISOString(),
   };
@@ -37,6 +124,7 @@ export async function addWorkout(
           user_id: userData.user.id,
           name: workout.name,
           day_of_week: workout.dayOfWeek,
+          days_of_week: newWorkout.daysOfWeek,
           created_at: new Date().toISOString(),
         },
       ])
@@ -83,6 +171,11 @@ export async function updateWorkout(
     const updatesToDb: Record<string, unknown> = {};
     if (updates.name !== undefined) updatesToDb.name = updates.name;
     if (updates.dayOfWeek !== undefined) updatesToDb.day_of_week = updates.dayOfWeek;
+    if (updates.daysOfWeek !== undefined) updatesToDb.days_of_week = updates.daysOfWeek;
+    
+    // Se exercises for atualizado, precisamos lidar com workout_exercises no banco
+    // Mas a lógica atual parece salvar exercises como JSONB em workouts também? 
+    // Vamos verificar o schema novamente.
     if (updates.exercises !== undefined) updatesToDb.exercises = updates.exercises;
 
     if (Object.keys(updatesToDb).length === 0) return;
@@ -274,6 +367,25 @@ export async function loadGymData(): Promise<void> {
 
   if (!user) return;
 
+  // Carregar Catálogo
+  const { data: catalog, error: catalogError } = await supabase
+    .from("exercise_catalog")
+    .select("*")
+    .eq("user_id", user.id)
+    .order("name", { ascending: true });
+
+  if (catalogError) {
+    console.error(catalogError);
+  } else {
+    _data.exerciseCatalog = (catalog || []).map(ex => ({
+      id: ex.id,
+      name: ex.name,
+      targetMuscleGroup: ex.target_muscle_group,
+      createdAt: ex.created_at,
+    }));
+  }
+
+  // Carregar Treinos
   const { data: workouts, error: workoutsError } = await supabase
     .from("workouts")
     .select(`*, exercises:workout_exercises(*)`)
@@ -287,11 +399,13 @@ export async function loadGymData(): Promise<void> {
       id: workout.id,
       name: workout.name,
       dayOfWeek: workout.day_of_week,
+      daysOfWeek: workout.days_of_week || (workout.day_of_week !== null ? [workout.day_of_week] : []),
       exercises: workout.exercises || [],
       createdAt: workout.created_at,
     }));
   }
 
+  // Carregar Sessões
   const { data: sessions, error: sessionsError } = await supabase
     .from("workout_sessions")
     .select("*")

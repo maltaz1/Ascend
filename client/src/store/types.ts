@@ -42,6 +42,13 @@ export interface Habit {
   targetDays: number;
 }
 
+export interface CatalogExercise {
+  id: string;
+  name: string;
+  targetMuscleGroup?: string;
+  createdAt: string;
+}
+
 export interface Exercise {
   id: string;
   name: string;
@@ -49,12 +56,14 @@ export interface Exercise {
   repMin: number;
   repMax: number;
   restSeconds: number;
+  catalogExerciseId?: string;
 }
 
 export interface Workout {
   id: string;
   name: string;
-  dayOfWeek: number;
+  dayOfWeek: number; // Mantido por retrocompatibilidade inicial
+  daysOfWeek: number[]; // Novo campo para múltiplos dias
   exercises: Exercise[];
   createdAt: string;
 }
@@ -196,6 +205,7 @@ export interface AppData {
   habits: Habit[];
   achievements: Achievement[];
   workouts: Workout[];
+  exerciseCatalog: CatalogExercise[];
   workoutSessions: WorkoutSession[];
   prayerConversations: PrayerConversation[];
   favoritePrayers: FavoritePrayer[];
@@ -311,6 +321,7 @@ export const DEFAULT_DATA: AppData = {
   habits: [],
   achievements: DEFAULT_ACHIEVEMENTS,
   workouts: [],
+  exerciseCatalog: [],
   workoutSessions: [],
   prayerConversations: [],
   favoritePrayers: [],

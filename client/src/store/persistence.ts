@@ -10,6 +10,7 @@ function normalizeAppData(parsed: Partial<AppData>): AppData {
 
   const normalizedWorkouts = (parsed.workouts || []).map(workout => ({
     ...workout,
+    daysOfWeek: workout.daysOfWeek || (workout.dayOfWeek !== undefined ? [workout.dayOfWeek] : []),
     exercises: (workout.exercises || []).map(exercise => ({
       ...exercise,
       series: exercise.series || 3,
@@ -58,6 +59,7 @@ function normalizeAppData(parsed: Partial<AppData>): AppData {
     workoutSessions: normalizedSessions,
     prayerConversations: normalizedPrayerConversations,
     favoritePrayers: parsed.favoritePrayers || [],
+    exerciseCatalog: parsed.exerciseCatalog || [],
     diet: normalizedDiet,
     financial: parsed.financial || { transactions: [] },
   };
