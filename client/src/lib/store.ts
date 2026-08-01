@@ -12,3 +12,4 @@ export * from "@/store/types";
 export * from "@/store/realtime";
 export * from "@/store/xp-system";
 export * from "@/store/xp-engine";
+export { loadHabitsData } from "@/store/entities/habits";
