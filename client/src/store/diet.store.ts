@@ -81,7 +81,7 @@ export async function loadDietData(): Promise<void> {
       proteinGoal: settingsData.protein_goal || 150,
       carbsGoal: settingsData.carbs_goal || 250,
       fatGoal: settingsData.fat_goal || 70,
-      waterGoal: settingsData.water_goal || 2,
+      waterGoal: settingsData.water_goal || 2000,
       restrictions: settingsData.restrictions || [],
       preferences: settingsData.preferences || [],
     };
@@ -256,17 +256,19 @@ export async function updateDietSettings(settings: DietSettings): Promise<void> 
   })();
 }
 
-export async function addWaterCup(): Promise<void> {
+export async function addWaterMl(mlAmount: number): Promise<void> {
+  if (!mlAmount || mlAmount <= 0) return;
+
   const today = getTodayString();
   const existing = _data.diet.hydration.find(item => item.date === today);
 
   if (existing) {
-    existing.cupsConsumed += 1;
+    existing.cupsConsumed += mlAmount;
   } else {
     _data.diet.hydration.push({
       date: today,
-      cupsConsumed: 1,
-      goal: _data.diet.settings.waterGoal * 4,
+      cupsConsumed: mlAmount,
+      goal: _data.diet.settings.waterGoal,
     });
   }
 
@@ -295,15 +297,15 @@ export async function addWaterCup(): Promise<void> {
     if (row) {
       await supabase
         .from("hydration_logs")
-        .update({ cups_consumed: row.cups_consumed + 1 })
+        .update({ cups_consumed: row.cups_consumed + mlAmount })
         .eq("id", row.id);
     } else {
       await supabase.from("hydration_logs").insert([
         {
           user_id: user.id,
           date: today,
-          cups_consumed: 1,
-          goal: _data.diet.settings.waterGoal * 4,
+          cups_consumed: mlAmount,
+          goal: _data.diet.settings.waterGoal,
         },
       ]);
     }
@@ -316,7 +318,7 @@ export function getTodayHydration() {
     _data.diet.hydration.find(item => item.date === today) || {
       date: today,
       cupsConsumed: 0,
-      goal: _data.diet.settings.waterGoal * 4,
+      goal: _data.diet.settings.waterGoal,
     }
   );
 }
