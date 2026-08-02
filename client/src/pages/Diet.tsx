@@ -8,17 +8,16 @@ import {
   Edit2,
   Search,
   Settings,
+  Minus,
 } from "lucide-react";
 import { useStore } from "@/hooks/useStore";
 import {
-  getTodayMeals,
   getTodayNutrition,
-  getTodayHydration,
-  getDietSettings,
-  addWaterCup,
+  addWaterMl,
   addMeal,
   deleteMeal,
   updateDietSettings,
+  getDietSettings,
 } from "@/lib/store";
 import { Modal } from "@/components/ui/Modal";
 import { showToast } from "@/components/ui/FlowToast";
@@ -28,7 +27,7 @@ import {
   type FoodSearchResult,
 } from "@/lib/foodApi";
 import { DietSettingsModal } from "./DietSettingsModal";
-import type { Meal, FoodItem } from "@/lib/store";
+import type { Meal, FoodItem, HydrationLog } from "@/lib/store";
 import { getTodayString } from "@/store/utils";
 import { supabase } from "@/lib/supabase";
 
@@ -771,29 +770,261 @@ function AddFoodModal({
   );
 }
 
+function WaterModal({
+  open,
+  onClose,
+  onAdd,
+  currentMl,
+  goalMl,
+}: {
+  open: boolean;
+  onClose: () => void;
+  onAdd: (ml: number) => void;
+  currentMl: number;
+  goalMl: number;
+}) {
+  const [mlAmount, setMlAmount] = useState("250");
+  const [isAdding, setIsAdding] = useState(false);
+
+  const quickOptions = [150, 200, 250, 300, 350, 400, 500, 750, 1000];
+
+  const handleAdd = async () => {
+    const ml = parseFloat(mlAmount);
+    if (!ml || ml <= 0) {
+      showToast("Insira uma quantidade válida!", "info", "❌");
+      return;
+    }
+    setIsAdding(true);
+    await onAdd(ml);
+    setMlAmount("250");
+    setIsAdding(false);
+    onClose();
+  };
+
+  const percentage = goalMl > 0 ? Math.min((currentMl / goalMl) * 100, 100) : 0;
+
+  return (
+    <Modal open={open} onClose={onClose} title="💧 Registrar Hidratação">
+      <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
+        {/* Progress Bar */}
+        <div
+          style={{
+            background: "rgba(56,189,248,0.1)",
+            border: "1px solid rgba(56,189,248,0.2)",
+            borderRadius: 12,
+            padding: "16px",
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              justifyContent: "space-between",
+              marginBottom: 10,
+              fontFamily: "Space Grotesk",
+              fontSize: 14,
+              fontWeight: 600,
+            }}
+          >
+            <span style={{ color: "#38BDF8" }}>
+              {currentMl} mL
+            </span>
+            <span style={{ color: "rgba(255,255,255,0.5)" }}>
+              Meta: {goalMl} mL
+            </span>
+          </div>
+          <div
+            style={{
+              width: "100%",
+              height: 10,
+              background: "rgba(255,255,255,0.1)",
+              borderRadius: 5,
+              overflow: "hidden",
+            }}
+          >
+            <div
+              style={{
+                height: "100%",
+                width: `${percentage}%`,
+                background: "linear-gradient(90deg, #38BDF8, #0EA5E9)",
+                borderRadius: 5,
+                transition: "width 0.5s ease",
+              }}
+            />
+          </div>
+          <div
+            style={{
+              textAlign: "center",
+              marginTop: 8,
+              fontFamily: "DM Sans",
+              fontSize: 12,
+              color: "rgba(255,255,255,0.5)",
+            }}
+          >
+            {Math.round(percentage)}% da meta diária
+          </div>
+        </div>
+
+        {/* Quick Options */}
+        <div>
+          <label
+            style={{
+              fontFamily: "DM Sans",
+              fontSize: 12,
+              color: "rgba(255,255,255,0.6)",
+              marginBottom: 10,
+              display: "block",
+            }}
+          >
+            Quantidade rápida (mL)
+          </label>
+          <div
+            style={{
+              display: "flex",
+              flexWrap: "wrap",
+              gap: 8,
+            }}
+          >
+            {quickOptions.map(ml => (
+              <button
+                key={ml}
+                onClick={() => setMlAmount(ml.toString())}
+                style={{
+                  padding: "8px 14px",
+                  borderRadius: 8,
+                  background:
+                    mlAmount === ml.toString()
+                      ? "rgba(56,189,248,0.3)"
+                      : "rgba(56,189,248,0.1)",
+                  border:
+                    mlAmount === ml.toString()
+                      ? "1px solid rgba(56,189,248,0.5)"
+                      : "1px solid rgba(56,189,248,0.2)",
+                  color: mlAmount === ml.toString() ? "#38BDF8" : "rgba(255,255,255,0.7)",
+                  cursor: "pointer",
+                  fontFamily: "Space Grotesk",
+                  fontWeight: 600,
+                  fontSize: 13,
+                  transition: "all 0.2s ease",
+                }}
+              >
+                {ml} mL
+              </button>
+            ))}
+          </div>
+        </div>
+
+        {/* Custom Input */}
+        <div>
+          <label
+            style={{
+              fontFamily: "DM Sans",
+              fontSize: 12,
+              color: "rgba(255,255,255,0.6)",
+              marginBottom: 8,
+              display: "block",
+            }}
+          >
+            Ou digite a quantidade personalizada (mL)
+          </label>
+          <input
+            className="fz-input"
+            type="number"
+            placeholder="250"
+            value={mlAmount}
+            onChange={e => setMlAmount(e.target.value)}
+            style={{ width: "100%", boxSizing: "border-box" }}
+          />
+        </div>
+
+        {/* Submit Button */}
+        <button
+          onClick={handleAdd}
+          disabled={isAdding || !parseFloat(mlAmount) || parseFloat(mlAmount) <= 0}
+          style={{
+            padding: "14px 16px",
+            borderRadius: 10,
+            background:
+              isAdding || !parseFloat(mlAmount) || parseFloat(mlAmount) <= 0
+                ? "rgba(56,189,248,0.3)"
+                : "linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%)",
+            border: "none",
+            color:
+              isAdding || !parseFloat(mlAmount) || parseFloat(mlAmount) <= 0
+                ? "rgba(255,255,255,0.4)"
+                : "#000",
+            cursor:
+              isAdding || !parseFloat(mlAmount) || parseFloat(mlAmount) <= 0
+                ? "not-allowed"
+                : "pointer",
+            fontFamily: "Space Grotesk",
+            fontWeight: 700,
+            fontSize: 15,
+            transition: "all 0.2s ease",
+            boxShadow:
+              isAdding || !parseFloat(mlAmount) || parseFloat(mlAmount) <= 0
+                ? "none"
+                : "0 4px 12px rgba(56,189,248,0.3)",
+          }}
+          onMouseEnter={e => {
+            if (
+              !isAdding &&
+              parseFloat(mlAmount) &&
+              parseFloat(mlAmount) > 0
+            ) {
+              e.currentTarget.style.transform = "translateY(-2px)";
+              e.currentTarget.style.boxShadow = "0 6px 16px rgba(56,189,248,0.4)";
+            }
+          }}
+          onMouseLeave={e => {
+            if (
+              !isAdding &&
+              parseFloat(mlAmount) &&
+              parseFloat(mlAmount) > 0
+            ) {
+              e.currentTarget.style.transform = "translateY(0)";
+              e.currentTarget.style.boxShadow = "0 4px 12px rgba(56,189,248,0.3)";
+            }
+          }}
+        >
+          {isAdding ? "Adicionando..." : `+ Adicionar ${mlAmount || "0"} mL`}
+        </button>
+      </div>
+    </Modal>
+  );
+}
+
 export default function Diet() {
-  const [profile, setProfile] = useState<{ name: string } | null>(null);
   const data = useStore();
+  const [profile, setProfile] = useState<{ name: string } | null>(null);
   const [showAddFood, setShowAddFood] = useState(false);
   const [selectedMealType, setSelectedMealType] = useState<
     "breakfast" | "lunch" | "dinner" | "snack" | null
   >(null);
   const [showDietSettings, setShowDietSettings] = useState(false);
-  const [dietSettings, setDietSettings] = useState(data.diet.settings);
+  const [showWaterModal, setShowWaterModal] = useState(false);
 
-  const [todayMeals, setTodayMeals] = useState<Meal[]>([]);
+  // Use data from store reactively - this fixes the real-time update bug
+  const todayMeals = useMemo(() => {
+    const today = getTodayString();
+    return data.diet.meals.filter(meal => meal.date === today);
+  }, [data.diet.meals]);
 
-  const [todayNutrition, setTodayNutrition] = useState({
-    calories: 0,
-    protein: 0,
-    carbs: 0,
-    fat: 0,
-  });
+  const todayNutrition = useMemo(() => {
+    return getTodayNutrition();
+  }, [data.diet.meals]);
 
-  const [hydration, setHydration] = useState({
-    cupsConsumed: 0,
-    goal: 8,
-  });
+  const hydration = useMemo(() => {
+    const today = getTodayString();
+    return (
+      data.diet.hydration.find(item => item.date === today) || {
+        date: today,
+        cupsConsumed: 0,
+        goal: data.diet.settings.waterGoal,
+      }
+    );
+  }, [data.diet.hydration, data.diet.settings.waterGoal]);
+
+  const dietSettings = data.diet.settings;
 
   const mealsByType = useMemo(() => {
     const grouped: Record<string, Meal[]> = {
@@ -813,9 +1044,6 @@ export default function Diet() {
   ) => {
     setSelectedMealType(type);
     setShowAddFood(true);
-
-    setTodayMeals(await getTodayMeals());
-    setTodayNutrition(await getTodayNutrition());
   };
 
   const handleDeleteMeal = async (id: string) => {
@@ -823,9 +1051,9 @@ export default function Diet() {
     showToast("Refeição removida", "success", "✅");
   };
 
-  const handleAddWater = async () => {
-    await addWaterCup();
-    showToast("Copo de água adicionado!", "success", "💧");
+  const handleAddWater = async (ml: number) => {
+    await addWaterMl(ml);
+    showToast(`${ml} mL de água adicionado!`, "success", "💧");
   };
 
   const handleSaveDietSettings = async () => {
@@ -834,31 +1062,10 @@ export default function Diet() {
     setShowDietSettings(false);
   };
 
-  // Atualizar dietSettings quando data.diet.settings muda
+  // Load profile on mount
   useEffect(() => {
-    async function refreshMeals() {
-      setTodayMeals(await getTodayMeals());
-      setTodayNutrition(await getTodayNutrition());
-      setHydration(await getTodayHydration());
-
-      const settings = await getDietSettings();
-
-      setDietSettings(
-        settings || {
-          dailyCalorieGoal: 2000,
-          proteinGoal: 150,
-          carbsGoal: 250,
-          fatGoal: 70,
-          waterGoal: 8,
-          restrictions: [],
-          preferences: [],
-        }
-      );
-    }
-
     async function loadProfile() {
       const { data: userData } = await supabase.auth.getUser();
-
       if (!userData.user) return;
 
       const { data } = await supabase
@@ -872,44 +1079,7 @@ export default function Diet() {
       }
     }
 
-    refreshMeals();
     loadProfile();
-
-
-    const channel = supabase
-      .channel("diet-realtime")
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "meals",
-        },
-        async () => {
-          await refreshMeals();
-        }
-      )
-
-      .on(
-        "postgres_changes",
-        {
-          event: "*",
-          schema: "public",
-          table: "diet_settings",
-        },
-        async () => {
-          const settings = await getDietSettings();
-
-          if (settings) {
-            setDietSettings(settings);
-          }
-        }
-      )
-      .subscribe();
-
-    return () => {
-      supabase.removeChannel(channel);
-    };
   }, []);
 
   const hours = new Date().getHours();
@@ -1119,34 +1289,36 @@ export default function Diet() {
                 fontFamily: "DM Sans",
               }}
             >
-              {hydration.cupsConsumed} / {hydration.goal} copos
+              {hydration.cupsConsumed} / {hydration.goal} mL
             </div>
           </div>
         </div>
-        <button
-          onClick={handleAddWater}
-          style={{
-            width: 40,
-            height: 40,
-            borderRadius: 8,
-            background: "#38BDF8",
-            border: "none",
-            color: "white",
-            cursor: "pointer",
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            transition: "all 0.2s ease",
-          }}
-          onMouseEnter={e => {
-            e.currentTarget.style.opacity = "0.9";
-          }}
-          onMouseLeave={e => {
-            e.currentTarget.style.opacity = "1";
-          }}
-        >
-          <Plus size={20} />
-        </button>
+        <div style={{ display: "flex", gap: 8 }}>
+          <button
+            onClick={() => setShowWaterModal(true)}
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 8,
+              background: "#38BDF8",
+              border: "none",
+              color: "white",
+              cursor: "pointer",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              transition: "all 0.2s ease",
+            }}
+            onMouseEnter={e => {
+              e.currentTarget.style.opacity = "0.9";
+            }}
+            onMouseLeave={e => {
+              e.currentTarget.style.opacity = "1";
+            }}
+          >
+            <Plus size={20} />
+          </button>
+        </div>
       </div>
 
       {/* Meals */}
@@ -1257,11 +1429,24 @@ export default function Diet() {
         open={showDietSettings}
         onClose={() => setShowDietSettings(false)}
         dietSettings={dietSettings}
-        onSettingsChange={setDietSettings}
-        onSave={handleSaveDietSettings}
+        onSettingsChange={(settings) => {
+          // Update settings reactively - the store will handle persistence
+          updateDietSettings(settings);
+        }}
+        onSave={() => {
+          showToast("Metas de dieta atualizadas!", "success", "✅");
+          setShowDietSettings(false);
+        }}
       />
 
-
+      {/* Water Modal */}
+      <WaterModal
+        open={showWaterModal}
+        onClose={() => setShowWaterModal(false)}
+        onAdd={handleAddWater}
+        currentMl={hydration.cupsConsumed}
+        goalMl={hydration.goal}
+      />
     </div>
   );
 }

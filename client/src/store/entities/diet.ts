@@ -169,21 +169,23 @@ export async function updateDietSettings(settings: DietSettings): Promise<void> 
   }
 }
 
-export async function addWaterCup(): Promise<void> {
+export async function addWaterMl(mlAmount: number): Promise<void> {
+  if (!mlAmount || mlAmount <= 0) return;
+
   const today = getTodayString();
   const state = store.getState();
   const existing = state.hydration.find(item => item.date === today);
 
   store.update(storeState => {
     if (existing) {
-      existing.cupsConsumed += 1;
+      existing.cupsConsumed += mlAmount;
     } else {
       storeState.hydration = [
         ...storeState.hydration,
         {
           date: today,
-          cupsConsumed: 1,
-          goal: storeState.dietSettings.waterGoal * 4,
+          cupsConsumed: mlAmount,
+          goal: storeState.dietSettings.waterGoal,
         },
       ];
     }
@@ -204,15 +206,15 @@ export async function addWaterCup(): Promise<void> {
   if (existingRows?.length) {
     await supabase
       .from("hydration_logs")
-      .update({ cups_consumed: existingRows[0].cups_consumed + 1 })
+      .update({ cups_consumed: existingRows[0].cups_consumed + mlAmount })
       .eq("id", existingRows[0].id);
   } else {
     await supabase.from("hydration_logs").insert([
       {
         user_id: userId,
         date: today,
-        cups_consumed: 1,
-        goal: store.getState().dietSettings.waterGoal * 4,
+        cups_consumed: mlAmount,
+        goal: store.getState().dietSettings.waterGoal,
       },
     ]);
   }
@@ -224,7 +226,7 @@ export function getTodayHydration(): HydrationLog {
     store.getState().hydration.find(item => item.date === today) || {
       date: today,
       cupsConsumed: 0,
-      goal: store.getState().dietSettings.waterGoal * 4,
+      goal: store.getState().dietSettings.waterGoal,
     }
   );
 }
