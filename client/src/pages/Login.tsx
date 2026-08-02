@@ -13,6 +13,7 @@ export default function Login() {
   const [password, setPassword] = useState("");
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   const handleForgotPassword = async () => {
     if (!email) {
@@ -34,6 +35,10 @@ export default function Login() {
   };
 
   const handleSignup = async () => {
+    if (!acceptTerms) {
+      notifyWarning("Você precisa aceitar os Termos de Uso e a Política de Privacidade para criar uma conta.");
+      return;
+    }
     const strongPassword = /^(?=.*[A-Z])(?=.*[a-z])(?=.*\d).{8,}$/;
 
     if (!strongPassword.test(password)) {
@@ -1251,7 +1256,7 @@ export default function Login() {
                         )}
                       </button>
                     </div>
-                    <div
+                                        <div
                       style={{
                         marginTop: 8,
                         fontSize: 12,
@@ -1268,7 +1273,61 @@ export default function Login() {
                     </div>
                   </div>
                 </div>
-
+                {/* Termos de Uso e Privacidade */}
+                <div
+                  style={{
+                    display: "flex",
+                    alignItems: "flex-start",
+                    gap: 10,
+                    marginTop: 16,
+                    marginBottom: 8,
+                  }}
+                >
+                  <input
+                    type="checkbox"
+                    id="accept-terms"
+                    checked={acceptTerms}
+                    onChange={e => setAcceptTerms(e.target.checked)}
+                    style={{
+                      marginTop: 2,
+                      width: 16,
+                      height: 16,
+                      accentColor: "#8b5cf6",
+                      cursor: "pointer",
+                      flexShrink: 0,
+                    }}
+                  />
+                  <label
+                    htmlFor="accept-terms"
+                    style={{
+                      fontSize: 13,
+                      color: "rgba(255,255,255,0.6)",
+                      lineHeight: 1.5,
+                      cursor: "pointer",
+                      userSelect: "none",
+                    }}
+                  >
+                    Li e aceito os{" "}
+                    <a
+                      href="/terms"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "#a78bfa", textDecoration: "underline" }}
+                    >
+                      Termos de Uso
+                    </a>{" "}
+                    e a{" "}
+                    <a
+                      href="/privacy"
+                      target="_blank"
+                      rel="noopener noreferrer"
+                      style={{ color: "#a78bfa", textDecoration: "underline" }}
+                    >
+                      Política de Privacidade
+                    </a>{" "}
+                    do Ascend.
+                  </label>
+                </div>
                 <button
                   className="asc-btn"
                   onClick={handleSignup}
