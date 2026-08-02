@@ -1,7 +1,7 @@
 // FlowZone Today — Supabase Synced (Visual Original Mantido)
 
 import React, { useMemo } from "react";
-import { Check, Sun } from "lucide-react";
+import { Check, Sun, Target, Flame } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { useStore } from "@/hooks/useStore";
 
@@ -13,7 +13,6 @@ import { awardXp, createXpPayload } from "@/store/xp-engine";
 export default function Today() {
   const today = getTodayString();
   const store = useStore();
-  
   const { user: profile, tasks, habits, goals } = store;
 
   const todayTasks = useMemo(() => tasks.filter(t => t.date === today), [tasks, today]);
@@ -377,64 +376,58 @@ export default function Today() {
               </p>
             </div>
           ) : (
-            <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {todayTasks.map(task => (
                 <div
                   key={task.id}
-                  onClick={(e) => handleToggleTask(task.id, task.completed, e)}
+                  onClick={e => handleToggleTask(task.id, task.completed, e)}
                   style={{
                     display: "flex",
                     alignItems: "center",
-                    gap: 12,
-                    padding: "12px 14px",
+                    gap: 10,
+                    padding: "10px 12px",
                     background: task.completed
-                      ? "rgba(16, 185, 129, 0.05)"
-                      : "rgba(255, 255, 255, 0.02)",
-                    borderRadius: 12,
+                      ? "rgba(16,185,129,0.06)"
+                      : "var(--border)",
                     border: `1px solid ${
-                      task.completed ? "rgba(16, 185, 129, 0.2)" : "var(--border)"
+                      task.completed ? "rgba(16,185,129,0.2)" : "var(--border)"
                     }`,
+                    borderRadius: 10,
                     cursor: "pointer",
                     transition: "all 0.2s ease",
                   }}
                 >
-                  <div
-                    style={{
-                      width: 20,
-                      height: 20,
-                      borderRadius: 6,
-                      border: `2px solid ${
-                        task.completed ? "#10B981" : "var(--muted-foreground)"
-                      }`,
-                      background: task.completed ? "#10B981" : "transparent",
-                      display: "flex",
-                      alignItems: "center",
-                      justifyContent: "center",
-                    }}
-                  >
+                  <div className={`fz-checkbox ${task.completed ? "checked" : ""}`}>
                     {task.completed && <Check size={12} color="white" />}
                   </div>
                   <span
                     style={{
-                      fontSize: 14,
+                      fontFamily: "DM Sans",
+                      fontWeight: 500,
+                      fontSize: 13,
                       color: task.completed
                         ? "var(--muted-foreground)"
                         : "var(--foreground)",
                       textDecoration: task.completed ? "line-through" : "none",
                       flex: 1,
+                      overflow: "hidden",
+                      textOverflow: "ellipsis",
+                      whiteSpace: "nowrap",
                     }}
                   >
                     {task.title}
                   </span>
                   {task.priority === "high" && !task.completed && (
-                    <div
+                    <span
                       style={{
-                        width: 6,
-                        height: 6,
-                        borderRadius: "50%",
-                        background: "#EF4444",
+                        fontSize: 10,
+                        color: "#EF4444",
+                        fontFamily: "Space Grotesk",
+                        fontWeight: 600,
                       }}
-                    />
+                    >
+                      ALTA
+                    </span>
                   )}
                 </div>
               ))}
@@ -442,134 +435,233 @@ export default function Today() {
           )}
         </div>
 
-        {/* Habits & Goals */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 20 }}>
-          {/* Habits */}
-          <div className="fz-card" style={{ padding: "20px 22px" }}>
+        {/* Habits Today */}
+        <div className="fz-card" style={{ padding: "20px 22px" }}>
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              marginBottom: 16,
+            }}
+          >
+            <Flame size={16} color="#A855F7" />
             <h3
               style={{
                 fontFamily: "Space Grotesk",
                 fontWeight: 700,
                 fontSize: 15,
                 color: "var(--foreground)",
-                marginBottom: 16,
+                flex: 1,
               }}
             >
-              Hábitos
+              Hábitos de Hoje
             </h3>
-            <div className="grid grid-cols-2 gap-3">
+            <span
+              style={{
+                fontFamily: "Space Grotesk",
+                fontWeight: 700,
+                fontSize: 12,
+                color: "#A855F7",
+              }}
+            >
+              {todayStats.habitsCompleted}/{todayStats.habitsTotal}
+            </span>
+          </div>
+
+          {habits.length === 0 ? (
+            <div style={{ textAlign: "center", padding: "24px 0" }}>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>🔥</div>
+              <p
+                style={{
+                  fontFamily: "DM Sans",
+                  fontSize: 13,
+                  color: "var(--muted-foreground)",
+                }}
+              >
+                Nenhum hábito criado
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {habits.map(habit => {
                 const isCompleted = (habit.completedDates || []).includes(today);
                 return (
                   <div
                     key={habit.id}
-                    onClick={(e) => handleToggleHabit(habit.id, e)}
+                    onClick={e => handleToggleHabit(habit.id, e)}
                     style={{
-                      padding: "12px 14px",
-                      background: isCompleted
-                        ? `${habit.color}15`
-                        : "rgba(255, 255, 255, 0.02)",
-                      borderRadius: 12,
-                      border: `1px solid ${
-                        isCompleted ? `${habit.color}40` : "var(--border)"
-                      }`,
-                      cursor: "pointer",
                       display: "flex",
                       alignItems: "center",
                       gap: 10,
+                      padding: "10px 12px",
+                      background: isCompleted
+                        ? `${habit.color}10`
+                        : "var(--border)",
+                      border: `1px solid ${
+                        isCompleted ? `${habit.color}25` : "var(--border)"
+                      }`,
+                      borderRadius: 10,
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
                     }}
                   >
-                    <span style={{ fontSize: 18 }}>{habit.emoji}</span>
+                    <div
+                      style={{
+                        width: 20,
+                        height: 20,
+                        borderRadius: "50%",
+                        background: isCompleted ? habit.color : "var(--border)",
+                        border: `2px solid ${
+                          isCompleted ? habit.color : "var(--muted-foreground)"
+                        }`,
+                        display: "flex",
+                        alignItems: "center",
+                        justifyContent: "center",
+                        flexShrink: 0,
+                        transition: "all 0.2s ease",
+                        boxShadow: isCompleted
+                          ? `0 0 8px ${habit.color}60`
+                          : "none",
+                      }}
+                    >
+                      {isCompleted && <Check size={11} color="white" />}
+                    </div>
+                    <span style={{ fontSize: 16 }}>{habit.emoji}</span>
                     <span
                       style={{
+                        fontFamily: "DM Sans",
+                        fontWeight: 500,
                         fontSize: 13,
-                        fontWeight: 600,
                         color: isCompleted
-                          ? "var(--foreground)"
-                          : "var(--muted-foreground)",
+                          ? "var(--muted-foreground)"
+                          : "var(--foreground)",
+                        textDecoration: isCompleted ? "line-through" : "none",
                         flex: 1,
-                        whiteSpace: "nowrap",
-                        overflow: "hidden",
-                        textOverflow: "ellipsis",
                       }}
                     >
                       {habit.title}
                     </span>
+                    {isCompleted && <span style={{ fontSize: 14 }}>✅</span>}
                   </div>
                 );
               })}
             </div>
-          </div>
+          )}
+        </div>
+      </div>
 
-          {/* Goals */}
-          <div className="fz-card" style={{ padding: "20px 22px" }}>
+      {/* Active Goals */}
+      {activeGoals.length > 0 && (
+        <div
+          className="fz-card"
+          style={{
+            padding: "20px 22px",
+            marginTop: 20,
+          }}
+        >
+          <div
+            style={{
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
+              marginBottom: 16,
+            }}
+          >
+            <Target size={16} color="#A855F7" />
             <h3
               style={{
                 fontFamily: "Space Grotesk",
                 fontWeight: 700,
                 fontSize: 15,
                 color: "var(--foreground)",
-                marginBottom: 16,
               }}
             >
-              Foco nas Metas
+              Metas em Andamento
             </h3>
-            <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
-              {activeGoals.map(goal => {
-                const progress = getGoalProgress(goal);
-                return (
-                  <div key={goal.id}>
-                    <div
+          </div>
+
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+              gap: 12,
+            }}
+          >
+            {activeGoals.map(goal => {
+              const progress = getGoalProgress(goal);
+              return (
+                <div
+                  key={goal.id}
+                  style={{
+                    background: "var(--border)",
+                    border: `1px solid ${goal.color}20`,
+                    borderRadius: 12,
+                    padding: "14px 16px",
+                  }}
+                >
+                  <div
+                    style={{
+                      display: "flex",
+                      alignItems: "center",
+                      gap: 8,
+                      marginBottom: 10,
+                    }}
+                  >
+                    <span style={{ fontSize: 20 }}>{goal.emoji}</span>
+                    <span
                       style={{
-                        display: "flex",
-                        justifyContent: "space-between",
-                        marginBottom: 6,
-                      }}
-                    >
-                      <span
-                        style={{
-                          fontSize: 13,
-                          fontWeight: 600,
-                          color: "var(--foreground)",
-                        }}
-                      >
-                        {goal.emoji} {goal.title}
-                      </span>
-                      <span
-                        style={{
-                          fontSize: 12,
-                          color: goal.color,
-                          fontWeight: 700,
-                        }}
-                      >
-                        {progress}%
-                      </span>
-                    </div>
-                    <div
-                      style={{
-                        height: 6,
-                        background: "var(--border)",
-                        borderRadius: 3,
+                        fontFamily: "DM Sans",
+                        fontWeight: 500,
+                        fontSize: 13,
+                        color: "var(--foreground)",
+                        flex: 1,
                         overflow: "hidden",
+                        textOverflow: "ellipsis",
+                        whiteSpace: "nowrap",
                       }}
                     >
-                      <div
-                        style={{
-                          height: "100%",
-                          width: `${progress}%`,
-                          background: goal.color,
-                          borderRadius: 3,
-                          transition: "width 0.5s ease",
-                        }}
-                      />
-                    </div>
+                      {goal.title}
+                    </span>
+                    <span
+                      style={{
+                        fontFamily: "Space Grotesk",
+                        fontWeight: 700,
+                        fontSize: 13,
+                        color: goal.color,
+                      }}
+                    >
+                      {progress}%
+                    </span>
                   </div>
-                );
-              })}
-            </div>
+
+                  <div className="fz-progress-bar">
+                    <div
+                      className="fz-progress-fill"
+                      style={{
+                        width: `${progress}%`,
+                        background: `linear-gradient(90deg, ${goal.color}, ${goal.color}cc)`,
+                      }}
+                    />
+                  </div>
+
+                  <div
+                    style={{
+                      fontSize: 11,
+                      color: "var(--muted-foreground)",
+                      fontFamily: "DM Sans",
+                      marginTop: 6,
+                    }}
+                  >
+                    {goal.steps.filter((s: any) => s.completed).length}/
+                    {goal.steps.length} etapas
+                  </div>
+                </div>
+              );
+            })}
           </div>
         </div>
-      </div>
+      )}
     </div>
   );
 }

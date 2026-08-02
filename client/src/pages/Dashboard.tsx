@@ -34,13 +34,13 @@ import {
 import { useStore } from "@/hooks/useStore";
 import { getTodayString, toYYYYMMDD } from "@/store/utils";
 
+import { getFinancialData } from "@/store/financial.store";
 import { CircularProgress } from "@/components/ui/CircularProgress";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 
 // =========================
-// COMPONENTS
+// STREAK BADGE
 // =========================
-
 function ExpandableSection({
   icon: Icon,
   title,
@@ -125,6 +125,9 @@ function ExpandableSection({
   );
 }
 
+// =========================
+// METRIC CARD
+// =========================
 function MetricCard({
   icon: Icon,
   label,
@@ -226,6 +229,9 @@ function MetricCard({
   );
 }
 
+// =========================
+// STREAK BADGE
+// =========================
 function StreakBadge({ streak }: { streak: number }) {
   const milestones = [
     { at: 100, label: "Centurião", color: "#F59E0B" },
@@ -279,6 +285,9 @@ function StreakBadge({ streak }: { streak: number }) {
   );
 }
 
+// =========================
+// HEATMAP
+// =========================
 function StreakHeatmap({ tasks, habits }: { tasks: any[]; habits: any[] }) {
   const days = 90;
   
@@ -424,6 +433,9 @@ function StreakHeatmap({ tasks, habits }: { tasks: any[]; habits: any[] }) {
   );
 }
 
+// =========================
+// CUSTOM TOOLTIP
+// =========================
 const CustomTooltip = ({ active, payload, label }: any) => {
   if (active && payload && payload.length) {
     return (
@@ -452,41 +464,19 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 // =========================
 // MAIN DASHBOARD
 // =========================
-
 export default function Dashboard() {
   const store = useStore();
-  const { user: profile, tasks, habits, financial } = store;
+  const { user: profile, tasks, habits } = store;
   const today = getTodayString();
 
-  const metrics = useMemo(() => {
-    const completedToday = tasks.filter((t) => t.completed && t.date === today).length;
-    const habitsToday = habits.filter(
-      (h) => h.completedDates && Array.isArray(h.completedDates) && h.completedDates.includes(today)
-    ).length;
-    const todayTasksCount = tasks.filter((t) => t.date === today).length;
-    const overdueTasks = tasks.filter((t) => !t.completed && t.date < today).length;
-    
-    let totalXP = profile?.xp || 0;
-    if (profile?.level) {
-      for (let i = 1; i < profile.level; i++) {
-        totalXP += i * 100;
-      }
-    }
+  const completedToday = useMemo(() => tasks.filter((t) => t.completed && t.date === today).length, [tasks, today]);
+  const habitsToday = useMemo(() => habits.filter(
+    (h) => h.completedDates && Array.isArray(h.completedDates) && h.completedDates.includes(today)
+  ).length, [habits, today]);
+  const todayTasks = useMemo(() => tasks.filter((t) => t.date === today).length, [tasks, today]);
+  const overdueTasks = useMemo(() => tasks.filter((t) => !t.completed && t.date < today).length, [tasks, today]);
 
-    const levelXP = (profile?.level || 1) * 100;
-    const xpPercent = profile?.xp ? Math.min((profile.xp / levelXP) * 100, 100) : 0;
-
-    return {
-      completedToday,
-      habitsToday,
-      todayTasksCount,
-      overdueTasks,
-      totalXP,
-      levelXP,
-      xpPercent
-    };
-  }, [tasks, habits, profile, today]);
-
+  // --- Activity 30 days ---
   const activityData = useMemo(() => {
     const result = [];
     const now = new Date();
@@ -494,37 +484,48 @@ export default function Dashboard() {
       const d = new Date(now);
       d.setDate(d.getDate() - i);
       const ds = toYYYYMMDD(d);
-      const completedTasks = tasks.filter((t) => t.completed && t.date === ds).length;
-      const completedHabits = habits.filter(
+      const completedTasksCount = tasks.filter((t) => t.completed && t.date === ds).length;
+      const completedHabitsCount = habits.filter(
         (h) => h.completedDates && Array.isArray(h.completedDates) && h.completedDates.includes(ds)
       ).length;
       result.push({
         day: d.getDate(),
-        tasks: completedTasks,
-        habits: completedHabits,
+        tasks: completedTasksCount,
+        habits: completedHabitsCount,
       });
     }
     return result;
   }, [tasks, habits]);
 
+  // --- Weekly data ---
   const weeklyData = useMemo(() => {
     const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
     const now = new Date();
-    const startOfWeek = new Date(now);
-    startOfWeek.setDate(now.getDate() - now.getDay());
-
     return days.map((day, index) => {
-      const currentDay = new Date(startOfWeek);
-      currentDay.setDate(startOfWeek.getDate() + index);
+      const currentDay = new Date(now);
+      currentDay.setDate(now.getDate() - now.getDay() + index);
       const ds = toYYYYMMDD(currentDay);
-      const completedTasks = tasks.filter((t) => t.completed && t.date === ds).length;
-      const completedHabits = habits.filter(
+      const completedTasksCount = tasks.filter((t) => t.completed && t.date === ds).length;
+      const completedHabitsCount = habits.filter(
         (h) => h.completedDates && Array.isArray(h.completedDates) && h.completedDates.includes(ds)
       ).length;
-      return { day, tasks: completedTasks, habits: completedHabits };
+      return { day, tasks: completedTasksCount, habits: completedHabitsCount };
     });
   }, [tasks, habits]);
 
+  const totalXP = useMemo(() => {
+    if (!profile) return 0;
+    let total = profile.xp;
+    for (let i = 1; i < profile.level; i++) {
+      total += i * 100;
+    }
+    return total;
+  }, [profile]);
+
+  const levelXP = (profile?.level || 1) * 100;
+  const xpPercent = profile?.xp ? Math.min((profile.xp / levelXP) * 100, 100) : 0;
+
+  // --- Calculate global streak from tasks + habits (Supabase data) ---
   const globalStreak = useMemo(() => {
     let streak = 0;
     const todayDate = new Date();
@@ -545,9 +546,10 @@ export default function Dashboard() {
     return streak;
   }, [tasks, habits]);
 
+  // --- Habit streaks from Supabase data (normalized) ---
   const habitStreaks = useMemo(() => {
     const todayDate = new Date();
-    return habits.map((h) => {
+    return habits.map((h: any) => {
       const completedDates = h.completedDates || [];
       let streak = 0;
       for (let offset = 0; offset < 365; offset++) {
@@ -560,68 +562,81 @@ export default function Dashboard() {
           break;
         }
       }
-      return { name: h.title || "Hábito", streak };
+      return {
+        name: h.title || "Hábito",
+        streak,
+      };
     });
   }, [habits]);
 
   const bestHabitStreak = useMemo(() => {
     if (habitStreaks.length === 0) return { name: "-", streak: 0 };
     return habitStreaks.reduce(
-      (max, h) => (h.streak > max.streak ? h : max),
+      (max: any, h: any) => (h.streak > max.streak ? h : max),
       habitStreaks[0]
     );
   }, [habitStreaks]);
 
-  const financialStats = useMemo(() => {
-    const transactions = financial.transactions || [];
-    const now = new Date();
-    const thisMonth = now.getMonth();
-    const thisYear = now.getFullYear();
+  // --- Financial data from store (income/expense model) ---
+  const financialData = useMemo(() => getFinancialData(), [store.financial]);
+  const financialTransactions = financialData.transactions || [];
 
-    const monthlyExpenses = transactions
-      .filter((t) => {
+  const monthlyExpenses = useMemo(() => {
+    const thisMonth = new Date().getMonth();
+    const thisYear = new Date().getFullYear();
+    return financialTransactions
+      .filter((t: any) => {
         const d = new Date(t.date);
         return d.getMonth() === thisMonth && d.getFullYear() === thisYear && t.type === "expense";
       })
-      .reduce((sum, t) => sum + t.amount, 0);
+      .reduce((sum: number, t: any) => sum + t.amount, 0);
+  }, [financialTransactions]);
 
-    const monthlyIncome = transactions
-      .filter((t) => {
+  const monthlyIncome = useMemo(() => {
+    const thisMonth = new Date().getMonth();
+    const thisYear = new Date().getFullYear();
+    return financialTransactions
+      .filter((t: any) => {
         const d = new Date(t.date);
         return d.getMonth() === thisMonth && d.getFullYear() === thisYear && t.type === "income";
       })
-      .reduce((sum, t) => sum + t.amount, 0);
+      .reduce((sum: number, t: any) => sum + t.amount, 0);
+  }, [financialTransactions]);
 
-    const sorted = [...transactions].sort(
-      (a, b) => new Date(a.date).getTime() - new Date(b.date).getTime()
+  const balanceEvolution = useMemo(() => {
+    const sorted = [...financialTransactions].sort(
+      (a: any, b: any) => new Date(a.date).getTime() - new Date(b.date).getTime()
     );
-    
-    const balanceMap = new Map<string, { date: string; balance: number }>();
+    const map = new Map<string, { date: string; balance: number }>();
     let balance = 0;
-    sorted.forEach((t) => {
-      balance += t.type === "income" ? t.amount : -t.amount;
+    sorted.forEach((t: any) => {
+      const value = t.type === "income" ? t.amount : -t.amount;
+      balance += value;
       const dateStr = new Date(t.date).toLocaleDateString("pt-BR");
-      balanceMap.set(dateStr, { date: dateStr, balance });
+      const existing = map.get(dateStr);
+      if (existing) {
+        existing.balance = balance;
+      } else {
+        map.set(dateStr, { date: dateStr, balance });
+      }
     });
+    return Array.from(map.values());
+  }, [financialTransactions]);
 
+  const expensesByCategory = useMemo(() => {
     const categories: Record<string, number> = {};
-    transactions
-      .filter((t) => t.type === "expense")
-      .forEach((t) => {
+    financialTransactions
+      .filter((t: any) => t.type === "expense")
+      .forEach((t: any) => {
         const cat = t.category || "Outros";
         categories[cat] = (categories[cat] || 0) + t.amount;
       });
+    return Object.entries(categories)
+      .map(([category, value]) => ({ category, value }))
+      .sort((a, b) => b.value - a.value);
+  }, [financialTransactions]);
 
-    return {
-      monthlyExpenses,
-      monthlyIncome,
-      balanceEvolution: Array.from(balanceMap.values()),
-      expensesByCategory: Object.entries(categories)
-        .map(([category, value]) => ({ category, value }))
-        .sort((a, b) => b.value - a.value)
-    };
-  }, [financial.transactions]);
-
+  // --- Consistency ---
   const monthlyCompletionRate = useMemo(() => {
     const now = new Date();
     const monthTasks = tasks.filter((t) => {
@@ -685,7 +700,7 @@ export default function Dashboard() {
         >
           <div>
             <h1 style={{ fontSize: 28, fontWeight: 800, color: "white", marginBottom: 6 }}>
-              Olá, {profile.name} 👋
+              Olá, {profile?.name || "Usuário"} 👋
             </h1>
             <p style={{ color: "var(--muted-foreground)", fontSize: 14 }}>
               Continue evoluindo hoje.
@@ -693,7 +708,7 @@ export default function Dashboard() {
           </div>
           <div>
             <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 6 }}>
-              Nível {profile.level} • {profile.xp}/{metrics.levelXP} XP
+              Nível {profile?.level || 1} • {profile?.xp || 0}/{levelXP} XP
             </div>
             <div
               style={{
@@ -706,7 +721,7 @@ export default function Dashboard() {
             >
               <div
                 style={{
-                  width: `${metrics.xpPercent}%`,
+                  width: `${xpPercent}%`,
                   height: "100%",
                   background: "linear-gradient(90deg,#38BDF8 0%, #8B5CF6 45%, #A855F7 100%)",
                 }}
@@ -728,23 +743,23 @@ export default function Dashboard() {
         <MetricCard
           icon={Zap}
           label="XP Total"
-          value={metrics.totalXP}
-          sub={`Nível ${profile.level}`}
+          value={totalXP}
+          sub={`Nível ${profile?.level || 1}`}
           color="#8B5CF6"
           trend="up"
         />
         <MetricCard
           icon={CheckSquare}
           label="Tarefas Hoje"
-          value={metrics.completedToday}
-          sub={`de ${metrics.todayTasksCount} tarefas`}
+          value={completedToday}
+          sub={`de ${todayTasks} tarefas`}
           color="#10B981"
           trend="up"
         />
         <MetricCard
           icon={Flame}
           label="Hábitos Hoje"
-          value={metrics.habitsToday}
+          value={habitsToday}
           sub="hábitos concluídos"
           color="#F97316"
           trend="up"
@@ -752,10 +767,10 @@ export default function Dashboard() {
         <MetricCard
           icon={AlertTriangle}
           label="Atrasadas"
-          value={metrics.overdueTasks}
+          value={overdueTasks}
           sub="tarefas pendentes"
           color="#A855F7"
-          trend={metrics.overdueTasks > 0 ? "down" : "up"}
+          trend={overdueTasks > 0 ? "down" : "up"}
         />
       </div>
 
@@ -846,7 +861,7 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ===== CONSISTENCY & FINANCE ===== */}
+      {/* ===== CONSISTENCY ===== */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-4">
         <div className="fz-card p-5 lg:p-6">
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
@@ -880,13 +895,31 @@ export default function Dashboard() {
             <h3 style={{ fontWeight: 700, fontSize: 15 }}>Finanças Mensais</h3>
           </div>
           <div style={{ display: "flex", gap: 12 }}>
-            <div style={{ flex: 1, padding: 12, background: "rgba(16,185,129,0.08)", borderRadius: 12 }}>
+            <div
+              style={{
+                flex: 1,
+                padding: 12,
+                background: "rgba(16,185,129,0.08)",
+                borderRadius: 12,
+              }}
+            >
               <div style={{ fontSize: 11, color: "#10B981", marginBottom: 4 }}>Receitas</div>
-              <div style={{ fontSize: 16, fontWeight: 700 }}>R$ {financialStats.monthlyIncome.toFixed(2)}</div>
+              <div style={{ fontSize: 16, fontWeight: 700 }}>
+                R$ {monthlyIncome.toFixed(2)}
+              </div>
             </div>
-            <div style={{ flex: 1, padding: 12, background: "rgba(239,68,68,0.08)", borderRadius: 12 }}>
+            <div
+              style={{
+                flex: 1,
+                padding: 12,
+                background: "rgba(239,68,68,0.08)",
+                borderRadius: 12,
+              }}
+            >
               <div style={{ fontSize: 11, color: "#EF4444", marginBottom: 4 }}>Despesas</div>
-              <div style={{ fontSize: 16, fontWeight: 700 }}>R$ {financialStats.monthlyExpenses.toFixed(2)}</div>
+              <div style={{ fontSize: 16, fontWeight: 700 }}>
+                R$ {monthlyExpenses.toFixed(2)}
+              </div>
             </div>
           </div>
         </div>
@@ -897,7 +930,7 @@ export default function Dashboard() {
         <div className="fz-card p-5 lg:p-6">
           <h3 style={{ fontWeight: 700, fontSize: 15, marginBottom: 20 }}>Evolução do Saldo</h3>
           <ResponsiveContainer width="100%" height={200}>
-            <AreaChart data={financialStats.balanceEvolution}>
+            <AreaChart data={balanceEvolution}>
               <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
               <XAxis dataKey="date" hide />
               <YAxis hide />
@@ -911,7 +944,7 @@ export default function Dashboard() {
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie
-                data={financialStats.expensesByCategory}
+                data={expensesByCategory}
                 dataKey="value"
                 nameKey="category"
                 cx="50%"
@@ -919,7 +952,7 @@ export default function Dashboard() {
                 outerRadius={60}
                 innerRadius={40}
               >
-                {financialStats.expensesByCategory.map((_, index) => (
+                {expensesByCategory.map((_, index) => (
                   <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                 ))}
               </Pie>
@@ -933,11 +966,23 @@ export default function Dashboard() {
       {/* ===== BEST STREAK ===== */}
       <div className="fz-card p-5 lg:p-6 mb-8">
         <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-          <div style={{ width: 40, height: 40, borderRadius: 12, background: "rgba(249,115,22,0.1)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+          <div
+            style={{
+              width: 40,
+              height: 40,
+              borderRadius: 12,
+              background: "rgba(249,115,22,0.1)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+            }}
+          >
             <Flame size={20} color="#F97316" />
           </div>
           <div>
-            <div style={{ fontSize: 13, color: "var(--muted-foreground)" }}>Melhor Streak de Hábito</div>
+            <div style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
+              Melhor Streak de Hábito
+            </div>
             <div style={{ fontSize: 16, fontWeight: 700 }}>
               {bestHabitStreak.name}: {bestHabitStreak.streak} dias
             </div>
