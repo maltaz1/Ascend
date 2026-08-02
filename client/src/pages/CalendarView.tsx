@@ -2,10 +2,16 @@
 // Calendário mensal completo com tarefas e metas com deadline
 
 import React, { useState, useMemo, useEffect } from 'react';
-import { ChevronLeft, ChevronRight, Calendar } from 'lucide-react';
+import { ChevronLeft, ChevronRight, Calendar, Plus } from 'lucide-react';
 import { useStore } from '@/hooks/useStore';
 import { getTodayString, getTaskStatus } from '@/lib/store';
 import type { Task, Goal } from '@/lib/store';
+import { AppointmentModal } from '@/components/AppointmentModal';
+import { CalendarNoteModal } from '@/components/CalendarNoteModal';
+import { loadAppointments, getAppointmentsForDate, deleteAppointment } from '@/store/appointments.store';
+import { loadCalendarNotes, getCalendarNoteForDate, deleteCalendarNote } from '@/store/calendar-notes.store';
+import type { Appointment, CalendarNote } from '@/store/calendar.types';
+import { showToast } from '@/components/ui/FlowToast';
 
 const MONTHS = ['Janeiro', 'Fevereiro', 'Março', 'Abril', 'Maio', 'Junho', 'Julho', 'Agosto', 'Setembro', 'Outubro', 'Novembro', 'Dezembro'];
 const WEEKDAYS = ['Dom', 'Seg', 'Ter', 'Qua', 'Qui', 'Sex', 'Sáb'];
@@ -207,6 +213,72 @@ export default function CalendarView() {
   const windowWidth = useWindowWidth();
   const isMobile = windowWidth <= 640;
 
+  // Estados para modais de compromissos e anotacoes
+  const [showAppointmentModal, setShowAppointmentModal] = useState(false);
+  const [showNoteModal, setShowNoteModal] = useState(false);
+  const [appointments, setAppointments] = useState<Appointment[]>([]);
+  const [calendarNotes, setCalendarNotes] = useState<CalendarNote[]>([]);
+  const [isLoadingCalendarData, setIsLoadingCalendarData] = useState(true);
+
+  // Carrega compromissos e anotacoes ao montar o componente
+  useEffect(() => {
+    const loadData = async () => {
+      try {
+        setIsLoadingCalendarData(true);
+        const [apts, notes] = await Promise.all([
+          loadAppointments(),
+          loadCalendarNotes(),
+        ]);
+        setAppointments(apts);
+        setCalendarNotes(notes);
+      } catch (error) {
+        console.error('Erro ao carregar dados do calendario:', error);
+      } finally {
+        setIsLoadingCalendarData(false);
+      }
+    };
+
+    loadData();
+  }, []);
+
+  const selectedAppointments = useMemo(
+    () => getAppointmentsForDate(appointments, selectedDate),
+    [appointments, selectedDate]
+  );
+
+  const selectedNote = useMemo(
+    () => getCalendarNoteForDate(calendarNotes, selectedDate),
+    [calendarNotes, selectedDate]
+  );
+
+  const handleAppointmentSaved = async () => {
+    const updated = await loadAppointments();
+    setAppointments(updated);
+  };
+
+  const handleNoteSaved = async () => {
+    const updated = await loadCalendarNotes();
+    setCalendarNotes(updated);
+  };
+
+  const handleDeleteAppointment = async (id: string) => {
+    if (confirm('Tem certeza que deseja deletar este compromisso?')) {
+      await deleteAppointment(id);
+      showToast('Compromisso deletado!', 'success');
+      const updated = await loadAppointments();
+      setAppointments(updated);
+    }
+  };
+
+  const handleDeleteNote = async (id: string) => {
+    if (confirm('Tem certeza que deseja deletar esta anotacao?')) {
+      await deleteCalendarNote(id);
+      showToast('Anotacao deletada!', 'success');
+      const updated = await loadCalendarNotes();
+      setCalendarNotes(updated);
+    }
+  };
+
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
   const firstDayOfMonth = new Date(viewYear, viewMonth, 1).getDay();
   const daysInPrevMonth = new Date(viewYear, viewMonth, 0).getDate();
@@ -361,6 +433,60 @@ export default function CalendarView() {
             </p>
           </div>
 
+          {/* Botões para criar compromissos e anotações */}
+          <div style={{ display: 'flex', gap: 10 }}>
+            <button
+              onClick={() => setShowAppointmentModal(true)}
+              style={{
+                flex: 1,
+                padding: '10px 14px',
+                background: '#F59E0B',
+                color: '#0D0D14',
+                border: 'none',
+                borderRadius: 8,
+                fontFamily: 'Space Grotesk',
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = '#F59E0B')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = '#F59E0B')}
+            >
+              <Plus size={14} />
+              Compromisso
+            </button>
+            <button
+              onClick={() => setShowNoteModal(true)}
+              style={{
+                flex: 1,
+                padding: '10px 14px',
+                background: 'var(--border)',
+                color: 'var(--foreground)',
+                border: '1px solid var(--border)',
+                borderRadius: 8,
+                fontFamily: 'Space Grotesk',
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: 'pointer',
+                display: 'flex',
+                alignItems: 'center',
+                justifyContent: 'center',
+                gap: 6,
+                transition: 'all 0.2s ease',
+              }}
+              onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--muted)')}
+              onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--border)')}
+            >
+              <Plus size={14} />
+              Anotação
+            </button>
+          </div>
+
           {/* Tasks for selected day */}
           <div className="fz-card" style={{ padding: '18px 20px' }}>
             <h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 12, letterSpacing: '0.05em' }}>
@@ -432,8 +558,155 @@ export default function CalendarView() {
               </div>
             )}
           </div>
+
+          {/* Appointments for selected day */}
+          <div className="fz-card" style={{ padding: '18px 20px' }}>
+            <h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 12, letterSpacing: '0.05em' }}>
+              COMPROMISSOS
+            </h4>
+            {selectedAppointments.length === 0 ? (
+              <p style={{ fontFamily: 'DM Sans', fontSize: 13, color: 'var(--muted-foreground)', textAlign: 'center', padding: '12px 0' }}>
+                Nenhum compromisso
+              </p>
+            ) : (
+              <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
+                {selectedAppointments.map(apt => (
+                  <div key={apt.id} style={{
+                    display: 'flex',
+                    alignItems: 'flex-start',
+                    gap: 8,
+                    padding: '8px 10px',
+                    background: `${apt.color}08`,
+                    border: `1px solid ${apt.color}20`,
+                    borderRadius: 8,
+                    cursor: 'pointer',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => (e.currentTarget.style.background = `${apt.color}12`)}
+                  onMouseLeave={(e) => (e.currentTarget.style.background = `${apt.color}08`)}
+                  >
+                    <div style={{ flex: 1, minWidth: 0 }}>
+                      <div style={{
+                        fontFamily: 'Space Grotesk',
+                        fontSize: 12,
+                        fontWeight: 600,
+                        color: apt.color,
+                        marginBottom: 2,
+                      }}>
+                        {apt.startTime} - {apt.endTime}
+                      </div>
+                      <div style={{
+                        fontFamily: 'DM Sans',
+                        fontSize: 12,
+                        color: 'var(--foreground)',
+                        overflow: 'hidden',
+                        textOverflow: 'ellipsis',
+                        whiteSpace: 'nowrap',
+                      }}>
+                        {apt.title}
+                      </div>
+                      {apt.category && (
+                        <div style={{
+                          fontFamily: 'DM Sans',
+                          fontSize: 10,
+                          color: 'var(--muted-foreground)',
+                          marginTop: 2,
+                        }}>
+                          {apt.category}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => handleDeleteAppointment(apt.id)}
+                      style={{
+                        padding: '4px 6px',
+                        background: 'transparent',
+                        border: 'none',
+                        color: 'var(--muted-foreground)',
+                        cursor: 'pointer',
+                        fontSize: 12,
+                        flexShrink: 0,
+                      }}
+                    >
+                      ✕
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </div>
+
+          {/* Calendar Note for selected day */}
+          <div className="fz-card" style={{ padding: '18px 20px' }}>
+            <h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 12, letterSpacing: '0.05em' }}>
+              ANOTAÇÃO
+            </h4>
+            {selectedNote ? (
+              <div style={{
+                display: 'flex',
+                flexDirection: 'column',
+                gap: 8,
+              }}>
+                <div style={{
+                  fontFamily: 'DM Sans',
+                  fontSize: 12,
+                  color: 'var(--foreground)',
+                  lineHeight: 1.5,
+                  whiteSpace: 'pre-wrap',
+                  wordBreak: 'break-word',
+                  maxHeight: '120px',
+                  overflow: 'auto',
+                }}>
+                  {selectedNote.content}
+                </div>
+                <button
+                  onClick={() => handleDeleteNote(selectedNote.id)}
+                  style={{
+                    padding: '6px 10px',
+                    background: 'transparent',
+                    border: '1px solid var(--border)',
+                    color: 'var(--muted-foreground)',
+                    borderRadius: 6,
+                    cursor: 'pointer',
+                    fontSize: 12,
+                    fontFamily: 'DM Sans',
+                    transition: 'all 0.2s ease',
+                  }}
+                  onMouseEnter={(e) => {
+                    e.currentTarget.style.background = 'var(--border)';
+                    e.currentTarget.style.color = 'var(--foreground)';
+                  }}
+                  onMouseLeave={(e) => {
+                    e.currentTarget.style.background = 'transparent';
+                    e.currentTarget.style.color = 'var(--muted-foreground)';
+                  }}
+                >
+                  Deletar anotação
+                </button>
+              </div>
+            ) : (
+              <p style={{ fontFamily: 'DM Sans', fontSize: 13, color: 'var(--muted-foreground)', textAlign: 'center', padding: '12px 0' }}>
+                Nenhuma anotação
+              </p>
+            )}
+          </div>
         </div>
       </div>
+
+      {/* Modals */}
+      <AppointmentModal
+        open={showAppointmentModal}
+        onClose={() => setShowAppointmentModal(false)}
+        defaultDate={selectedDate}
+        onSaved={handleAppointmentSaved}
+      />
+      <CalendarNoteModal
+        open={showNoteModal}
+        onClose={() => setShowNoteModal(false)}
+        defaultDate={selectedDate}
+        onSaved={handleNoteSaved}
+      />
+
       <style>{`
         @media (max-width: 1024px) {
           .calendar-grid {
