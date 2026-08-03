@@ -35,6 +35,7 @@ function DayCell({
   isOtherMonth,
   tasks,
   goals,
+  appointments,
   isSelected,
   onClick,
   isMobile,
@@ -45,6 +46,7 @@ function DayCell({
   isOtherMonth: boolean;
   tasks: Task[];
   goals: Goal[];
+  appointments: Appointment[];
   isSelected: boolean;
   onClick: () => void;
   isMobile: boolean;
@@ -135,6 +137,9 @@ function DayCell({
           {overdueTasks > 0 && (
             <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#EF4444', display: 'inline-block' }} />
           )}
+          {appointments.length > 0 && (
+            <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#3B82F6', display: 'inline-block' }} />
+          )}
           {goals.slice(0, 2).map(g => (
             <span key={g.id} style={{ fontSize: 11, lineHeight: 1 }}>{g.emoji}</span>
           ))}
@@ -198,6 +203,20 @@ function DayCell({
               <span style={{ overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{g.title}</span>
             </div>
           ))}
+          {appointments.length > 0 && (
+            <div style={{
+              fontSize: 10,
+              color: '#3B82F6',
+              fontFamily: 'DM Sans',
+              fontWeight: 600,
+              display: 'flex',
+              alignItems: 'center',
+              gap: 3,
+            }}>
+              <div style={{ width: 5, height: 5, borderRadius: '50%', background: '#3B82F6', flexShrink: 0 }} />
+              {appointments.length} compromisso{appointments.length > 1 ? 's' : ''}
+            </div>
+          )}
         </div>
       )}
     </div>
@@ -390,6 +409,7 @@ export default function CalendarView() {
             {cells.map((cell, i) => {
               const cellTasks = data.tasks.filter(t => t.date === cell.dateStr);
               const cellGoals = data.goals.filter(g => g.deadline === cell.dateStr);
+              const cellAppointments = appointments.filter(a => a.date === cell.dateStr);
               return (
                 <DayCell
                   key={i}
@@ -399,6 +419,7 @@ export default function CalendarView() {
                   isOtherMonth={cell.isOtherMonth}
                   tasks={cellTasks}
                   goals={cellGoals}
+                  appointments={cellAppointments}
                   isSelected={cell.dateStr === selectedDate}
                   onClick={() => setSelectedDate(cell.dateStr)}
                   isMobile={isMobile}
@@ -413,6 +434,7 @@ export default function CalendarView() {
               { color: '#10B981', label: 'Concluída' },
               { color: '#F59E0B', label: 'Pendente' },
               { color: '#EF4444', label: 'Atrasada' },
+              { color: '#3B82F6', label: 'Compromisso' },
             ].map(l => (
               <div key={l.label} style={{ display: 'flex', alignItems: 'center', gap: 5 }}>
                 <div style={{ width: 6, height: 6, borderRadius: '50%', background: l.color }} />
