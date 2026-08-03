@@ -440,8 +440,8 @@ export default function CalendarView() {
               style={{
                 flex: 1,
                 padding: '10px 14px',
-                background: '#F59E0B',
-                color: '#0D0D14',
+                background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)',
+                color: '#ffffff',
                 border: 'none',
                 borderRadius: 8,
                 fontFamily: 'Space Grotesk',
@@ -453,9 +453,16 @@ export default function CalendarView() {
                 justifyContent: 'center',
                 gap: 6,
                 transition: 'all 0.2s ease',
+                boxShadow: '0 2px 8px rgba(139, 92, 246, 0.25)',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = '#F59E0B')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = '#F59E0B')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #7c3aed 0%, #9333ea 100%)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.35)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(139, 92, 246, 0.25)';
+              }}
             >
               <Plus size={14} />
               Compromisso
@@ -465,9 +472,9 @@ export default function CalendarView() {
               style={{
                 flex: 1,
                 padding: '10px 14px',
-                background: 'var(--border)',
-                color: 'var(--foreground)',
-                border: '1px solid var(--border)',
+                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05))',
+                color: '#F59E0B',
+                border: '1px solid rgba(245, 158, 11, 0.3)',
                 borderRadius: 8,
                 fontFamily: 'Space Grotesk',
                 fontWeight: 600,
@@ -479,8 +486,14 @@ export default function CalendarView() {
                 gap: 6,
                 transition: 'all 0.2s ease',
               }}
-              onMouseEnter={(e) => (e.currentTarget.style.background = 'var(--muted)')}
-              onMouseLeave={(e) => (e.currentTarget.style.background = 'var(--border)')}
+              onMouseEnter={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.1))';
+                e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.5)';
+              }}
+              onMouseLeave={(e) => {
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05))';
+                e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+              }}
             >
               <Plus size={14} />
               Anotação
@@ -560,9 +573,9 @@ export default function CalendarView() {
           </div>
 
           {/* Appointments for selected day */}
-          <div className="fz-card" style={{ padding: '18px 20px' }}>
-            <h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 12, letterSpacing: '0.05em' }}>
-              COMPROMISSOS
+          <div className="fz-card" style={{ padding: '18px 20px', background: 'linear-gradient(135deg, rgba(139, 92, 246, 0.08), rgba(139, 92, 246, 0.05))', border: '1px solid rgba(139, 92, 246, 0.12)' }}>
+            <h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: '#a855f7', marginBottom: 12, letterSpacing: '0.05em' }}>
+              📅 COMPROMISSOS
             </h4>
             {selectedAppointments.length === 0 ? (
               <p style={{ fontFamily: 'DM Sans', fontSize: 13, color: 'var(--muted-foreground)', textAlign: 'center', padding: '12px 0' }}>
@@ -637,9 +650,9 @@ export default function CalendarView() {
           </div>
 
           {/* Calendar Note for selected day */}
-          <div className="fz-card" style={{ padding: '18px 20px' }}>
-            <h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 12, letterSpacing: '0.05em' }}>
-              ANOTAÇÃO
+          <div className="fz-card" style={{ padding: '18px 20px', background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.05))', border: '1px solid rgba(245, 158, 11, 0.12)' }}>
+            <h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: '#F59E0B', marginBottom: 12, letterSpacing: '0.05em' }}>
+              📄 ANOTAÇÃO
             </h4>
             {selectedNote ? (
               <div style={{

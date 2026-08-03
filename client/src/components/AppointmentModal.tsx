@@ -235,14 +235,63 @@ export function AppointmentModal({
         <div className="flex gap-2 pt-2">
           <button
             onClick={onClose}
-            className="flex-1 px-4 py-2.5 bg-muted hover:bg-muted/80 text-foreground rounded-lg font-medium transition-all disabled:opacity-50"
+            style={{
+              flex: 1,
+              padding: '10px 14px',
+              background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05))',
+              border: '1px solid rgba(245, 158, 11, 0.2)',
+              color: '#F59E0B',
+              borderRadius: 8,
+              fontFamily: 'Space Grotesk',
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              opacity: isLoading ? 0.5 : 1,
+            }}
+            onMouseEnter={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.1))';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05))';
+              }
+            }}
             disabled={isLoading}
           >
             Cancelar
           </button>
           <button
             onClick={handleSubmit}
-            className="flex-1 px-4 py-2.5 bg-primary hover:bg-primary/90 text-primary-foreground rounded-lg font-medium transition-all disabled:opacity-50"
+            style={{
+              flex: 1,
+              padding: '10px 14px',
+              background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)',
+              border: 'none',
+              color: '#ffffff',
+              borderRadius: 8,
+              fontFamily: 'Space Grotesk',
+              fontWeight: 600,
+              fontSize: 13,
+              cursor: 'pointer',
+              transition: 'all 0.2s ease',
+              boxShadow: '0 2px 8px rgba(139, 92, 246, 0.25)',
+              opacity: isLoading ? 0.5 : 1,
+            }}
+            onMouseEnter={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #7c3aed 0%, #9333ea 100%)';
+                e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.35)';
+              }
+            }}
+            onMouseLeave={(e) => {
+              if (!isLoading) {
+                e.currentTarget.style.background = 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)';
+                e.currentTarget.style.boxShadow = '0 2px 8px rgba(139, 92, 246, 0.25)';
+              }
+            }}
             disabled={isLoading}
           >
             {isLoading ? "Salvando..." : appointment ? "Atualizar" : "Criar"}
