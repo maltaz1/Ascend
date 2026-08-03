@@ -1026,6 +1026,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
           </div>
         )}
       </div>
+      </div>
       )}
 
       {activeSubTab === "catalog" && (
