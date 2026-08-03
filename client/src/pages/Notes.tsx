@@ -18,7 +18,11 @@ import {
   FileText,
   ChevronRight,
   Trash2,
-  ChevronLeft
+  ChevronLeft,
+  Save,
+  Check,
+  X,
+  ChevronDown
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { showToast } from "@/components/ui/FlowToast";
@@ -90,10 +94,12 @@ export default function Notes() {
 
   // Estados de sincronização
   const [syncState, setSyncState] = useState<SyncState>({ status: 'idle' });
+  const [isDirty, setIsDirty] = useState(false);
 
   // Estados de diálogos (consolidados)
   const [deleteNoteDialog, setDeleteNoteDialog] = useState<DialogState>({ open: false, id: null });
   const [deleteFolderDialog, setDeleteFolderDialog] = useState<DialogState>({ open: false, id: null });
+  const [exitConfirmDialog, setExitConfirmDialog] = useState<{ open: boolean, nextAction: () => void }>({ open: false, nextAction: () => {} });
 
   // Refs
   const quillRef = useRef<any>(null);
@@ -141,7 +147,7 @@ export default function Notes() {
       } catch (error) {
         if (!isMountedRef.current) return;
         console.error("Erro ao carregar dados:", error);
-        showToast("Erro ao carregar notas", "error");
+        showToast("Erro ao carregar notas", "info");
       } finally {
         if (isMountedRef.current) {
           setIsLoading(false);
@@ -181,9 +187,10 @@ export default function Notes() {
       if (!isMountedRef.current || !selectedNote) return;
 
       const currentContent = selectedNote.content;
+      const currentTitle = selectedNote.title;
       
-      // Evitar salvar se o conteúdo não mudou
-      if (currentContent === lastSavedContentRef.current) {
+      // Evitar salvar se nada mudou
+      if (currentContent === lastSavedContentRef.current && !isDirty) {
         if (isMountedRef.current) {
           setSyncState({ status: 'synced', lastSyncTime: new Date() });
         }
@@ -196,18 +203,20 @@ export default function Notes() {
         }
 
         await updateNote(selectedNote.id, {
+          title: currentTitle,
           content: currentContent,
         });
 
         if (!isMountedRef.current) return;
 
         lastSavedContentRef.current = currentContent;
+        // Não resetamos o isDirty no auto-save, pois o usuário quer salvamento manual como prioridade
         setSyncState({ status: 'synced', lastSyncTime: new Date() });
       } catch (error) {
         if (!isMountedRef.current) return;
         console.error("Erro ao salvar nota:", error);
         setSyncState({ status: 'idle' });
-        showToast("Erro ao salvar nota", "error");
+        showToast("Erro ao salvar nota", "info");
       }
     }, 800);
   }, [selectedNote]);
@@ -234,7 +243,7 @@ export default function Notes() {
     } catch (error) {
       if (!isMountedRef.current) return;
       console.error("Erro ao criar pasta:", error);
-      showToast("Erro ao criar pasta", "error");
+      showToast("Erro ao criar pasta", "info");
     }
   }, [newFolderName, userFolders]);
 
@@ -262,27 +271,63 @@ export default function Notes() {
     } catch (error) {
       if (!isMountedRef.current) return;
       console.error("Erro ao criar nota:", error);
-      showToast("Erro ao criar nota", "error");
+      showToast("Erro ao criar nota", "info");
     }
   }, [activeFolder, userFolders, isMobile]);
+
+  const handleManualSave = useCallback(async () => {
+    if (!selectedNote) return;
+    
+    try {
+      setSyncState({ status: 'saving' });
+      await updateNote(selectedNote.id, {
+        title: selectedNote.title,
+        content: selectedNote.content,
+      });
+      
+      if (!isMountedRef.current) return;
+      
+      lastSavedContentRef.current = selectedNote.content;
+      setIsDirty(false);
+      setSyncState({ status: 'synced', lastSyncTime: new Date() });
+      showToast("Nota salva com sucesso!", "success");
+    } catch (error) {
+      if (!isMountedRef.current) return;
+      console.error("Erro ao salvar nota:", error);
+      setSyncState({ status: 'idle' });
+      showToast("Erro ao salvar nota", "info");
+    }
+  }, [selectedNote]);
 
   const handleUpdateNote = useCallback(async (id: string, field: string, value: any) => {
     // Atualizar estado localmente
     setNotes(prev => prev.map(n => n.id === id ? { ...n, [field]: value } : n));
 
-    if (field === 'content') {
-      scheduleAutosave();
+    if (field === 'content' || field === 'title') {
+      setIsDirty(true);
+      if (field === 'content') {
+        scheduleAutosave();
+      }
     } else {
-      // Salvar imediatamente para outros campos
+      // Salvar imediatamente para outros campos (favorito, fixado, pasta)
       try {
         await updateNote(id, { [field]: value });
       } catch (error) {
         if (!isMountedRef.current) return;
         console.error("Erro ao atualizar nota:", error);
-        showToast("Erro ao atualizar nota", "error");
+        showToast("Erro ao atualizar nota", "info");
       }
     }
   }, [scheduleAutosave]);
+
+  // Função para interceptar navegação
+  const checkDirtyAndNavigate = useCallback((action: () => void) => {
+    if (isDirty) {
+      setExitConfirmDialog({ open: true, nextAction: action });
+    } else {
+      action();
+    }
+  }, [isDirty]);
 
   const handleDeleteNote = useCallback((id: string) => {
     setDeleteNoteDialog({ open: true, id });
@@ -309,7 +354,7 @@ export default function Notes() {
     } catch (error) {
       if (!isMountedRef.current) return;
       console.error("Erro ao excluir nota:", error);
-      showToast("Erro ao excluir nota", "error");
+      showToast("Erro ao excluir nota", "info");
     }
   }, [deleteNoteDialog.id, notes, selectedNoteId, isMobile]);
 
@@ -346,7 +391,7 @@ export default function Notes() {
     } catch (error) {
       if (!isMountedRef.current) return;
       console.error("Erro ao excluir pasta:", error);
-      showToast("Erro ao excluir pasta", "error");
+      showToast("Erro ao excluir pasta", "info");
     }
   }, [deleteFolderDialog.id, userFolders, activeFolder]);
 
@@ -519,8 +564,14 @@ export default function Notes() {
                   note={note} 
                   isSelected={selectedNoteId === note.id}
                   onClick={() => {
-                    setSelectedNoteId(note.id);
-                    if (isMobile) setViewMode('editor');
+                    if (selectedNoteId === note.id) {
+                      if (isMobile) setViewMode('editor');
+                      return;
+                    }
+                    checkDirtyAndNavigate(() => {
+                      setSelectedNoteId(note.id);
+                      if (isMobile) setViewMode('editor');
+                    });
                   }}
                 />
               ))}
@@ -566,6 +617,7 @@ export default function Notes() {
                   <ToolbarButton 
                     icon={<MoreVertical size={isMobile ? 20 : 22} />} 
                     menuItems={[
+                      { label: 'Salvar Agora', icon: <Save size={14} />, onClick: handleManualSave },
                       { label: 'Excluir Nota', icon: <Trash2 size={14} />, onClick: () => handleDeleteNote(selectedNote.id), danger: true }
                     ]}
                   />
@@ -630,7 +682,7 @@ export default function Notes() {
                   className="fixed bottom-0 left-0 right-0 z-50 p-6 bg-gradient-to-t from-black to-transparent pointer-events-none"
                 >
                   <button 
-                    onClick={() => setViewMode('list')}
+                    onClick={() => checkDirtyAndNavigate(() => setViewMode('list'))}
                     className="w-full flex items-center justify-center gap-3 bg-blue-600 text-white py-4 rounded-2xl font-black text-sm shadow-2xl shadow-blue-900/40 active:scale-95 transition-all pointer-events-auto"
                   >
                     <ChevronLeft size={20} />
@@ -707,6 +759,25 @@ export default function Notes() {
         confirmLabel="Excluir"
         cancelLabel="Cancelar"
         onConfirm={confirmDeleteFolder}
+      />
+
+      <ConfirmDialog
+        open={exitConfirmDialog.open}
+        onOpenChange={(open) => setExitConfirmDialog({ ...exitConfirmDialog, open })}
+        title="Salvar alterações?"
+        description="Você tem alterações não salvas. Deseja salvar antes de sair?"
+        confirmLabel="Salvar e Sair"
+        cancelLabel="Descartar e Sair"
+        onConfirm={async () => {
+          await handleManualSave();
+          setExitConfirmDialog({ ...exitConfirmDialog, open: false });
+          exitConfirmDialog.nextAction();
+        }}
+        onCancel={() => {
+          setIsDirty(false);
+          setExitConfirmDialog({ ...exitConfirmDialog, open: false });
+          exitConfirmDialog.nextAction();
+        }}
       />
     </div>
   );
