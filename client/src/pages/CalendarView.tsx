@@ -163,7 +163,7 @@ function DayCell({
           {pendingTasks > 0 && (
             <div style={{
               fontSize: 10,
-              color: '#F59E0B',
+              color: 'var(--muted-foreground)',
               fontFamily: 'DM Sans',
               fontWeight: 500,
               display: 'flex',
@@ -432,7 +432,7 @@ export default function CalendarView() {
           <div style={{ display: 'flex', flexWrap: 'wrap', gap: 16, marginTop: 16, paddingTop: 16, borderTop: '1px solid var(--border)' }}>
             {[
               { color: '#10B981', label: 'Concluída' },
-              { color: '#F59E0B', label: 'Pendente' },
+              { color: 'var(--muted-foreground)', label: 'Pendente' },
               { color: '#EF4444', label: 'Atrasada' },
               { color: '#3B82F6', label: 'Compromisso' },
             ].map(l => (
@@ -462,7 +462,7 @@ export default function CalendarView() {
               style={{
                 flex: 1,
                 padding: '10px 14px',
-                background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)',
+                background: '#8b5cf6',
                 color: '#ffffff',
                 border: 'none',
                 borderRadius: 8,
@@ -474,16 +474,16 @@ export default function CalendarView() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 6,
-                transition: 'all 0.2s ease',
+                transition: 'all 0.15s ease',
                 boxShadow: '0 2px 8px rgba(139, 92, 246, 0.25)',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'linear-gradient(135deg, #7c3aed 0%, #9333ea 100%)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.35)';
+                e.currentTarget.style.background = '#7c3aed';
+                e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(139, 92, 246, 0.25)';
+                e.currentTarget.style.background = '#8b5cf6';
+                e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
               }}
             >
               <Plus size={14} />
@@ -494,9 +494,9 @@ export default function CalendarView() {
               style={{
                 flex: 1,
                 padding: '10px 14px',
-                background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05))',
-                color: '#F59E0B',
-                border: '1px solid rgba(245, 158, 11, 0.3)',
+                background: 'transparent',
+                color: 'var(--muted-foreground)',
+                border: '1px solid var(--border)',
                 borderRadius: 8,
                 fontFamily: 'Space Grotesk',
                 fontWeight: 600,
@@ -506,15 +506,15 @@ export default function CalendarView() {
                 alignItems: 'center',
                 justifyContent: 'center',
                 gap: 6,
-                transition: 'all 0.2s ease',
+                transition: 'all 0.15s ease',
               }}
               onMouseEnter={(e) => {
-                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.1))';
-                e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.5)';
+                e.currentTarget.style.background = 'var(--secondary)';
+                e.currentTarget.style.color = 'var(--foreground)';
               }}
               onMouseLeave={(e) => {
-                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05))';
-                e.currentTarget.style.borderColor = 'rgba(245, 158, 11, 0.3)';
+                e.currentTarget.style.background = 'transparent';
+                e.currentTarget.style.color = 'var(--muted-foreground)';
               }}
             >
               <Plus size={14} />
@@ -615,7 +615,7 @@ export default function CalendarView() {
                     border: `1px solid ${apt.color}20`,
                     borderRadius: 8,
                     cursor: 'pointer',
-                    transition: 'all 0.2s ease',
+                    transition: 'all 0.15s ease',
                   }}
                   onMouseEnter={(e) => (e.currentTarget.style.background = `${apt.color}12`)}
                   onMouseLeave={(e) => (e.currentTarget.style.background = `${apt.color}08`)}
@@ -673,7 +673,7 @@ export default function CalendarView() {
 
           {/* Calendar Note for selected day */}
           <div className="fz-card" style={{ padding: '18px 20px', background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.08), rgba(245, 158, 11, 0.05))', border: '1px solid rgba(245, 158, 11, 0.12)' }}>
-            <h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: '#F59E0B', marginBottom: 12, letterSpacing: '0.05em' }}>
+            <h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 12, letterSpacing: '0.05em' }}>
               📄 ANOTAÇÃO
             </h4>
             {selectedNote ? (
@@ -705,7 +705,7 @@ export default function CalendarView() {
                     cursor: 'pointer',
                     fontSize: 12,
                     fontFamily: 'DM Sans',
-                    transition: 'all 0.2s ease',
+                    transition: 'all 0.15s ease',
                   }}
                   onMouseEnter={(e) => {
                     e.currentTarget.style.background = 'var(--border)';
