@@ -473,7 +473,7 @@ export default function Dashboard() {
   const habitsToday = useMemo(() => habits.filter(
     (h) => h.completedDates && Array.isArray(h.completedDates) && h.completedDates.includes(today)
   ).length, [habits, today]);
-  const todayTasksCount = useMemo(() => tasks.filter((t) => t.date === today).length, [tasks, today]);
+  const todayTasks = useMemo(() => tasks.filter((t) => t.date === today).length, [tasks, today]);
   const overdueTasks = useMemo(() => tasks.filter((t) => !t.completed && t.date < today).length, [tasks, today]);
 
   // --- Activity 30 days ---
