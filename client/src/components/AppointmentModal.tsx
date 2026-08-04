@@ -238,25 +238,25 @@ export function AppointmentModal({
             style={{
               flex: 1,
               padding: '10px 14px',
-              background: 'linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05))',
-              border: '1px solid rgba(245, 158, 11, 0.2)',
-              color: '#F59E0B',
+              background: 'transparent',
+              border: '1px solid var(--border)',
+              color: 'var(--muted-foreground)',
               borderRadius: 8,
               fontFamily: 'Space Grotesk',
               fontWeight: 600,
               fontSize: 13,
               cursor: 'pointer',
-              transition: 'all 0.2s ease',
+              transition: 'all 0.15s ease',
               opacity: isLoading ? 0.5 : 1,
             }}
             onMouseEnter={(e) => {
               if (!isLoading) {
-                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.15), rgba(245, 158, 11, 0.1))';
+                e.currentTarget.style.background = 'var(--secondary)';
               }
             }}
             onMouseLeave={(e) => {
               if (!isLoading) {
-                e.currentTarget.style.background = 'linear-gradient(135deg, rgba(245, 158, 11, 0.1), rgba(245, 158, 11, 0.05))';
+                e.currentTarget.style.background = 'transparent';
               }
             }}
             disabled={isLoading}
@@ -268,7 +268,7 @@ export function AppointmentModal({
             style={{
               flex: 1,
               padding: '10px 14px',
-              background: 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)',
+              background: '#8b5cf6',
               border: 'none',
               color: '#ffffff',
               borderRadius: 8,
@@ -276,20 +276,20 @@ export function AppointmentModal({
               fontWeight: 600,
               fontSize: 13,
               cursor: 'pointer',
-              transition: 'all 0.2s ease',
-              boxShadow: '0 2px 8px rgba(139, 92, 246, 0.25)',
+              transition: 'all 0.15s ease',
+              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
               opacity: isLoading ? 0.5 : 1,
             }}
             onMouseEnter={(e) => {
               if (!isLoading) {
-                e.currentTarget.style.background = 'linear-gradient(135deg, #7c3aed 0%, #9333ea 100%)';
-                e.currentTarget.style.boxShadow = '0 4px 12px rgba(139, 92, 246, 0.35)';
+                e.currentTarget.style.background = '#7c3aed';
+                e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
               }
             }}
             onMouseLeave={(e) => {
               if (!isLoading) {
-                e.currentTarget.style.background = 'linear-gradient(135deg, #8b5cf6 0%, #a855f7 100%)';
-                e.currentTarget.style.boxShadow = '0 2px 8px rgba(139, 92, 246, 0.25)';
+                e.currentTarget.style.background = '#8b5cf6';
+                e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
               }
             }}
             disabled={isLoading}
