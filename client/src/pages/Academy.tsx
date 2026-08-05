@@ -164,21 +164,27 @@ export default function Academy({ onTabChange }: AcademyProps) {
 
   const handleAddCatalogExercise = async () => {
     if (!catalogExerciseName.trim()) return;
-    await addCatalogExercise({
+    const created = await addCatalogExercise({
       name: catalogExerciseName,
       targetMuscleGroup: catalogExerciseMuscle,
     });
+    
+    if (created && showNewExerciseModal) {
+      setSelectedCatalogId(created.id);
+      setNewExercise(prev => ({ ...prev, name: created.name }));
+    }
+
     setCatalogExerciseName("");
     setCatalogExerciseMuscle("");
     setShowNewCatalogModal(false);
   };
 
   const handleAddExercise = () => {
-    if (!newExercise.name.trim() || !selectedWorkout) return;
+    if (!selectedCatalogId || !selectedWorkout) return;
     const newExerciseObj = { 
       ...newExercise, 
       id: generateId(),
-      catalogExerciseId: selectedCatalogId || undefined 
+      catalogExerciseId: selectedCatalogId
     };
     const updatedExercises = [
       ...(selectedWorkout.exercises || []),
@@ -1173,9 +1179,26 @@ export default function Academy({ onTabChange }: AcademyProps) {
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div>
-            <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
-              Selecionar do Catálogo
-            </label>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <label style={{ fontSize: 12, color: "var(--muted-foreground)", fontWeight: 600 }}>
+                Exercício do Catálogo
+              </label>
+              <button
+                onClick={() => setShowNewCatalogModal(true)}
+                style={{
+                  fontSize: 10,
+                  color: "#A855F7",
+                  background: "rgba(168,85,247,0.1)",
+                  border: "none",
+                  padding: "2px 8px",
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  fontWeight: 700
+                }}
+              >
+                + Criar Novo
+              </button>
+            </div>
             <select
               value={selectedCatalogId}
               onChange={e => {
@@ -1189,26 +1212,18 @@ export default function Academy({ onTabChange }: AcademyProps) {
                 }
               }}
               className="fz-input"
-              style={{ marginBottom: 12 }}
+              style={{ 
+                marginBottom: 12,
+                borderColor: !selectedCatalogId ? "rgba(168,85,247,0.3)" : "var(--border)"
+              }}
             >
-              <option value="">-- Escolha um exercício (opcional) --</option>
+              <option value="">-- Selecione um exercício --</option>
               {exerciseCatalog.map(ex => (
                 <option key={ex.id} value={ex.id}>
                   {ex.name} {ex.targetMuscleGroup ? `(${ex.targetMuscleGroup})` : ""}
                 </option>
               ))}
             </select>
-
-            <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
-              Nome do Exercício
-            </label>
-            <input
-              type="text"
-              value={newExercise.name}
-              onChange={e => setNewExercise({ ...newExercise, name: e.target.value })}
-              placeholder="Ex: Supino, Agachamento, Rosca..."
-              className="fz-input"
-            />
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12 }}>
@@ -1267,9 +1282,15 @@ export default function Academy({ onTabChange }: AcademyProps) {
           <button
             onClick={handleAddExercise}
             className="fz-btn-primary"
-            style={{ width: "100%", padding: "12px" }}
+            disabled={!selectedCatalogId}
+            style={{ 
+              width: "100%", 
+              padding: "12px",
+              opacity: !selectedCatalogId ? 0.5 : 1,
+              cursor: !selectedCatalogId ? "not-allowed" : "pointer"
+            }}
           >
-            Adicionar Exercício
+            Adicionar à Ficha
           </button>
         </div>
       </Modal>
