@@ -48,15 +48,15 @@ export default async function handler(req: any, res: any) {
       STRIPE_WEBHOOK_SECRET
     );
   } catch (err: any) {
-    console.error(\`[STRIPE] Webhook signature verification failed: \${err.message}\`);
-    return res.status(400).send(\`Webhook Error: \${err.message}\`);
+    console.error(`[STRIPE] Webhook signature verification failed: ${err.message}`);
+    return res.status(400).send(`Webhook Error: ${err.message}`);
   }
 
   const eventId = event.id;
   const eventType = event.type;
   const payload = event.data.object as any;
   
-  console.log(\`[STRIPE] Evento recebido: \${eventType} | ID: \${eventId}\`);
+  console.log(`[STRIPE] Evento recebido: ${eventType} | ID: ${eventId}`);
 
   try {
     // 1. Idempotência
@@ -118,7 +118,7 @@ export default async function handler(req: any, res: any) {
     }
 
     if (desiredIsPro !== null) {
-      console.log(\`[STRIPE] Atualizando status PRO para \${desiredIsPro} (Email: \${email})\`);
+      console.log(`[STRIPE] Atualizando status PRO para ${desiredIsPro} (Email: ${email})`);
       
       // Buscar usuário no Supabase Auth
       const { data: usersData, error: authError } = await supabase.auth.admin.listUsers();
@@ -135,15 +135,15 @@ export default async function handler(req: any, res: any) {
           .eq("id", targetUser.id);
         
         if (updateError) throw updateError;
-        console.log(\`[STRIPE] Sucesso: Usuário \${targetUser.id} atualizado.\`);
+        console.log(`[STRIPE] Sucesso: Usuário ${targetUser.id} atualizado.`);
       } else {
-        console.warn(\`[STRIPE] Usuário com e-mail \${email} não encontrado no sistema.\`);
+        console.warn(`[STRIPE] Usuário com e-mail ${email} não encontrado no sistema.`);
       }
     }
 
     return res.status(200).json({ received: true });
   } catch (err: any) {
-    console.error(\`[STRIPE ERROR] \${err.message}\`);
+    console.error(`[STRIPE ERROR] ${err.message}`);
     return res.status(500).json({ error: "Internal server error" });
   }
 }

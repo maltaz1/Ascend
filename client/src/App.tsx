@@ -354,22 +354,33 @@ function App() {
             onClose={() => setShowUpgradeModal(false)}
             onUpgrade={() => {
               const checkoutUrl = import.meta.env.VITE_STRIPE_CHECKOUT_URL;
+              console.log("Stripe Checkout URL:", checkoutUrl);
 
               if (!checkoutUrl) {
+                import("sonner").then(({ toast }) => {
+                  toast.error("Erro: URL de checkout não configurada na Vercel.");
+                });
                 console.error("VITE_STRIPE_CHECKOUT_URL não configurada.");
                 return;
               }
 
-              const url = new URL(checkoutUrl);
-              if (user?.email) {
-                url.searchParams.set("prefilled_email", user.email);
+              try {
+                const url = new URL(checkoutUrl);
+                if (user?.email) {
+                  url.searchParams.set("prefilled_email", user.email);
+                }
+                
+                window.open(
+                  url.toString(),
+                  "_blank",
+                  "noopener,noreferrer"
+                );
+              } catch (e) {
+                console.error("URL de checkout inválida:", checkoutUrl);
+                import("sonner").then(({ toast }) => {
+                  toast.error("Erro: URL de checkout inválida.");
+                });
               }
-              
-              window.open(
-                url.toString(),
-                "_blank",
-                "noopener,noreferrer"
-              );
             }}
           />
           <FlowToastContainer />
