@@ -42,6 +42,14 @@ export function goalFromRow(row: GoalDatabaseRow): Goal {
     color: row.color,
     createdAt: row.created_at,
     completedAt: row.completed_at,
+    // Metas semanais
+    type: row.type,
+    targetFrequency: row.target_frequency,
+    daysCompletedWeek: row.days_completed_week,
+    streak: row.streak,
+    recordStreak: row.record_streak,
+    linkedHabitId: row.linked_habit_id,
+    weekStart: row.week_start,
   };
 }
 

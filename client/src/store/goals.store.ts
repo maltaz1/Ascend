@@ -109,6 +109,13 @@ export async function loadGoalsData(): Promise<void> {
     color: item.color,
     createdAt: item.created_at,
     completedAt: item.completed_at,
+    type: item.type,
+    targetFrequency: item.target_frequency,
+    daysCompletedWeek: item.days_completed_week,
+    streak: item.streak,
+    recordStreak: item.record_streak,
+    linkedHabitId: item.linked_habit_id,
+    weekStart: item.week_start,
   }));
 
   const t3 = performance.now();

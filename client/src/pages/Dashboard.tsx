@@ -33,6 +33,11 @@ import {
 
 import { supabase } from "@/lib/supabase";
 import { useStore } from "@/hooks/useStore";
+import {
+  getMondayOfDate,
+  normalizeWeeklyGoalWeek,
+  getWeeklyCompletedCount,
+} from "@/lib/weeklyGoals";
 import { getTodayString, toYYYYMMDD } from "@/store/utils";
 
 import { getFinancialData } from "@/store/financial.store";
@@ -464,6 +469,7 @@ export default function Dashboard() {
   const [profile, setProfile] = useState<any>(null);
   const [tasks, setTasks] = useState<any[]>([]);
   const [habits, setHabits] = useState<any[]>([]);
+  const [goals, setGoals] = useState<any[]>([]);
 
   useEffect(() => {
     loadData();
@@ -493,9 +499,15 @@ export default function Dashboard() {
       .select("*")
       .eq("user_id", user.id);
 
+    const { data: goalsData } = await supabase
+      .from("goals")
+      .select("*")
+      .eq("user_id", user.id);
+
     setProfile(profileData);
     setTasks(tasksData || []);
     setHabits(habitsData || []);
+    setGoals(goalsData || []);
   };
 
   const today = getTodayString();
@@ -506,6 +518,59 @@ export default function Dashboard() {
   ).length;
   const todayTasks = tasks.filter((t) => t.date === today).length;
   const overdueTasks = tasks.filter((t) => !t.completed && t.date < today).length;
+
+  // --- Metas semanais: X de Y no caminho certo ---
+  const weeklyGoalsSummary = useMemo(() => {
+    const weekly = (goals || []).filter(
+      (g) => g.type === "semanal" && !g.completed_at
+    );
+    const monday = getMondayOfDate(new Date());
+
+    let onTrack = 0;
+    for (const g of weekly) {
+      // Normaliza a semana para o estado atual
+      const norm = normalizeWeeklyGoalWeek({
+        id: g.id,
+        title: g.title,
+        emoji: g.emoji,
+        color: g.color,
+        description: g.description,
+        targetFrequency: g.target_frequency ?? 1,
+        daysCompletedWeek: g.days_completed_week ?? [
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+          false,
+        ],
+        weekStart: g.week_start ?? null,
+        streak: g.streak ?? 0,
+        recordStreak: g.record_streak ?? 0,
+        linkedHabitId: g.linked_habit_id ?? null,
+        weeklyHistory: g.weekly_history ?? [],
+        createdAt: g.created_at ?? new Date().toISOString(),
+      });
+
+      const completedCount = getWeeklyCompletedCount(norm.goal);
+      const target = g.target_frequency ?? 1;
+      // "No caminho certo": já atingiu a meta da semana OU está com progresso suficiente
+      // para atingir dentro dos dias restantes da semana
+      const todayDow = new Date().getDay();
+      const daysLeftInWeek = todayDow === 0 ? 0 : 7 - todayDow;
+      if (completedCount >= target) {
+        onTrack++;
+      } else if (
+        daysLeftInWeek > 0 &&
+        completedCount + daysLeftInWeek >= target
+      ) {
+        onTrack++;
+      }
+    }
+
+    return { onTrack, total: weekly.length };
+  }, [goals]);
 
   // --- Activity 30 days ---
   const activityData = useMemo(() => {
@@ -809,6 +874,61 @@ export default function Dashboard() {
       <div style={{ marginBottom: 20 }}>
         <StreakBadge streak={globalStreak} />
       </div>
+
+      {/* ===== METAS SEMANAIS ===== */}
+      {weeklyGoalsSummary.total > 0 && (
+        <div
+          className="fz-card"
+          style={{
+            marginBottom: 20,
+            padding: "18px 20px",
+            display: "flex",
+            alignItems: "center",
+            gap: 14,
+            background: "linear-gradient(135deg, rgba(245,158,11,0.1), rgba(139,92,246,0.08))",
+            border: "1px solid rgba(245,158,11,0.25)",
+          }}
+        >
+          <div
+            style={{
+              width: 44,
+              height: 44,
+              borderRadius: 12,
+              background: "rgba(245,158,11,0.15)",
+              display: "flex",
+              alignItems: "center",
+              justifyContent: "center",
+              flexShrink: 0,
+            }}
+          >
+            <Target size={20} color="#F59E0B" />
+          </div>
+          <div style={{ flex: 1 }}>
+            <div style={{ fontSize: 15, fontWeight: 700 }}>
+              {weeklyGoalsSummary.onTrack} de {weeklyGoalsSummary.total} metas
+              semanais no caminho certo
+            </div>
+            <div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
+              {weeklyGoalsSummary.onTrack === weeklyGoalsSummary.total
+                ? "Todas as metas da semana vão ser atingidas. Continue assim!"
+                : `${weeklyGoalsSummary.total - weeklyGoalsSummary.onTrack} ainda precisam de atenção esta semana.`}
+            </div>
+          </div>
+          <div
+            style={{
+              fontSize: 22,
+              fontWeight: 800,
+              color: "#F59E0B",
+              flexShrink: 0,
+            }}
+          >
+            {weeklyGoalsSummary.total > 0
+              ? Math.round((weeklyGoalsSummary.onTrack / weeklyGoalsSummary.total) * 100)
+              : 0}
+            %
+          </div>
+        </div>
+      )}
 
       {/* ===== HEATMAP ===== */}
       <ExpandableSection

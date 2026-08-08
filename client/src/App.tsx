@@ -158,7 +158,7 @@ function AppContent({
       case "tasks":
         return <Tasks isPro={isPro} />;
       case "goals":
-        return <Goals />;
+        return <Goals isPro={isPro} onOpenUpgrade={onOpenUpgrade} />;
       case "habits":
         return <Habits isPro={isPro} />;
       case "prayer":

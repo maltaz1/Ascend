@@ -24,6 +24,14 @@ export interface GoalDatabaseRow {
   color: string;
   created_at: string;
   completed_at?: string;
+  // Campos de metas semanais
+  type?: "semanal" | "longo_prazo";
+  target_frequency?: number;
+  days_completed_week?: boolean[];
+  streak?: number;
+  record_streak?: number;
+  linked_habit_id?: string | null;
+  week_start?: string | null;
 }
 
 export interface WorkoutDatabaseRow {
