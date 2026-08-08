@@ -303,6 +303,30 @@ function App() {
     });
   }, [user?.id]);
 
+  useEffect(() => {
+    if (!user?.id) return;
+    const profileChannel = supabase
+      .channel(`profile-status-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "UPDATE",
+          schema: "public",
+          table: "profiles",
+          filter: `id=eq.${user.id}`,
+        },
+        payload => {
+          if (typeof payload.new?.is_pro === "boolean") {
+            setIsPro(payload.new.is_pro);
+          }
+        },
+      )
+      .subscribe();
+    return () => {
+      void supabase.removeChannel(profileChannel);
+    };
+  }, [user?.id]);
+
   const path = typeof window !== "undefined" ? window.location.pathname : "";
 
   if (path === "/reset-password") {
