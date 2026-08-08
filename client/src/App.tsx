@@ -354,7 +354,6 @@ function App() {
             onClose={() => setShowUpgradeModal(false)}
             onUpgrade={() => {
               const checkoutUrl = import.meta.env.VITE_STRIPE_CHECKOUT_URL;
-              console.log("Stripe Checkout URL:", checkoutUrl);
 
               if (!checkoutUrl) {
                 import("sonner").then(({ toast }) => {

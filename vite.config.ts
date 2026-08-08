@@ -3,8 +3,6 @@ import react from "@vitejs/plugin-react";
 import tailwindcss from "@tailwindcss/vite";
 import path from "path";
 
-console.log("DEBUG: VITE_STRIPE_CHECKOUT_URL is", process.env.VITE_STRIPE_CHECKOUT_URL ? "SET" : "NOT SET");
-
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   root: path.resolve(__dirname, "./client"),
