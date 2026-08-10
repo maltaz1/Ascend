@@ -26,16 +26,34 @@ async function getRawBody(readable: any): Promise<Buffer> {
   return Buffer.concat(chunks);
 }
 
-function verifySignature(payload: string, signature: string, secret: string): boolean {
-  const hmac = crypto.createHmac("sha256", secret);
-  const digest = hmac.update(payload).digest("hex");
-  
-  // Trata tanto a assinatura pura quanto a prefixada com 'sha256='
-  const cleanSignature = signature.startsWith("sha256=") 
-    ? signature.substring(7) 
-    : signature;
+function safeEqual(left: string, right: string): boolean {
+  const leftBuffer = Buffer.from(left);
+  const rightBuffer = Buffer.from(right);
+  return leftBuffer.length === rightBuffer.length && crypto.timingSafeEqual(leftBuffer, rightBuffer);
+}
 
-  return digest === cleanSignature;
+function verifyHmacSignature(payload: string, signature: string, secret: string): boolean {
+  const digest = crypto.createHmac("sha256", secret).update(payload).digest("hex");
+  const cleanSignature = signature.startsWith("sha256=") ? signature.substring(7) : signature;
+  return safeEqual(digest, cleanSignature);
+}
+
+function verifyCaktoAuthentication(
+  bodyString: string,
+  payload: any,
+  headers: Record<string, string | string[] | undefined>,
+  secret: string,
+): boolean {
+  const headerSignature = headers["x-cakto-signature"];
+  const signature = Array.isArray(headerSignature) ? headerSignature[0] : headerSignature;
+
+  // Compatibilidade com integrações que enviam HMAC no header.
+  if (signature && verifyHmacSignature(bodyString, signature, secret)) {
+    return true;
+  }
+
+  // A documentação/exemplo da Cakto envia o segredo no próprio JSON como `secret`.
+  return typeof payload?.secret === "string" && safeEqual(payload.secret, secret);
 }
 
 function determineIsPro(event: string, status: string): boolean | null {
@@ -81,20 +99,28 @@ export default async function handler(req: any, res: any) {
 
     const rawBody = await getRawBody(req);
     const bodyString = rawBody.toString("utf-8");
-    const signature = req.headers["x-cakto-signature"];
+    let payload: any;
 
-    if (!signature || !verifySignature(bodyString, signature as string, CAKTO_WEBHOOK_SECRET)) {
-      console.error("[CAKTO] Assinatura inválida ou ausente");
+    try {
+      payload = JSON.parse(bodyString);
+    } catch {
+      return res.status(400).json({ ok: false, error: "Payload JSON inválido" });
+    }
+
+    if (!verifyCaktoAuthentication(bodyString, payload, req.headers, CAKTO_WEBHOOK_SECRET)) {
+      console.error("[CAKTO] Assinatura inválida ou ausente", {
+        hasPayloadSecret: typeof payload?.secret === "string",
+        hasSignatureHeader: Boolean(req.headers["x-cakto-signature"]),
+      });
       return res.status(401).json({ ok: false, error: "Não autorizado" });
     }
 
-    const payload = JSON.parse(bodyString);
     const event = (payload.event || "unknown").toLowerCase();
     const data = payload.data || {};
     const email = data.customer?.email?.trim();
     
-    // Identificador único do evento na Cakto para idempotência
-    const eventId = payload.id; 
+    // A Cakto documenta o identificador dentro de data.id; mantemos fallbacks para outros formatos.
+    const eventId = payload.id || data.id || data.order?.id || data.transaction_id;
 
     if (!eventId) {
       return res.status(400).json({ ok: false, error: "ID do evento ausente no payload" });
