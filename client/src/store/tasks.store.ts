@@ -76,7 +76,7 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<vo
   if (idx === -1) return;
 
   const previousTask = { ..._data.tasks[idx] };
-  _data.tasks[idx] = { ..._data.tasks[idx], ...updates };
+  _data.tasks = _data.tasks.map(task => (task.id === id ? { ...task, ...updates } : task));
   markSelfWrite("tasks", id);
 
   notify();
@@ -100,7 +100,7 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<vo
 
     if (error) {
       console.error(error);
-      _data.tasks[idx] = previousTask;
+      _data.tasks = _data.tasks.map(task => (task.id === id ? previousTask : task));
       notify();
       persistState();
     }
