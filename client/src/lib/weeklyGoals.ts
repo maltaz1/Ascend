@@ -159,12 +159,31 @@ export function isWeeklyGoalHit(goal: WeeklyGoal): boolean {
 }
 
 /**
- * Consistência da semana atual em %: min(concluídos, alvo)/alvo.
+ * Consistência da semana atual em %: apenas os dias que já passaram.
+ * Se hoje é quarta-feira (índice 2), considera seg/ter/qua.
+ * Consistência = concluídos / dias que já deveriam ter passado.
  */
 export function getWeeklyConsistency(goal: WeeklyGoal): number {
   const target = goal.targetFrequency || 1;
-  const done = getWeeklyCompletedCount(goal);
-  return Math.min(Math.round((done / target) * 100), 100);
+  const days = goal.daysCompletedWeek || [];
+  
+  // Determinar quantos dias já passaram na semana atual
+  const jsDay = new Date().getDay(); // 0=dom
+  const todayIdx = jsDay === 0 ? 6 : jsDay - 1; // 0=seg, 6=dom
+  
+  // Contar dias que passaram e foram concluídos
+  let passedDays = 0;
+  let completedDays = 0;
+  for (let i = 0; i <= todayIdx; i++) {
+    passedDays++;
+    if (days[i]) completedDays++;
+  }
+  
+  if (passedDays === 0) return 0;
+  
+  // Consistência = concluídos / dias que já passaram (normalizado pelo alvo)
+  // Ex: se alvo é 4x e já passaram 3 dias com 3 concluídos = 75%
+  return Math.min(Math.round((completedDays / passedDays) * 100), 100);
 }
 
 /**
@@ -178,15 +197,12 @@ export function getWeekConsistencyAverage(goals: WeeklyGoal[]): number {
 }
 
 /**
- * Ordena metas semanais colocando primeiro as mais perto do prazo
- * (menos dias restantes para bater a meta). Metas já batidas ficam por último.
+ * Ordena metas semanais por título para manter ordem fixa.
+ * Não reordena baseado em progresso — mantém a ordem estável.
  */
 export function sortWeeklyGoals(goals: WeeklyGoal[]): WeeklyGoal[] {
   return [...goals].sort((a, b) => {
-    const aHit = isWeeklyGoalHit(a);
-    const bHit = isWeeklyGoalHit(b);
-    if (aHit !== bHit) return aHit ? 1 : -1;
-    return getWeeklyRemaining(a) - getWeeklyRemaining(b);
+    return a.title.localeCompare(b.title);
   });
 }
 

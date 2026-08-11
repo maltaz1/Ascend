@@ -790,12 +790,7 @@ export default function Goals({
 
   const sortedWeekly = useMemo(() => {
     return [...weeklyGoals].sort((a, b) => {
-      const aHit = isWeeklyGoalHit(goalToWeekly(a));
-      const bHit = isWeeklyGoalHit(goalToWeekly(b));
-      if (aHit !== bHit) return aHit ? 1 : -1;
-      const aRem = (a.target_frequency ?? 1) - (a.days_completed_week?.filter(Boolean).length ?? 0);
-      const bRem = (b.target_frequency ?? 1) - (b.days_completed_week?.filter(Boolean).length ?? 0);
-      return aRem - bRem;
+      return a.title.localeCompare(b.title);
     });
   }, [weeklyGoals]);
 
