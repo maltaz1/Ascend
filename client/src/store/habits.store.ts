@@ -42,38 +42,34 @@ export async function toggleHabitDate(
   if (!habit) return { xpGained: 0 };
 
   const previousCompletedDates = [...habit.completedDates];
-  const existingIndex = habit.completedDates.indexOf(date);
+  const existingIndex = previousCompletedDates.indexOf(date);
   let xpGained = 0;
-
+  let newCompletedDates: string[];
   if (existingIndex === -1) {
-    habit.completedDates.push(date);
+    newCompletedDates = [...previousCompletedDates, date];
     markActiveToday();
     void addXP(5);
     xpGained = 5;
     evaluateAchievements(_data);
   } else {
-    habit.completedDates.splice(existingIndex, 1);
+    newCompletedDates = previousCompletedDates.filter((_, i) => i !== existingIndex);
   }
-
+  _data.habits = _data.habits.map(item => (item.id === habitId ? { ...item, completedDates: newCompletedDates } : item));
   notify();
   persistState();
   markSelfWrite("habits", habitId);
-
   void (async () => {
     const { error } = await supabase
       .from("habits")
-      .update({ completed_dates: habit.completedDates })
+      .update({ completed_dates: newCompletedDates })
       .eq("id", habitId);
-
     if (error) {
       console.error("Erro ao salvar hábito:", error);
-      habit.completedDates = previousCompletedDates;
+      _data.habits = _data.habits.map(item => (item.id === habitId ? { ...item, completedDates: previousCompletedDates } : item));
       notify();
       persistState();
     }
-  })();
-
-  return { xpGained };
+  })();return { xpGained };
 }
 
 export function getHabitMonthProgress(habit: Habit, year: number, month: number): number {

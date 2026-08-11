@@ -12,17 +12,14 @@ export function addGoal(goal: Omit<Goal, "id" | "createdAt">): Goal {
     createdAt: new Date().toISOString(),
   };
 
-  _data.goals.push(newGoal);
+  _data.goals = [..._data.goals, newGoal];
   notify();
   persistState();
   return newGoal;
 }
 
 export function updateGoal(id: string, updates: Partial<Goal>): void {
-  const index = _data.goals.findIndex(goal => goal.id === id);
-  if (index === -1) return;
-
-  _data.goals[index] = { ..._data.goals[index], ...updates };
+  _data.goals = _data.goals.map(goal => (goal.id === id ? { ...goal, ...updates } : goal));
   notify();
   persistState();
 }
@@ -43,24 +40,24 @@ export async function toggleGoalStep(
   const step = goal.steps.find(item => item.id === stepId);
   if (!step) return { xpGained: 0, goalCompleted: false, newAchievements: [] };
 
-  step.completed = !step.completed;
-
+  const stepCompleted = !step.completed;
+  const updatedGoal = {
+    ...goal,
+    steps: goal.steps.map(item => (item.id === stepId ? { ...item, completed: stepCompleted } : item)),
+  };
   let xpGained = 0;
   let goalCompleted = false;
-
-  const allCompleted = goal.steps.length > 0 && goal.steps.every(item => item.completed);
-
+  const allCompleted = updatedGoal.steps.length > 0 && updatedGoal.steps.every(item => item.completed);
   if (allCompleted && !goal.completedAt) {
-    goal.completedAt = new Date().toISOString();
+    updatedGoal.completedAt = new Date().toISOString();
     _data.user.totalGoalsCompleted += 1;
     addXP(50);
     xpGained = 50;
     goalCompleted = true;
   } else if (!allCompleted && goal.completedAt) {
-    goal.completedAt = undefined;
     _data.user.totalGoalsCompleted = Math.max(0, _data.user.totalGoalsCompleted - 1);
   }
-
+  _data.goals = _data.goals.map(item => (item.id === goalId ? updatedGoal : item));
   const newAchievements = evaluateAchievements(_data);
   notify();
   persistState();
