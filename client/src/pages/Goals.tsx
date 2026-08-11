@@ -11,6 +11,8 @@ import {
   Flame,
   Sparkles,
   CalendarDays,
+  TrendingUp,
+  Crown,
 } from "lucide-react";
 
 import { useXPAnimation } from "@/hooks/useStore";
@@ -58,7 +60,6 @@ type Goal = {
   deadline?: string;
   steps: GoalStep[];
   completed_at?: string | null;
-  // Campos de metas semanais
   type?: GoalType;
   target_frequency?: number;
   days_completed_week?: boolean[];
@@ -165,60 +166,61 @@ const GOAL_COLORS_MAP: Record<
     gradient: string;
     glow: string;
     light: string;
+    dark: string;
   }
 > = {
   "#F59E0B": {
     gradient: "linear-gradient(135deg, #F59E0B, #FCD34D)",
-    glow: "rgba(245,158,11,0.2)",
-    light: "rgba(245,158,11,0.08)",
+    glow: "rgba(245,158,11,0.25)",
+    light: "rgba(245,158,11,0.06)",
+    dark: "rgba(245,158,11,0.15)",
   },
-
   "#A855F7": {
     gradient: "linear-gradient(135deg, #A855F7, #C084FC)",
-    glow: "rgba(168,85,247,0.2)",
-    light: "rgba(168,85,247,0.08)",
+    glow: "rgba(168,85,247,0.25)",
+    light: "rgba(168,85,247,0.06)",
+    dark: "rgba(168,85,247,0.15)",
   },
-
   "#10B981": {
     gradient: "linear-gradient(135deg, #10B981, #34D399)",
-    glow: "rgba(16,185,129,0.2)",
-    light: "rgba(16,185,129,0.08)",
+    glow: "rgba(16,185,129,0.25)",
+    light: "rgba(16,185,129,0.06)",
+    dark: "rgba(16,185,129,0.15)",
   },
-
   "#8B5CF6": {
     gradient: "linear-gradient(135deg, #8B5CF6, #A78BFA)",
-    glow: "rgba(139,92,246,0.2)",
-    light: "rgba(139,92,246,0.08)",
+    glow: "rgba(139,92,246,0.25)",
+    light: "rgba(139,92,246,0.06)",
+    dark: "rgba(139,92,246,0.15)",
   },
-
   "#EF4444": {
     gradient: "linear-gradient(135deg, #EF4444, #F87171)",
-    glow: "rgba(239,68,68,0.2)",
-    light: "rgba(239,68,68,0.08)",
+    glow: "rgba(239,68,68,0.25)",
+    light: "rgba(239,68,68,0.06)",
+    dark: "rgba(239,68,68,0.15)",
   },
-
   "#EC4899": {
     gradient: "linear-gradient(135deg, #EC4899, #F472B6)",
-    glow: "rgba(236,72,153,0.2)",
-    light: "rgba(236,72,153,0.08)",
+    glow: "rgba(236,72,153,0.25)",
+    light: "rgba(236,72,153,0.06)",
+    dark: "rgba(236,72,153,0.15)",
   },
-
   "#06B6D4": {
     gradient: "linear-gradient(135deg, #06B6D4, #22D3EE)",
-    glow: "rgba(6,182,212,0.2)",
-    light: "rgba(6,182,212,0.08)",
+    glow: "rgba(6,182,212,0.25)",
+    light: "rgba(6,182,212,0.06)",
+    dark: "rgba(6,182,212,0.15)",
   },
-
   "#84CC16": {
     gradient: "linear-gradient(135deg, #84CC16, #A3E635)",
-    glow: "rgba(132,204,22,0.2)",
-    light: "rgba(132,204,22,0.08)",
+    glow: "rgba(132,204,22,0.25)",
+    light: "rgba(132,204,22,0.06)",
+    dark: "rgba(132,204,22,0.15)",
   },
 };
 
 const GOLD_BORDER = "#f59e0b";
 
-/** Converte uma Goal do banco em WeeklyGoal para os helpers da lib */
 function goalToWeekly(g: Goal): import("@/lib/weeklyGoals").WeeklyGoal {
   return {
     id: g.id,
@@ -236,6 +238,58 @@ function goalToWeekly(g: Goal): import("@/lib/weeklyGoals").WeeklyGoal {
     createdAt: "",
   };
 }
+
+// =========================
+// STYLE OBJECTS (centralizado para o redesign)
+// =========================
+
+const S = {
+  glassCard: {
+    background: "var(--card)",
+    border: "1px solid rgba(255,255,255,0.08)",
+    borderRadius: 20,
+    backdropFilter: "blur(20px)",
+    boxShadow: "0 4px 32px rgba(0,0,0,0.12)",
+    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  } as React.CSSProperties,
+  glassCardHover: {
+    borderColor: "rgba(255,255,255,0.15)",
+    boxShadow: "0 8px 48px rgba(0,0,0,0.2)",
+    transform: "translateY(-2px)",
+  } as React.CSSProperties,
+  tag: {
+    display: "inline-flex" as const,
+    alignItems: "center" as const,
+    gap: 4,
+    fontSize: 11,
+    fontWeight: 700,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.08em",
+    borderRadius: 999,
+    padding: "4px 10px",
+  },
+  input: {
+    width: "100%",
+    padding: "12px 16px",
+    borderRadius: 12,
+    border: "1px solid rgba(255,255,255,0.1)",
+    background: "rgba(255,255,255,0.04)",
+    color: "var(--foreground)",
+    fontSize: 14,
+    fontFamily: "'DM Sans', sans-serif",
+    outline: "none",
+    transition: "border-color 0.2s ease",
+    boxSizing: "border-box" as const,
+  } as React.CSSProperties,
+  sectionLabel: {
+    fontSize: 12,
+    fontWeight: 700,
+    textTransform: "uppercase" as const,
+    letterSpacing: "0.1em",
+    color: "var(--muted-foreground)",
+    marginBottom: 8,
+  } as React.CSSProperties,
+};
 
 // =========================
 // WEEKLY SPARKLINE
@@ -258,6 +312,12 @@ function WeeklySparkline({ data, color }: { data: number[]; color: string }) {
       style={{ display: "block" }}
       aria-label="Consistência das últimas 4 semanas"
     >
+      <defs>
+        <linearGradient id={`grad-${color.replace("#", "")}`} x1="0" y1="0" x2="0" y2="1">
+          <stop offset="0%" stopColor={color} stopOpacity="0.3" />
+          <stop offset="100%" stopColor={color} stopOpacity="0" />
+        </linearGradient>
+      </defs>
       <polyline
         points={points}
         fill="none"
@@ -285,7 +345,7 @@ function WeeklySparkline({ data, color }: { data: number[]; color: string }) {
 }
 
 // =========================
-// WEEKLY GOAL CARD
+// WEEKLY GOAL CARD — Redesign
 // =========================
 
 function WeeklyGoalCard({
@@ -303,7 +363,6 @@ function WeeklyGoalCard({
 
   const colorInfo = GOAL_COLORS_MAP[goal.color] || GOAL_COLORS_MAP["#A855F7"];
 
-  // Normaliza a semana se necessário
   const norm = useMemo(
     () =>
       normalizeWeeklyGoalWeek({
@@ -328,7 +387,6 @@ function WeeklyGoalCard({
   const [streak, setStreak] = useState(norm.goal.streak);
   const [recordStreak] = useState(norm.goal.recordStreak);
 
-  // Aplica mudanças de normalização no estado local
   useEffect(() => {
     if (norm.changed) {
       setDays(norm.goal.daysCompletedWeek);
@@ -367,7 +425,6 @@ function WeeklyGoalCard({
   };
 
   const handleToggleDay = async (dayIndex: number) => {
-    // Dias futuros não podem ser marcados
     const monday = new Date(`${getMondayOfDate(new Date())}T12:00:00`);
     const d = new Date(monday);
     d.setDate(monday.getDate() + dayIndex);
@@ -385,11 +442,9 @@ function WeeklyGoalCard({
     const target = goal.target_frequency ?? 1;
     const wasHitBefore = days.filter(Boolean).length >= target;
 
-    // XP ao completar um check-in
     const rect = cardRef.current?.getBoundingClientRect();
     if (rect) showXP(5, rect.left + rect.width / 2, rect.top);
 
-    // Se acabou de bater a meta da semana, concede XP de meta semanal
     if (completedCount >= target && !wasHitBefore) {
       if (rect) showXP(25, rect.left + rect.width / 2, rect.top + 30);
       showToast(`Meta semanal atingida! 🔥 ${completedCount}/${target}`, "success", "🎉");
@@ -401,10 +456,6 @@ function WeeklyGoalCard({
   const completedCount = days.filter(Boolean).length;
   const target = goal.target_frequency ?? 1;
   const hit = isWeeklyGoalHit({
-    ...norm.goal,
-    daysCompletedWeek: days,
-  });
-  const consistency = getWeeklyConsistency({
     ...norm.goal,
     daysCompletedWeek: days,
   });
@@ -423,129 +474,170 @@ function WeeklyGoalCard({
   return (
     <div
       ref={cardRef}
-      className="fz-card animate-fade-in"
+      className="animate-fade-in"
       style={{
+        ...S.glassCard,
         padding: 24,
-        borderRadius: 16,
         position: "relative",
         overflow: "hidden",
-        background: `linear-gradient(135deg, ${colorInfo.light}, rgba(255,255,255,0.02))`,
-        border: hit
-          ? "1px solid rgba(16,185,129,0.4)"
-          : `1px solid ${goal.color}30`,
+        background: hit
+          ? `linear-gradient(145deg, rgba(16,185,129,0.08), var(--card))`
+          : `linear-gradient(145deg, ${colorInfo.light}, var(--card))`,
+        borderColor: hit ? "rgba(16,185,129,0.3)" : `rgba(${hexToRgb(goal.color)},0.2)`,
+        boxShadow: hit
+          ? `0 4px 32px rgba(16,185,129,0.12)`
+          : `0 4px 32px rgba(0,0,0,0.08)`,
       }}
     >
+      {/* Glow top accent */}
+      <div
+        style={{
+          position: "absolute",
+          top: 0,
+          left: 0,
+          right: 0,
+          height: 3,
+          background: hit
+            ? "linear-gradient(90deg, #10B981, #34D399)"
+            : colorInfo.gradient,
+          borderRadius: "20px 20px 0 0",
+          opacity: 0.8,
+        }}
+      />
+
       {/* Header */}
       <div
         style={{
           display: "flex",
           gap: 16,
-          marginBottom: 18,
+          marginBottom: 20,
           alignItems: "flex-start",
         }}
       >
-        <CircularProgress
-          value={hit ? 100 : Math.round((completedCount / target) * 100)}
-          size={60}
-          strokeWidth={4}
-          color={hit ? "#10B981" : goal.color}
+        {/* Icon circle */}
+        <div
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: "50%",
+            background: `linear-gradient(135deg, ${goal.color}, ${goal.color}CC)`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 26,
+            boxShadow: `0 4px 16px ${goal.color}40`,
+            flexShrink: 0,
+          }}
         >
-          <span style={{ fontSize: 24 }}>{goal.emoji}</span>
-        </CircularProgress>
+          {goal.emoji}
+        </div>
 
-        <div style={{ flex: 1 }}>
+        {/* Title + tag */}
+        <div style={{ flex: 1, minWidth: 0 }}>
           <h3
             style={{
-              fontSize: 18,
+              fontSize: 17,
               fontWeight: 700,
               marginBottom: 6,
+              fontFamily: "'Space Grotesk', sans-serif",
+              color: "var(--foreground)",
             }}
           >
             {goal.title}
           </h3>
-
-          {/* Tag de categoria */}
           <span
             style={{
-              display: "inline-block",
-              fontSize: 11,
-              fontWeight: 600,
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-              color: goal.color,
-              background: `${goal.color}18`,
-              border: `1px solid ${goal.color}40`,
-              borderRadius: 999,
-              padding: "3px 10px",
-              marginBottom: 6,
+              ...S.tag,
+              color: hit ? "#10B981" : goal.color,
+              background: hit ? "rgba(16,185,129,0.12)" : `${goal.color}15`,
+              border: `1px solid ${hit ? "rgba(16,185,129,0.3)" : `${goal.color}35`}`,
             }}
           >
-            {hit ? "Meta atingida ✓" : `Semana ${completedCount}/${target}`}
+            {hit ? "✓ Meta atingida" : `${completedCount}/${target} esta semana`}
           </span>
-
           <p
             style={{
               fontSize: 13,
               color: "var(--muted-foreground)",
+              marginTop: 6,
+              lineHeight: 1.4,
             }}
           >
             {habit
-              ? `Vinculada ao hábito ${habit.emoji} ${habit.title}`
+              ? `🔗 ${habit.emoji} ${habit.title}`
               : goal.description || `${target}x por semana`}
           </p>
         </div>
 
-        {/* Streak + recorde */}
+        {/* Streak badge */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
             alignItems: "flex-end",
-            gap: 4,
+            gap: 2,
           }}
         >
           <div
             style={{
               display: "flex",
               alignItems: "center",
-              gap: 6,
+              gap: 4,
+              background: "rgba(249,115,22,0.1)",
+              border: "1px solid rgba(249,115,22,0.25)",
+              borderRadius: 12,
+              padding: "6px 10px",
             }}
           >
-            <Flame size={20} color="#F97316" />
-            <span style={{ fontSize: 18, fontWeight: 800, color: "#F97316" }}>
+            <Flame size={16} color="#F97316" />
+            <span style={{ fontSize: 15, fontWeight: 800, color: "#F97316" }}>
               {streak}
             </span>
           </div>
-          <span
-            style={{
-              fontSize: 11,
-              color: "var(--muted-foreground)",
-            }}
-          >
-            semanas seguidas
-          </span>
           {recordStreak > 0 && (
             <span
               style={{
-                fontSize: 11,
+                fontSize: 10,
                 color: "#FCD34D",
                 display: "flex",
                 alignItems: "center",
                 gap: 3,
+                marginTop: 2,
               }}
             >
-              🏆 recorde: {recordStreak}
+              <Trophy size={10} /> recorde {recordStreak}
             </span>
           )}
         </div>
       </div>
 
-      {/* 7 indicadores de dias */}
+      {/* Progress bar */}
+      <div
+        style={{
+          height: 6,
+          borderRadius: 999,
+          background: "rgba(255,255,255,0.06)",
+          marginBottom: 18,
+          overflow: "hidden",
+        }}
+      >
+        <div
+          style={{
+            width: `${Math.min(100, (completedCount / target) * 100)}%`,
+            height: "100%",
+            background: hit ? "linear-gradient(90deg, #10B981, #34D399)" : colorInfo.gradient,
+            borderRadius: 999,
+            transition: "width 0.4s ease",
+          }}
+        />
+      </div>
+
+      {/* 7 day indicators */}
       <div
         style={{
           display: "grid",
           gridTemplateColumns: "repeat(7, 1fr)",
-          gap: 6,
+          gap: 5,
           marginBottom: 16,
         }}
       >
@@ -567,43 +659,47 @@ function WeeklyGoalCard({
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: 6,
+                gap: 4,
                 padding: "8px 2px",
                 borderRadius: 10,
                 border: completed
-                  ? `1px solid ${goal.color}80`
+                  ? `1px solid ${goal.color}50`
                   : isToday
                     ? `2px solid ${goal.color}`
-                    : "1px solid rgba(255,255,255,0.08)",
+                    : "1px solid rgba(255,255,255,0.06)",
                 background: completed
-                  ? `${goal.color}30`
+                  ? `${goal.color}25`
                   : isToday
-                    ? `${goal.color}15`
-                    : "rgba(255,255,255,0.03)",
-                opacity: isFuture ? 0.4 : 1,
+                    ? `${goal.color}10`
+                    : "transparent",
+                opacity: isFuture ? 0.35 : 1,
                 cursor: isFuture ? "not-allowed" : "pointer",
+                transition: "all 0.2s ease",
+                transform: isToday ? "scale(1.02)" : "scale(1)",
               }}
             >
               <div
                 style={{
-                  width: 14,
-                  height: 14,
+                  width: 16,
+                  height: 16,
                   borderRadius: "50%",
                   background: completed ? goal.color : "transparent",
-                  border: `2px solid ${completed ? goal.color : "rgba(255,255,255,0.15)"}`,
+                  border: `2px solid ${completed ? goal.color : "rgba(255,255,255,0.12)"}`,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  transition: "all .2s ease",
+                  transition: "all 0.2s ease",
                 }}
               >
                 {completed && <Check size={9} color="white" />}
               </div>
               <span
                 style={{
-                  fontSize: 10,
-                  fontWeight: isToday ? 700 : 500,
+                  fontSize: 9,
+                  fontWeight: isToday ? 800 : 500,
                   color: isToday ? goal.color : "var(--muted-foreground)",
+                  textTransform: "uppercase",
+                  letterSpacing: "0.05em",
                 }}
               >
                 {WEEKDAY_LABELS[i].slice(0, 3)}
@@ -619,12 +715,21 @@ function WeeklyGoalCard({
           display: "flex",
           justifyContent: "space-between",
           alignItems: "center",
-          paddingTop: 12,
-          borderTop: "1px solid rgba(255,255,255,0.06)",
+          paddingTop: 14,
+          borderTop: "1px solid rgba(255,255,255,0.05)",
         }}
       >
-        <span style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
-          Consistência — 4 semanas
+        <span
+          style={{
+            fontSize: 11,
+            color: "var(--muted-foreground)",
+            display: "flex",
+            alignItems: "center",
+            gap: 4,
+          }}
+        >
+          <TrendingUp size={11} />
+          4 semanas
         </span>
         <WeeklySparkline data={sparklineData} color={hit ? "#10B981" : goal.color} />
       </div>
@@ -633,7 +738,7 @@ function WeeklyGoalCard({
 }
 
 // =========================
-// LONG-TERM GOAL CARD
+// LONG-TERM GOAL CARD — Redesign
 // =========================
 
 function GoalCard({
@@ -695,120 +800,150 @@ function GoalCard({
   return (
     <div
       ref={cardRef}
-      className="fz-card animate-fade-in"
+      className="animate-fade-in"
       style={{
+        ...S.glassCard,
         padding: 24,
-        borderRadius: 16,
         position: "relative",
         overflow: "hidden",
         background: isCompleted
-          ? "linear-gradient(135deg, rgba(16,185,129,0.08), rgba(16,185,129,0.04))"
-          : `linear-gradient(135deg, ${colorInfo.light}, rgba(255,255,255,0.02))`,
-        // Borda dourada sutil para metas de longo prazo concluídas
-        border: isCompleted
-          ? `1px solid ${GOLD_BORDER}`
-          : `1px solid ${goal.color}30`,
-        boxShadow: isCompleted ? `0 0 24px ${GOLD_BORDER}20` : undefined,
+          ? "linear-gradient(145deg, rgba(245,158,11,0.06), var(--card))"
+          : `linear-gradient(145deg, ${colorInfo.light}, var(--card))`,
+        borderColor: isCompleted ? `${GOLD_BORDER}50` : `rgba(${hexToRgb(goal.color)},0.2)`,
+        boxShadow: isCompleted
+          ? `0 4px 32px rgba(245,158,11,0.12)`
+          : `0 4px 32px rgba(0,0,0,0.08)`,
       }}
     >
-      {/* Ícone de troféu para metas concluídas */}
+      {/* Gold accent top for completed */}
       {isCompleted && (
         <div
           style={{
             position: "absolute",
-            top: 14,
-            right: 14,
-            display: "flex",
-            alignItems: "center",
-            gap: 6,
+            top: 0,
+            left: 0,
+            right: 0,
+            height: 3,
+            background: `linear-gradient(90deg, #F59E0B, #FCD34D)`,
+            borderRadius: "20px 20px 0 0",
+            opacity: 0.8,
           }}
-        >
-          <span
-            style={{
-              display: "inline-flex",
-              alignItems: "center",
-              gap: 4,
-              fontSize: 11,
-              color: "#FCD34D",
-              background: `${GOLD_BORDER}18`,
-              border: `1px solid ${GOLD_BORDER}40`,
-              borderRadius: 999,
-              padding: "3px 10px",
-              fontWeight: 600,
-            }}
-          >
-            <Trophy size={12} color="#FCD34D" />
-            Concluída em{" "}
-            {new Date(goal.completed_at!).toLocaleDateString("pt-BR")}
-          </span>
-        </div>
+        />
       )}
 
+      {/* Header */}
       <div
         style={{
           display: "flex",
           gap: 16,
           marginBottom: 18,
-          paddingRight: isCompleted ? 150 : 0,
+          alignItems: "flex-start",
         }}
       >
-        <CircularProgress
-          value={progress}
-          size={60}
-          strokeWidth={4}
-          color={isCompleted ? "#10B981" : goal.color}
+        {/* Icon circle */}
+        <div
+          style={{
+            width: 56,
+            height: 56,
+            borderRadius: "50%",
+            background: isCompleted
+              ? `linear-gradient(135deg, #10B981, #34D399)`
+              : `linear-gradient(135deg, ${goal.color}, ${goal.color}CC)`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 26,
+            boxShadow: isCompleted ? "0 4px 16px rgba(16,185,129,0.3)" : `0 4px 16px ${goal.color}30`,
+            flexShrink: 0,
+          }}
         >
-          <span style={{ fontSize: 24 }}>{goal.emoji}</span>
-        </CircularProgress>
+          {goal.emoji}
+        </div>
 
-        <div style={{ flex: 1 }}>
+        {/* Title */}
+        <div style={{ flex: 1, minWidth: 0 }}>
           <h3
             style={{
-              fontSize: 18,
+              fontSize: 17,
               fontWeight: 700,
-              marginBottom: 6,
+              marginBottom: 4,
+              fontFamily: "'Space Grotesk', sans-serif",
+              color: "var(--foreground)",
             }}
           >
             {goal.title}
           </h3>
-
           <p
             style={{
               fontSize: 13,
               color: "var(--muted-foreground)",
+              lineHeight: 1.4,
             }}
           >
             {goal.description}
           </p>
         </div>
 
+        {/* Expand toggle */}
         <button
           onClick={() => setExpanded(!expanded)}
           style={{
-            background: "transparent",
-            border: "none",
+            background: "rgba(255,255,255,0.04)",
+            border: "1px solid rgba(255,255,255,0.08)",
+            borderRadius: 10,
+            padding: 8,
             cursor: "pointer",
-            color: goal.color,
+            color: "var(--muted-foreground)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "all 0.2s ease",
           }}
         >
-          {expanded ? <ChevronUp size={18} /> : <ChevronDown size={18} />}
+          {expanded ? <ChevronUp size={16} /> : <ChevronDown size={16} />}
         </button>
       </div>
 
+      {/* Completed badge */}
+      {isCompleted && (
+        <div
+          style={{
+            display: "inline-flex",
+            alignItems: "center",
+            gap: 6,
+            background: "rgba(245,158,11,0.1)",
+            border: "1px solid rgba(245,158,11,0.3)",
+            borderRadius: 999,
+            padding: "5px 14px",
+            marginBottom: 14,
+          }}
+        >
+          <Crown size={12} color="#FCD34D" />
+          <span style={{ fontSize: 11, fontWeight: 700, color: "#FCD34D" }}>
+            Concluída em {new Date(goal.completed_at!).toLocaleDateString("pt-BR")}
+          </span>
+        </div>
+      )}
+
+      {/* Progress bar */}
       <div
         style={{
           height: 6,
           borderRadius: 999,
-          overflow: "hidden",
-          background: "rgba(255,255,255,0.08)",
+          background: "rgba(255,255,255,0.06)",
           marginBottom: 18,
+          overflow: "hidden",
         }}
       >
         <div
           style={{
             width: `${progress}%`,
             height: "100%",
-            background: colorInfo.gradient,
+            background: isCompleted
+              ? "linear-gradient(90deg, #10B981, #34D399)"
+              : colorInfo.gradient,
+            borderRadius: 999,
+            transition: "width 0.4s ease",
           }}
         />
       </div>
@@ -818,7 +953,7 @@ function GoalCard({
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: 10,
+            gap: 8,
           }}
         >
           {goal.steps.map(step => (
@@ -828,36 +963,40 @@ function GoalCard({
               style={{
                 display: "flex",
                 alignItems: "center",
-                gap: 10,
-                padding: "12px",
-                borderRadius: 10,
-                border: `1px solid ${goal.color}20`,
+                gap: 12,
+                padding: "12px 14px",
+                borderRadius: 12,
+                border: `1px solid ${step.completed ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.06)"}`,
                 background: step.completed
-                  ? "rgba(16,185,129,0.15)"
-                  : "rgba(255,255,255,0.03)",
+                  ? "rgba(16,185,129,0.08)"
+                  : "rgba(255,255,255,0.02)",
                 cursor: "pointer",
+                transition: "all 0.2s ease",
+                textAlign: "left",
+                width: "100%",
               }}
             >
               <div
                 style={{
-                  width: 18,
-                  height: 18,
-                  borderRadius: 4,
+                  width: 20,
+                  height: 20,
+                  borderRadius: 6,
                   background: step.completed ? "#10B981" : "transparent",
-                  border: `2px solid ${
-                    step.completed ? "#10B981" : goal.color
-                  }`,
+                  border: `2px solid ${step.completed ? "#10B981" : goal.color}`,
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "center",
+                  flexShrink: 0,
+                  transition: "all 0.2s ease",
                 }}
               >
                 {step.completed && <Check size={11} color="white" />}
               </div>
-
               <span
                 style={{
                   textDecoration: step.completed ? "line-through" : "none",
+                  color: step.completed ? "var(--muted-foreground)" : "var(--foreground)",
+                  fontSize: 14,
                 }}
               >
                 {step.title}
@@ -868,11 +1007,11 @@ function GoalCard({
           <button
             onClick={handleDelete}
             style={{
-              marginTop: 10,
+              marginTop: 8,
               padding: "12px",
-              borderRadius: 10,
+              borderRadius: 12,
               border: "1px solid rgba(239,68,68,0.2)",
-              background: "rgba(239,68,68,0.1)",
+              background: "rgba(239,68,68,0.06)",
               color: "#EF4444",
               cursor: "pointer",
               display: "flex",
@@ -880,9 +1019,11 @@ function GoalCard({
               justifyContent: "center",
               gap: 8,
               fontWeight: 600,
+              fontSize: 13,
+              transition: "all 0.2s ease",
             }}
           >
-            <Trash2 size={15} />
+            <Trash2 size={14} />
             Deletar meta
           </button>
         </div>
@@ -892,48 +1033,55 @@ function GoalCard({
 }
 
 // =========================
-// EMPTY STATE
+// EMPTY STATE — Redesign
 // =========================
 
 function EmptyGoalsState({ onCreate }: { onCreate: () => void }) {
   return (
     <div
-      className="fz-card"
+      className="animate-fade-in"
       style={{
-        padding: 60,
+        ...S.glassCard,
+        padding: "64px 32px",
         textAlign: "center",
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
-        gap: 16,
+        gap: 20,
       }}
     >
-      {/* Ilustração simples */}
+      {/* Illustration */}
       <div
         style={{
-          width: 96,
-          height: 96,
+          width: 100,
+          height: 100,
           borderRadius: 28,
-          background: "linear-gradient(135deg, rgba(168,85,247,0.15), rgba(245,158,11,0.1))",
+          background: "linear-gradient(135deg, rgba(139,92,246,0.12), rgba(245,158,11,0.08))",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          fontSize: 44,
-          marginBottom: 8,
+          fontSize: 48,
+          border: "1px solid rgba(139,92,246,0.2)",
         }}
       >
         🎯
       </div>
 
-      <h3 style={{ fontSize: 18, fontWeight: 700 }}>
+      <h3
+        style={{
+          fontSize: 20,
+          fontWeight: 700,
+          fontFamily: "'Space Grotesk', sans-serif",
+        }}
+      >
         Nenhuma meta criada ainda
       </h3>
 
       <p
         style={{
-          fontSize: 13,
+          fontSize: 14,
           color: "var(--muted-foreground)",
-          maxWidth: 320,
+          maxWidth: 340,
           lineHeight: 1.6,
         }}
       >
@@ -948,15 +1096,17 @@ function EmptyGoalsState({ onCreate }: { onCreate: () => void }) {
           display: "flex",
           alignItems: "center",
           gap: 8,
-          padding: "12px 24px",
-          borderRadius: 12,
-          background: "#8B5CF6",
+          padding: "14px 28px",
+          borderRadius: 14,
+          background: "linear-gradient(135deg, #8B5CF6, #A855F7)",
           color: "white",
           fontWeight: 700,
           fontSize: 14,
           border: "none",
           cursor: "pointer",
           boxShadow: "0 4px 24px rgba(139,92,246,0.35)",
+          transition: "all 0.2s ease",
+          fontFamily: "'DM Sans', sans-serif",
         }}
       >
         <Plus size={16} />
@@ -967,7 +1117,7 @@ function EmptyGoalsState({ onCreate }: { onCreate: () => void }) {
 }
 
 // =========================
-// WEEKLY SUMMARY BAR
+// WEEKLY SUMMARY BAR — Redesign
 // =========================
 
 function WeeklySummaryBar({
@@ -1003,15 +1153,15 @@ function WeeklySummaryBar({
 
   return (
     <div
-      className="fz-card animate-fade-in"
+      className="animate-fade-in"
       style={{
+        ...S.glassCard,
         padding: 20,
-        borderRadius: 16,
         display: "grid",
-        gridTemplateColumns: "repeat(auto-fit, minmax(140px, 1fr))",
+        gridTemplateColumns: "repeat(auto-fit, minmax(150px, 1fr))",
         gap: 16,
-        background: "linear-gradient(135deg, rgba(139,92,246,0.1), rgba(245,158,11,0.06))",
-        border: "1px solid rgba(139,92,246,0.25)",
+        background: "linear-gradient(145deg, rgba(139,92,246,0.08), rgba(245,158,11,0.04), var(--card))",
+        borderColor: "rgba(139,92,246,0.2)",
       }}
     >
       {stats.map(({ icon: Icon, value, label, color }) => (
@@ -1025,19 +1175,27 @@ function WeeklySummaryBar({
         >
           <div
             style={{
-              width: 40,
-              height: 40,
-              borderRadius: 12,
-              background: `${color}18`,
+              width: 44,
+              height: 44,
+              borderRadius: 14,
+              background: `${color}15`,
+              border: `1px solid ${color}30`,
               display: "flex",
               alignItems: "center",
               justifyContent: "center",
             }}
           >
-            <Icon size={18} color={color} />
+            <Icon size={20} color={color} />
           </div>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 800, color }}>
+            <div
+              style={{
+                fontSize: 20,
+                fontWeight: 800,
+                color,
+                fontFamily: "'Space Grotesk', sans-serif",
+              }}
+            >
               {value}
             </div>
             <div style={{ fontSize: 11, color: "var(--muted-foreground)" }}>
@@ -1051,7 +1209,7 @@ function WeeklySummaryBar({
 }
 
 // =========================
-// MODAL
+// MODAL — Redesign
 // =========================
 
 function NewGoalModal({
@@ -1072,22 +1230,13 @@ function NewGoalModal({
   onOpenUpgrade: () => void;
 }) {
   const [title, setTitle] = useState("");
-
   const [description, setDescription] = useState("");
-
   const [emoji, setEmoji] = useState("🎯");
-
   const [color, setColor] = useState("#A855F7");
-
   const [deadline, setDeadline] = useState("");
-
   const [steps, setSteps] = useState<string[]>([""]);
-
-  // Campos de meta semanal
   const [goalType, setGoalType] = useState<GoalType>("longo_prazo");
-
   const [targetFrequency, setTargetFrequency] = useState<number>(4);
-
   const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null);
 
   const frequencyChips = COMMON_FREQUENCIES;
@@ -1098,9 +1247,7 @@ function NewGoalModal({
 
   const handleStepChange = (i: number, value: string) => {
     const updated = [...steps];
-
     updated[i] = value;
-
     setSteps(updated);
   };
 
@@ -1119,7 +1266,6 @@ function NewGoalModal({
       return;
     }
 
-    // Plano Free: limitar a 2 metas semanais simultâneas (Upgrade Modal já padronizado)
     if (goalType === "semanal" && !isPro && weeklyGoalsCount >= FREE_LIMITS.weeklyGoals) {
       showToast(
         `O plano Free permite até ${FREE_LIMITS.weeklyGoals} metas semanais simultâneas`,
@@ -1150,9 +1296,7 @@ function NewGoalModal({
 
       if (error) {
         console.log(error);
-
         showToast("Erro ao criar meta", "info", "❌");
-
         return;
       }
 
@@ -1180,9 +1324,7 @@ function NewGoalModal({
 
       if (error) {
         console.log(error);
-
         showToast("Erro ao criar meta", "info", "❌");
-
         return;
       }
 
@@ -1200,13 +1342,11 @@ function NewGoalModal({
     setSelectedHabitId(null);
 
     onClose();
-
-    // Atualização suave: recarrega apenas os dados, sem reload total da página
     await reloadGoals();
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Nova Meta" maxWidth="480px">
+    <Modal open={open} onClose={onClose} title="Nova Meta" maxWidth="520px">
       <div
         style={{
           display: "flex",
@@ -1214,166 +1354,167 @@ function NewGoalModal({
           gap: 20,
         }}
       >
-        {/* Tipo de meta */}
-        <div
-          style={{
-            display: "grid",
-            gridTemplateColumns: "1fr 1fr",
-            gap: 10,
-          }}
-        >
-          {(
-            [
-              { value: "longo_prazo", label: "Longo prazo", icon: "🎯" },
-              { value: "semanal", label: "Semanal", icon: "🔥" },
-            ] as const
-          ).map(t => (
-            <button
-              key={t.value}
-              onClick={() => setGoalType(t.value)}
-              style={{
-                padding: "12px 8px",
-                borderRadius: 12,
-                border:
-                  goalType === t.value
-                    ? "2px solid #8B5CF6"
-                    : "1px solid rgba(255,255,255,0.08)",
-                background:
-                  goalType === t.value
-                    ? "rgba(139,92,246,0.15)"
-                    : "rgba(255,255,255,0.03)",
-                cursor: "pointer",
-                display: "flex",
-                flexDirection: "column",
-                alignItems: "center",
-                gap: 6,
-                fontWeight: 600,
-                fontSize: 13,
-                color: "var(--foreground)",
-              }}
-            >
-              <span style={{ fontSize: 20 }}>{t.icon}</span>
-              {t.label}
-            </button>
-          ))}
-        </div>
-
-        <input
-          placeholder="Nome da meta"
-          value={title}
-          onChange={e => setTitle(e.target.value)}
-          className="fz-input"
-        />
-
-        <textarea
-          placeholder="Descrição"
-          value={description}
-          onChange={e => setDescription(e.target.value)}
-          className="fz-input"
-        />
-
-        <div
-          style={{
-            display: "flex",
-            gap: 10,
-            flexWrap: "wrap",
-          }}
-        >
-          {EMOJIS.map(e => {
-            const selected = emoji === e;
-
-            return (
+        {/* Type selector */}
+        <div>
+          <p style={S.sectionLabel}>Tipo de meta</p>
+          <div
+            style={{
+              display: "grid",
+              gridTemplateColumns: "1fr 1fr",
+              gap: 10,
+            }}
+          >
+            {(
+              [
+                { value: "longo_prazo", label: "Longo prazo", icon: "🎯", desc: "Objetivos com etapas" },
+                { value: "semanal", label: "Semanal", icon: "🔥", desc: "Consistência diária" },
+              ] as const
+            ).map(t => (
               <button
-                key={e}
-                type="button"
-                onClick={() => setEmoji(e)}
+                key={t.value}
+                onClick={() => setGoalType(t.value)}
                 style={{
-                  width: 44,
-                  height: 44,
-                  borderRadius: 12,
-                  border: selected
-                    ? `2px solid ${color}`
-                    : "1px solid rgba(255,255,255,0.08)",
-
-                  background: selected
-                    ? "rgba(255,255,255,0.12)"
-                    : "rgba(255,255,255,0.04)",
-
+                  padding: "14px 12px",
+                  borderRadius: 14,
+                  border:
+                    goalType === t.value
+                      ? `2px solid #8B5CF6`
+                      : "1px solid rgba(255,255,255,0.08)",
+                  background:
+                    goalType === t.value
+                      ? "rgba(139,92,246,0.12)"
+                      : "rgba(255,255,255,0.03)",
                   cursor: "pointer",
-
-                  fontSize: 22,
-
-                  transition: "all .2s ease",
-
-                  transform: selected ? "scale(1.08)" : "scale(1)",
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 4,
+                  transition: "all 0.2s ease",
                 }}
               >
-                {e}
+                <span style={{ fontSize: 22 }}>{t.icon}</span>
+                <span
+                  style={{
+                    fontWeight: 700,
+                    fontSize: 13,
+                    color: goalType === t.value ? "#C4B5FD" : "var(--foreground)",
+                  }}
+                >
+                  {t.label}
+                </span>
+                <span style={{ fontSize: 11, color: "var(--muted-foreground)" }}>
+                  {t.desc}
+                </span>
               </button>
-            );
-          })}
+            ))}
+          </div>
         </div>
 
-        <div
-          style={{
-            display: "flex",
-            gap: 12,
-            flexWrap: "wrap",
-          }}
-        >
-          {COLORS.map(c => {
-            const selected = color === c;
-
-            return (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setColor(c)}
-                style={{
-                  width: 36,
-                  height: 36,
-
-                  borderRadius: "50%",
-
-                  border: selected
-                    ? "1px solid white"
-                    : "2px solid transparent",
-
-                  background: c,
-
-                  cursor: "pointer",
-
-                  transition: "all .2s ease",
-
-                  transform: selected ? "scale(1.15)" : "scale(1)",
-
-                  boxShadow: selected ? `0 0 5px ${c}` : "0 0 0 transparent",
-                }}
-              />
-            );
-          })}
+        {/* Title */}
+        <div>
+          <p style={S.sectionLabel}>Nome</p>
+          <input
+            placeholder="Ex: Ler 1 livro por mês"
+            value={title}
+            onChange={e => setTitle(e.target.value)}
+            style={S.input}
+          />
         </div>
 
-        {/* Campos de meta semanal */}
+        {/* Description */}
+        <div>
+          <p style={S.sectionLabel}>Descrição (opcional)</p>
+          <textarea
+            placeholder="Detalhes adicionais..."
+            value={description}
+            onChange={e => setDescription(e.target.value)}
+            style={{ ...S.input, minHeight: 60, resize: "vertical" }}
+          />
+        </div>
+
+        {/* Emoji selector */}
+        <div>
+          <p style={S.sectionLabel}>Ícone</p>
+          <div
+            style={{
+              display: "flex",
+              gap: 8,
+              flexWrap: "wrap",
+            }}
+          >
+            {EMOJIS.map(e => {
+              const selected = emoji === e;
+              return (
+                <button
+                  key={e}
+                  type="button"
+                  onClick={() => setEmoji(e)}
+                  style={{
+                    width: 44,
+                    height: 44,
+                    borderRadius: 12,
+                    border: selected ? `2px solid ${color}` : "1px solid rgba(255,255,255,0.08)",
+                    background: selected ? `${color}20` : "rgba(255,255,255,0.04)",
+                    cursor: "pointer",
+                    fontSize: 20,
+                    transition: "all 0.2s ease",
+                    transform: selected ? "scale(1.1)" : "scale(1)",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                  }}
+                >
+                  {e}
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Color selector */}
+        <div>
+          <p style={S.sectionLabel}>Cor</p>
+          <div
+            style={{
+              display: "flex",
+              gap: 10,
+              flexWrap: "wrap",
+            }}
+          >
+            {COLORS.map(c => {
+              const selected = color === c;
+              return (
+                <button
+                  key={c}
+                  type="button"
+                  onClick={() => setColor(c)}
+                  style={{
+                    width: 36,
+                    height: 36,
+                    borderRadius: "50%",
+                    border: selected ? "2px solid white" : "2px solid transparent",
+                    background: c,
+                    cursor: "pointer",
+                    transition: "all 0.2s ease",
+                    transform: selected ? "scale(1.15)" : "scale(1)",
+                    boxShadow: selected ? `0 0 12px ${c}60` : "none",
+                  }}
+                />
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Weekly-specific fields */}
         {goalType === "semanal" ? (
           <>
             <div>
-              <p
-                style={{
-                  marginBottom: 8,
-                  fontSize: 12,
-                  color: "var(--muted-foreground)",
-                }}
-              >
-                Frequência-alvo por semana
-              </p>
-
-              {/* Chips de frequência comum */}
+              <p style={S.sectionLabel}>Frequência por semana</p>
               <div
                 style={{
                   display: "flex",
-                  gap: 10,
-                  marginBottom: 10,
+                  gap: 8,
+                  marginBottom: 12,
                   flexWrap: "wrap",
                 }}
               >
@@ -1385,18 +1526,19 @@ function NewGoalModal({
                       type="button"
                       onClick={() => setTargetFrequency(chip.value)}
                       style={{
-                        padding: "8px 18px",
-                        borderRadius: 999,
+                        padding: "10px 18px",
+                        borderRadius: 12,
                         border: selected
                           ? "2px solid #F59E0B"
-                          : "1px solid rgba(255,255,255,0.08)",
+                          : "1px solid rgba(255,255,255,0.1)",
                         background: selected
-                          ? "rgba(245,158,11,0.15)"
+                          ? "rgba(245,158,11,0.12)"
                           : "rgba(255,255,255,0.04)",
                         color: selected ? "#FCD34D" : "var(--muted-foreground)",
                         fontWeight: 700,
                         fontSize: 13,
                         cursor: "pointer",
+                        transition: "all 0.2s ease",
                       }}
                     >
                       {chip.label}
@@ -1404,8 +1546,6 @@ function NewGoalModal({
                   );
                 })}
               </div>
-
-              {/* Input numérico alternativo */}
               <input
                 type="number"
                 min={1}
@@ -1416,132 +1556,151 @@ function NewGoalModal({
                     Math.max(1, Math.min(7, Number(e.target.value)))
                   )
                 }
-                className="fz-input"
-                placeholder="Ou digite o número (1–7)"
+                style={{ ...S.input, width: 120 }}
+                placeholder="1–7"
               />
             </div>
 
-            {/* Vínculo com hábito existente */}
             {habits.length > 0 && (
               <div>
-                <p
-                  style={{
-                    marginBottom: 8,
-                    fontSize: 12,
-                    color: "var(--muted-foreground)",
-                  }}
-                >
-                  Vincular a um hábito existente (opcional)
-                </p>
-
-                <button
-                  type="button"
-                  onClick={() => setSelectedHabitId(null)}
-                  style={{
-                    padding: "8px 14px",
-                    borderRadius: 999,
-                    border:
-                      selectedHabitId === null
-                        ? "2px solid #8B5CF6"
-                        : "1px solid rgba(255,255,255,0.08)",
-                    background:
-                      selectedHabitId === null
-                        ? "rgba(139,92,246,0.15)"
-                        : "rgba(255,255,255,0.04)",
-                    color: selectedHabitId === null ? "#C4B5FD" : "var(--muted-foreground)",
-                    fontWeight: 600,
-                    fontSize: 12,
-                    cursor: "pointer",
-                    marginRight: 6,
-                    marginBottom: 6,
-                  }}
-                >
-                  Controle manual
-                </button>
-
-                {habits.map(h => {
-                  const selected = selectedHabitId === h.id;
-                  return (
-                    <button
-                      key={h.id}
-                      type="button"
-                      onClick={() => setSelectedHabitId(h.id)}
-                      style={{
-                        padding: "8px 14px",
-                        borderRadius: 999,
-                        border: selected
+                <p style={S.sectionLabel}>Vincular a um hábito (opcional)</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedHabitId(null)}
+                    style={{
+                      padding: "8px 14px",
+                      borderRadius: 10,
+                      border:
+                        selectedHabitId === null
                           ? "2px solid #8B5CF6"
                           : "1px solid rgba(255,255,255,0.08)",
-                        background: selected
-                          ? "rgba(139,92,246,0.15)"
+                      background:
+                        selectedHabitId === null
+                          ? "rgba(139,92,246,0.12)"
                           : "rgba(255,255,255,0.04)",
-                        color: selected ? "#C4B5FD" : "var(--muted-foreground)",
-                        fontWeight: 600,
-                        fontSize: 12,
-                        cursor: "pointer",
-                        marginRight: 6,
-                        marginBottom: 6,
-                      }}
-                    >
-                      {h.emoji} {h.title}
-                    </button>
-                  );
-                })}
-
-                <p
-                  style={{
-                    marginTop: 6,
-                    fontSize: 11,
-                    color: "var(--muted-foreground)",
-                    lineHeight: 1.5,
-                  }}
-                >
-                  Ao vincular um hábito, os check-ins da semana vêm do módulo
-                  Habits automaticamente.
+                      color: selectedHabitId === null ? "#C4B5FD" : "var(--muted-foreground)",
+                      fontWeight: 600,
+                      fontSize: 12,
+                      cursor: "pointer",
+                      transition: "all 0.2s ease",
+                    }}
+                  >
+                    Manual
+                  </button>
+                  {habits.map(h => {
+                    const selected = selectedHabitId === h.id;
+                    return (
+                      <button
+                        key={h.id}
+                        type="button"
+                        onClick={() => setSelectedHabitId(h.id)}
+                        style={{
+                          padding: "8px 14px",
+                          borderRadius: 10,
+                          border: selected
+                            ? "2px solid #8B5CF6"
+                            : "1px solid rgba(255,255,255,0.08)",
+                          background: selected
+                            ? "rgba(139,92,246,0.12)"
+                            : "rgba(255,255,255,0.04)",
+                          color: selected ? "#C4B5FD" : "var(--muted-foreground)",
+                          fontWeight: 600,
+                          fontSize: 12,
+                          cursor: "pointer",
+                          transition: "all 0.2s ease",
+                        }}
+                      >
+                        {h.emoji} {h.title}
+                      </button>
+                    );
+                  })}
+                </div>
+                <p style={{ fontSize: 11, color: "var(--muted-foreground)", marginTop: 6, lineHeight: 1.5 }}>
+                  Ao vincular um hábito, os check-ins da semana vêm do módulo Habits automaticamente.
                 </p>
               </div>
             )}
           </>
         ) : (
-          <input
-            type="date"
-            value={deadline}
-            onChange={e => setDeadline(e.target.value)}
-            className="fz-input"
-          />
-        )}
-
-        {/* Etapas (apenas longo prazo) */}
-        {goalType === "longo_prazo" && (
-          <div
-            style={{
-              display: "flex",
-              flexDirection: "column",
-              gap: 10,
-            }}
-          >
-            {steps.map((step, i) => (
-              <input
-                key={i}
-                placeholder={`Etapa ${i + 1}`}
-                value={step}
-                onChange={e => handleStepChange(i, e.target.value)}
-                className="fz-input"
-              />
-            ))}
-
-            <button
-              type="button"
-              onClick={handleAddStep}
-              className="fz-btn-secondary"
-            >
-              <Plus size={14} />
-              Adicionar etapa
-            </button>
+          <div>
+            <p style={S.sectionLabel}>Prazo (opcional)</p>
+            <input
+              type="date"
+              value={deadline}
+              onChange={e => setDeadline(e.target.value)}
+              style={S.input}
+            />
           </div>
         )}
 
-        <button onClick={handleSubmit} className="fz-btn-primary">
+        {/* Steps (long-term only) */}
+        {goalType === "longo_prazo" && (
+          <div>
+            <p style={S.sectionLabel}>Etapas</p>
+            <div
+              style={{
+                display: "flex",
+                flexDirection: "column",
+                gap: 10,
+              }}
+            >
+              {steps.map((step, i) => (
+                <input
+                  key={i}
+                  placeholder={`Etapa ${i + 1}`}
+                  value={step}
+                  onChange={e => handleStepChange(i, e.target.value)}
+                  style={S.input}
+                />
+              ))}
+              <button
+                type="button"
+                onClick={handleAddStep}
+                style={{
+                  padding: "10px 16px",
+                  borderRadius: 10,
+                  border: "1px solid rgba(139,92,246,0.3)",
+                  background: "rgba(139,92,246,0.08)",
+                  color: "#A78BFA",
+                  fontWeight: 600,
+                  fontSize: 13,
+                  cursor: "pointer",
+                  display: "flex",
+                  alignItems: "center",
+                  gap: 6,
+                  transition: "all 0.2s ease",
+                }}
+              >
+                <Plus size={14} />
+                Adicionar etapa
+              </button>
+            </div>
+          </div>
+        )}
+
+        {/* Submit */}
+        <button
+          onClick={handleSubmit}
+          style={{
+            padding: "14px 24px",
+            borderRadius: 14,
+            background: "linear-gradient(135deg, #8B5CF6, #A855F7)",
+            color: "white",
+            fontWeight: 700,
+            fontSize: 14,
+            border: "none",
+            cursor: "pointer",
+            boxShadow: "0 4px 20px rgba(139,92,246,0.3)",
+            transition: "all 0.2s ease",
+            fontFamily: "'DM Sans', sans-serif",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            gap: 8,
+          }}
+        >
+          <Sparkles size={16} />
           {goalType === "semanal" ? "Criar Meta Semanal" : "Criar Meta"}
         </button>
       </div>
@@ -1550,7 +1709,7 @@ function NewGoalModal({
 }
 
 // =========================
-// MAIN
+// MAIN — Redesign
 // =========================
 
 export default function Goals({
@@ -1561,16 +1720,11 @@ export default function Goals({
   onOpenUpgrade?: () => void;
 }) {
   const [goals, setGoals] = useState<Goal[]>([]);
-
   const [habits, setHabits] = useState<
     { id: string; title: string; emoji: string; completed_dates?: string[] | null }[]
   >([]);
-
   const [showModal, setShowModal] = useState(false);
-
-  const [filter, setFilter] = useState<
-    "all" | "ongoing" | "completed" | "weekly"
-  >("all");
+  const [filter, setFilter] = useState<"all" | "ongoing" | "completed" | "weekly">("all");
 
   useEffect(() => {
     loadGoals();
@@ -1596,10 +1750,8 @@ export default function Goals({
       return;
     }
 
-    // Normaliza as semanas das metas semanais (reset a cada segunda-feira)
     const { normalized, changed } = normalizeWeeklyGoals(data || []);
 
-    // Persiste as mudanças de virada de semana
     if (changed) {
       for (const g of normalized) {
         if (g.type !== "semanal") continue;
@@ -1618,7 +1770,6 @@ export default function Goals({
 
     setGoals(normalized);
 
-    // Carrega hábitos para o vínculo de metas semanais
     const { data: habitsData } = await supabase
       .from("habits")
       .select("id, title, emoji, completed_dates")
@@ -1644,14 +1795,12 @@ export default function Goals({
     }
   }, [filter, weeklyGoals, longTermGoals, goals]);
 
-  // Ordenação: metas semanais primeiro pelas mais perto do prazo
   const orderedGoals = useMemo(() => {
     if (filter !== "weekly") return filteredGoals;
     const sortedWeekly = sortWeeklyGoalsForUI(filteredGoals as any);
     return sortedWeekly;
   }, [filteredGoals, filter]);
 
-  // Sincroniza check-ins do hábito vinculado
   const weeklyGoalsWithHabitCheckins = useMemo(() => {
     if (filter !== "weekly" && filter !== "all") return orderedGoals;
     return orderedGoals.map(g => {
@@ -1660,19 +1809,24 @@ export default function Goals({
       if (!habit) return g;
       const monday = getMondayOfDate(new Date());
       const checkins = getLinkedHabitWeekCheckins(habit, monday);
-      // Só atualiza se os check-ins do hábito forem mais recentes/completos
       const hasHabitCheckins = checkins.some(Boolean);
       if (hasHabitCheckins && !g.days_completed_week?.some(Boolean)) {
         return { ...g, days_completed_week: checkins };
       }
       if (hasHabitCheckins) {
-        // Mescla: dias do hábito prevalecem
         const merged = checkins.map((v, i) => v || (g.days_completed_week?.[i] ?? false));
         return { ...g, days_completed_week: merged };
       }
       return g;
     });
   }, [orderedGoals, habits, filter]);
+
+  const tabs = [
+    { value: "ongoing", label: "Em andamento", icon: Target },
+    { value: "weekly", label: "Semanais", icon: Flame },
+    { value: "completed", label: "Concluídas", icon: Trophy },
+    { value: "all", label: "Todas", icon: Sparkles },
+  ] as const;
 
   return (
     <div
@@ -1682,6 +1836,7 @@ export default function Goals({
         gap: 24,
       }}
     >
+      {/* Page Header */}
       <div
         style={{
           display: "flex",
@@ -1691,76 +1846,113 @@ export default function Goals({
           gap: 16,
         }}
       >
-        <h2
+        <div>
+          <h2
+            style={{
+              fontSize: 28,
+              fontWeight: 700,
+              display: "flex",
+              alignItems: "center",
+              gap: 10,
+              fontFamily: "'Space Grotesk', sans-serif",
+              margin: 0,
+            }}
+          >
+            <Target size={24} color="#8B5CF6" />
+            Metas
+          </h2>
+          <p
+            style={{
+              fontSize: 13,
+              color: "var(--muted-foreground)",
+              marginTop: 4,
+            }}
+          >
+            Transforme objetivos em conquistas diárias
+          </p>
+        </div>
+
+        <button
+          onClick={() => setShowModal(true)}
           style={{
-            fontSize: 28,
+            padding: "12px 20px",
+            borderRadius: 12,
+            background: "linear-gradient(135deg, #8B5CF6, #A855F7)",
+            color: "white",
             fontWeight: 700,
+            fontSize: 14,
+            border: "none",
+            cursor: "pointer",
+            boxShadow: "0 4px 20px rgba(139,92,246,0.3)",
             display: "flex",
             alignItems: "center",
-            gap: 10,
+            gap: 8,
+            transition: "all 0.2s ease",
+            fontFamily: "'DM Sans', sans-serif",
           }}
         >
-          <Target size={26} />
-          Metas
-        </h2>
-
-        <button onClick={() => setShowModal(true)} className="fz-btn-primary">
+          <Plus size={16} />
           Nova Meta
         </button>
       </div>
 
-      {/* Bloco de resumo — aparece na aba Semanais ou quando há metas semanais */}
+      {/* Summary bar */}
       {(filter === "weekly" || weeklyGoals.length > 0) && (
         <WeeklySummaryBar weeklyGoals={weeklyGoals} />
       )}
 
+      {/* Tabs */}
       <div
         style={{
           display: "flex",
-          gap: 10,
+          gap: 6,
           flexWrap: "wrap",
+          background: "rgba(255,255,255,0.03)",
+          border: "1px solid rgba(255,255,255,0.06)",
+          borderRadius: 14,
+          padding: 4,
         }}
       >
-        {[
-          {
-            value: "ongoing",
-            label: "Em andamento",
-          },
-
-          {
-            value: "completed",
-            label: "Concluídas",
-          },
-
-          {
-            value: "weekly",
-            label: "Semanais",
-          },
-
-          {
-            value: "all",
-            label: "Todas",
-          },
-        ].map(f => (
-          <button
-            key={f.value}
-            onClick={() => setFilter(f.value as any)}
-            className={
-              filter === f.value ? "fz-btn-primary" : "fz-btn-secondary"
-            }
-          >
-            {f.label}
-          </button>
-        ))}
+        {tabs.map(f => {
+          const isActive = filter === f.value;
+          const Icon = f.icon;
+          return (
+            <button
+              key={f.value}
+              onClick={() => setFilter(f.value as any)}
+              style={{
+                padding: "10px 16px",
+                borderRadius: 10,
+                border: "none",
+                background: isActive
+                  ? "linear-gradient(135deg, #8B5CF6, #A855F7)"
+                  : "transparent",
+                color: isActive ? "white" : "var(--muted-foreground)",
+                fontWeight: 600,
+                fontSize: 13,
+                cursor: "pointer",
+                display: "flex",
+                alignItems: "center",
+                gap: 6,
+                transition: "all 0.2s ease",
+                boxShadow: isActive ? "0 2px 12px rgba(139,92,246,0.25)" : "none",
+              }}
+            >
+              <Icon size={14} />
+              {f.label}
+            </button>
+          );
+        })}
       </div>
 
+      {/* Content */}
       {filteredGoals.length === 0 ? (
         <EmptyGoalsState onCreate={() => setShowModal(true)} />
       ) : (
         <div
           style={{
             display: "grid",
-            gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))",
+            gridTemplateColumns: "repeat(auto-fill, minmax(360px, 1fr))",
             gap: 20,
           }}
         >
@@ -1795,10 +1987,16 @@ export default function Goals({
   );
 }
 
-/**
- * Ordena metas semanais: primeiro as mais perto de bater a meta
- * (menos dias restantes). Metas já batidas ficam por último.
- */
+// =========================
+// UTILS
+// =========================
+
+function hexToRgb(hex: string): string {
+  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
+  if (!result) return "139,92,246";
+  return `${parseInt(result[1], 16)},${parseInt(result[2], 16)},${parseInt(result[3], 16)}`;
+}
+
 function sortWeeklyGoalsForUI(goals: Goal[]): Goal[] {
   return [...goals].sort((a, b) => {
     const aHit = (a.days_completed_week?.filter(Boolean).length ?? 0) >= (a.target_frequency ?? 1);
