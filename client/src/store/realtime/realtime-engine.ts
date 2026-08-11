@@ -8,7 +8,7 @@ import { loadFinancialData } from "../financial.store";
 import { loadHabitsData } from "../habits.store";
 import { loadProfile } from "@/lib/database/queries";
 import { profileFromRow } from "@/lib/database/mappers";
-import { _data, notify } from "../state";
+import { _data, notify, isSelfWrite } from "../state";
 
 async function loadProfileData() {
   const {
@@ -100,6 +100,11 @@ export async function initRealtimeSync(userId: string): Promise<void> {
         table,
       },
       payload => {
+        const eventRecordId = (payload as unknown as { record?: { id?: string }; old?: { id?: string } }).record?.id ?? (payload as unknown as { record?: { id?: string }; old?: { id?: string } }).old?.id ?? "unknown";
+        if (payload.table && eventRecordId !== "unknown" && isSelfWrite(payload.table, eventRecordId)) {
+          logger.debug("realtime", `Ignorando evento echo do próprio cliente: ${payload.table} ${eventRecordId}`);
+          return;
+        }
         const key = getEventKey(payload);
         if (seenEvents.has(key)) {
           return;
