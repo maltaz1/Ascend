@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { Task } from "./types";
-import { _data, notify, persistState, markActiveToday } from "./state";
+import { _data, notify, persistState, markActiveToday, markSelfWrite } from "./state";
 import { generateId, getTodayString } from "./utils";
 import { addXP } from "./xp-system";
 import { evaluateAchievements } from "./achievements";
@@ -77,6 +77,7 @@ export async function updateTask(id: string, updates: Partial<Task>): Promise<vo
 
   const previousTask = { ..._data.tasks[idx] };
   _data.tasks[idx] = { ..._data.tasks[idx], ...updates };
+  markSelfWrite("tasks", id);
 
   notify();
   persistState();

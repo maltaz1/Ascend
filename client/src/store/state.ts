@@ -5,6 +5,18 @@ import { getTodayString } from "./utils";
 export type Listener = () => void;
 const listeners = new Set<Listener>();
 
+const selfWrites = new Map<string, number>();
+export function markSelfWrite(table: string, id: string, ttlMs = 30000): void {
+  const key = `${table}|${id}`;
+  const prev = selfWrites.get(key);
+  if (prev) window.clearTimeout(prev);
+  const timer = window.setTimeout(() => selfWrites.delete(key), ttlMs);
+  selfWrites.set(key, timer);
+}
+export function isSelfWrite(table: string, id: string): boolean {
+  return selfWrites.has(`${table}|${id}`);
+}
+
 export let _data: AppData = loadAppData();
 let notifyTimeout: number | undefined;
 

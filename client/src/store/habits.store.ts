@@ -1,6 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { Habit } from "./types";
-import { _data, notify, persistState, markActiveToday } from "./state";
+import { _data, notify, persistState, markActiveToday, markSelfWrite } from "./state";
 import { generateId, getTodayString, toYYYYMMDD } from "./utils";
 import { addXP } from "./xp-system";
 import { evaluateAchievements } from "./achievements";
@@ -57,6 +57,7 @@ export async function toggleHabitDate(
 
   notify();
   persistState();
+  markSelfWrite("habits", habitId);
 
   void (async () => {
     const { error } = await supabase
