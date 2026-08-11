@@ -451,7 +451,7 @@ function EmptySection({ icon, title, subtitle, onAction, actionLabel, isMobile }
       <h4 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, margin: 0 }}>{title}</h4>
       <p style={{ fontSize: isMobile ? 12 : 14, color: "var(--muted-foreground)", maxWidth: 300, lineHeight: 1.5, margin: 0 }}>{subtitle}</p>
       {onAction && (
-        <button onClick={onAction} style={{ marginTop: 8, padding: isMobile ? "8px 16px" : "10px 20px", borderRadius: 10, background: "linear-gradient(135deg, #8B5CF6, #A855F7)", color: "white", fontWeight: 600, fontSize: isMobile ? 12 : 13, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 2px 12px rgba(139,92,246,0.3)" }}>
+        <button onClick={onAction} style={{ marginTop: 8, padding: isMobile ? "8px 16px" : "10px 20px", borderRadius: 10, background: "#8B5CF6", color: "white", fontWeight: 600, fontSize: isMobile ? 12 : 13, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 2px 8px rgba(139,92,246,0.2)" }}>
           <Plus size={isMobile ? 14 : 16} /> {actionLabel}
         </button>
       )}
@@ -640,7 +640,7 @@ function NewGoalModal({
           </div>
         )}
 
-        <button onClick={handleSubmit} style={{ marginTop: 10, padding: "14px", borderRadius: 12, background: "linear-gradient(135deg, #8B5CF6, #A855F7)", color: "white", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(139,92,246,0.3)" }}>Criar Meta</button>
+        <button onClick={handleSubmit} style={{ marginTop: 10, padding: "14px", borderRadius: 12, background: "#8B5CF6", color: "white", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", boxShadow: "0 4px 12px rgba(139,92,246,0.2)" }}>Criar Meta</button>
       </div>
     </Modal>
   );
@@ -739,7 +739,7 @@ export default function Goals({
           </h2>
           <p style={{ color: "var(--muted-foreground)", fontSize: isMobile ? 12 : 14, margin: "4px 0 0" }}>Transforme objetivos em conquistas diárias</p>
         </div>
-        <button onClick={() => setShowModal(true)} style={{ padding: isMobile ? "10px 18px" : "12px 24px", borderRadius: 14, background: "linear-gradient(135deg, #8B5CF6, #A855F7)", color: "white", fontWeight: 700, fontSize: isMobile ? 13 : 14, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 4px 16px rgba(139,92,246,0.3)" }}>
+        <button onClick={() => setShowModal(true)} style={{ padding: isMobile ? "10px 18px" : "12px 24px", borderRadius: 14, background: "#8B5CF6", color: "white", fontWeight: 700, fontSize: isMobile ? 13 : 14, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 4px 12px rgba(139,92,246,0.2)" }}>
           <Plus size={isMobile ? 16 : 18} /> Nova Meta
         </button>
       </div>
@@ -797,7 +797,7 @@ export default function Goals({
                     padding: isMobile ? "6px 10px" : "8px 14px",
                     borderRadius: 8,
                     border: "none",
-                    background: isActive ? "linear-gradient(135deg, #8B5CF6, #A855F7)" : "transparent",
+                    background: isActive ? "#8B5CF6" : "transparent",
                     color: isActive ? "white" : "var(--muted-foreground)",
                     fontWeight: 600,
                     fontSize: 12,
