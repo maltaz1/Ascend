@@ -4,6 +4,7 @@ import React, { useEffect, useMemo, useState } from "react";
 import { Check, Sun, Target, Flame } from "lucide-react";
 import { addXP } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
+import { syncHabitToGoals } from "@/lib/syncHabitGoals";
 
 import { CircularProgress } from "@/components/ui/CircularProgress";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";

@@ -36,6 +36,7 @@ import {
   getWeeklySparkline,
   getLinkedHabitWeekCheckins,
 } from "@/lib/weeklyGoals";
+import { syncGoalToHabit } from "@/lib/syncHabitGoals";
 
 // =========================
 // TYPES
@@ -267,11 +268,17 @@ function WeeklyGoalCard({
     if (dayStr > todayStr) { showToast("Somente dias passados ou hoje", "info", "📅"); return; }
 
     const newDays = days.map((v, i) => (i === dayIndex ? !v : v));
+    const isMarked = newDays[dayIndex];
     setDays(newDays);
 
     const rect = cardRef.current?.getBoundingClientRect();
     if (rect) showXP(5, rect.left + rect.width / 2, rect.top);
     await persistWeek(newDays, streak);
+
+    // Sincronizar com o hábito vinculado
+    if (goal.linked_habit_id) {
+      await syncGoalToHabit(goal.linked_habit_id, dayIndex, isMarked);
+    }
   };
 
   const completedCount = days.filter(Boolean).length;

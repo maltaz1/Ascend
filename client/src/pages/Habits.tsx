@@ -48,6 +48,7 @@ import { FREE_LIMITS } from "@/config/planLimits";
 import type { Habit } from "@/lib/store";
 
 import { supabase } from "@/lib/supabase";
+import { syncHabitToGoals } from "@/lib/syncHabitGoals";
 
 // =========================
 // CONSTANTS
@@ -206,6 +207,9 @@ function HabitRow({
       setAnimatingDate(dateStr);
       window.setTimeout(() => setAnimatingDate(null), 260);
     }
+
+    // Sincronizar com metas semanais vinculadas
+    await syncHabitToGoals({ id: habit.id, completed_dates: updatedDates });
 
     reloadHabits();
   };
