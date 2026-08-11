@@ -294,18 +294,32 @@ function AddFoodModal({
   const [selectedFood, setSelectedFood] = useState<FoodSearchResult | null>(
     null
   );
+  // Ref para rastrear se a mudança de foodName veio de uma seleção (não de digitação)
+  const userIsTypingRef = React.useRef(true);
 
   // Buscar sugestões de alimentos enquanto digita
   useEffect(() => {
+    // Se a mudança de foodName veio de uma seleção (clique em uma sugestão),
+    // não buscar de novo para evitar reabrir o dropdown
+    if (!userIsTypingRef.current) {
+      userIsTypingRef.current = true;
+      return;
+    }
+
     const timer = setTimeout(async () => {
       if (foodName.length > 1) {
         try {
           const results = await searchFoods(foodName);
           setFoodSuggestions(results);
-          setShowSuggestions(true);
+          if (results.length > 0) {
+            setShowSuggestions(true);
+          } else {
+            setShowSuggestions(false);
+          }
         } catch (error) {
           console.error("Erro ao buscar alimentos:", error);
           setFoodSuggestions([]);
+          setShowSuggestions(false);
         }
       } else {
         setFoodSuggestions([]);
@@ -368,6 +382,8 @@ function AddFoodModal({
 
   // Selecionar alimento da sugestão
   const handleSelectFood = async (food: FoodSearchResult) => {
+    // Marcar como seleção (não digitação) para evitar que o useEffect reabra o dropdown
+    userIsTypingRef.current = false;
     setFoodName(food.description);
     setSelectedFood(food);
     setShowSuggestions(false);
