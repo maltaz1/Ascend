@@ -59,6 +59,10 @@ import DownloadApp from "./pages/DownloadApp.tsx";
 // Login
 import Login from "./pages/Login";
 
+// Páginas públicas (LGPD)
+import Privacy from "./pages/Privacy";
+import Terms from "./pages/Terms";
+
 type Tab =
   | "dashboard"
   | "today"
@@ -361,14 +365,12 @@ function App() {
     };
   }, []);
 
-  useEffect(() => {
-    if (location.pathname === "/reset-password") return;
-    
+    useEffect(() => {
+    if (location.pathname === "/reset-password" || location.pathname === "/privacy" || location.pathname === "/terms") return;
     if (!user?.id) {
       stopRealtimeSync();
       return;
     }
-
     initRealtimeSync(user.id).catch(error => {
       console.error("ERRO NO REALTIME SYNC:", error);
     });
@@ -377,6 +379,14 @@ function App() {
   // Página de reset de senha é independente
   if (location.pathname === "/reset-password") {
     return <ResetPassword />;
+  }
+
+  // Páginas de conformidade LGPD (públicas, não requerem login)
+  if (location.pathname === "/privacy") {
+    return <Privacy />;
+  }
+  if (location.pathname === "/terms") {
+    return <Terms />;
   }
 
   if (loading) {

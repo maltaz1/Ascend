@@ -131,7 +131,7 @@ export function DietSettingsModal({
           </div>
         </div>
 
-        {/* Hydration Section */}
+        {/* Hydration Section - Updated to use ML */}
         <div
           style={{
             background: 'rgba(59,182,246,0.1)',
@@ -149,13 +149,13 @@ export function DietSettingsModal({
           <input
             className="fz-input"
             type="number"
-            step="0.5"
+            step="100"
             value={dietSettings.waterGoal}
-            onChange={(e) => onSettingsChange({ ...dietSettings, waterGoal: parseFloat(e.target.value) })}
+            onChange={(e) => onSettingsChange({ ...dietSettings, waterGoal: parseInt(e.target.value) })}
             style={{ width: '100%' }}
           />
           <div style={{ fontSize: 11, color: 'rgba(255,255,255,0.4)', fontFamily: 'DM Sans', marginTop: 8 }}>
-            Recomendação: 2-3 litros/dia
+            Recomendação: 2000-3000 mL/dia (2-3 litros)
           </div>
         </div>
 

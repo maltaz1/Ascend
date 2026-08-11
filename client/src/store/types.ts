@@ -166,8 +166,8 @@ export interface DietSettings {
 
 export interface HydrationLog {
   date: string;
-  cupsConsumed: number;
-  goal: number;
+  cupsConsumed: number; // Now stores total mL consumed
+  goal: number; // Now stores goal in mL
 }
 
 export interface DietData {
@@ -323,7 +323,7 @@ export const DEFAULT_DATA: AppData = {
       proteinGoal: 150,
       carbsGoal: 250,
       fatGoal: 70,
-      waterGoal: 2,
+      waterGoal: 2000, // Default 2000 mL (2L)
       restrictions: [],
       preferences: [],
     },

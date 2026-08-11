@@ -639,9 +639,17 @@ export default function Dashboard() {
   // --- Consistency ---
   const monthlyCompletionRate = useMemo(() => {
     const now = new Date();
+    const todayStr = toYYYYMMDD(now);
+    // Only consider tasks from days that have already passed (or today) in the current month
     const monthTasks = tasks.filter((t) => {
-      const d = new Date(t.date);
-      return d.getMonth() === now.getMonth() && d.getFullYear() === now.getFullYear();
+      const tDate = new Date(t.date);
+      const tMonth = tDate.getMonth();
+      const tYear = tDate.getFullYear();
+      return (
+        tMonth === now.getMonth() &&
+        tYear === now.getFullYear() &&
+        t.date <= todayStr
+      );
     });
     const completed = monthTasks.filter((t) => t.completed).length;
     const total = monthTasks.length;
