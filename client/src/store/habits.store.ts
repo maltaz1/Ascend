@@ -1,3 +1,4 @@
+import { supabase } from "@/lib/supabase";
 import { Habit } from "./types";
 import { _data, notify, persistState, markActiveToday } from "./state";
 import { generateId, getTodayString, toYYYYMMDD } from "./utils";
@@ -94,4 +95,37 @@ export function getHabitStreak(habit: Habit): number {
   }
 
   return streak;
+}
+
+export async function loadHabitsData(): Promise<void> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  const { data, error } = await supabase
+    .from("habits")
+    .select("id, title, emoji, color, frequency, completed_dates, created_at, target_days")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Erro ao carregar hábitos:", error);
+    return;
+  }
+
+  _data.habits = (data || []).map(habit => ({
+    id: habit.id,
+    title: habit.title,
+    emoji: habit.emoji,
+    color: habit.color,
+    frequency: habit.frequency,
+    completedDates: habit.completed_dates || [],
+    createdAt: habit.created_at,
+    targetDays: habit.target_days,
+  }));
+
+  notify();
+  persistState();
 }

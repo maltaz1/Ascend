@@ -1,25 +1,20 @@
-import { getData, store } from "./store";
-import { notify, persistState, _data } from "./state";
+import { _data, notify, persistState } from "./state";
 import { getTodayString, toYYYYMMDD } from "./utils";
 import { syncUserProfile } from "./xp-system";
 
 export function updateUserName(name: string): void {
-  store.update(state => {
-    state.user.name = name;
-  });
-  _data.user.name = name; // Sync for safety
+  _data.user.name = name;
   persistState();
   notify();
   void syncUserProfile();
 }
 
 export function getLevelProgress(): { current: number; max: number; percent: number } {
-  const data = getData();
-  const max = data.user.level * 100;
+  const max = _data.user.level * 100;
   return {
-    current: data.user.xp,
+    current: _data.user.xp,
     max,
-    percent: Math.round((data.user.xp / max) * 100),
+    percent: Math.round((_data.user.xp / max) * 100),
   };
 }
 
@@ -29,21 +24,19 @@ export function getTodayStats(): {
   habitsCompleted: number;
   habitsTotal: number;
 } {
-  const data = getData();
   const today = getTodayString();
-  const todayTasks = data.tasks.filter(task => task.date === today);
-  const habitsCompleted = data.habits.filter(habit => habit.completedDates.includes(today)).length;
+  const todayTasks = _data.tasks.filter(task => task.date === today);
+  const habitsCompleted = _data.habits.filter(habit => habit.completedDates.includes(today)).length;
 
   return {
     tasksCompleted: todayTasks.filter(task => task.completed).length,
     tasksTotal: todayTasks.length,
     habitsCompleted,
-    habitsTotal: data.habits.length,
+    habitsTotal: _data.habits.length,
   };
 }
 
 export function getWeeklyData(): { day: string; tasks: number; habits: number }[] {
-  const data = getData();
   const result = [] as { day: string; tasks: number; habits: number }[];
   const today = new Date();
 
@@ -55,8 +48,8 @@ export function getWeeklyData(): { day: string; tasks: number; habits: number }[
 
     result.push({
       day: dayName,
-      tasks: data.tasks.filter(task => task.date === dateStr && task.completed).length,
-      habits: data.habits.filter(habit => habit.completedDates.includes(dateStr)).length,
+      tasks: _data.tasks.filter(task => task.date === dateStr && task.completed).length,
+      habits: _data.habits.filter(habit => habit.completedDates.includes(dateStr)).length,
     });
   }
 

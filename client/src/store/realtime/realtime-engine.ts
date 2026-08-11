@@ -1,26 +1,24 @@
 import { supabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
-import { loadTasksData } from "../entities/tasks";
-import { loadGoalsData } from "../entities/goals";
-import { loadGymData } from "../entities/workouts";
-import { loadDietData } from "../entities/diet";
-import { loadFinancialData } from "../entities/financial";
-import { loadHabitsData } from "../entities/habits";
-import { store } from "../store";
+import { loadTasksData } from "../tasks.store";
+import { loadGoalsData } from "../goals.store";
+import { loadGymData } from "@/lib/gym";
+import { loadDietData } from "../diet.store";
+import { loadFinancialData } from "../financial.store";
+import { loadHabitsData } from "../habits.store";
 import { loadProfile } from "@/lib/database/queries";
 import { profileFromRow } from "@/lib/database/mappers";
 import { _data, notify } from "../state";
 
 async function loadProfileData() {
-  const userId = store.getState().user.id;
-  if (!userId) return;
-  const profile = await loadProfile(userId);
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const profile = await loadProfile(user.id);
   if (profile) {
     const mapped = profileFromRow(profile);
-    store.update(state => {
-      state.user = { ...state.user, ...mapped };
-    });
-    // Sincronizar também com o estado legado
     _data.user.xp = mapped.xp;
     _data.user.level = mapped.level;
     _data.user.streak = mapped.streak;
