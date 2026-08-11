@@ -19,7 +19,6 @@ import {
 
 import { useXPAnimation } from "@/hooks/useStore";
 
-import { CircularProgress } from "@/components/ui/CircularProgress";
 import { Modal } from "@/components/ui/Modal";
 import { showToast } from "@/components/ui/FlowToast";
 
@@ -74,9 +73,7 @@ type Goal = {
 // =========================
 
 function getGoalProgress(goal: Goal) {
-  if (!goal.steps || goal.steps.length === 0) {
-    return 0;
-  }
+  if (!goal.steps || goal.steps.length === 0) return 0;
   const completed = goal.steps.filter(s => s.completed).length;
   return (completed / goal.steps.length) * 100;
 }
@@ -115,7 +112,7 @@ function normalizeWeeklyGoals(goals: Goal[]): { normalized: Goal[]; changed: boo
 }
 
 // =========================
-// CONSTANTS
+// CONSTANTS — Solid colors, NO gradients, NO purple
 // =========================
 
 const EMOJIS = [
@@ -123,25 +120,48 @@ const EMOJIS = [
   "🏆", "⚡", "🔥", "💎", "🌙", "🎵", "✈️", "🏠", "💻", "🌱",
 ];
 
+// Solid colors only — neutral/earth tones, no purple/violet
 const COLORS = [
-  "#F59E0B", "#A855F7", "#10B981", "#8B5CF6",
-  "#EF4444", "#EC4899", "#06B6D4", "#84CC16",
+  "#F59E0B", // amber
+  "#10B981", // emerald
+  "#EF4444", // red
+  "#EC4899", // pink
+  "#06B6D4", // cyan
+  "#84CC16", // lime
+  "#6366F1", // indigo (not purple/violet)
+  "#6B7280", // gray
 ];
 
-const GOAL_COLORS_MAP: Record<
-  string,
-  { gradient: string; glow: string; light: string; dark: string }
-> = {
-  "#F59E0B": { gradient: "linear-gradient(135deg, #F59E0B, #FCD34D)", glow: "rgba(245,158,11,0.25)", light: "rgba(245,158,11,0.06)", dark: "rgba(245,158,11,0.15)" },
-  "#A855F7": { gradient: "linear-gradient(135deg, #A855F7, #C084FC)", glow: "rgba(168,85,247,0.25)", light: "rgba(168,85,247,0.06)", dark: "rgba(168,85,247,0.15)" },
-  "#10B981": { gradient: "linear-gradient(135deg, #10B981, #34D399)", glow: "rgba(16,185,129,0.25)", light: "rgba(16,185,129,0.06)", dark: "rgba(16,185,129,0.15)" },
-  "#8B5CF6": { gradient: "linear-gradient(135deg, #8B5CF6, #A78BFA)", glow: "rgba(139,92,246,0.25)", light: "rgba(139,92,246,0.06)", dark: "rgba(139,92,246,0.15)" },
-  "#EF4444": { gradient: "linear-gradient(135deg, #EF4444, #F87171)", glow: "rgba(239,68,68,0.25)", light: "rgba(239,68,68,0.06)", dark: "rgba(239,68,68,0.15)" },
-  "#EC4899": { gradient: "linear-gradient(135deg, #EC4899, #F472B6)", glow: "rgba(236,72,153,0.25)", light: "rgba(236,72,153,0.06)", dark: "rgba(236,72,153,0.15)" },
-  "#06B6D4": { gradient: "linear-gradient(135deg, #06B6D4, #22D3EE)", glow: "rgba(6,182,212,0.25)", light: "rgba(6,182,212,0.06)", dark: "rgba(6,182,212,0.15)" },
-  "#84CC16": { gradient: "linear-gradient(135deg, #84CC16, #A3E635)", glow: "rgba(132,204,22,0.25)", light: "rgba(132,204,22,0.06)", dark: "rgba(132,204,22,0.15)" },
-};
+// Solid color for each goal — no gradients
+function goalSolidColor(color: string): string {
+  return color;
+}
 
+// Accent colors for UI elements
+const AMBER = "#F59E0B";
+const AMBER_LIGHT = "rgba(245,158,11,0.08)";
+const AMBER_BORDER = "rgba(245,158,11,0.25)";
+const AMBER_TEXT = "#F59E0B";
+
+const EMERALD = "#10B981";
+const EMERALD_LIGHT = "rgba(16,185,129,0.08)";
+const EMERALD_BORDER = "rgba(16,185,129,0.25)";
+const EMERALD_TEXT = "#10B981";
+
+const ORANGE = "#F97316";
+const ORANGE_LIGHT = "rgba(249,115,22,0.08)";
+const ORANGE_BORDER = "rgba(249,115,22,0.25)";
+const ORANGE_TEXT = "#F97316";
+
+const NEUTRAL_CARD_BG = "var(--card)";
+const NEUTRAL_BORDER = "rgba(255,255,255,0.08)";
+const NEUTRAL_HOVER_BORDER = "rgba(255,255,255,0.15)";
+
+const WHITE = "#FFFFFF";
+const MUTED = "var(--muted-foreground)";
+const FOREGROUND = "var(--foreground)";
+
+const GOLD = "#FCD34D";
 const GOLD_BORDER = "#f59e0b";
 
 function goalToWeekly(g: Goal): import("@/lib/weeklyGoals").WeeklyGoal {
@@ -163,64 +183,71 @@ function goalToWeekly(g: Goal): import("@/lib/weeklyGoals").WeeklyGoal {
 }
 
 // =========================
-// STYLE OBJECTS
+// STYLE OBJECTS — Clean, no gradients
 // =========================
 
 const S = {
-  glassCard: {
-    background: "var(--card)",
-    border: "1px solid rgba(255,255,255,0.08)",
-    borderRadius: 20,
-    backdropFilter: "blur(20px)",
-    boxShadow: "0 4px 32px rgba(0,0,0,0.12)",
-    transition: "all 0.3s cubic-bezier(0.4, 0, 0.2, 1)",
+  card: {
+    background: NEUTRAL_CARD_BG,
+    border: `1px solid ${NEUTRAL_BORDER}`,
+    borderRadius: 12,
+    transition: "all 0.15s ease",
   } as React.CSSProperties,
   tag: {
     display: "inline-flex" as const,
     alignItems: "center" as const,
     gap: 4,
-    fontSize: 11,
+    fontSize: 10,
     fontWeight: 700,
     textTransform: "uppercase" as const,
     letterSpacing: "0.08em",
-    borderRadius: 999,
-    padding: "4px 10px",
+    borderRadius: 6,
+    padding: "3px 8px",
   },
   input: {
     width: "100%",
-    padding: "12px 16px",
-    borderRadius: 12,
-    border: "1px solid rgba(255,255,255,0.1)",
-    background: "rgba(255,255,255,0.04)",
-    color: "var(--foreground)",
+    padding: "10px 14px",
+    borderRadius: 8,
+    border: `1px solid ${NEUTRAL_BORDER}`,
+    background: "rgba(255,255,255,0.03)",
+    color: FOREGROUND,
     fontSize: 14,
     fontFamily: "'DM Sans', sans-serif",
     outline: "none",
-    transition: "border-color 0.2s ease",
+    transition: "border-color 0.15s ease",
     boxSizing: "border-box" as const,
   } as React.CSSProperties,
-  sectionLabel: {
-    fontSize: 12,
+  label: {
+    fontSize: 11,
     fontWeight: 700,
     textTransform: "uppercase" as const,
     letterSpacing: "0.1em",
-    color: "var(--muted-foreground)",
-    marginBottom: 8,
+    color: MUTED,
+    marginBottom: 6,
   } as React.CSSProperties,
-  sectionHeader: {
-    display: "flex",
-    alignItems: "center",
-    gap: 12,
-    marginBottom: 16,
+  btnPrimary: {
+    padding: "10px 20px",
+    borderRadius: 10,
+    background: AMBER,
+    color: WHITE,
+    fontWeight: 600,
+    fontSize: 14,
+    border: "none",
+    cursor: "pointer",
+    transition: "all 0.15s ease",
+    fontFamily: "'DM Sans', sans-serif",
   } as React.CSSProperties,
-  sectionIcon: {
-    width: 40,
-    height: 40,
-    borderRadius: 12,
-    display: "flex",
-    alignItems: "center",
-    justifyContent: "center",
-    flexShrink: 0,
+  btnSecondary: {
+    padding: "8px 14px",
+    borderRadius: 8,
+    background: "rgba(255,255,255,0.03)",
+    color: MUTED,
+    fontWeight: 600,
+    fontSize: 12,
+    border: `1px solid ${NEUTRAL_BORDER}`,
+    cursor: "pointer",
+    transition: "all 0.15s ease",
+    fontFamily: "'DM Sans', sans-serif",
   } as React.CSSProperties,
 };
 
@@ -229,8 +256,8 @@ const S = {
 // =========================
 
 function WeeklySparkline({ data, color }: { data: number[]; color: string }) {
-  const width = 72;
-  const height = 22;
+  const width = 64;
+  const height = 18;
   const points = data.map((v, i) => {
     const x = (i / Math.max(data.length - 1, 1)) * width;
     const y = height - (v / 100) * height;
@@ -238,28 +265,8 @@ function WeeklySparkline({ data, color }: { data: number[]; color: string }) {
   }).join(" ");
 
   return (
-    <svg
-      width={width}
-      height={height}
-      viewBox={`0 0 ${width} ${height}`}
-      style={{ display: "block" }}
-      aria-label="Consistência das últimas 4 semanas"
-    >
-      <polyline
-        points={points}
-        fill="none"
-        stroke={color}
-        strokeWidth="2"
-        strokeLinecap="round"
-        strokeLinejoin="round"
-      />
-      {data.map((v, i) => {
-        const x = (i / Math.max(data.length - 1, 1)) * width;
-        const y = height - (v / 100) * height;
-        return (
-          <circle key={i} cx={x} cy={y} r="2" fill={color} opacity={i === data.length - 1 ? 1 : 0.5} />
-        );
-      })}
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ display: "block" }}>
+      <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
 }
@@ -279,7 +286,7 @@ function WeeklyGoalCard({
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const { showXP } = useXPAnimation();
-  const colorInfo = GOAL_COLORS_MAP[goal.color] || GOAL_COLORS_MAP["#A855F7"];
+  const color = goalSolidColor(goal.color);
 
   const norm = useMemo(
     () =>
@@ -320,7 +327,6 @@ function WeeklyGoalCard({
     const weekStart = getMondayOfDate(new Date());
     const payload: any = { days_completed_week: newDays, week_start: weekStart, streak: newStreak };
     if (newRecordStreak !== undefined) payload.record_streak = newRecordStreak;
-
     const { error } = await supabase.from("goals").update(payload).eq("id", goal.id);
     if (error) { showToast("Erro ao atualizar meta", "info", "❌"); return; }
     reloadGoals();
@@ -343,12 +349,10 @@ function WeeklyGoalCard({
 
     const rect = cardRef.current?.getBoundingClientRect();
     if (rect) showXP(5, rect.left + rect.width / 2, rect.top);
-
     if (completedCount >= target && !wasHitBefore) {
       if (rect) showXP(25, rect.left + rect.width / 2, rect.top + 30);
       showToast(`Meta semanal atingida! 🔥 ${completedCount}/${target}`, "success", "🎉");
     }
-
     await persistWeek(newDays, streak);
   };
 
@@ -365,56 +369,45 @@ function WeeklyGoalCard({
   return (
     <div
       ref={cardRef}
-      className="animate-fade-in"
       style={{
-        ...S.glassCard,
-        padding: 20,
+        ...S.card,
+        padding: 18,
         position: "relative",
-        overflow: "hidden",
-        background: hit
-          ? `linear-gradient(145deg, rgba(16,185,129,0.06), var(--card))`
-          : `linear-gradient(145deg, ${colorInfo.light}, var(--card))`,
-        borderColor: hit ? "rgba(16,185,129,0.3)" : `rgba(${hexToRgb(goal.color)},0.2)`,
+        borderColor: hit ? EMERALD_BORDER : `${color}30`,
       }}
     >
-      {/* Glow top accent */}
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: hit ? "linear-gradient(90deg, #10B981, #34D399)" : colorInfo.gradient, borderRadius: "20px 20px 0 0", opacity: 0.8 }} />
+      {/* Top color bar — solid, not gradient */}
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: hit ? EMERALD : color, borderRadius: "12px 12px 0 0" }} />
 
       {/* Header */}
-      <div style={{ display: "flex", gap: 14, marginBottom: 16, alignItems: "flex-start" }}>
-        <div style={{ width: 48, height: 48, borderRadius: "50%", background: `linear-gradient(135deg, ${goal.color}, ${goal.color}CC)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, boxShadow: `0 4px 16px ${goal.color}40`, flexShrink: 0 }}>
+      <div style={{ display: "flex", gap: 12, marginBottom: 14, alignItems: "flex-start" }}>
+        {/* Icon */}
+        <div style={{ width: 40, height: 40, borderRadius: "50%", background: `${color}20`, border: `2px solid ${color}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
           {goal.emoji}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 4, fontFamily: "'Space Grotesk', sans-serif" }}>{goal.title}</h3>
-          <span style={{ ...S.tag, color: hit ? "#10B981" : goal.color, background: hit ? "rgba(16,185,129,0.12)" : `${goal.color}15`, border: `1px solid ${hit ? "rgba(16,185,129,0.3)" : `${goal.color}35`}` }}>
+          <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 3, margin: 0 }}>{goal.title}</h3>
+          <span style={{ ...S.tag, color: hit ? EMERALD_TEXT : color, background: hit ? EMERALD_LIGHT : `${color}15` }}>
             {hit ? "✓ Atingida" : `${completedCount}/${target}`}
           </span>
-          <p style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 4, lineHeight: 1.4 }}>
+          <p style={{ fontSize: 11, color: MUTED, marginTop: 3, lineHeight: 1.4 }}>
             {habit ? `${habit.emoji} ${habit.title}` : goal.description || `${target}x por semana`}
           </p>
         </div>
         {/* Streak */}
-        <div style={{ display: "flex", flexDirection: "column", alignItems: "flex-end", gap: 2 }}>
-          <div style={{ display: "flex", alignItems: "center", gap: 4, background: "rgba(249,115,22,0.1)", border: "1px solid rgba(249,115,22,0.25)", borderRadius: 10, padding: "4px 8px" }}>
-            <Flame size={14} color="#F97316" />
-            <span style={{ fontSize: 14, fontWeight: 800, color: "#F97316" }}>{streak}</span>
-          </div>
-          {recordStreak > 0 && (
-            <span style={{ fontSize: 9, color: "#FCD34D", display: "flex", alignItems: "center", gap: 3 }}>
-              <Trophy size={9} /> {recordStreak}
-            </span>
-          )}
+        <div style={{ display: "flex", alignItems: "center", gap: 4, color: ORANGE_TEXT }}>
+          <Flame size={14} />
+          <span style={{ fontSize: 14, fontWeight: 800 }}>{streak}</span>
         </div>
       </div>
 
       {/* Progress bar */}
-      <div style={{ height: 5, borderRadius: 999, background: "rgba(255,255,255,0.06)", marginBottom: 14, overflow: "hidden" }}>
-        <div style={{ width: `${Math.min(100, (completedCount / target) * 100)}%`, height: "100%", background: hit ? "linear-gradient(90deg, #10B981, #34D399)" : colorInfo.gradient, borderRadius: 999, transition: "width 0.4s ease" }} />
+      <div style={{ height: 4, borderRadius: 999, background: "rgba(255,255,255,0.06)", marginBottom: 12, overflow: "hidden" }}>
+        <div style={{ width: `${Math.min(100, (completedCount / target) * 100)}%`, height: "100%", background: hit ? EMERALD : color, borderRadius: 999, transition: "width 0.3s ease" }} />
       </div>
 
       {/* 7 day indicators */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 4, marginBottom: 12 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: 3, marginBottom: 10 }}>
         {days.map((completed, i) => {
           const isToday = i === todayIdx;
           const monday = new Date(`${getMondayOfDate(new Date())}T12:00:00`);
@@ -427,25 +420,23 @@ function WeeklyGoalCard({
               key={i}
               onClick={() => handleToggleDay(i)}
               disabled={isFuture}
-              aria-label={`${WEEKDAY_LABELS[i]} ${completed ? "concluído" : "pendente"}`}
               style={{
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: 3,
-                padding: "6px 1px",
-                borderRadius: 8,
-                border: completed ? `1px solid ${goal.color}50` : isToday ? `2px solid ${goal.color}` : "1px solid rgba(255,255,255,0.06)",
-                background: completed ? `${goal.color}25` : isToday ? `${goal.color}10` : "transparent",
+                gap: 2,
+                padding: "5px 1px",
+                borderRadius: 6,
+                border: completed ? `1px solid ${color}50` : isToday ? `1.5px solid ${color}` : "1px solid rgba(255,255,255,0.06)",
+                background: completed ? `${color}20` : "transparent",
                 opacity: isFuture ? 0.35 : 1,
                 cursor: isFuture ? "not-allowed" : "pointer",
-                transition: "all 0.2s ease",
               }}
             >
-              <div style={{ width: 14, height: 14, borderRadius: "50%", background: completed ? goal.color : "transparent", border: `2px solid ${completed ? goal.color : "rgba(255,255,255,0.12)"}`, display: "flex", alignItems: "center", justifyContent: "center", transition: "all 0.2s ease" }}>
-                {completed && <Check size={8} color="white" />}
+              <div style={{ width: 12, height: 12, borderRadius: "50%", background: completed ? color : "transparent", border: `1.5px solid ${completed ? color : "rgba(255,255,255,0.12)"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {completed && <Check size={7} color="white" />}
               </div>
-              <span style={{ fontSize: 8, fontWeight: isToday ? 800 : 500, color: isToday ? goal.color : "var(--muted-foreground)", textTransform: "uppercase" }}>
+              <span style={{ fontSize: 7, fontWeight: isToday ? 800 : 500, color: isToday ? color : MUTED, textTransform: "uppercase" }}>
                 {WEEKDAY_LABELS[i].slice(0, 2)}
               </span>
             </button>
@@ -453,12 +444,14 @@ function WeeklyGoalCard({
         })}
       </div>
 
-      {/* Sparkline */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
-        <span style={{ fontSize: 10, color: "var(--muted-foreground)", display: "flex", alignItems: "center", gap: 3 }}>
-          <TrendingUp size={10} /> 4 sem
-        </span>
-        <WeeklySparkline data={sparklineData} color={hit ? "#10B981" : goal.color} />
+      {/* Record streak + sparkline */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 8, borderTop: `1px solid ${NEUTRAL_BORDER}` }}>
+        {recordStreak > 0 ? (
+          <span style={{ fontSize: 9, color: GOLD, display: "flex", alignItems: "center", gap: 3 }}>
+            <Trophy size={9} /> {recordStreak}
+          </span>
+        ) : <span />}
+        <WeeklySparkline data={sparklineData} color={hit ? EMERALD : color} />
       </div>
     </div>
   );
@@ -473,7 +466,7 @@ function GoalCard({ goal, reloadGoals }: { goal: Goal; reloadGoals: () => void }
   const { showXP } = useXPAnimation();
   const cardRef = useRef<HTMLDivElement>(null);
   const progress = getGoalProgress(goal);
-  const colorInfo = GOAL_COLORS_MAP[goal.color] || GOAL_COLORS_MAP["#A855F7"];
+  const color = goalSolidColor(goal.color);
   const isCompleted = !!goal.completed_at;
 
   const handleToggleStep = async (stepId: string) => {
@@ -481,7 +474,6 @@ function GoalCard({ goal, reloadGoals }: { goal: Goal; reloadGoals: () => void }
       step.id === stepId ? { ...step, completed: !step.completed } : step
     );
     const allCompleted = updatedSteps.every(s => s.completed);
-
     await supabase.from("goals").update({ steps: updatedSteps, completed_at: allCompleted ? new Date().toISOString() : null }).eq("id", goal.id);
     const rect = cardRef.current?.getBoundingClientRect();
     if (rect) showXP(10, rect.left + rect.width / 2, rect.top);
@@ -497,70 +489,56 @@ function GoalCard({ goal, reloadGoals }: { goal: Goal; reloadGoals: () => void }
   return (
     <div
       ref={cardRef}
-      className="animate-fade-in"
       style={{
-        ...S.glassCard,
-        padding: 20,
+        ...S.card,
+        padding: 18,
         position: "relative",
-        overflow: "hidden",
-        background: isCompleted
-          ? "linear-gradient(145deg, rgba(245,158,11,0.06), var(--card))"
-          : `linear-gradient(145deg, ${colorInfo.light}, var(--card))`,
-        borderColor: isCompleted ? `${GOLD_BORDER}50` : `rgba(${hexToRgb(goal.color)},0.2)`,
-        boxShadow: isCompleted ? `0 4px 32px rgba(245,158,11,0.12)` : `0 4px 32px rgba(0,0,0,0.08)`,
+        borderColor: isCompleted ? `${GOLD_BORDER}50` : `${color}30`,
       }}
     >
       {/* Gold accent for completed */}
-      {isCompleted && (
-        <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #F59E0B, #FCD34D)", borderRadius: "20px 20px 0 0", opacity: 0.8 }} />
-      )}
+      {isCompleted && <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: GOLD_BORDER, borderRadius: "12px 12px 0 0" }} />}
 
       {/* Header */}
-      <div style={{ display: "flex", gap: 14, marginBottom: 14, alignItems: "flex-start" }}>
-        <div style={{ width: 48, height: 48, borderRadius: "50%", background: isCompleted ? "linear-gradient(135deg, #10B981, #34D399)" : `linear-gradient(135deg, ${goal.color}, ${goal.color}CC)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 22, boxShadow: isCompleted ? "0 4px 16px rgba(16,185,129,0.3)" : `0 4px 16px ${goal.color}30`, flexShrink: 0 }}>
+      <div style={{ display: "flex", gap: 12, marginBottom: 12, alignItems: "flex-start" }}>
+        <div style={{ width: 40, height: 40, borderRadius: "50%", background: isCompleted ? `${EMERALD}20` : `${color}20`, border: `2px solid ${isCompleted ? EMERALD_BORDER : `${color}50`}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: 18, flexShrink: 0 }}>
           {goal.emoji}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h3 style={{ fontSize: 15, fontWeight: 700, marginBottom: 3, fontFamily: "'Space Grotesk', sans-serif" }}>{goal.title}</h3>
-          <p style={{ fontSize: 12, color: "var(--muted-foreground)", lineHeight: 1.4 }}>{goal.description}</p>
+          <h3 style={{ fontSize: 14, fontWeight: 700, marginBottom: 3, margin: 0 }}>{goal.title}</h3>
+          <p style={{ fontSize: 11, color: MUTED, lineHeight: 1.4, margin: 0 }}>{goal.description}</p>
           {isCompleted && (
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.3)", borderRadius: 999, padding: "3px 10px", marginTop: 4, fontSize: 10, fontWeight: 700, color: "#FCD34D" }}>
-              <Crown size={10} /> Concluída {new Date(goal.completed_at!).toLocaleDateString("pt-BR")}
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "rgba(245,158,11,0.08)", border: `1px solid ${AMBER_BORDER}`, borderRadius: 6, padding: "2px 8px", marginTop: 4, fontSize: 9, fontWeight: 700, color: GOLD }}>
+              <Crown size={9} /> {new Date(goal.completed_at!).toLocaleDateString("pt-BR")}
             </span>
           )}
         </div>
-        <button
-          onClick={() => setExpanded(!expanded)}
-          style={{ background: "rgba(255,255,255,0.04)", border: "1px solid rgba(255,255,255,0.08)", borderRadius: 10, padding: 6, cursor: "pointer", color: "var(--muted-foreground)", display: "flex", alignItems: "center" }}
-        >
-          {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
+        <button onClick={() => setExpanded(!expanded)} style={{ background: "transparent", border: `1px solid ${NEUTRAL_BORDER}`, borderRadius: 6, padding: 4, cursor: "pointer", color: MUTED, display: "flex", alignItems: "center" }}>
+          {expanded ? <ChevronUp size={13} /> : <ChevronDown size={13} />}
         </button>
       </div>
 
       {/* Progress bar */}
-      <div style={{ height: 5, borderRadius: 999, background: "rgba(255,255,255,0.06)", marginBottom: 14, overflow: "hidden" }}>
-        <div style={{ width: `${progress}%`, height: "100%", background: isCompleted ? "linear-gradient(90deg, #10B981, #34D399)" : colorInfo.gradient, borderRadius: 999, transition: "width 0.4s ease" }} />
+      <div style={{ height: 4, borderRadius: 999, background: "rgba(255,255,255,0.06)", marginBottom: 12, overflow: "hidden" }}>
+        <div style={{ width: `${progress}%`, height: "100%", background: isCompleted ? EMERALD : color, borderRadius: 999, transition: "width 0.3s ease" }} />
       </div>
 
       {expanded && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
           {goal.steps.map(step => (
             <button
               key={step.id}
               onClick={() => handleToggleStep(step.id)}
-              style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, border: `1px solid ${step.completed ? "rgba(16,185,129,0.3)" : "rgba(255,255,255,0.06)"}`, background: step.completed ? "rgba(16,185,129,0.08)" : "rgba(255,255,255,0.02)", cursor: "pointer", textAlign: "left", width: "100%" }}
+              style={{ display: "flex", alignItems: "center", gap: 8, padding: "8px 10px", borderRadius: 8, border: `1px solid ${step.completed ? EMERALD_BORDER : NEUTRAL_BORDER}`, background: step.completed ? EMERALD_LIGHT : "rgba(255,255,255,0.02)", cursor: "pointer", textAlign: "left", width: "100%" }}
             >
-              <div style={{ width: 18, height: 18, borderRadius: 5, background: step.completed ? "#10B981" : "transparent", border: `2px solid ${step.completed ? "#10B981" : goal.color}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                {step.completed && <Check size={10} color="white" />}
+              <div style={{ width: 16, height: 16, borderRadius: 4, background: step.completed ? EMERALD : "transparent", border: `1.5px solid ${step.completed ? EMERALD : color}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                {step.completed && <Check size={9} color="white" />}
               </div>
-              <span style={{ textDecoration: step.completed ? "line-through" : "none", color: step.completed ? "var(--muted-foreground)" : "var(--foreground)", fontSize: 13 }}>{step.title}</span>
+              <span style={{ textDecoration: step.completed ? "line-through" : "none", color: step.completed ? MUTED : FOREGROUND, fontSize: 12 }}>{step.title}</span>
             </button>
           ))}
-          <button
-            onClick={handleDelete}
-            style={{ marginTop: 6, padding: "10px", borderRadius: 10, border: "1px solid rgba(239,68,68,0.2)", background: "rgba(239,68,68,0.06)", color: "#EF4444", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontWeight: 600, fontSize: 12 }}
-          >
-            <Trash2 size={12} /> Deletar
+          <button onClick={handleDelete} style={{ marginTop: 4, padding: "8px", borderRadius: 8, border: "1px solid rgba(239,68,68,0.2)", background: "rgba(239,68,68,0.05)", color: "#EF4444", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontWeight: 600, fontSize: 11 }}>
+            <Trash2 size={11} /> Deletar
           </button>
         </div>
       )}
@@ -569,21 +547,18 @@ function GoalCard({ goal, reloadGoals }: { goal: Goal; reloadGoals: () => void }
 }
 
 // =========================
-// EMPTY STATE
+// EMPTY SECTION
 // =========================
 
-function EmptySection({ icon, title, subtitle, onAction, actionLabel }: { icon: React.ReactNode; title: string; subtitle: string; onAction?: () => void; actionLabel?: string }) {
+function EmptySection({ icon, title, subtitle, onAction, actionLabel }: { icon: string; title: string; subtitle: string; onAction?: () => void; actionLabel?: string }) {
   return (
-    <div
-      className="animate-fade-in"
-      style={{ ...S.glassCard, padding: "40px 24px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 12, border: "1px dashed rgba(255,255,255,0.1)" }}
-    >
-      <div style={{ fontSize: 36, marginBottom: 4 }}>{icon}</div>
-      <h4 style={{ fontSize: 15, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif" }}>{title}</h4>
-      <p style={{ fontSize: 12, color: "var(--muted-foreground)", maxWidth: 280, lineHeight: 1.5 }}>{subtitle}</p>
+    <div style={{ ...S.card, padding: "32px 20px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, borderStyle: "dashed" }}>
+      <div style={{ fontSize: 28 }}>{icon}</div>
+      <h4 style={{ fontSize: 14, fontWeight: 700, margin: 0 }}>{title}</h4>
+      <p style={{ fontSize: 11, color: MUTED, maxWidth: 240, lineHeight: 1.5, margin: 0 }}>{subtitle}</p>
       {onAction && (
-        <button onClick={onAction} style={{ marginTop: 4, padding: "10px 20px", borderRadius: 10, background: "linear-gradient(135deg, #8B5CF6, #A855F7)", color: "white", fontWeight: 600, fontSize: 12, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 2px 12px rgba(139,92,246,0.3)" }}>
-          <Plus size={14} /> {actionLabel}
+        <button onClick={onAction} style={{ ...S.btnPrimary, marginTop: 4, padding: "8px 16px", fontSize: 12 }}>
+          <Plus size={12} style={{ marginRight: 4 }} /> {actionLabel}
         </button>
       )}
     </div>
@@ -601,32 +576,21 @@ function WeeklySummaryBar({ weeklyGoals }: { weeklyGoals: Goal[] }) {
   const totalStreak = weeklyGoals.reduce((acc, g) => acc + (g.streak ?? 0), 0);
 
   const stats = [
-    { icon: Target, value: `${avgConsistency}%`, label: "Consistência", color: "#10B981" },
-    { icon: CalendarDays, value: activeCount, label: "Ativas", color: "#8B5CF6" },
-    { icon: Flame, value: totalStreak, label: "Streak", color: "#F97316" },
+    { icon: Target, value: `${avgConsistency}%`, label: "Consistência", color: EMERALD },
+    { icon: CalendarDays, value: activeCount, label: "Ativas", color: AMBER },
+    { icon: Flame, value: totalStreak, label: "Streak", color: ORANGE },
   ];
 
   return (
-    <div
-      className="animate-fade-in"
-      style={{
-        ...S.glassCard,
-        padding: 16,
-        display: "grid",
-        gridTemplateColumns: "repeat(3, 1fr)",
-        gap: 12,
-        background: "linear-gradient(145deg, rgba(139,92,246,0.06), rgba(245,158,11,0.03), var(--card))",
-        borderColor: "rgba(139,92,246,0.15)",
-      }}
-    >
+    <div style={{ ...S.card, padding: 12, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: 8, borderColor: AMBER_BORDER }}>
       {stats.map(({ icon: Icon, value, label, color }) => (
-        <div key={label} style={{ display: "flex", alignItems: "center", gap: 10 }}>
-          <div style={{ width: 36, height: 36, borderRadius: 10, background: `${color}15`, border: `1px solid ${color}25`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Icon size={16} color={color} />
+        <div key={label} style={{ display: "flex", alignItems: "center", gap: 8 }}>
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: `${color}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Icon size={14} color={color} />
           </div>
           <div>
-            <div style={{ fontSize: 18, fontWeight: 800, color, fontFamily: "'Space Grotesk', sans-serif" }}>{value}</div>
-            <div style={{ fontSize: 10, color: "var(--muted-foreground)" }}>{label}</div>
+            <div style={{ fontSize: 16, fontWeight: 800, color }}>{value}</div>
+            <div style={{ fontSize: 9, color: MUTED }}>{label}</div>
           </div>
         </div>
       ))}
@@ -658,7 +622,7 @@ function NewGoalModal({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [emoji, setEmoji] = useState("🎯");
-  const [color, setColor] = useState("#A855F7");
+  const [color, setColor] = useState(AMBER);
   const [deadline, setDeadline] = useState("");
   const [steps, setSteps] = useState<string[]>([""]);
   const [goalType, setGoalType] = useState<GoalType>("longo_prazo");
@@ -719,69 +683,55 @@ function NewGoalModal({
   };
 
   return (
-    <Modal open={open} onClose={onClose} title="Nova Meta" maxWidth="520px">
-      <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
+    <Modal open={open} onClose={onClose} title="Nova Meta" maxWidth="480px">
+      <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         {/* Type selector */}
         <div>
-          <p style={S.sectionLabel}>Tipo de meta</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
+          <p style={S.label}>Tipo</p>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
             {([
-              { value: "longo_prazo", label: "Longo prazo", icon: "🎯", desc: "Objetivos com etapas" },
-              { value: "semanal", label: "Semanal", icon: "🔥", desc: "Consistência diária" },
+              { value: "longo_prazo", label: "Longo prazo", icon: "🎯" },
+              { value: "semanal", label: "Semanal", icon: "🔥" },
             ] as const).map(t => (
               <button
                 key={t.value}
                 onClick={() => setGoalType(t.value)}
                 style={{
-                  padding: "14px 12px",
-                  borderRadius: 14,
-                  border: goalType === t.value ? "2px solid #8B5CF6" : "1px solid rgba(255,255,255,0.08)",
-                  background: goalType === t.value ? "rgba(139,92,246,0.12)" : "rgba(255,255,255,0.03)",
+                  padding: "12px",
+                  borderRadius: 8,
+                  border: goalType === t.value ? `2px solid ${AMBER}` : `1px solid ${NEUTRAL_BORDER}`,
+                  background: goalType === t.value ? AMBER_LIGHT : "rgba(255,255,255,0.02)",
                   cursor: "pointer",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   gap: 4,
-                  transition: "all 0.2s ease",
+                  transition: "all 0.15s ease",
                 }}
               >
-                <span style={{ fontSize: 22 }}>{t.icon}</span>
-                <span style={{ fontWeight: 700, fontSize: 13, color: goalType === t.value ? "#C4B5FD" : "var(--foreground)" }}>{t.label}</span>
-                <span style={{ fontSize: 11, color: "var(--muted-foreground)" }}>{t.desc}</span>
+                <span style={{ fontSize: 20 }}>{t.icon}</span>
+                <span style={{ fontWeight: 700, fontSize: 12, color: goalType === t.value ? AMBER_TEXT : FOREGROUND }}>{t.label}</span>
               </button>
             ))}
           </div>
         </div>
 
         <div>
-          <p style={S.sectionLabel}>Nome</p>
+          <p style={S.label}>Nome</p>
           <input placeholder="Ex: Ler 1 livro por mês" value={title} onChange={e => setTitle(e.target.value)} style={S.input} />
         </div>
 
         <div>
-          <p style={S.sectionLabel}>Descrição (opcional)</p>
-          <textarea placeholder="Detalhes..." value={description} onChange={e => setDescription(e.target.value)} style={{ ...S.input, minHeight: 50, resize: "vertical" }} />
+          <p style={S.label}>Descrição (opcional)</p>
+          <textarea placeholder="Detalhes..." value={description} onChange={e => setDescription(e.target.value)} style={{ ...S.input, minHeight: 44, resize: "vertical" }} />
         </div>
 
         {/* Emoji */}
         <div>
-          <p style={S.sectionLabel}>Ícone</p>
-          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
+          <p style={S.label}>Ícone</p>
+          <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
             {EMOJIS.map(e => (
-              <button
-                key={e}
-                type="button"
-                onClick={() => setEmoji(e)}
-                style={{
-                  width: 40, height: 40, borderRadius: 10,
-                  border: emoji === e ? `2px solid ${color}` : "1px solid rgba(255,255,255,0.08)",
-                  background: emoji === e ? `${color}20` : "rgba(255,255,255,0.04)",
-                  cursor: "pointer", fontSize: 18,
-                  transition: "all 0.2s ease",
-                  transform: emoji === e ? "scale(1.1)" : "scale(1)",
-                  display: "flex", alignItems: "center", justifyContent: "center",
-                }}
-              >
+              <button key={e} type="button" onClick={() => setEmoji(e)} style={{ width: 34, height: 34, borderRadius: 8, border: emoji === e ? `2px solid ${color}` : `1px solid ${NEUTRAL_BORDER}`, background: emoji === e ? `${color}15` : "rgba(255,255,255,0.03)", cursor: "pointer", fontSize: 15, display: "flex", alignItems: "center", justifyContent: "center" }}>
                 {e}
               </button>
             ))}
@@ -790,22 +740,10 @@ function NewGoalModal({
 
         {/* Color */}
         <div>
-          <p style={S.sectionLabel}>Cor</p>
-          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+          <p style={S.label}>Cor</p>
+          <div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
             {COLORS.map(c => (
-              <button
-                key={c}
-                type="button"
-                onClick={() => setColor(c)}
-                style={{
-                  width: 32, height: 32, borderRadius: "50%",
-                  border: color === c ? "2px solid white" : "2px solid transparent",
-                  background: c, cursor: "pointer",
-                  transition: "all 0.2s ease",
-                  transform: color === c ? "scale(1.15)" : "scale(1)",
-                  boxShadow: color === c ? `0 0 10px ${c}60` : "none",
-                }}
-              />
+              <button key={c} type="button" onClick={() => setColor(c)} style={{ width: 28, height: 28, borderRadius: "50%", border: color === c ? "2px solid white" : "2px solid transparent", background: c, cursor: "pointer", transform: color === c ? "scale(1.15)" : "scale(1)" }} />
             ))}
           </div>
         </div>
@@ -814,21 +752,10 @@ function NewGoalModal({
         {goalType === "semanal" ? (
           <>
             <div>
-              <p style={S.sectionLabel}>Frequência por semana</p>
-              <div style={{ display: "flex", gap: 6, marginBottom: 10, flexWrap: "wrap" }}>
+              <p style={S.label}>Frequência por semana</p>
+              <div style={{ display: "flex", gap: 4, flexWrap: "wrap" }}>
                 {frequencyChips.map(chip => (
-                  <button
-                    key={chip.value}
-                    type="button"
-                    onClick={() => setTargetFrequency(chip.value)}
-                    style={{
-                      padding: "8px 14px", borderRadius: 10,
-                      border: targetFrequency === chip.value ? "2px solid #F59E0B" : "1px solid rgba(255,255,255,0.1)",
-                      background: targetFrequency === chip.value ? "rgba(245,158,11,0.12)" : "rgba(255,255,255,0.04)",
-                      color: targetFrequency === chip.value ? "#FCD34D" : "var(--muted-foreground)",
-                      fontWeight: 700, fontSize: 12, cursor: "pointer",
-                    }}
-                  >
+                  <button key={chip.value} type="button" onClick={() => setTargetFrequency(chip.value)} style={{ ...S.btnSecondary, border: targetFrequency === chip.value ? `2px solid ${AMBER}` : `1px solid ${NEUTRAL_BORDER}`, color: targetFrequency === chip.value ? AMBER_TEXT : MUTED, background: targetFrequency === chip.value ? AMBER_LIGHT : "rgba(255,255,255,0.03)" }}>
                     {chip.label}
                   </button>
                 ))}
@@ -836,13 +763,11 @@ function NewGoalModal({
             </div>
             {habits.length > 0 && (
               <div>
-                <p style={S.sectionLabel}>Vincular hábito (opcional)</p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
-                  <button type="button" onClick={() => setSelectedHabitId(null)} style={{ padding: "6px 12px", borderRadius: 8, border: selectedHabitId === null ? "2px solid #8B5CF6" : "1px solid rgba(255,255,255,0.08)", background: selectedHabitId === null ? "rgba(139,92,246,0.12)" : "rgba(255,255,255,0.04)", color: selectedHabitId === null ? "#C4B5FD" : "var(--muted-foreground)", fontWeight: 600, fontSize: 11, cursor: "pointer" }}>
-                    Manual
-                  </button>
+                <p style={S.label}>Vincular hábito</p>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 4 }}>
+                  <button type="button" onClick={() => setSelectedHabitId(null)} style={{ ...S.btnSecondary, border: selectedHabitId === null ? `2px solid ${AMBER}` : `1px solid ${NEUTRAL_BORDER}`, color: selectedHabitId === null ? AMBER_TEXT : MUTED }}>Manual</button>
                   {habits.map(h => (
-                    <button key={h.id} type="button" onClick={() => setSelectedHabitId(h.id)} style={{ padding: "6px 12px", borderRadius: 8, border: selectedHabitId === h.id ? "2px solid #8B5CF6" : "1px solid rgba(255,255,255,0.08)", background: selectedHabitId === h.id ? "rgba(139,92,246,0.12)" : "rgba(255,255,255,0.04)", color: selectedHabitId === h.id ? "#C4B5FD" : "var(--muted-foreground)", fontWeight: 600, fontSize: 11, cursor: "pointer" }}>
+                    <button key={h.id} type="button" onClick={() => setSelectedHabitId(h.id)} style={{ ...S.btnSecondary, border: selectedHabitId === h.id ? `2px solid ${AMBER}` : `1px solid ${NEUTRAL_BORDER}`, color: selectedHabitId === h.id ? AMBER_TEXT : MUTED }}>
                       {h.emoji} {h.title}
                     </button>
                   ))}
@@ -852,7 +777,7 @@ function NewGoalModal({
           </>
         ) : (
           <div>
-            <p style={S.sectionLabel}>Prazo (opcional)</p>
+            <p style={S.label}>Prazo (opcional)</p>
             <input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} style={S.input} />
           </div>
         )}
@@ -860,24 +785,21 @@ function NewGoalModal({
         {/* Steps */}
         {goalType === "longo_prazo" && (
           <div>
-            <p style={S.sectionLabel}>Etapas</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
+            <p style={S.label}>Etapas</p>
+            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
               {steps.map((step, i) => (
                 <input key={i} placeholder={`Etapa ${i + 1}`} value={step} onChange={e => setSteps(prev => { const u = [...prev]; u[i] = e.target.value; return u; })} style={S.input} />
               ))}
-              <button type="button" onClick={() => setSteps([...steps, ""])} style={{ padding: "8px 14px", borderRadius: 10, border: "1px solid rgba(139,92,246,0.3)", background: "rgba(139,92,246,0.08)", color: "#A78BFA", fontWeight: 600, fontSize: 12, cursor: "pointer", display: "flex", alignItems: "center", gap: 6 }}>
-                <Plus size={12} /> Adicionar etapa
+              <button type="button" onClick={() => setSteps([...steps, ""])} style={{ ...S.btnSecondary, color: AMBER_TEXT, border: `1px solid ${AMBER_BORDER}` }}>
+                <Plus size={12} style={{ marginRight: 4 }} /> Adicionar etapa
               </button>
             </div>
           </div>
         )}
 
         {/* Submit */}
-        <button
-          onClick={handleSubmit}
-          style={{ padding: "14px 24px", borderRadius: 14, background: "linear-gradient(135deg, #8B5CF6, #A855F7)", color: "white", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", boxShadow: "0 4px 20px rgba(139,92,246,0.3)", fontFamily: "'DM Sans', sans-serif", display: "flex", alignItems: "center", justifyContent: "center", gap: 8 }}
-        >
-          <Sparkles size={16} />
+        <button onClick={handleSubmit} style={{ ...S.btnPrimary, display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
+          <Sparkles size={14} />
           {goalType === "semanal" ? "Criar Meta Semanal" : "Criar Meta"}
         </button>
       </div>
@@ -886,7 +808,7 @@ function NewGoalModal({
 }
 
 // =========================
-// MAIN — SEPARATED SECTIONS
+// MAIN
 // =========================
 
 export default function Goals({
@@ -923,11 +845,9 @@ export default function Goals({
     setHabits(habitsData || []);
   };
 
-  // Separate completely
   const weeklyGoals = goals.filter(g => g.type === "semanal");
   const longTermGoals = goals.filter(g => !g.type || g.type === "longo_prazo");
 
-  // Filter long-term
   const filteredLongTerm = useMemo(() => {
     switch (longTermFilter) {
       case "completed": return longTermGoals.filter(g => g.completed_at);
@@ -936,7 +856,6 @@ export default function Goals({
     }
   }, [longTermFilter, longTermGoals]);
 
-  // Sort weekly: closest to deadline first
   const sortedWeekly = useMemo(() => {
     return [...weeklyGoals].sort((a, b) => {
       const aHit = (a.days_completed_week?.filter(Boolean).length ?? 0) >= (a.target_frequency ?? 1);
@@ -948,7 +867,6 @@ export default function Goals({
     });
   }, [weeklyGoals]);
 
-  // Merge habit checkins for weekly
   const weeklyWithHabitCheckins = useMemo(() => {
     return sortedWeekly.map(g => {
       if (!g.linked_habit_id) return g;
@@ -971,86 +889,64 @@ export default function Goals({
   ] as const;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 28 }}>
+    <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
       {/* Page Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 16 }}>
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 12 }}>
         <div>
-          <h2 style={{ fontSize: 28, fontWeight: 700, display: "flex", alignItems: "center", gap: 10, fontFamily: "'Space Grotesk', sans-serif", margin: 0 }}>
-            <Target size={24} color="#8B5CF6" />
+          <h2 style={{ fontSize: 24, fontWeight: 700, display: "flex", alignItems: "center", gap: 8, margin: 0 }}>
+            <Target size={20} color={AMBER} />
             Metas
           </h2>
-          <p style={{ fontSize: 13, color: "var(--muted-foreground)", marginTop: 4 }}>
-            Organize seus objetivos por consistência e progresso
-          </p>
         </div>
-        <button
-          onClick={() => setShowModal(true)}
-          style={{ padding: "12px 20px", borderRadius: 12, background: "linear-gradient(135deg, #8B5CF6, #A855F7)", color: "white", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", boxShadow: "0 4px 20px rgba(139,92,246,0.3)", display: "flex", alignItems: "center", gap: 8 }}
-        >
-          <Plus size={16} /> Nova Meta
+        <button onClick={() => setShowModal(true)} style={S.btnPrimary}>
+          <Plus size={14} style={{ marginRight: 4 }} /> Nova Meta
         </button>
       </div>
 
       {/* ==================== WEEKLY SECTION ==================== */}
       <section>
-        {/* Section header */}
-        <div style={{ ...S.sectionHeader }}>
-          <div style={{ ...S.sectionIcon, background: "rgba(245,158,11,0.12)", border: "1px solid rgba(245,158,11,0.25)" }}>
-            <Zap size={20} color="#F59E0B" />
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 12 }}>
+          <div style={{ width: 32, height: 32, borderRadius: 8, background: AMBER_LIGHT, border: `1px solid ${AMBER_BORDER}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Zap size={16} color={AMBER} />
           </div>
           <div>
-            <h3 style={{ fontSize: 18, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", margin: 0 }}>
-              Metas Semanais
-            </h3>
-            <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
-              Consistência dia após dia — resets a cada segunda-feira
-            </p>
+            <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>Metas Semanais</h3>
+            <p style={{ fontSize: 11, color: MUTED, margin: 0 }}>Consistência — reset toda segunda</p>
           </div>
         </div>
 
-        {/* Summary bar (only if weekly goals exist) */}
         {weeklyGoals.length > 0 && <WeeklySummaryBar weeklyGoals={weeklyGoals} />}
 
-        {/* Weekly grid or empty */}
         {weeklyWithHabitCheckins.length > 0 ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 16, marginTop: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(300px, 1fr))", gap: 12, marginTop: 12 }}>
             {weeklyWithHabitCheckins.map(goal => (
               <WeeklyGoalCard key={goal.id} goal={goal} linkedHabits={habits} reloadGoals={loadGoals} />
             ))}
           </div>
         ) : (
-          <div style={{ marginTop: 16 }}>
-            <EmptySection
-              icon="🔥"
-              title="Nenhuma meta semanal"
-              subtitle="Crie metas semanais para construir consistência. Ex: treinar 4x, ler 30 min, meditar diariamente."
-              onAction={() => { setShowModal(true); }}
-              actionLabel="Criar meta semanal"
-            />
+          <div style={{ marginTop: 12 }}>
+            <EmptySection icon="🔥" title="Nenhuma meta semanal" subtitle="Crie metas semanais para construir consistência." onAction={() => setShowModal(true)} actionLabel="Criar meta semanal" />
           </div>
         )}
       </section>
 
       {/* Divider */}
-      <div style={{ height: 1, background: "rgba(255,255,255,0.06)" }} />
+      <div style={{ height: 1, background: NEUTRAL_BORDER }} />
 
       {/* ==================== LONG-TERM SECTION ==================== */}
       <section>
-        {/* Section header */}
-        <div style={{ ...S.sectionHeader }}>
-          <div style={{ ...S.sectionIcon, background: "rgba(139,92,246,0.12)", border: "1px solid rgba(139,92,246,0.25)" }}>
-            <Rocket size={20} color="#8B5CF6" />
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 12, flexWrap: "wrap", gap: 8 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
+            <div style={{ width: 32, height: 32, borderRadius: 8, background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Rocket size={16} color="#06B6D4" />
+            </div>
+            <div>
+              <h3 style={{ fontSize: 15, fontWeight: 700, margin: 0 }}>Metas de Longo Prazo</h3>
+              <p style={{ fontSize: 11, color: MUTED, margin: 0 }}>Objetivos com etapas e prazos</p>
+            </div>
           </div>
-          <div style={{ flex: 1 }}>
-            <h3 style={{ fontSize: 18, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", margin: 0 }}>
-              Metas de Longo Prazo
-            </h3>
-            <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>
-              Objetivos maiores com etapas e prazos
-            </p>
-          </div>
-          {/* Long-term tabs */}
-          <div style={{ display: "flex", gap: 4, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.06)", borderRadius: 10, padding: 3 }}>
+          {/* Tabs */}
+          <div style={{ display: "flex", gap: 2, background: "rgba(255,255,255,0.03)", border: `1px solid ${NEUTRAL_BORDER}`, borderRadius: 8, padding: 2 }}>
             {longTermTabs.map(f => {
               const isActive = longTermFilter === f.value;
               const Icon = f.icon;
@@ -1059,21 +955,21 @@ export default function Goals({
                   key={f.value}
                   onClick={() => setLongTermFilter(f.value as any)}
                   style={{
-                    padding: "8px 12px",
-                    borderRadius: 8,
+                    padding: "6px 10px",
+                    borderRadius: 6,
                     border: "none",
-                    background: isActive ? "linear-gradient(135deg, #8B5CF6, #A855F7)" : "transparent",
-                    color: isActive ? "white" : "var(--muted-foreground)",
+                    background: isActive ? AMBER : "transparent",
+                    color: isActive ? WHITE : MUTED,
                     fontWeight: 600,
-                    fontSize: 11,
+                    fontSize: 10,
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
-                    gap: 4,
-                    transition: "all 0.2s ease",
+                    gap: 3,
+                    transition: "all 0.15s ease",
                   }}
                 >
-                  <Icon size={12} />
+                  <Icon size={11} />
                   {f.label}
                 </button>
               );
@@ -1081,22 +977,15 @@ export default function Goals({
           </div>
         </div>
 
-        {/* Long-term grid or empty */}
         {filteredLongTerm.length > 0 ? (
-          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(340px, 1fr))", gap: 16, marginTop: 16 }}>
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(320px, 1fr))", gap: 12, marginTop: 12 }}>
             {filteredLongTerm.map(goal => (
               <GoalCard key={goal.id} goal={goal} reloadGoals={loadGoals} />
             ))}
           </div>
         ) : (
-          <div style={{ marginTop: 16 }}>
-            <EmptySection
-              icon="🚀"
-              title="Nenhuma meta de longo prazo"
-              subtitle="Defina objetivos maiores com etapas para acompanhar seu progresso ao longo do tempo."
-              onAction={() => { setShowModal(true); }}
-              actionLabel="Criar meta"
-            />
+          <div style={{ marginTop: 12 }}>
+            <EmptySection icon="🚀" title="Nenhuma meta de longo prazo" subtitle="Defina objetivos maiores com etapas." onAction={() => setShowModal(true)} actionLabel="Criar meta" />
           </div>
         )}
       </section>
@@ -1113,14 +1002,4 @@ export default function Goals({
       />
     </div>
   );
-}
-
-// =========================
-// UTILS
-// =========================
-
-function hexToRgb(hex: string): string {
-  const result = /^#?([a-f\d]{2})([a-f\d]{2})([a-f\d]{2})$/i.exec(hex);
-  if (!result) return "139,92,246";
-  return `${parseInt(result[1], 16)},${parseInt(result[2], 16)},${parseInt(result[3], 16)}`;
 }
