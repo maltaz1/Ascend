@@ -1,4 +1,4 @@
-import React, { useState, useRef, useEffect, useMemo } from "react";
+import React, { useState, useRef, useEffect, useMemo, useCallback } from "react";
 
 import {
   Plus,
@@ -241,13 +241,22 @@ function WeeklyGoalCard({
     }
   }, [norm.changed]);
 
-  const habit = linkedHabits.find(h => h.id === goal.linked_habit_id);
+      const persistWeek = useCallback(async (newDays: boolean[], newStreak: number) => {
+        const weekStart = getMondayOfDate(new Date());
+        await supabase.from("goals").update({ days_completed_week: newDays, week_start: weekStart, streak: newStreak }).eq("id", goal.id);
+        reloadGoals();
+      }, [goal.id, reloadGoals]);
 
-  const persistWeek = async (newDays: boolean[], newStreak: number) => {
-    const weekStart = getMondayOfDate(new Date());
-    await supabase.from("goals").update({ days_completed_week: newDays, week_start: weekStart, streak: newStreak }).eq("id", goal.id);
-    reloadGoals();
-  };
+      const habit = linkedHabits.find(h => h.id === goal.linked_habit_id);
+
+      useEffect(() => {
+        if (!habit) return;
+        const habitCheckins = getLinkedHabitWeekCheckins(habit, getMondayOfDate(new Date()));
+        const merged = habitCheckins.map((v, i) => v || (goal.days_completed_week?.[i] ?? false));
+        if (JSON.stringify(merged) !== JSON.stringify(goal.days_completed_week)) {
+          persistWeek(merged, streak);
+        }
+      }, [habit, goal.days_completed_week, persistWeek, streak]);
 
   const handleToggleDay = async (dayIndex: number) => {
     const monday = new Date(`${getMondayOfDate(new Date())}T12:00:00`);
@@ -294,7 +303,7 @@ function WeeklyGoalCard({
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
           <h3 style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{goal.title}</h3>
-          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
             <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: hit ? "#10B981" : goal.color, background: hit ? "rgba(16,185,129,0.1)" : colorInfo.light, padding: "2px 8px", borderRadius: 6 }}>
               {hit ? "Atingida" : `${completedCount}/${target}`}
             </span>
@@ -302,6 +311,11 @@ function WeeklyGoalCard({
               <Flame size={12} fill="#F97316" />
               <span style={{ fontSize: 12, fontWeight: 800 }}>{streak}</span>
             </div>
+            {habit && (
+              <span style={{ fontSize: 10, color: "var(--muted-foreground)", background: "rgba(255,255,255,0.05)", padding: "2px 6px", borderRadius: 6, display: "flex", alignItems: "center", gap: 4 }}>
+                <CalendarDays size={10} /> {habit.emoji} {habit.title}
+              </span>
+            )}
           </div>
         </div>
       </div>
