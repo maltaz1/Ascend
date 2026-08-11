@@ -10,14 +10,13 @@ import {
   Settings,
   Minus,
 } from "lucide-react";
-import { useStore } from "@/hooks/useStore";
 import {
-  getTodayNutrition,
+  getData,
+  subscribe,
   addWaterMl,
   addMeal,
   deleteMeal,
   updateDietSettings,
-  getDietSettings,
 } from "@/lib/store";
 import { Modal } from "@/components/ui/Modal";
 import { showToast } from "@/components/ui/FlowToast";
@@ -435,7 +434,7 @@ function AddFoodModal({
     <Modal open={open} onClose={onClose} title="Adicionar Alimento">
       <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", minWidth: 0 }}>
         {/* Food Input with AI Button */}
-        <div style={{ position: "relative", width: "100%", minWidth: 0 }}>
+        <div style={{ width: "100%", minWidth: 0 }}>
           <label
             style={{
               fontFamily: "DM Sans",
@@ -491,20 +490,17 @@ function AddFoodModal({
             </button>
           </div>
 
+          {/* Dropdown de sugestões - inline (não absolute) para não ser cortado pelo Modal overflow */}
           {showSuggestions && foodSuggestions.length > 0 && (
             <div
               style={{
-                position: "absolute",
-                top: "100%",
-                left: 0,
-                right: 0,
+                width: "100%",
                 marginTop: 4,
                 background: "rgba(15,23,42,0.95)",
                 border: "1px solid rgba(168,85,247,0.3)",
                 borderRadius: 8,
                 maxHeight: 200,
                 overflowY: "auto",
-                zIndex: 1000,
               }}
             >
               {foodSuggestions.slice(0, 5).map((food, idx) => (
@@ -994,7 +990,6 @@ function WaterModal({
 }
 
 export default function Diet() {
-  const data = useStore();
   const [profile, setProfile] = useState<{ name: string } | null>(null);
   const [showAddFood, setShowAddFood] = useState(false);
   const [selectedMealType, setSelectedMealType] = useState<
@@ -1003,28 +998,55 @@ export default function Diet() {
   const [showDietSettings, setShowDietSettings] = useState(false);
   const [showWaterModal, setShowWaterModal] = useState(false);
 
-  // Use data from store reactively - this fixes the real-time update bug
+  // Clone arrays from store on every change to force React reactivity
+  // This fixes the bug where in-place mutations don't trigger useMemo
+  const [dietData, setDietData] = useState(() => {
+    const raw = getData().diet;
+    return {
+      meals: [...raw.meals],
+      settings: { ...raw.settings },
+      hydration: raw.hydration.map(h => ({ ...h })),
+    };
+  });
+
+  useEffect(() => {
+    const unsub = subscribe(() => {
+      const raw = getData().diet;
+      setDietData({
+        meals: [...raw.meals],
+        settings: { ...raw.settings },
+        hydration: raw.hydration.map(h => ({ ...h })),
+      });
+    });
+    return unsub;
+  }, []);
+
+  const today = getTodayString();
+
   const todayMeals = useMemo(() => {
-    const today = getTodayString();
-    return data.diet.meals.filter(meal => meal.date === today);
-  }, [data.diet.meals]);
+    return dietData.meals.filter(meal => meal.date === today);
+  }, [dietData.meals, today]);
 
   const todayNutrition = useMemo(() => {
-    return getTodayNutrition();
-  }, [data.diet.meals]);
+    return {
+      calories: todayMeals.reduce((sum, meal) => sum + meal.totalCalories, 0),
+      protein: todayMeals.reduce((sum, meal) => sum + meal.totalProtein, 0),
+      carbs: todayMeals.reduce((sum, meal) => sum + meal.totalCarbs, 0),
+      fat: todayMeals.reduce((sum, meal) => sum + meal.totalFat, 0),
+    };
+  }, [todayMeals]);
 
   const hydration = useMemo(() => {
-    const today = getTodayString();
     return (
-      data.diet.hydration.find(item => item.date === today) || {
+      dietData.hydration.find(item => item.date === today) || {
         date: today,
         cupsConsumed: 0,
-        goal: data.diet.settings.waterGoal,
+        goal: dietData.settings.waterGoal,
       }
     );
-  }, [data.diet.hydration, data.diet.settings.waterGoal]);
+  }, [dietData.hydration, dietData.settings.waterGoal, today]);
 
-  const dietSettings = data.diet.settings;
+  const dietSettings = dietData.settings;
 
   const mealsByType = useMemo(() => {
     const grouped: Record<string, Meal[]> = {

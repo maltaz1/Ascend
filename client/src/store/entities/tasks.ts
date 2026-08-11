@@ -75,6 +75,7 @@ export async function addTask(task: Omit<Task, "id" | "createdAt">): Promise<Tas
       completed: task.completed,
       priority: task.priority,
       category: task.category,
+      is_recurring: task.isRecurring ?? false,
       created_at: optimisticTask.createdAt,
     });
 

@@ -411,7 +411,21 @@ function WeeklyGoalCard({
 // LONG-TERM GOAL CARD
 // =========================
 
-function GoalCard({ goal, reloadGoals, isMobile }: { goal: Goal; reloadGoals: () => void; isMobile: boolean }) {
+function GoalCard({
+  goal,
+  reloadGoals,
+  isMobile,
+  onGoalUpdated,
+  onGoalDeleted,
+  onGoalRestored,
+}: {
+  goal: Goal;
+  reloadGoals: () => void;
+  isMobile: boolean;
+  onGoalUpdated: (goalId: string, steps: Goal["steps"], completedAt: string | null) => void;
+  onGoalDeleted: (goalId: string) => void;
+  onGoalRestored: (goal: Goal) => void;
+}) {
   const [expanded, setExpanded] = useState(false);
   const { showXP } = useXPAnimation();
   const cardRef = useRef<HTMLDivElement>(null);
@@ -419,21 +433,44 @@ function GoalCard({ goal, reloadGoals, isMobile }: { goal: Goal; reloadGoals: ()
   const colorInfo = getGoalColors(goal.color);
   const isCompleted = !!goal.completed_at;
 
-  const handleToggleStep = async (stepId: string) => {
+  const handleToggleStep = (stepId: string) => {
     const updatedSteps = goal.steps.map(step =>
       step.id === stepId ? { ...step, completed: !step.completed } : step
     );
-    const allCompleted = updatedSteps.every(s => s.completed);
-    await supabase.from("goals").update({ steps: updatedSteps, completed_at: allCompleted ? new Date().toISOString() : null }).eq("id", goal.id);
+    const completedAt = updatedSteps.every(step => step.completed)
+      ? new Date().toISOString()
+      : null;
+    onGoalUpdated(goal.id, updatedSteps, completedAt);
     const rect = cardRef.current?.getBoundingClientRect();
-    if (rect) showXP(10, rect.left + rect.width / 2, rect.top);
-    reloadGoals();
+    if (rect) {
+      showXP(10, rect.left + rect.width / 2, rect.top);
+    }
+    void (async () => {
+      const { error } = await supabase
+        .from("goals")
+        .update({ steps: updatedSteps, completed_at: completedAt })
+        .eq("id", goal.id);
+      if (error) {
+        onGoalUpdated(goal.id, goal.steps, goal.completed_at ?? null);
+        showToast("Não foi possível atualizar a meta", "info");
+      } else {
+        // Recarregar para manter metas semanais vinculadas em sincronia
+        reloadGoals();
+      }
+    })();
   };
-
-  const handleDelete = async () => {
-    if (!confirm("Deletar esta meta?")) return;
-    await supabase.from("goals").delete().eq("id", goal.id);
-    reloadGoals();
+  const handleDelete = () => {
+    onGoalDeleted(goal.id);
+    showToast("Meta deletada", "info", "🗑️");
+    void (async () => {
+      const { error } = await supabase.from("goals").delete().eq("id", goal.id);
+      if (error) {
+        onGoalRestored(goal);
+        showToast("Não foi possível remover a meta", "info");
+      } else {
+        reloadGoals();
+      }
+    })();
   };
 
   return (
@@ -808,9 +845,23 @@ export default function Goals({
     setHabits(habitsData || []);
   };
 
+  const updateGoalLocally = (goalId: string, steps: Goal["steps"], completedAt: string | null) => {
+    setGoals(previous =>
+      previous.map(goal =>
+        goal.id === goalId
+          ? { ...goal, steps, completed_at: completedAt }
+          : goal
+      )
+    );
+  };
+  const removeGoalLocally = (goalId: string) => {
+    setGoals(previous => previous.filter(goal => goal.id !== goalId));
+  };
+  const restoreGoalLocally = (goal: Goal) => {
+    setGoals(previous => [goal, ...previous]);
+  };
   const weeklyGoals = goals.filter(g => g.type === "semanal");
   const longTermGoals = goals.filter(g => !g.type || g.type === "longo_prazo");
-
   const filteredLongTerm = useMemo(() => {
     switch (longTermFilter) {
       case "completed": return longTermGoals.filter(g => g.completed_at);
@@ -818,13 +869,11 @@ export default function Goals({
       default: return longTermGoals;
     }
   }, [longTermFilter, longTermGoals]);
-
   const sortedWeekly = useMemo(() => {
     return [...weeklyGoals].sort((a, b) => {
       return a.title.localeCompare(b.title);
     });
   }, [weeklyGoals]);
-
   const weeklyWithHabitCheckins = useMemo(() => {
     return sortedWeekly.map(g => {
       if (!g.linked_habit_id) return g;
@@ -839,7 +888,6 @@ export default function Goals({
       return g;
     });
   }, [sortedWeekly, habits]);
-
   const longTermTabs = [
     { value: "all", label: "Todas", icon: Sparkles },
     { value: "ongoing", label: "Em andamento", icon: Target },
@@ -948,7 +996,7 @@ export default function Goals({
         {filteredLongTerm.length > 0 ? (
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(300px, 1fr))", gap: isMobile ? 12 : 20 }}>
             {filteredLongTerm.map(goal => (
-              <GoalCard key={goal.id} goal={goal} reloadGoals={loadGoals} isMobile={isMobile} />
+              <GoalCard key={goal.id} goal={goal} reloadGoals={loadGoals} isMobile={isMobile} onGoalUpdated={updateGoalLocally} onGoalDeleted={removeGoalLocally} onGoalRestored={restoreGoalLocally} />
             ))}
           </div>
         ) : (

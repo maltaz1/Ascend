@@ -97,3 +97,27 @@ export interface NoteFolderDatabaseRow {
   name: string;
   created_at: string;
 }
+
+export interface HabitDatabaseRow {
+  id: string;
+  user_id: string;
+  title: string;
+  emoji: string;
+  color: string;
+  frequency: "daily" | "weekly";
+  completed_dates: string[];
+  created_at: string;
+  target_days: number;
+}
+
+export interface ProfileDatabaseRow {
+  id: string;
+  name: string;
+  xp: number;
+  level: number;
+  streak: number;
+  last_active_date: string;
+  total_tasks_completed: number;
+  total_goals_completed: number;
+  achievements: string[];
+}

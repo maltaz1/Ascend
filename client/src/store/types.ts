@@ -187,10 +187,12 @@ export interface DietData {
 }
 
 export interface UserProfile {
+  id?: string;
   name: string;
   xp: number;
   level: number;
   streak: number;
+  isPro?: boolean;
   lastActiveDate: string;
   totalTasksCompleted: number;
   totalGoalsCompleted: number;

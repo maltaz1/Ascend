@@ -1,3 +1,4 @@
+import { supabase } from "@/lib/supabase";
 import { Habit } from "./types";
 import { _data, notify, persistState, markActiveToday } from "./state";
 import { generateId, getTodayString, toYYYYMMDD } from "./utils";
@@ -40,13 +41,14 @@ export async function toggleHabitDate(
   const habit = _data.habits.find(item => item.id === habitId);
   if (!habit) return { xpGained: 0 };
 
+  const previousCompletedDates = [...habit.completedDates];
   const existingIndex = habit.completedDates.indexOf(date);
   let xpGained = 0;
 
   if (existingIndex === -1) {
     habit.completedDates.push(date);
     markActiveToday();
-    addXP(5);
+    void addXP(5);
     xpGained = 5;
     evaluateAchievements(_data);
   } else {
@@ -55,6 +57,21 @@ export async function toggleHabitDate(
 
   notify();
   persistState();
+
+  void (async () => {
+    const { error } = await supabase
+      .from("habits")
+      .update({ completed_dates: habit.completedDates })
+      .eq("id", habitId);
+
+    if (error) {
+      console.error("Erro ao salvar hábito:", error);
+      habit.completedDates = previousCompletedDates;
+      notify();
+      persistState();
+    }
+  })();
+
   return { xpGained };
 }
 
@@ -94,4 +111,37 @@ export function getHabitStreak(habit: Habit): number {
   }
 
   return streak;
+}
+
+export async function loadHabitsData(): Promise<void> {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+
+  if (!user) return;
+
+  const { data, error } = await supabase
+    .from("habits")
+    .select("id, title, emoji, color, frequency, completed_dates, created_at, target_days")
+    .eq("user_id", user.id)
+    .order("created_at", { ascending: false });
+
+  if (error) {
+    console.error("Erro ao carregar hábitos:", error);
+    return;
+  }
+
+  _data.habits = (data || []).map(habit => ({
+    id: habit.id,
+    title: habit.title,
+    emoji: habit.emoji,
+    color: habit.color,
+    frequency: habit.frequency,
+    completedDates: habit.completed_dates || [],
+    createdAt: habit.created_at,
+    targetDays: habit.target_days,
+  }));
+
+  notify();
+  persistState();
 }

@@ -5,6 +5,8 @@ import type {
   WorkoutSessionDatabaseRow,
   MealDatabaseRow,
   FinancialTransactionDatabaseRow,
+  HabitDatabaseRow,
+  ProfileDatabaseRow,
 } from "./types";
 import type {
   Task,
@@ -13,6 +15,8 @@ import type {
   WorkoutSession,
   Meal,
   FinancialTransaction,
+  Habit,
+  UserProfile,
 } from "@/store/types";
 import type { RecurrenceConfig } from "@/types/recurrence";
 
@@ -99,5 +103,31 @@ export function financialTransactionFromRow(row: FinancialTransactionDatabaseRow
     category: row.category,
     date: row.date,
     createdAt: row.created_at,
+  };
+}
+
+export function habitFromRow(row: HabitDatabaseRow): Habit {
+  return {
+    id: row.id,
+    title: row.title,
+    emoji: row.emoji,
+    color: row.color,
+    frequency: row.frequency,
+    completedDates: row.completed_dates || [],
+    createdAt: row.created_at,
+    targetDays: row.target_days,
+  };
+}
+
+export function profileFromRow(row: ProfileDatabaseRow): UserProfile {
+  return {
+    name: row.name,
+    xp: row.xp,
+    level: row.level,
+    streak: row.streak,
+    lastActiveDate: row.last_active_date,
+    totalTasksCompleted: row.total_tasks_completed,
+    totalGoalsCompleted: row.total_goals_completed,
+    achievements: row.achievements || [],
   };
 }
