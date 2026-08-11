@@ -1,10 +1,31 @@
 import { supabase } from "@/lib/supabase";
 import { logger } from "@/lib/logger";
-import { loadTasksData } from "../entities/tasks";
-import { loadGoalsData } from "../entities/goals";
-import { loadGymData } from "../entities/workouts";
-import { loadDietData } from "../entities/diet";
-import { loadFinancialData } from "../entities/financial";
+import { loadTasksData } from "../tasks.store";
+import { loadGoalsData } from "../goals.store";
+import { loadGymData } from "@/lib/gym";
+import { loadDietData } from "../diet.store";
+import { loadFinancialData } from "../financial.store";
+import { loadHabitsData } from "../habits.store";
+import { loadProfile } from "@/lib/database/queries";
+import { profileFromRow } from "@/lib/database/mappers";
+import { _data, notify } from "../state";
+
+async function loadProfileData() {
+  const {
+    data: { user },
+  } = await supabase.auth.getUser();
+  if (!user) return;
+
+  const profile = await loadProfile(user.id);
+  if (profile) {
+    const mapped = profileFromRow(profile);
+    _data.user.xp = mapped.xp;
+    _data.user.level = mapped.level;
+    _data.user.streak = mapped.streak;
+    _data.user.name = mapped.name;
+    notify();
+  }
+}
 
 const reloadMap: Record<string, () => Promise<void>> = {
   tasks: loadTasksData,
@@ -15,6 +36,8 @@ const reloadMap: Record<string, () => Promise<void>> = {
   hydration_logs: loadDietData,
   diet_settings: loadDietData,
   financial_transactions: loadFinancialData,
+  habits: loadHabitsData,
+  profiles: loadProfileData,
 };
 
 let channel: ReturnType<typeof supabase.channel> | null = null;

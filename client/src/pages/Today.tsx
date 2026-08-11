@@ -1,79 +1,28 @@
 // FlowZone Today — Supabase Synced (Visual Original Mantido)
 
-import React, { useEffect, useMemo, useState } from "react";
+import React, { useMemo } from "react";
 import { Check, Sun, Target, Flame } from "lucide-react";
-import { addXP } from "@/lib/store";
-import { supabase } from "@/lib/supabase";
+import { useStore } from "@/hooks/useStore";
+import { toggleHabitDate, updateTask } from "@/lib/store";
 
 import { CircularProgress } from "@/components/ui/CircularProgress";
-import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 import { showToast } from "@/components/ui/FlowToast";
 import { getTodayString } from "@/store/utils";
+import { awardXp, createXpPayload } from "@/store/xp-engine";
 
 export default function Today() {
   const today = getTodayString();
+  const store = useStore();
+  const { user: profile, tasks, habits, goals } = store;
 
-  const [profile, setProfile] = useState<any>(null);
-
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [habits, setHabits] = useState<any[]>([]);
-  const [goals, setGoals] = useState<any[]>([]);
-
-  const loadData = async () => {
-    const user = (await supabase.auth.getUser()).data.user;
-
-    if (!user) return;
-
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-
-    const { data: tasksData } = await supabase
-      .from("tasks")
-      .select("*")
-      .eq("user_id", user.id);
-
-    const { data: habitsData } = await supabase
-      .from("habits")
-      .select("*")
-      .eq("user_id", user.id);
-
-    const { data: goalsData } = await supabase
-      .from("goals")
-      .select("*")
-      .eq("user_id", user.id);
-
-    setProfile(profileData);
-    setTasks(tasksData || []);
-    setHabits(habitsData || []);
-    setGoals(goalsData || []);
-  };
-
-  useEffect(() => {
-    loadData();
-
-    const interval = setInterval(() => {
-      loadData();
-    }, 3000);
-
-    return () => clearInterval(interval);
-  }, []);
-
-  const todayTasks = tasks.filter(t => t.date === today);
-
-  const activeGoals = goals.filter(g => !g.completed_at).slice(0, 4);
+  const todayTasks = useMemo(() => tasks.filter(t => t.date === today), [tasks, today]);
+  const activeGoals = useMemo(() => goals.filter(g => !g.completedAt).slice(0, 4), [goals]);
 
   const todayStats = useMemo(() => {
-    const tasksCompleted = tasks.filter(
-      t => t.completed && t.date === today
-    ).length;
-
-    const tasksTotal = tasks.filter(t => t.date === today).length;
-
+    const tasksCompleted = todayTasks.filter(t => t.completed).length;
+    const tasksTotal = todayTasks.length;
     const habitsCompleted = habits.filter(h =>
-      (h.completed_dates || []).includes(today)
+      (h.completedDates || []).includes(today)
     ).length;
 
     return {
@@ -82,106 +31,72 @@ export default function Today() {
       habitsCompleted,
       habitsTotal: habits.length,
     };
-  }, [tasks, habits, today]);
+  }, [todayTasks, habits, today]);
 
-  const overallProgress =
+  const overallProgress = useMemo(() =>
     todayStats.tasksTotal > 0 || todayStats.habitsTotal > 0
       ? Math.round(
           ((todayStats.tasksCompleted + todayStats.habitsCompleted) /
             (todayStats.tasksTotal + todayStats.habitsTotal)) *
             100
         )
-      : 0;
+      : 0
+  , [todayStats]);
 
-  const levelProgress = {
-    current: profile?.xp || 0,
+  const levelProgress = useMemo(() => {
+    const max = (profile?.level || 1) * 100;
+    return {
+      current: profile?.xp || 0,
+      max,
+      percent: profile?.xp
+        ? (profile.xp / max) * 100
+        : 0,
+    };
+  }, [profile]);
 
-    max: (profile?.level || 1) * 100,
-
-    percent: profile?.xp
-      ? (profile.xp / ((profile.level || 1) * 100)) * 100
-      : 0,
-  };
-
-  const handleToggleTask = async (
+  const handleToggleTask = (
     taskId: string,
     completed: boolean,
     e: React.MouseEvent
   ) => {
-    await supabase
-      .from("tasks")
-      .update({
-        completed: !completed,
-      })
-      .eq("id", taskId);
-
+    e.stopPropagation();
+    void updateTask(taskId, { completed: !completed });
     showToast(completed ? "Tarefa desmarcada" : "Tarefa concluída!", "success");
 
     if (!completed) {
-      await addXP(10);
+      void awardXp(createXpPayload("TASK_COMPLETED", 10));
     }
-
-    loadData();
   };
 
-  const handleToggleHabit = async (habitId: string, e: React.MouseEvent) => {
+  const handleToggleHabit = (habitId: string, e: React.MouseEvent) => {
+    e.stopPropagation();
     const habit = habits.find(h => h.id === habitId);
-
     if (!habit) return;
 
-    const completedDates = habit.completed_dates || [];
-
-    const isCompleted = completedDates.includes(today);
-
-    const updatedDates = isCompleted
-      ? completedDates.filter((d: string) => d !== today)
-      : [...completedDates, today];
-
-    await supabase
-      .from("habits")
-      .update({
-        completed_dates: updatedDates,
-      })
-      .eq("id", habitId);
-
+    const isCompleted = (habit.completedDates || []).includes(today);
+    void toggleHabitDate(habitId, today);
     showToast(
       isCompleted ? "Hábito desmarcado" : "Hábito concluído!",
       "success"
     );
-
-    if (!isCompleted) {
-      await addXP(5);
-    }
-
-    loadData();
   };
 
   const getGoalProgress = (goal: any) => {
     if (!goal.steps || goal.steps.length === 0) return 0;
-
     const completed = goal.steps.filter((s: any) => s.completed).length;
-
     return Math.round((completed / goal.steps.length) * 100);
   };
 
   const greeting = () => {
     const hour = new Date().getHours();
-
     if (hour < 12) return "Bom dia";
-
     if (hour < 18) return "Boa tarde";
-
     return "Boa noite";
   };
 
-  if (!profile) {
+  if (!profile || !profile.name) {
     return (
-      <div
-        style={{
-          color: "white",
-          padding: 20,
-        }}
-      >
+      <div style={{ color: "white", padding: 20 }}>
         Carregando...
       </div>
     );
@@ -190,7 +105,6 @@ export default function Today() {
   return (
     <div className="animate-fade-in">
       {/* Header */}
-
       <div style={{ marginBottom: 28 }}>
         <div
           style={{
@@ -201,7 +115,6 @@ export default function Today() {
           }}
         >
           <Sun size={24} color="#A855F7" />
-
           <h1
             style={{
               fontFamily: "Space Grotesk",
@@ -213,7 +126,6 @@ export default function Today() {
             {greeting()}, {profile?.name}!
           </h1>
         </div>
-
         <p
           style={{
             fontFamily: "DM Sans",
@@ -231,15 +143,12 @@ export default function Today() {
       </div>
 
       {/* Overall Progress Ring */}
-
       <div
         className="fz-card flex lg:flex-row flex-col gap-4 lg:gap-6 p-6 mb-5"
         style={{
           background:
             "linear-gradient(135deg, rgba(139,92,246,0.08), rgba(139,92,246,0.05))",
-
           border: "1px solid rgba(139,92,246,0.12)",
-
           display: "flex",
           alignItems: "center",
           gap: 24,
@@ -277,7 +186,6 @@ export default function Today() {
           >
             Progresso do Dia
           </h2>
-
           <p
             style={{
               fontFamily: "DM Sans",
@@ -295,9 +203,7 @@ export default function Today() {
                   : "🌅 Comece o dia marcando suas primeiras tarefas!"}
           </p>
 
-          <div
-            className="grid grid-cols-3 sm:grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-3"
-          >
+          <div className="grid grid-cols-3 sm:grid-cols-[repeat(auto-fit,minmax(100px,1fr))] gap-3">
             {[
               {
                 icon: "✅",
@@ -305,14 +211,12 @@ export default function Today() {
                 value: `${todayStats.tasksCompleted}/${todayStats.tasksTotal}`,
                 color: "#10B981",
               },
-
               {
                 icon: "🔥",
                 label: "Hábitos",
                 value: `${todayStats.habitsCompleted}/${todayStats.habitsTotal}`,
                 color: "#F59E0B",
               },
-
               {
                 icon: "⚡",
                 label: "Streak",
@@ -329,29 +233,17 @@ export default function Today() {
                   textAlign: "center",
                 }}
               >
-                <div
-                  style={{
-                    fontSize: 18,
-                    marginBottom: 4,
-                  }}
-                >
-                  {stat.icon}
-                </div>
-
+                <div style={{ fontSize: 18, marginBottom: 4 }}>{stat.icon}</div>
                 <div
                   style={{
                     fontFamily: "Space Grotesk",
-
                     fontWeight: 700,
-
                     fontSize: 16,
-
                     color: stat.color,
                   }}
                 >
                   {stat.value}
                 </div>
-
                 <div
                   style={{
                     fontFamily: "DM Sans",
@@ -367,13 +259,7 @@ export default function Today() {
         </div>
 
         {/* XP Level */}
-
-        <div
-          style={{
-            textAlign: "center",
-            flexShrink: 0,
-          }}
-        >
+        <div style={{ textAlign: "center", flexShrink: 0 }}>
           <CircularProgress
             value={levelProgress.percent}
             size={72}
@@ -384,22 +270,17 @@ export default function Today() {
               <div
                 style={{
                   fontFamily: "Space Grotesk",
-
                   fontWeight: 800,
-
                   fontSize: 16,
-
                   color: "#A855F7",
                 }}
               >
                 {profile?.level || 1}
               </div>
-
               <div
                 style={{
                   fontSize: 9,
                   color: "var(--muted-foreground)",
-
                   fontFamily: "DM Sans",
                 }}
               >
@@ -407,7 +288,6 @@ export default function Today() {
               </div>
             </div>
           </CircularProgress>
-
           <div
             style={{
               fontFamily: "DM Sans",
@@ -423,7 +303,6 @@ export default function Today() {
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
         {/* Today's Tasks */}
-
         <div className="fz-card" style={{ padding: "20px 22px" }}>
           <div
             style={{
@@ -434,31 +313,22 @@ export default function Today() {
             }}
           >
             <Check size={16} color="#10B981" />
-
             <h3
               style={{
                 fontFamily: "Space Grotesk",
-
                 fontWeight: 700,
-
                 fontSize: 15,
-
                 color: "var(--foreground)",
-
                 flex: 1,
               }}
             >
               Tarefas de Hoje
             </h3>
-
             <span
               style={{
                 fontFamily: "Space Grotesk",
-
                 fontWeight: 700,
-
                 fontSize: 12,
-
                 color:
                   todayStats.tasksCompleted === todayStats.tasksTotal &&
                   todayStats.tasksTotal > 0
@@ -471,21 +341,8 @@ export default function Today() {
           </div>
 
           {todayTasks.length === 0 ? (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "24px 0",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 32,
-                  marginBottom: 8,
-                }}
-              >
-                📋
-              </div>
-
+            <div style={{ textAlign: "center", padding: "24px 0" }}>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>📋</div>
               <p
                 style={{
                   fontFamily: "DM Sans",
@@ -497,13 +354,7 @@ export default function Today() {
               </p>
             </div>
           ) : (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 8,
-              }}
-            >
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {todayTasks.map(task => (
                 <div
                   key={task.id}
@@ -512,56 +363,38 @@ export default function Today() {
                     display: "flex",
                     alignItems: "center",
                     gap: 10,
-
                     padding: "10px 12px",
-
                     background: task.completed
                       ? "rgba(16,185,129,0.06)"
                       : "var(--border)",
-
                     border: `1px solid ${
                       task.completed ? "rgba(16,185,129,0.2)" : "var(--border)"
                     }`,
-
                     borderRadius: 10,
-
                     cursor: "pointer",
-
                     transition: "all 0.2s ease",
                   }}
                 >
-                  <div
-                    className={`fz-checkbox ${task.completed ? "checked" : ""}`}
-                  >
+                  <div className={`fz-checkbox ${task.completed ? "checked" : ""}`}>
                     {task.completed && <Check size={12} color="white" />}
                   </div>
-
                   <span
                     style={{
                       fontFamily: "DM Sans",
-
                       fontWeight: 500,
-
                       fontSize: 13,
-
                       color: task.completed
                         ? "var(--muted-foreground)"
                         : "var(--foreground)",
-
                       textDecoration: task.completed ? "line-through" : "none",
-
                       flex: 1,
-
                       overflow: "hidden",
-
                       textOverflow: "ellipsis",
-
                       whiteSpace: "nowrap",
                     }}
                   >
                     {task.title}
                   </span>
-
                   {task.priority === "high" && !task.completed && (
                     <span
                       style={{
@@ -581,7 +414,6 @@ export default function Today() {
         </div>
 
         {/* Habits Today */}
-
         <div className="fz-card" style={{ padding: "20px 22px" }}>
           <div
             style={{
@@ -592,31 +424,22 @@ export default function Today() {
             }}
           >
             <Flame size={16} color="#A855F7" />
-
             <h3
               style={{
                 fontFamily: "Space Grotesk",
-
                 fontWeight: 700,
-
                 fontSize: 15,
-
                 color: "var(--foreground)",
-
                 flex: 1,
               }}
             >
               Hábitos de Hoje
             </h3>
-
             <span
               style={{
                 fontFamily: "Space Grotesk",
-
                 fontWeight: 700,
-
                 fontSize: 12,
-
                 color: "#A855F7",
               }}
             >
@@ -625,21 +448,8 @@ export default function Today() {
           </div>
 
           {habits.length === 0 ? (
-            <div
-              style={{
-                textAlign: "center",
-                padding: "24px 0",
-              }}
-            >
-              <div
-                style={{
-                  fontSize: 32,
-                  marginBottom: 8,
-                }}
-              >
-                🔥
-              </div>
-
+            <div style={{ textAlign: "center", padding: "24px 0" }}>
+              <div style={{ fontSize: 32, marginBottom: 8 }}>🔥</div>
               <p
                 style={{
                   fontFamily: "DM Sans",
@@ -651,18 +461,9 @@ export default function Today() {
               </p>
             </div>
           ) : (
-            <div
-              style={{
-                display: "flex",
-                flexDirection: "column",
-                gap: 8,
-              }}
-            >
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {habits.map(habit => {
-                const isCompleted = (habit.completed_dates || []).includes(
-                  today
-                );
-
+                const isCompleted = (habit.completedDates || []).includes(today);
                 return (
                   <div
                     key={habit.id}
@@ -671,21 +472,15 @@ export default function Today() {
                       display: "flex",
                       alignItems: "center",
                       gap: 10,
-
                       padding: "10px 12px",
-
                       background: isCompleted
                         ? `${habit.color}10`
                         : "var(--border)",
-
                       border: `1px solid ${
                         isCompleted ? `${habit.color}25` : "var(--border)"
                       }`,
-
                       borderRadius: 10,
-
                       cursor: "pointer",
-
                       transition: "all 0.2s ease",
                     }}
                   >
@@ -694,21 +489,15 @@ export default function Today() {
                         width: 20,
                         height: 20,
                         borderRadius: "50%",
-
                         background: isCompleted ? habit.color : "var(--border)",
-
                         border: `2px solid ${
                           isCompleted ? habit.color : "var(--muted-foreground)"
                         }`,
-
                         display: "flex",
                         alignItems: "center",
                         justifyContent: "center",
-
                         flexShrink: 0,
-
                         transition: "all 0.2s ease",
-
                         boxShadow: isCompleted
                           ? `0 0 8px ${habit.color}60`
                           : "none",
@@ -716,38 +505,22 @@ export default function Today() {
                     >
                       {isCompleted && <Check size={11} color="white" />}
                     </div>
-
                     <span style={{ fontSize: 16 }}>{habit.emoji}</span>
-
                     <span
                       style={{
                         fontFamily: "DM Sans",
-
                         fontWeight: 500,
-
                         fontSize: 13,
-
                         color: isCompleted
                           ? "var(--muted-foreground)"
                           : "var(--foreground)",
-
                         textDecoration: isCompleted ? "line-through" : "none",
-
                         flex: 1,
                       }}
                     >
                       {habit.title}
                     </span>
-
-                    {isCompleted && (
-                      <span
-                        style={{
-                          fontSize: 14,
-                        }}
-                      >
-                        ✅
-                      </span>
-                    )}
+                    {isCompleted && <span style={{ fontSize: 14 }}>✅</span>}
                   </div>
                 );
               })}
@@ -757,7 +530,6 @@ export default function Today() {
       </div>
 
       {/* Active Goals */}
-
       {activeGoals.length > 0 && (
         <div
           className="fz-card"
@@ -775,15 +547,11 @@ export default function Today() {
             }}
           >
             <Target size={16} color="#A855F7" />
-
             <h3
               style={{
                 fontFamily: "Space Grotesk",
-
                 fontWeight: 700,
-
                 fontSize: 15,
-
                 color: "var(--foreground)",
               }}
             >
@@ -795,23 +563,18 @@ export default function Today() {
             style={{
               display: "grid",
               gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
-
               gap: 12,
             }}
           >
             {activeGoals.map(goal => {
               const progress = getGoalProgress(goal);
-
               return (
                 <div
                   key={goal.id}
                   style={{
                     background: "var(--border)",
-
                     border: `1px solid ${goal.color}20`,
-
                     borderRadius: 12,
-
                     padding: "14px 16px",
                   }}
                 >
@@ -824,37 +587,25 @@ export default function Today() {
                     }}
                   >
                     <span style={{ fontSize: 20 }}>{goal.emoji}</span>
-
                     <span
                       style={{
                         fontFamily: "DM Sans",
-
                         fontWeight: 500,
-
                         fontSize: 13,
-
                         color: "var(--foreground)",
-
                         flex: 1,
-
                         overflow: "hidden",
-
                         textOverflow: "ellipsis",
-
                         whiteSpace: "nowrap",
                       }}
                     >
                       {goal.title}
                     </span>
-
                     <span
                       style={{
                         fontFamily: "Space Grotesk",
-
                         fontWeight: 700,
-
                         fontSize: 13,
-
                         color: goal.color,
                       }}
                     >
@@ -889,8 +640,6 @@ export default function Today() {
           </div>
         </div>
       )}
-
-
     </div>
   );
 }

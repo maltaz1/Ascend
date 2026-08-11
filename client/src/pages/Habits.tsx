@@ -151,13 +151,17 @@ function HabitRow({
   year,
   month,
   daysInMonth,
-  reloadHabits,
+  onHabitUpdated,
+  onHabitDeleted,
+  onHabitRestored,
 }: {
   habit: any;
   year: number;
   month: number;
   daysInMonth: number;
-  reloadHabits: () => void;
+  onHabitUpdated: (habitId: string, completedDates: string[]) => void;
+  onHabitDeleted: (habitId: string) => void;
+  onHabitRestored: (habit: any) => void;
 }) {
   const { showXP } = useXPAnimation();
 
@@ -172,7 +176,7 @@ function HabitRow({
   const getWeekLetter = (day: number) =>
     WEEK_DAYS[new Date(year, month, day).getDay()];
 
-  const handleToggle = async (
+  const handleToggle = (
     day: number,
     e: React.MouseEvent<HTMLButtonElement>
   ) => {
@@ -180,47 +184,45 @@ function HabitRow({
       2,
       "0"
     )}-${String(day).padStart(2, "0")}`;
+    const previousDates = habit.completedDates || [];
+    const wasCompleted = previousDates.includes(dateStr);
+    const updatedDates = wasCompleted
+      ? previousDates.filter((d: string) => d !== dateStr)
+      : [...previousDates, dateStr];
 
-    const updatedDates = habit.completedDates.includes(dateStr)
-      ? habit.completedDates.filter((d: string) => d !== dateStr)
-      : [...habit.completedDates, dateStr];
-
-    const { error } = await supabase
-      .from("habits")
-      .update({
-        completed_dates: updatedDates,
-      })
-      .eq("id", habit.id);
-
-    if (error) {
-      showToast("Erro ao atualizar", "info", "❌");
-      return;
-    }
-
-    const wasCompleted = habit.completedDates.includes(dateStr);
+    onHabitUpdated(habit.id, updatedDates);
 
     if (!wasCompleted) {
-      await addXP(5);
-
+      void addXP(5);
       showXP(5, e.clientX, e.clientY);
       setAnimatingDate(dateStr);
       window.setTimeout(() => setAnimatingDate(null), 260);
     }
 
-    reloadHabits();
+    void (async () => {
+      const { error } = await supabase
+        .from("habits")
+        .update({ completed_dates: updatedDates })
+        .eq("id", habit.id);
+
+      if (error) {
+        onHabitUpdated(habit.id, previousDates);
+        showToast("Erro ao atualizar", "info", "❌");
+      }
+    })();
   };
 
-  const handleDelete = async () => {
-    const { error } = await supabase.from("habits").delete().eq("id", habit.id);
-
-    if (error) {
-      showToast("Erro ao remover", "info", "❌");
-      return;
-    }
-
+  const handleDelete = () => {
+    onHabitDeleted(habit.id);
     showToast("Hábito removido", "info", "🗑️");
 
-    reloadHabits();
+    void (async () => {
+      const { error } = await supabase.from("habits").delete().eq("id", habit.id);
+      if (error) {
+        onHabitRestored(habit);
+        showToast("Erro ao remover", "info", "❌");
+      }
+    })();
   };
 
   const days = Array.from({ length: daysInMonth }, (_, i) => i + 1);
@@ -546,6 +548,22 @@ export default function Habits({ isPro }: { isPro: boolean }) {
     loadHabits();
   }, []);
 
+  const updateHabitLocally = (habitId: string, completedDates: string[]) => {
+    setHabits(previous =>
+      previous.map(habit =>
+        habit.id === habitId ? { ...habit, completedDates } : habit
+      )
+    );
+  };
+
+  const removeHabitLocally = (habitId: string) => {
+    setHabits(previous => previous.filter(habit => habit.id !== habitId));
+  };
+
+  const restoreHabitLocally = (habit: any) => {
+    setHabits(previous => [...previous, habit]);
+  };
+
   // =========================
   // DATES
   // =========================
@@ -817,7 +835,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
             </p>
             {!searchTerm && (
               <button
-                onClick={() => setShowNewHabit(true)}
+                onClick={() => setShowModal(true)}
                 className="px-6 py-3 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-violet-900/20"
               >
                 + Criar primeiro hábito
@@ -846,7 +864,9 @@ export default function Habits({ isPro }: { isPro: boolean }) {
                   year={viewYear}
                   month={viewMonth}
                   daysInMonth={daysInMonth}
-                  reloadHabits={loadHabits}
+                  onHabitUpdated={updateHabitLocally}
+                  onHabitDeleted={removeHabitLocally}
+                  onHabitRestored={restoreHabitLocally}
                 />
               ))}
             </div>

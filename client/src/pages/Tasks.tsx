@@ -659,16 +659,34 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
     });
   }, [tasks, selectedDate, search, filterStatus, today]);
 
-  const handleToggle = async (task: Task) => {
+  const handleToggle = (task: Task) => {
     const newCompleted = !task.completed;
-    const { error } = await supabase.from("tasks").update({ completed: newCompleted }).eq("id", task.id);
-    if (error) {
-      showToast("Erro ao atualizar tarefa", "info");
-      return;
-    }
-    if (newCompleted) await addXP(10);
-    fetchTasks();
+    setTasks(previous =>
+      previous.map(item =>
+        item.id === task.id ? { ...item, completed: newCompleted } : item
+      )
+    );
     showToast(newCompleted ? "Tarefa concluída!" : "Tarefa desmarcada", "success");
+
+    if (newCompleted) {
+      void addXP(10);
+    }
+
+    void (async () => {
+      const { error } = await supabase
+        .from("tasks")
+        .update({ completed: newCompleted })
+        .eq("id", task.id);
+
+      if (error) {
+        setTasks(previous =>
+          previous.map(item =>
+            item.id === task.id ? { ...item, completed: task.completed } : item
+          )
+        );
+        showToast("Não foi possível atualizar a tarefa", "info");
+      }
+    })();
   };
 
   // Estado para modal de exclusão de recorrência
@@ -676,17 +694,25 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
   const [deletingAll, setDeletingAll] = useState(false);
 
   // Quando clica em excluir uma tarefa recorrente (mãe ou ocorrência) → abre modal
-  const handleDelete = async (id: string) => {
+  const handleDelete = (id: string) => {
     const task = tasks.find(t => t.id === id);
-    
+
     if (task?.isRecurring) {
       // Qualquer tarefa recorrente (mãe ou filha) → abrir modal de escolha
       setDeleteRecurringTask(task);
-    } else {
-      // Tarefa normal → deletar direto
-      const { error } = await supabase.from("tasks").delete().eq("id", id);
-      if (!error) fetchTasks();
+      return;
     }
+
+    if (!task) return;
+    setTasks(previous => previous.filter(item => item.id !== id));
+
+    void (async () => {
+      const { error } = await supabase.from("tasks").delete().eq("id", id);
+      if (error) {
+        setTasks(previous => [task, ...previous]);
+        showToast("Não foi possível remover a tarefa", "info");
+      }
+    })();
   };
 
   const handleDeleteThisOccurrence = async () => {

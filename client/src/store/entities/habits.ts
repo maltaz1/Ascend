@@ -1,6 +1,8 @@
 import { getData, store } from "../store";
 import { generateId, getTodayString, toYYYYMMDD } from "../utils";
-import { upsertEntity, removeEntity, normalizeEntities, setLoading } from "../core/entity";
+import { upsertEntity, removeEntity, normalizeEntities, setLoading, setError } from "../core/entity";
+import { loadHabits } from "@/lib/database/queries";
+import { habitFromRow } from "@/lib/database/mappers";
 import { evaluateAchievements } from "../achievements";
 import { awardXp, createXpPayload } from "../xp-engine";
 import type { Habit } from "../types";
@@ -95,4 +97,31 @@ export function getHabitStreak(habit: Habit): number {
   }
 
   return streak;
+}
+
+export async function loadHabitsData(): Promise<void> {
+  const userId = store.getState().user.id;
+  if (!userId) return;
+
+  store.update(state => {
+    state.habits = setLoading(state.habits, true);
+  });
+
+  try {
+    const rows = await loadHabits(userId);
+    const habits = rows.map(habitFromRow);
+
+    store.update(state => {
+      state.habits = normalizeEntities(habits);
+      state.habits.initialized = true;
+    });
+  } catch (error) {
+    store.update(state => {
+      state.habits = setError(state.habits, error instanceof Error ? error.message : "Failed to load habits");
+    });
+  } finally {
+    store.update(state => {
+      state.habits = setLoading(state.habits, false);
+    });
+  }
 }

@@ -65,3 +65,28 @@ export async function loadFinancialTransactions(userId: string) {
   }
   return data || [];
 }
+
+export async function loadHabits(userId: string) {
+  const { data, error } = await supabase
+    .from("habits")
+    .select("*")
+    .eq("user_id", userId);
+  if (error) {
+    logger.error("database", "Failed to load habits", error);
+    return [];
+  }
+  return data || [];
+}
+
+export async function loadProfile(userId: string) {
+  const { data, error } = await supabase
+    .from("profiles")
+    .select("*")
+    .eq("id", userId)
+    .single();
+  if (error) {
+    logger.error("database", "Failed to load profile", error);
+    return null;
+  }
+  return data;
+}

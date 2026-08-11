@@ -17,6 +17,7 @@ import {
   loadFinancialData,
   loadTasksData,
   loadGoalsData,
+  loadHabitsData,
   initRealtimeSync,
   stopRealtimeSync,
   _data,
@@ -263,6 +264,7 @@ function App() {
       { name: "financial", fn: loadFinancialData },
       { name: "tasks", fn: loadTasksData },
       { name: "goals", fn: loadGoalsData },
+      { name: "habits", fn: loadHabitsData },
     ];
 
     const results = await Promise.allSettled(

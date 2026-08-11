@@ -31,7 +31,6 @@ import {
   Calendar,
 } from "lucide-react";
 
-import { supabase } from "@/lib/supabase";
 import { useStore } from "@/hooks/useStore";
 import { getTodayString, toYYYYMMDD } from "@/store/utils";
 
@@ -291,41 +290,47 @@ function StreakBadge({ streak }: { streak: number }) {
 // =========================
 function StreakHeatmap({ tasks, habits }: { tasks: any[]; habits: any[] }) {
   const days = 90;
-  const heatmapData: { date: string; count: number }[] = [];
 
-  for (let i = days - 1; i >= 0; i--) {
-    const d = new Date();
-    d.setDate(d.getDate() - i);
-    const ds = toYYYYMMDD(d);
-    const completedTasks = tasks.filter((t) => t.completed && t.date === ds).length;
-    const completedHabits = habits.filter(
-      (h) => h.completed_dates && Array.isArray(h.completed_dates) && h.completed_dates.includes(ds)
-    ).length;
-    heatmapData.push({ date: ds, count: completedTasks + completedHabits });
-  }
+  const { weeks, maxCount } = useMemo(() => {
+    const heatmapData: { date: string; count: number }[] = [];
+    const today = new Date();
 
-  const maxCount = Math.max(...heatmapData.map((d) => d.count), 1);
-
-  const weeks: { date: string; count: number }[][] = [];
-  let currentWeek: { date: string; count: number }[] = [];
-
-  const firstDay = new Date();
-  firstDay.setDate(firstDay.getDate() - days + 1);
-  const startDayOfWeek = firstDay.getDay();
-  for (let i = 0; i < startDayOfWeek; i++) {
-    currentWeek.push({ date: "", count: -1 });
-  }
-  for (const day of heatmapData) {
-    currentWeek.push(day);
-    if (currentWeek.length === 7) {
-      weeks.push(currentWeek);
-      currentWeek = [];
+    for (let i = days - 1; i >= 0; i--) {
+      const d = new Date(today);
+      d.setDate(d.getDate() - i);
+      const ds = toYYYYMMDD(d);
+      const completedTasksCount = tasks.filter((t) => t.completed && t.date === ds).length;
+      const completedHabitsCount = habits.filter(
+        (h) => h.completedDates && Array.isArray(h.completedDates) && h.completedDates.includes(ds)
+      ).length;
+      heatmapData.push({ date: ds, count: completedTasksCount + completedHabitsCount });
     }
-  }
-  if (currentWeek.length > 0) {
-    while (currentWeek.length < 7) currentWeek.push({ date: "", count: -1 });
-    weeks.push(currentWeek);
-  }
+
+    const max = Math.max(...heatmapData.map((d) => d.count), 1);
+    const resultWeeks: { date: string; count: number }[][] = [];
+    let currentWeek: { date: string; count: number }[] = [];
+
+    const firstDay = new Date(today);
+    firstDay.setDate(firstDay.getDate() - days + 1);
+    const startDayOfWeek = firstDay.getDay();
+
+    for (let i = 0; i < startDayOfWeek; i++) {
+      currentWeek.push({ date: "", count: -1 });
+    }
+    for (const day of heatmapData) {
+      currentWeek.push(day);
+      if (currentWeek.length === 7) {
+        resultWeeks.push(currentWeek);
+        currentWeek = [];
+      }
+    }
+    if (currentWeek.length > 0) {
+      while (currentWeek.length < 7) currentWeek.push({ date: "", count: -1 });
+      resultWeeks.push(currentWeek);
+    }
+
+    return { weeks: resultWeeks, maxCount: max };
+  }, [tasks, habits]);
 
   const getColor = (count: number) => {
     if (count === -1) return "rgba(255,255,255,0.03)";
@@ -461,67 +466,32 @@ const CustomTooltip = ({ active, payload, label }: any) => {
 // =========================
 export default function Dashboard() {
   const store = useStore();
-  const [profile, setProfile] = useState<any>(null);
-  const [tasks, setTasks] = useState<any[]>([]);
-  const [habits, setHabits] = useState<any[]>([]);
-
-  useEffect(() => {
-    loadData();
-    const interval = setInterval(() => {
-      loadData();
-    }, 3000);
-    return () => clearInterval(interval);
-  }, []);
-
-  const loadData = async () => {
-    const user = (await supabase.auth.getUser()).data.user;
-    if (!user) return;
-
-    const { data: profileData } = await supabase
-      .from("profiles")
-      .select("*")
-      .eq("id", user.id)
-      .single();
-
-    const { data: tasksData } = await supabase
-      .from("tasks")
-      .select("*")
-      .eq("user_id", user.id);
-
-    const { data: habitsData } = await supabase
-      .from("habits")
-      .select("*")
-      .eq("user_id", user.id);
-
-    setProfile(profileData);
-    setTasks(tasksData || []);
-    setHabits(habitsData || []);
-  };
-
+  const { user: profile, tasks, habits } = store;
   const today = getTodayString();
 
-  const completedToday = tasks.filter((t) => t.completed && t.date === today).length;
-  const habitsToday = habits.filter(
-    (h) => h.completed_dates && Array.isArray(h.completed_dates) && h.completed_dates.includes(today)
-  ).length;
-  const todayTasks = tasks.filter((t) => t.date === today).length;
-  const overdueTasks = tasks.filter((t) => !t.completed && t.date < today).length;
+  const completedToday = useMemo(() => tasks.filter((t) => t.completed && t.date === today).length, [tasks, today]);
+  const habitsToday = useMemo(() => habits.filter(
+    (h) => h.completedDates && Array.isArray(h.completedDates) && h.completedDates.includes(today)
+  ).length, [habits, today]);
+  const todayTasks = useMemo(() => tasks.filter((t) => t.date === today).length, [tasks, today]);
+  const overdueTasks = useMemo(() => tasks.filter((t) => !t.completed && t.date < today).length, [tasks, today]);
 
   // --- Activity 30 days ---
   const activityData = useMemo(() => {
     const result = [];
+    const now = new Date();
     for (let i = 29; i >= 0; i--) {
-      const d = new Date();
+      const d = new Date(now);
       d.setDate(d.getDate() - i);
       const ds = toYYYYMMDD(d);
-      const completedTasks = tasks.filter((t) => t.completed && t.date === ds).length;
-      const completedHabits = habits.filter(
-        (h) => h.completed_dates && Array.isArray(h.completed_dates) && h.completed_dates.includes(ds)
+      const completedTasksCount = tasks.filter((t) => t.completed && t.date === ds).length;
+      const completedHabitsCount = habits.filter(
+        (h) => h.completedDates && Array.isArray(h.completedDates) && h.completedDates.includes(ds)
       ).length;
       result.push({
         day: d.getDate(),
-        tasks: completedTasks,
-        habits: completedHabits,
+        tasks: completedTasksCount,
+        habits: completedHabitsCount,
       });
     }
     return result;
@@ -530,16 +500,16 @@ export default function Dashboard() {
   // --- Weekly data ---
   const weeklyData = useMemo(() => {
     const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
+    const now = new Date();
     return days.map((day, index) => {
-      const now = new Date();
-      const currentDay = new Date();
+      const currentDay = new Date(now);
       currentDay.setDate(now.getDate() - now.getDay() + index);
       const ds = toYYYYMMDD(currentDay);
-      const completedTasks = tasks.filter((t) => t.completed && t.date === ds).length;
-      const completedHabits = habits.filter(
-        (h) => h.completed_dates && Array.isArray(h.completed_dates) && h.completed_dates.includes(ds)
+      const completedTasksCount = tasks.filter((t) => t.completed && t.date === ds).length;
+      const completedHabitsCount = habits.filter(
+        (h) => h.completedDates && Array.isArray(h.completedDates) && h.completedDates.includes(ds)
       ).length;
-      return { day, tasks: completedTasks, habits: completedHabits };
+      return { day, tasks: completedTasksCount, habits: completedHabitsCount };
     });
   }, [tasks, habits]);
 
@@ -555,19 +525,17 @@ export default function Dashboard() {
   const levelXP = (profile?.level || 1) * 100;
   const xpPercent = profile?.xp ? Math.min((profile.xp / levelXP) * 100, 100) : 0;
 
-
-
   // --- Calculate global streak from tasks + habits (Supabase data) ---
   const globalStreak = useMemo(() => {
     let streak = 0;
-    const today = new Date();
+    const todayDate = new Date();
     for (let offset = 0; offset < 365; offset++) {
-      const d = new Date(today);
+      const d = new Date(todayDate);
       d.setDate(d.getDate() - offset);
       const ds = toYYYYMMDD(d);
       const completedTask = tasks.some((t) => t.completed && t.date === ds);
       const completedHabit = habits.some(
-        (h) => h.completed_dates && Array.isArray(h.completed_dates) && h.completed_dates.includes(ds)
+        (h) => h.completedDates && Array.isArray(h.completedDates) && h.completedDates.includes(ds)
       );
       if (completedTask || completedHabit) {
         streak++;
@@ -580,12 +548,12 @@ export default function Dashboard() {
 
   // --- Habit streaks from Supabase data (normalized) ---
   const habitStreaks = useMemo(() => {
+    const todayDate = new Date();
     return habits.map((h: any) => {
-      const completedDates = h.completed_dates || [];
+      const completedDates = h.completedDates || [];
       let streak = 0;
-      const today = new Date();
       for (let offset = 0; offset < 365; offset++) {
-        const d = new Date(today);
+        const d = new Date(todayDate);
         d.setDate(d.getDate() - offset);
         const dateKey = toYYYYMMDD(d);
         if (completedDates.includes(dateKey)) {
@@ -610,7 +578,7 @@ export default function Dashboard() {
   }, [habitStreaks]);
 
   // --- Financial data from store (income/expense model) ---
-  const financialData = useMemo(() => getFinancialData(), []);
+  const financialData = useMemo(() => getFinancialData(), [store.financial]);
   const financialTransactions = financialData.transactions || [];
 
   const monthlyExpenses = useMemo(() => {
@@ -957,8 +925,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-
-
       {/* ===== FINANÇAS ===== */}
       <ExpandableSection
         icon={Wallet}
@@ -1061,8 +1027,6 @@ export default function Dashboard() {
           </div>
         )}
       </ExpandableSection>
-
-
     </div>
   );
 }

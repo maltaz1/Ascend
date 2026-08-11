@@ -85,6 +85,8 @@ export function getData(): AppData {
   return buildAppData();
 }
 
+export const subscribe = store.subscribe;
+
 if (typeof window !== "undefined") {
   window.addEventListener("online", () => store.update(state => ({ ...state, meta: { ...state.meta, online: true } })));
   window.addEventListener("offline", () => store.update(state => ({ ...state, meta: { ...state.meta, online: false } })));
