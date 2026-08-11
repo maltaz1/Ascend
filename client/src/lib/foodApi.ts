@@ -309,7 +309,49 @@ function extractNutrients(foodItem: any): FoodNutrient {
 }
 
 /**
- * Busca alimentos na USDA API com fallback para banco de dados expandido
+ * Busca alimentos no banco de dados local expandido
+ * Retorna resultados que correspondem à query (busca exata ou parcial)
+ */
+function searchLocalFoods(query: string): FoodSearchResult[] {
+  const lowerQuery = query.toLowerCase();
+  const results: FoodSearchResult[] = [];
+  
+  // Busca exata primeiro
+  for (const [key, nutrients] of Object.entries(fallbackFoods)) {
+    if (key === lowerQuery) {
+      results.push({
+        fdcId: `local_${key}`,
+        description: key.charAt(0).toUpperCase() + key.slice(1),
+        nutrients,
+        servingSize: 100,
+        servingUnit: 'g',
+      });
+      break;
+    }
+  }
+
+  // Se não encontrou exato, busca parcial
+  if (results.length === 0) {
+    for (const [key, nutrients] of Object.entries(fallbackFoods)) {
+      if (key.includes(lowerQuery)) {
+        results.push({
+          fdcId: `local_${key}`,
+          description: key.charAt(0).toUpperCase() + key.slice(1),
+          nutrients,
+          servingSize: 100,
+          servingUnit: 'g',
+        });
+        if (results.length >= 8) break;
+      }
+    }
+  }
+
+  return results;
+}
+
+/**
+ * Busca alimentos na USDA API e/ou banco local
+ * Sempre retorna resultados do banco local (BR) para termos em português
  */
 export async function searchFoods(query: string): Promise<FoodSearchResult[]> {
   if (!query || query.length < 2) return [];
@@ -322,13 +364,16 @@ export async function searchFoods(query: string): Promise<FoodSearchResult[]> {
     return cached || [];
   }
 
+  // Buscar no banco local primeiro (sempre, para termos em português)
+  const localResults = searchLocalFoods(lowerQuery);
+
   try {
     // Tentar buscar na USDA API com timeout
     const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 5000);
+    const timeoutId = setTimeout(() => controller.abort(), 3000);
 
     const response = await fetch(
-      `${USDA_API_BASE}?query=${encodeURIComponent(query)}&pageSize=10&api_key=${USDA_API_KEY}`,
+      `${USDA_API_BASE}?query=${encodeURIComponent(query)}&pageSize=5&api_key=${USDA_API_KEY}`,
       { 
         method: 'GET',
         signal: controller.signal,
@@ -337,66 +382,42 @@ export async function searchFoods(query: string): Promise<FoodSearchResult[]> {
 
     clearTimeout(timeoutId);
 
-    if (!response.ok) {
-      throw new Error(`API returned ${response.status}`);
-    }
+    if (response.ok) {
+      const data = await response.json();
+      const foods = (data.foods || []).filter((f: any) => f.description && f.foodNutrients);
 
-    const data = await response.json();
-    const foods = (data.foods || []).filter((f: any) => f.description && f.foodNutrients);
+      if (foods.length > 0) {
+        const apiResults: FoodSearchResult[] = foods.slice(0, 5).map((food: any) => ({
+          fdcId: food.fdcId,
+          description: food.description.substring(0, 100),
+          nutrients: extractNutrients(food),
+          servingSize: food.servingSize || 100,
+          servingUnit: food.servingUnit || 'g',
+        }));
 
-    if (foods.length === 0) {
-      throw new Error('No foods found in API');
-    }
-
-    const results: FoodSearchResult[] = foods.slice(0, 10).map((food: any) => ({
-      fdcId: food.fdcId,
-      description: food.description.substring(0, 100),
-      nutrients: extractNutrients(food),
-      servingSize: food.servingSize || 100,
-      servingUnit: food.servingUnit || 'g',
-    }));
-
-    // Armazenar em cache
-    foodCache.set(lowerQuery, results);
-    return results;
-  } catch (error) {
-    console.warn('USDA API error, using fallback database:', error);
-    
-    // Fallback para banco de dados local expandido
-    const fallbackResults: FoodSearchResult[] = [];
-
-    // Busca exata primeiro
-    for (const [key, nutrients] of Object.entries(fallbackFoods)) {
-      if (key === lowerQuery) {
-        fallbackResults.push({
-          fdcId: `local_${key}`,
-          description: key.charAt(0).toUpperCase() + key.slice(1),
-          nutrients,
-          servingSize: 100,
-          servingUnit: 'g',
+        // Combinar resultados: locais primeiro (em português), depois API
+        const allResults = [...localResults, ...apiResults].slice(0, 10);
+        
+        // Remover duplicatas (mesmo id)
+        const seen = new Set<string>();
+        const uniqueResults = allResults.filter(r => {
+          if (seen.has(r.fdcId)) return false;
+          seen.add(r.fdcId);
+          return true;
         });
-        break;
+
+        foodCache.set(lowerQuery, uniqueResults);
+        return uniqueResults;
       }
     }
-
-    // Se não encontrou exato, busca parcial
-    if (fallbackResults.length === 0) {
-      for (const [key, nutrients] of Object.entries(fallbackFoods)) {
-        if (key.includes(lowerQuery) || lowerQuery.includes(key)) {
-          fallbackResults.push({
-            fdcId: `local_${key}`,
-            description: key.charAt(0).toUpperCase() + key.slice(1),
-            nutrients,
-            servingSize: 100,
-            servingUnit: 'g',
-          });
-          if (fallbackResults.length >= 8) break;
-        }
-      }
-    }
-
-    foodCache.set(lowerQuery, fallbackResults);
-    return fallbackResults;
+    
+    // Se API falhou ou não retornou nada, usar apenas locais
+    foodCache.set(lowerQuery, localResults);
+    return localResults;
+  } catch (error) {
+    // Se API falhou, usar apenas banco local
+    foodCache.set(lowerQuery, localResults);
+    return localResults;
   }
 }
 
