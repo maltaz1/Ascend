@@ -620,14 +620,64 @@ function NewGoalModal({
         </div>
 
         {goalType === "semanal" ? (
-          <div>
-            <label style={{ fontSize: 12, fontWeight: 600, color: "var(--muted-foreground)", marginBottom: 6, display: "block" }}>Frequência (vezes por semana)</label>
-            <div style={{ display: "flex", gap: 6 }}>
-              {COMMON_FREQUENCIES.map(f => (
-                <button key={f.value} onClick={() => setTargetFrequency(f.value)} style={{ padding: "8px 12px", borderRadius: 10, border: targetFrequency === f.value ? `2px solid ${color}` : "1px solid rgba(255,255,255,0.05)", background: targetFrequency === f.value ? `${color}15` : "rgba(255,255,255,0.02)", color: "white", cursor: "pointer" }}>{f.label}</button>
-              ))}
+          <>
+            <div>
+              <label style={{ fontSize: 12, fontWeight: 600, color: "var(--muted-foreground)", marginBottom: 6, display: "block" }}>Frequência (vezes por semana)</label>
+              <div style={{ display: "flex", gap: 6 }}>
+                {COMMON_FREQUENCIES.map(f => (
+                  <button key={f.value} type="button" onClick={() => setTargetFrequency(f.value)} style={{ padding: "8px 12px", borderRadius: 10, border: targetFrequency === f.value ? `2px solid ${color}` : "1px solid rgba(255,255,255,0.05)", background: targetFrequency === f.value ? `${color}15` : "rgba(255,255,255,0.02)", color: "white", cursor: "pointer" }}>{f.label}</button>
+                ))}
+              </div>
             </div>
-          </div>
+            {habits.length > 0 && (
+              <div>
+                <label style={{ fontSize: 12, fontWeight: 600, color: "var(--muted-foreground)", marginBottom: 6, display: "block" }}>Vincular a um Hábito (Opcional)</label>
+                <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                  <button
+                    type="button"
+                    onClick={() => setSelectedHabitId(null)}
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: 10,
+                      border: selectedHabitId === null ? `2px solid ${color}` : "1px solid rgba(255,255,255,0.05)",
+                      background: selectedHabitId === null ? `${color}15` : "rgba(255,255,255,0.02)",
+                      color: "white",
+                      cursor: "pointer",
+                      fontSize: 12
+                    }}
+                  >
+                    Manual
+                  </button>
+                  {habits.map(h => (
+                    <button
+                      key={h.id}
+                      type="button"
+                      onClick={() => {
+                        setSelectedHabitId(h.id);
+                        setTitle(h.title);
+                        setEmoji(h.emoji);
+                      }}
+                      style={{
+                        padding: "8px 12px",
+                        borderRadius: 10,
+                        border: selectedHabitId === h.id ? `2px solid ${color}` : "1px solid rgba(255,255,255,0.05)",
+                        background: selectedHabitId === h.id ? `${color}15` : "rgba(255,255,255,0.02)",
+                        color: "white",
+                        cursor: "pointer",
+                        fontSize: 12,
+                        display: "flex",
+                        alignItems: "center",
+                        gap: 6
+                      }}
+                    >
+                      <span>{h.emoji}</span>
+                      <span>{h.title}</span>
+                    </button>
+                  ))}
+                </div>
+              </div>
+            )}
+          </>
         ) : (
           <div>
             <label style={{ fontSize: 12, fontWeight: 600, color: "var(--muted-foreground)", marginBottom: 6, display: "block" }}>Etapas</label>
