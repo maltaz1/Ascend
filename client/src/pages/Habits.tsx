@@ -48,6 +48,7 @@ import { FREE_LIMITS } from "@/config/planLimits";
 import type { Habit } from "@/lib/store";
 
 import { supabase } from "@/lib/supabase";
+import { syncHabitToGoals } from "@/lib/syncHabitGoals";
 
 // =========================
 // CONSTANTS
@@ -200,11 +201,12 @@ function HabitRow({
     }
 
     void (async () => {
+      // Sincronizar com metas semanais vinculadas a este hábito
+      await syncHabitToGoals({ id: habit.id, completed_dates: updatedDates });
       const { error } = await supabase
         .from("habits")
         .update({ completed_dates: updatedDates })
         .eq("id", habit.id);
-
       if (error) {
         onHabitUpdated(habit.id, previousDates);
         showToast("Erro ao atualizar", "info", "❌");

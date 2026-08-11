@@ -29,6 +29,14 @@ export interface Goal {
   color: string;
   createdAt: string;
   completedAt?: string;
+  // Metas semanais
+  type?: "semanal" | "longo_prazo";
+  targetFrequency?: number;
+  daysCompletedWeek?: boolean[];
+  streak?: number;
+  recordStreak?: number;
+  linkedHabitId?: string | null;
+  weekStart?: string | null;
 }
 
 export interface Habit {

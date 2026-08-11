@@ -31,6 +31,13 @@ export async function loadGoalsData(): Promise<void> {
     color: goal.color,
     createdAt: goal.created_at,
     completedAt: goal.completed_at,
+    type: goal.type,
+    targetFrequency: goal.target_frequency,
+    daysCompletedWeek: goal.days_completed_week,
+    streak: goal.streak,
+    recordStreak: goal.record_streak,
+    linkedHabitId: goal.linked_habit_id,
+    weekStart: goal.week_start,
   }));
 
   store.update(state => {

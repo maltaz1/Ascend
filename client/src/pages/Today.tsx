@@ -4,6 +4,7 @@ import React, { useMemo } from "react";
 import { Check, Sun, Target, Flame } from "lucide-react";
 import { useStore } from "@/hooks/useStore";
 import { toggleHabitDate, updateTask } from "@/lib/store";
+import { syncHabitToGoals } from "@/lib/syncHabitGoals";
 
 import { CircularProgress } from "@/components/ui/CircularProgress";
 import { showToast } from "@/components/ui/FlowToast";
@@ -75,6 +76,11 @@ export default function Today() {
 
     const isCompleted = (habit.completedDates || []).includes(today);
     void toggleHabitDate(habitId, today);
+    // Sincronizar com metas semanais vinculadas a este hábito
+    const updatedDates = isCompleted
+      ? (habit.completedDates || []).filter((d) => d !== today)
+      : [...(habit.completedDates || []), today];
+    void syncHabitToGoals({ id: habitId, completed_dates: updatedDates });
     showToast(
       isCompleted ? "Hábito desmarcado" : "Hábito concluído!",
       "success"
