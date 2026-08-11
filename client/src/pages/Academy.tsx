@@ -33,19 +33,26 @@ import {
   XP_PER_WORKOUT,
   addXP,
   WorkoutSet as StoreWorkoutSet,
+  addCatalogExercise,
+  deleteCatalogExercise,
+  getCatalogExercises,
 } from "@/lib/store";
 import { getLastExercisePerformance } from "@/store/workouts.store";
 import {
   LineChart,
   Line,
+  BarChart,
+  Bar,
   XAxis,
   YAxis,
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  Legend,
 } from "recharts";
 import { Modal } from "@/components/ui/Modal";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
+import Evolution from "./Evolution";
 
 const DAYS_OF_WEEK = [
   "Segunda",
@@ -92,6 +99,9 @@ export default function Academy({ onTabChange }: AcademyProps) {
   const workouts = useMemo(() => getWorkouts(), [data]);
   const sessions = useMemo(() => getWorkoutSessions(), [data]);
   const progressData = useMemo(() => getWorkoutProgressData(), [data]);
+  const exerciseCatalog = useMemo(() => getCatalogExercises(), [data]);
+
+  const [activeSubTab, setActiveSubTab] = useState<"workouts" | "catalog" | "evolution">("workouts");
 
   const [selectedWorkoutId, setSelectedWorkoutId] = useState<string | null>(
     null
@@ -110,6 +120,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
     useState<WorkoutInProgress | null>(null);
   const [workoutName, setWorkoutName] = useState("");
   const [workoutDay, setWorkoutDay] = useState(0);
+  const [workoutDays, setWorkoutDays] = useState<number[]>([]);
   const [historyFilter, setHistoryFilter] = useState("30");
   const [expandedExercises, setExpandedExercises] = useState<Set<string>>(
     new Set()
@@ -117,6 +128,13 @@ export default function Academy({ onTabChange }: AcademyProps) {
   const [selectedExerciseForEdit, setSelectedExerciseForEdit] = useState<
     string | null
   >(null);
+
+  const [catalogExerciseName, setCatalogExerciseName] = useState("");
+  const [catalogExerciseMuscle, setCatalogExerciseMuscle] = useState("");
+  const [showNewCatalogModal, setShowNewCatalogModal] = useState(false);
+  const [selectedCatalogId, setSelectedCatalogId] = useState<string | "">("");
+  const [showEditExerciseModal, setShowEditExerciseModal] = useState(false);
+  const [exerciseToEdit, setExerciseToEdit] = useState<Exercise | null>(null);
 
   const selectedWorkout = selectedWorkoutId
     ? workouts.find(w => w.id === selectedWorkoutId)
@@ -133,19 +151,41 @@ export default function Academy({ onTabChange }: AcademyProps) {
     if (!workoutName.trim()) return;
     const newWorkout = await addWorkout({
       name: workoutName,
-      dayOfWeek: workoutDay,
+      dayOfWeek: workoutDays[0] || 0,
+      daysOfWeek: workoutDays.length > 0 ? workoutDays : [0],
       exercises: [],
     });
     if (!newWorkout) return;
     setSelectedWorkoutId(newWorkout.id);
     setWorkoutName("");
-    setWorkoutDay(0);
+    setWorkoutDays([]);
     setShowNewWorkoutModal(false);
   };
 
+  const handleAddCatalogExercise = async () => {
+    if (!catalogExerciseName.trim()) return;
+    const created = await addCatalogExercise({
+      name: catalogExerciseName,
+      targetMuscleGroup: catalogExerciseMuscle,
+    });
+    
+    if (created && showNewExerciseModal) {
+      setSelectedCatalogId(created.id);
+      setNewExercise(prev => ({ ...prev, name: created.name }));
+    }
+
+    setCatalogExerciseName("");
+    setCatalogExerciseMuscle("");
+    setShowNewCatalogModal(false);
+  };
+
   const handleAddExercise = () => {
-    if (!newExercise.name.trim() || !selectedWorkout) return;
-    const newExerciseObj = { ...newExercise, id: generateId() };
+    if (!selectedCatalogId || !selectedWorkout) return;
+    const newExerciseObj = { 
+      ...newExercise, 
+      id: generateId(),
+      catalogExerciseId: selectedCatalogId
+    };
     const updatedExercises = [
       ...(selectedWorkout.exercises || []),
       newExerciseObj,
@@ -159,6 +199,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
       repMax: 12,
       restSeconds: 60,
     });
+    setSelectedCatalogId("");
     setShowNewExerciseModal(false);
   };
 
@@ -171,6 +212,21 @@ export default function Academy({ onTabChange }: AcademyProps) {
       ),
     };
     updateWorkout(selectedWorkout.id, { exercises: updated.exercises });
+  };
+
+  const handleEditExercise = (exercise: Exercise) => {
+    setExerciseToEdit({ ...exercise });
+    setShowEditExerciseModal(true);
+  };
+
+  const handleSaveExerciseEdit = () => {
+    if (!exerciseToEdit || !selectedWorkout) return;
+    const updatedExercises = (selectedWorkout.exercises || []).map(ex =>
+      ex.id === exerciseToEdit.id ? exerciseToEdit : ex
+    );
+    updateWorkout(selectedWorkout.id, { exercises: updatedExercises });
+    setShowEditExerciseModal(false);
+    setExerciseToEdit(null);
   };
 
   const handleStartWorkout = (workout: any) => {
@@ -262,10 +318,75 @@ export default function Academy({ onTabChange }: AcademyProps) {
 
   return (
     <div className="animate-fade-in">
-      {/* Summary Cards */}
-      <div
-        className="grid gap-4 mb-7 grid-cols-[repeat(auto-fit,minmax(180px,1fr))] md:gap-6 md:mb-8 sm:gap-3"
+      {/* Sub-tab Navigation */}
+      <div 
+        style={{ 
+          display: "flex", 
+          gap: 8, 
+          marginBottom: 24,
+          padding: 4,
+          background: "var(--border)",
+          borderRadius: 12,
+          width: "fit-content"
+        }}
       >
+        <button
+          onClick={() => setActiveSubTab("workouts")}
+          style={{
+            padding: "8px 16px",
+            borderRadius: 8,
+            fontSize: 13,
+            fontWeight: 600,
+            transition: "all 0.2s",
+            background: activeSubTab === "workouts" ? "var(--background)" : "transparent",
+            color: activeSubTab === "workouts" ? "var(--foreground)" : "var(--muted-foreground)",
+            border: "none",
+            cursor: "pointer",
+            boxShadow: activeSubTab === "workouts" ? "0 2px 4px rgba(0,0,0,0.1)" : "none"
+          }}
+        >
+          Treinos
+        </button>
+        <button
+          onClick={() => setActiveSubTab("catalog")}
+          style={{
+            padding: "8px 16px",
+            borderRadius: 8,
+            fontSize: 13,
+            fontWeight: 600,
+            transition: "all 0.2s",
+            background: activeSubTab === "catalog" ? "var(--background)" : "transparent",
+            color: activeSubTab === "catalog" ? "var(--foreground)" : "var(--muted-foreground)",
+            border: "none",
+            cursor: "pointer",
+            boxShadow: activeSubTab === "catalog" ? "0 2px 4px rgba(0,0,0,0.1)" : "none"
+          }}
+        >
+          Exercícios
+        </button>
+        <button
+          onClick={() => setActiveSubTab("evolution")}
+          style={{
+            padding: "8px 16px",
+            borderRadius: 8,
+            fontSize: 13,
+            fontWeight: 600,
+            transition: "all 0.2s",
+            background: activeSubTab === "evolution" ? "var(--background)" : "transparent",
+            color: activeSubTab === "evolution" ? "var(--foreground)" : "var(--muted-foreground)",
+            border: "none",
+            cursor: "pointer",
+            boxShadow: activeSubTab === "evolution" ? "0 2px 4px rgba(0,0,0,0.1)" : "none"
+          }}
+        >
+          Evolução
+        </button>
+      </div>
+
+      {activeSubTab === "workouts" && (
+        <div className="animate-in fade-in duration-500">
+          {/* Summary Cards */}
+          <div className="grid gap-4 mb-7 grid-cols-[repeat(auto-fit,minmax(180px,1fr))] md:gap-6 md:mb-8 sm:gap-3">
         <div
           className="fz-card"
           style={{ padding: "18px 20px", textAlign: "center" }}
@@ -408,7 +529,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
                           marginTop: 4,
                         }}
                       >
-                        {DAYS_OF_WEEK[workout.dayOfWeek]} •{" "}
+                        {(workout.daysOfWeek || [workout.dayOfWeek]).map(d => DAYS_OF_WEEK[d].substring(0, 3)).join(", ")} •{" "}
                         {workout.exercises?.length || 0} exercícios
                       </div>
                     </div>
@@ -505,23 +626,45 @@ export default function Academy({ onTabChange }: AcademyProps) {
                       fontWeight: 500,
                     }}
                   >
-                    Dia da Semana
+                    Dias da Semana
                   </div>
-                  <select
-                    value={selectedWorkout.dayOfWeek}
-                    onChange={e =>
-                      updateWorkout(selectedWorkout.id, {
-                        dayOfWeek: parseInt(e.target.value),
-                      })
-                    }
-                    className="fz-input"
-                  >
-                    {DAYS_OF_WEEK.map((day, idx) => (
-                      <option key={idx} value={idx}>
-                        {day}
-                      </option>
-                    ))}
-                  </select>
+                  <div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
+                    {DAYS_OF_WEEK.map((day, idx) => {
+                      const isSelected = (selectedWorkout.daysOfWeek || [selectedWorkout.dayOfWeek]).includes(idx);
+                      return (
+                        <button
+                          key={idx}
+                          onClick={() => {
+                            const currentDays = selectedWorkout.daysOfWeek || [selectedWorkout.dayOfWeek];
+                            let newDays;
+                            if (isSelected) {
+                              newDays = currentDays.filter(d => d !== idx);
+                            } else {
+                              newDays = [...currentDays, idx].sort();
+                            }
+                            updateWorkout(selectedWorkout.id, { 
+                              daysOfWeek: newDays,
+                              dayOfWeek: newDays[0] || 0
+                            });
+                          }}
+                          style={{
+                            padding: "6px 10px",
+                            borderRadius: 8,
+                            fontSize: 11,
+                            fontWeight: 600,
+                            border: "1px solid",
+                            borderColor: isSelected ? "#A855F7" : "var(--border)",
+                            background: isSelected ? "rgba(168,85,247,0.1)" : "transparent",
+                            color: isSelected ? "#A855F7" : "var(--muted-foreground)",
+                            cursor: "pointer",
+                            transition: "all 0.2s"
+                          }}
+                        >
+                          {day.substring(0, 3)}
+                        </button>
+                      );
+                    })}
+                  </div>
                 </div>
 
                 {/* Exercises */}
@@ -568,9 +711,24 @@ export default function Academy({ onTabChange }: AcademyProps) {
                               fontSize: 13,
                               fontWeight: 500,
                               color: "var(--foreground)",
+                              display: "flex",
+                              alignItems: "center",
+                              gap: 6
                             }}
                           >
                             {exercise.name}
+                            {exercise.catalogExerciseId && (
+                              <span style={{ 
+                                fontSize: 10, 
+                                padding: "2px 6px", 
+                                borderRadius: 4, 
+                                background: "rgba(168,85,247,0.1)", 
+                                color: "#A855F7",
+                                fontWeight: 600
+                              }}>
+                                {exerciseCatalog.find(c => c.id === exercise.catalogExerciseId)?.targetMuscleGroup}
+                              </span>
+                            )}
                           </div>
                           <div
                             style={{
@@ -583,20 +741,36 @@ export default function Academy({ onTabChange }: AcademyProps) {
                             {exercise.repMax}
                           </div>
                         </div>
-                        <button
-                          onClick={e => {
-                            e.stopPropagation();
-                            handleDeleteExercise(exercise.id);
-                          }}
-                          style={{
-                            background: "transparent",
-                            border: "none",
-                            cursor: "pointer",
-                            padding: "4px",
-                          }}
-                        >
-                          <Trash2 size={14} color="#EF4444" />
-                        </button>
+                        <div style={{ display: "flex", gap: 4 }}>
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              handleEditExercise(exercise);
+                            }}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              cursor: "pointer",
+                              padding: "4px",
+                            }}
+                          >
+                            <Edit2 size={14} color="var(--muted-foreground)" />
+                          </button>
+                          <button
+                            onClick={e => {
+                              e.stopPropagation();
+                              handleDeleteExercise(exercise.id);
+                            }}
+                            style={{
+                              background: "transparent",
+                              border: "none",
+                              cursor: "pointer",
+                              padding: "4px",
+                            }}
+                          >
+                            <Trash2 size={14} color="#EF4444" />
+                          </button>
+                        </div>
                       </button>
 
                       {expandedExercises.has(exercise.id) && (
@@ -858,6 +1032,65 @@ export default function Academy({ onTabChange }: AcademyProps) {
           </div>
         )}
       </div>
+      </div>
+      )}
+
+      {activeSubTab === "catalog" && (
+        <div className="animate-in fade-in duration-500">
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}>
+            <h2 style={{ fontSize: 18, fontWeight: 600, color: "var(--foreground)", fontFamily: "Space Grotesk" }}>
+              Catálogo de Exercícios
+            </h2>
+            <button
+              onClick={() => setShowNewCatalogModal(true)}
+              className="fz-btn-primary"
+              style={{ padding: "8px 14px", fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}
+            >
+              <Plus size={14} />
+              Novo Exercício
+            </button>
+          </div>
+
+          {exerciseCatalog.length === 0 ? (
+            <div className="fz-card" style={{ padding: "40px 20px", textAlign: "center" }}>
+              <Dumbbell size={32} style={{ margin: "0 auto 12px", opacity: 0.5 }} />
+              <p style={{ color: "var(--muted-foreground)", fontSize: 14 }}>
+                Seu catálogo está vazio. Adicione exercícios para usá-los nos seus treinos.
+              </p>
+            </div>
+          ) : (
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
+              {exerciseCatalog.map(ex => (
+                <div key={ex.id} className="fz-card" style={{ padding: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                  <div>
+                    <div style={{ fontWeight: 600, fontSize: 14, color: "var(--foreground)" }}>{ex.name}</div>
+                    {ex.targetMuscleGroup && (
+                      <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 4 }}>
+                        {ex.targetMuscleGroup}
+                      </div>
+                    )}
+                  </div>
+                  <button
+                    onClick={() => deleteCatalogExercise(ex.id)}
+                    style={{ background: "transparent", border: "none", cursor: "pointer", padding: 8 }}
+                  >
+                    <Trash2 size={16} color="#EF4444" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
+        </div>
+      )}
+
+      {activeSubTab === "evolution" && (
+        <div className="animate-in fade-in duration-500">
+          <Evolution 
+            onTabChange={() => setActiveSubTab("workouts")} 
+            hideHeader={true} 
+          />
+        </div>
+      )}
 
       {/* Modal: Nova Ficha */}
       <Modal
@@ -891,22 +1124,42 @@ export default function Academy({ onTabChange }: AcademyProps) {
                 fontSize: 12,
                 color: "var(--muted-foreground)",
                 display: "block",
-                marginBottom: 6,
+                marginBottom: 8,
               }}
             >
-              Dia da Semana
+              Dias da Semana
             </label>
-            <select
-              value={workoutDay}
-              onChange={e => setWorkoutDay(parseInt(e.target.value))}
-              className="fz-input"
-            >
-              {DAYS_OF_WEEK.map((day, idx) => (
-                <option key={idx} value={idx}>
-                  {day}
-                </option>
-              ))}
-            </select>
+            <div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+              {DAYS_OF_WEEK.map((day, idx) => {
+                const isSelected = workoutDays.includes(idx);
+                return (
+                  <button
+                    key={idx}
+                    onClick={() => {
+                      if (isSelected) {
+                        setWorkoutDays(workoutDays.filter(d => d !== idx));
+                      } else {
+                        setWorkoutDays([...workoutDays, idx].sort());
+                      }
+                    }}
+                    style={{
+                      padding: "8px 12px",
+                      borderRadius: 10,
+                      fontSize: 12,
+                      fontWeight: 600,
+                      border: "1px solid",
+                      borderColor: isSelected ? "#A855F7" : "var(--border)",
+                      background: isSelected ? "rgba(168,85,247,0.1)" : "transparent",
+                      color: isSelected ? "#A855F7" : "var(--muted-foreground)",
+                      cursor: "pointer",
+                      transition: "all 0.2s"
+                    }}
+                  >
+                    {day.substring(0, 3)}
+                  </button>
+                );
+              })}
+            </div>
           </div>
           <button
             onClick={handleCreateWorkout}
@@ -918,7 +1171,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
         </div>
       </Modal>
 
-      {/* Modal: Novo Exercício */}
+            {/* Modal: Novo Exercício */}
       <Modal
         open={showNewExerciseModal}
         onClose={() => setShowNewExerciseModal(false)}
@@ -926,151 +1179,204 @@ export default function Academy({ onTabChange }: AcademyProps) {
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
           <div>
-            <label
-              style={{
-                fontSize: 12,
-                color: "var(--muted-foreground)",
-                display: "block",
-                marginBottom: 6,
-              }}
-            >
-              Nome do Exercício
-            </label>
-            <input
-              type="text"
-              value={newExercise.name}
-              onChange={e =>
-                setNewExercise({ ...newExercise, name: e.target.value })
-              }
-              placeholder="Ex: Supino, Agachamento, Rosca..."
-              className="fz-input"
-            />
-          </div>
-
-          {/* Séries + Reps Mín — grid responsivo */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
-              gap: 12,
-            }}
-          >
-            <div>
-              <label
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
+              <label style={{ fontSize: 12, color: "var(--muted-foreground)", fontWeight: 600 }}>
+                Exercício do Catálogo
+              </label>
+              <button
+                onClick={() => setShowNewCatalogModal(true)}
                 style={{
-                  fontSize: 12,
-                  color: "var(--muted-foreground)",
-                  display: "block",
-                  marginBottom: 6,
+                  fontSize: 10,
+                  color: "#A855F7",
+                  background: "rgba(168,85,247,0.1)",
+                  border: "none",
+                  padding: "2px 8px",
+                  borderRadius: 6,
+                  cursor: "pointer",
+                  fontWeight: 700
                 }}
               >
+                + Criar Novo
+              </button>
+            </div>
+            <select
+              value={selectedCatalogId}
+              onChange={e => {
+                const id = e.target.value;
+                setSelectedCatalogId(id);
+                if (id) {
+                  const catalogEx = exerciseCatalog.find(ex => ex.id === id);
+                  if (catalogEx) {
+                    setNewExercise({ ...newExercise, name: catalogEx.name });
+                  }
+                }
+              }}
+              className="fz-input"
+              style={{ 
+                marginBottom: 12,
+                borderColor: !selectedCatalogId ? "rgba(168,85,247,0.3)" : "var(--border)"
+              }}
+            >
+              <option value="">-- Selecione um exercício --</option>
+              {exerciseCatalog.map(ex => (
+                <option key={ex.id} value={ex.id}>
+                  {ex.name} {ex.targetMuscleGroup ? `(${ex.targetMuscleGroup})` : ""}
+                </option>
+              ))}
+            </select>
+          </div>
+
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12 }}>
+            <div>
+              <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
                 Séries
               </label>
               <input
                 type="number"
                 value={newExercise.series}
-                onChange={e =>
-                  setNewExercise({
-                    ...newExercise,
-                    series: parseInt(e.target.value),
-                  })
-                }
+                onChange={e => setNewExercise({ ...newExercise, series: parseInt(e.target.value) })}
                 className="fz-input"
                 style={{ width: "100%", boxSizing: "border-box" }}
               />
             </div>
             <div>
-              <label
-                style={{
-                  fontSize: 12,
-                  color: "var(--muted-foreground)",
-                  display: "block",
-                  marginBottom: 6,
-                }}
-              >
+              <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
                 Reps Mín
               </label>
               <input
                 type="number"
                 value={newExercise.repMin}
-                onChange={e =>
-                  setNewExercise({
-                    ...newExercise,
-                    repMin: parseInt(e.target.value),
-                  })
-                }
+                onChange={e => setNewExercise({ ...newExercise, repMin: parseInt(e.target.value) })}
                 className="fz-input"
                 style={{ width: "100%", boxSizing: "border-box" }}
               />
             </div>
           </div>
 
-          {/* Reps Máx + Descanso — grid responsivo */}
-          <div
-            style={{
-              display: "grid",
-              gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))",
-              gap: 12,
-            }}
-          >
+          <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12 }}>
             <div>
-              <label
-                style={{
-                  fontSize: 12,
-                  color: "var(--muted-foreground)",
-                  display: "block",
-                  marginBottom: 6,
-                }}
-              >
+              <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
                 Reps Máx
               </label>
               <input
                 type="number"
                 value={newExercise.repMax}
-                onChange={e =>
-                  setNewExercise({
-                    ...newExercise,
-                    repMax: parseInt(e.target.value),
-                  })
-                }
+                onChange={e => setNewExercise({ ...newExercise, repMax: parseInt(e.target.value) })}
                 className="fz-input"
                 style={{ width: "100%", boxSizing: "border-box" }}
               />
             </div>
             <div>
-              <label
-                style={{
-                  fontSize: 12,
-                  color: "var(--muted-foreground)",
-                  display: "block",
-                  marginBottom: 6,
-                }}
-              >
+              <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
                 Descanso (s)
               </label>
               <input
                 type="number"
                 value={newExercise.restSeconds}
-                onChange={e =>
-                  setNewExercise({
-                    ...newExercise,
-                    restSeconds: parseInt(e.target.value),
-                  })
-                }
+                onChange={e => setNewExercise({ ...newExercise, restSeconds: parseInt(e.target.value) })}
                 className="fz-input"
                 style={{ width: "100%", boxSizing: "border-box" }}
               />
             </div>
           </div>
-
           <button
             onClick={handleAddExercise}
             className="fz-btn-primary"
-            style={{ width: "100%", padding: "12px" }}
+            disabled={!selectedCatalogId}
+            style={{ 
+              width: "100%", 
+              padding: "12px",
+              opacity: !selectedCatalogId ? 0.5 : 1,
+              cursor: !selectedCatalogId ? "not-allowed" : "pointer"
+            }}
           >
-            Adicionar Exercício
+            Adicionar à Ficha
           </button>
         </div>
+      </Modal>
+
+      {/* Modal: Editar Exercício */}
+      <Modal
+        open={showEditExerciseModal}
+        onClose={() => setShowEditExerciseModal(false)}
+        title="Editar Exercício"
+      >
+        {exerciseToEdit && (
+          <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+            <div>
+              <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
+                Nome do Exercício
+              </label>
+              <input
+                type="text"
+                value={exerciseToEdit.name}
+                onChange={e => setExerciseToEdit({ ...exerciseToEdit, name: e.target.value })}
+                className="fz-input"
+              />
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12 }}>
+              <div>
+                <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
+                  Séries
+                </label>
+                <input
+                  type="number"
+                  value={exerciseToEdit.series}
+                  onChange={e => setExerciseToEdit({ ...exerciseToEdit, series: parseInt(e.target.value) })}
+                  className="fz-input"
+                  style={{ width: "100%", boxSizing: "border-box" }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
+                  Reps Mín
+                </label>
+                <input
+                  type="number"
+                  value={exerciseToEdit.repMin}
+                  onChange={e => setExerciseToEdit({ ...exerciseToEdit, repMin: parseInt(e.target.value) })}
+                  className="fz-input"
+                  style={{ width: "100%", boxSizing: "border-box" }}
+                />
+              </div>
+            </div>
+
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12 }}>
+              <div>
+                <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
+                  Reps Máx
+                </label>
+                <input
+                  type="number"
+                  value={exerciseToEdit.repMax}
+                  onChange={e => setExerciseToEdit({ ...exerciseToEdit, repMax: parseInt(e.target.value) })}
+                  className="fz-input"
+                  style={{ width: "100%", boxSizing: "border-box" }}
+                />
+              </div>
+              <div>
+                <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
+                  Descanso (s)
+                </label>
+                <input
+                  type="number"
+                  value={exerciseToEdit.restSeconds}
+                  onChange={e => setExerciseToEdit({ ...exerciseToEdit, restSeconds: parseInt(e.target.value) })}
+                  className="fz-input"
+                  style={{ width: "100%", boxSizing: "border-box" }}
+                />
+              </div>
+            </div>
+            <button
+              onClick={handleSaveExerciseEdit}
+              className="fz-btn-primary"
+              style={{ width: "100%", padding: "12px" }}
+            >
+              Salvar Alterações
+            </button>
+          </div>
+        )}
       </Modal>
 
       {/* Modal: Treino em Progresso */}
@@ -1593,8 +1899,48 @@ export default function Academy({ onTabChange }: AcademyProps) {
         )}
       </Modal>
 
+      {/* MODAL: NOVO EXERCÍCIO NO CATÁLOGO */}
+      <Modal
+        open={showNewCatalogModal}
+        onClose={() => setShowNewCatalogModal(false)}
+        title="Novo Exercício no Catálogo"
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
+          <div>
+            <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
+              Nome do Exercício
+            </label>
+            <input
+              type="text"
+              value={catalogExerciseName}
+              onChange={e => setCatalogExerciseName(e.target.value)}
+              placeholder="Ex: Supino Reto"
+              className="fz-input"
+            />
+          </div>
+          <div>
+            <label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
+              Grupo Muscular
+            </label>
+            <input
+              type="text"
+              value={catalogExerciseMuscle}
+              onChange={e => setCatalogExerciseMuscle(e.target.value)}
+              placeholder="Ex: Peito"
+              className="fz-input"
+            />
+          </div>
+          <button
+            onClick={handleAddCatalogExercise}
+            className="fz-btn-primary"
+            style={{ width: "100%", padding: "12px" }}
+          >
+            Adicionar ao Catálogo
+          </button>
+        </div>
+      </Modal>
+
       <style>{`
-        /* Modal — garante que não corta conteúdo no mobile */
         .fz-modal-content {
           width: min(92vw, 500px) !important;
           box-sizing: border-box !important;
