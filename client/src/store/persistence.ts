@@ -41,7 +41,7 @@ function normalizeAppData(parsed: Partial<AppData>): AppData {
       proteinGoal: parsed.diet?.settings?.proteinGoal || 150,
       carbsGoal: parsed.diet?.settings?.carbsGoal || 250,
       fatGoal: parsed.diet?.settings?.fatGoal || 70,
-      waterGoal: parsed.diet?.settings?.waterGoal || 2,
+      waterGoal: parsed.diet?.settings?.waterGoal || 2000,
       restrictions: parsed.diet?.settings?.restrictions || [],
       preferences: parsed.diet?.settings?.preferences || [],
     },
