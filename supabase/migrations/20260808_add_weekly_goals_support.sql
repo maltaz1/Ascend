@@ -17,3 +17,4 @@ ALTER TABLE goals ADD COLUMN IF NOT EXISTS streak integer NOT NULL DEFAULT 0;
 ALTER TABLE goals ADD COLUMN IF NOT EXISTS record_streak integer NOT NULL DEFAULT 0;
 ALTER TABLE goals ADD COLUMN IF NOT EXISTS linked_habit_id text;
 ALTER TABLE goals ADD COLUMN IF NOT EXISTS week_start text;
+ALTER TABLE goals ADD COLUMN IF NOT EXISTS weekly_history jsonb NOT NULL DEFAULT '[]'::jsonb;

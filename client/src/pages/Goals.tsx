@@ -1146,9 +1146,6 @@ function NewGoalModal({
         record_streak: 0,
         linked_habit_id: selectedHabitId || null,
         weekly_history: [],
-        deadline: null,
-        steps: [],
-        completed_at: null,
       });
 
       if (error) {
@@ -1171,19 +1168,13 @@ function NewGoalModal({
 
       const { error } = await supabase.from("goals").insert({
         user_id: user.id,
-
         title: title.trim(),
         description: description || null,
-
         emoji,
         color,
-
         type: "longo_prazo",
-
         deadline: deadline || null,
-
         steps: validSteps,
-
         completed_at: null,
       });
 
@@ -1210,7 +1201,8 @@ function NewGoalModal({
 
     onClose();
 
-    window.location.reload();
+    // Atualização suave: recarrega apenas os dados, sem reload total da página
+    await reloadGoals();
   };
 
   return (
