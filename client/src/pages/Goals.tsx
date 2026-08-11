@@ -205,6 +205,7 @@ function WeeklyGoalCard({
   linkedHabits: { id: string; title: string; emoji: string; completed_dates?: string[] | null }[];
   reloadGoals: () => void;
   isMobile: boolean;
+  onDelete: () => void;
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const { showXP } = useXPAnimation();
@@ -309,7 +310,36 @@ function WeeklyGoalCard({
           {goal.emoji}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <h3 style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{goal.title}</h3>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <h3 style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{goal.title}</h3>
+            <button
+              onClick={(e) => {
+                e.stopPropagation();
+                if (window.confirm(`Excluir "${goal.title}"?`)) {
+                  onDelete();
+                }
+              }}
+              style={{
+                background: "rgba(239,68,68,0.1)",
+                border: "1px solid rgba(239,68,68,0.2)",
+                borderRadius: 6,
+                width: 24,
+                height: 24,
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                cursor: "pointer",
+                opacity: 0.6,
+                transition: "opacity 0.2s",
+                flexShrink: 0,
+                marginLeft: 8
+              }}
+              onMouseEnter={e => (e.currentTarget.style.opacity = "1")}
+              onMouseLeave={e => (e.currentTarget.style.opacity = "0.6")}
+            >
+              <Trash2 size={12} color="#EF4444" />
+            </button>
+          </div>
           <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4, flexWrap: "wrap" }}>
             <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: hit ? "#10B981" : goal.color, background: hit ? "rgba(16,185,129,0.1)" : colorInfo.light, padding: "2px 8px", borderRadius: 6 }}>
               {hit ? "Atingida" : `${completedCount}/${target}`}
@@ -848,7 +878,18 @@ export default function Goals({
         {weeklyWithHabitCheckins.length > 0 ? (
           <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(300px, 1fr))", gap: isMobile ? 12 : 20 }}>
             {weeklyWithHabitCheckins.map(goal => (
-              <WeeklyGoalCard key={goal.id} goal={goal} linkedHabits={habits} reloadGoals={loadGoals} isMobile={isMobile} />
+              <WeeklyGoalCard
+                key={goal.id}
+                goal={goal}
+                linkedHabits={habits}
+                reloadGoals={loadGoals}
+                isMobile={isMobile}
+                onDelete={async () => {
+                  await supabase.from("goals").delete().eq("id", goal.id);
+                  loadGoals();
+                  showToast("Meta excluída", "success");
+                }}
+              />
             ))}
           </div>
         ) : (
