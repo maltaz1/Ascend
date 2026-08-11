@@ -112,7 +112,7 @@ function normalizeWeeklyGoals(goals: Goal[]): { normalized: Goal[]; changed: boo
 }
 
 // =========================
-// CONSTANTS — Original app colors (no gradients)
+// CONSTANTS & THEME
 // =========================
 
 const EMOJIS = [
@@ -121,7 +121,7 @@ const EMOJIS = [
 ];
 
 const COLORS = [
-  "#8B5CF6", // violet (primary — original)
+  "#8B5CF6", // violet
   "#F59E0B", // amber
   "#10B981", // emerald
   "#EF4444", // red
@@ -131,28 +131,26 @@ const COLORS = [
   "#6B7280", // gray
 ];
 
-// Original app palette
-const PRIMARY = "#8B5CF6";
-const PRIMARY_DARK = "#7C3AED";
-const PRIMARY_LIGHT = "rgba(139,92,246,0.12)";
-const PRIMARY_BORDER = "rgba(139,92,246,0.3)";
+const COLOR_MAP: Record<string, { gradient: string; glow: string; light: string; dark: string }> = {
+  "#F59E0B": { gradient: "linear-gradient(135deg, #F59E0B, #FCD34D)", glow: "rgba(245,158,11,0.25)", light: "rgba(245,158,11,0.08)", dark: "rgba(245,158,11,0.15)" },
+  "#A855F7": { gradient: "linear-gradient(135deg, #A855F7, #C084FC)", glow: "rgba(168,85,247,0.25)", light: "rgba(168,85,247,0.08)", dark: "rgba(168,85,247,0.15)" },
+  "#10B981": { gradient: "linear-gradient(135deg, #10B981, #34D399)", glow: "rgba(16,185,129,0.25)", light: "rgba(16,185,129,0.08)", dark: "rgba(16,185,129,0.15)" },
+  "#8B5CF6": { gradient: "linear-gradient(135deg, #8B5CF6, #A78BFA)", glow: "rgba(139,92,246,0.25)", light: "rgba(139,92,246,0.08)", dark: "rgba(139,92,246,0.15)" },
+  "#EF4444": { gradient: "linear-gradient(135deg, #EF4444, #F87171)", glow: "rgba(239,68,68,0.25)", light: "rgba(239,68,68,0.08)", dark: "rgba(239,68,68,0.15)" },
+  "#EC4899": { gradient: "linear-gradient(135deg, #EC4899, #F472B6)", glow: "rgba(236,72,153,0.25)", light: "rgba(236,72,153,0.08)", dark: "rgba(236,72,153,0.15)" },
+  "#06B6D4": { gradient: "linear-gradient(135deg, #06B6D4, #22D3EE)", glow: "rgba(6,182,212,0.25)", light: "rgba(6,182,212,0.08)", dark: "rgba(6,182,212,0.15)" },
+  "#84CC16": { gradient: "linear-gradient(135deg, #84CC16, #A3E635)", glow: "rgba(132,204,22,0.25)", light: "rgba(132,204,22,0.08)", dark: "rgba(132,204,22,0.15)" },
+  "#6B7280": { gradient: "linear-gradient(135deg, #6B7280, #9CA3AF)", glow: "rgba(107,114,128,0.25)", light: "rgba(107,114,128,0.08)", dark: "rgba(107,114,128,0.15)" },
+};
 
-const AMBER = "#F59E0B";
-const AMBER_LIGHT = "rgba(245,158,11,0.12)";
-const AMBER_BORDER = "rgba(245,158,11,0.3)";
-
-const EMERALD = "#10B981";
-const EMERALD_LIGHT = "rgba(16,185,129,0.12)";
-const EMERALD_BORDER = "rgba(16,185,129,0.3)";
-
-const ORANGE = "#F97316";
-
-const NEUTRAL_BORDER = "rgba(255,255,255,0.08)";
-const WHITE = "#FFFFFF";
-const MUTED = "var(--muted-foreground)";
-const FOREGROUND = "var(--foreground)";
-const GOLD = "#FCD34D";
-const GOLD_BORDER = "#f59e0b";
+function getGoalColors(hex: string) {
+  return COLOR_MAP[hex] || {
+    gradient: `linear-gradient(135deg, ${hex}, ${hex}CC)`,
+    glow: `${hex}40`,
+    light: `${hex}15`,
+    dark: `${hex}25`
+  };
+}
 
 function goalToWeekly(g: Goal): import("@/lib/weeklyGoals").WeeklyGoal {
   return {
@@ -173,99 +171,12 @@ function goalToWeekly(g: Goal): import("@/lib/weeklyGoals").WeeklyGoal {
 }
 
 // =========================
-// STYLE FACTORIES (responsive)
-// =========================
-
-function S_card(isMobile: boolean): React.CSSProperties {
-  return {
-    background: "var(--card)",
-    border: `1px solid ${NEUTRAL_BORDER}`,
-    borderRadius: isMobile ? 10 : 12,
-    transition: "all 0.15s ease",
-  };
-}
-
-function S_btnPrimary(isMobile: boolean): React.CSSProperties {
-  return {
-    padding: isMobile ? "10px 16px" : "10px 20px",
-    borderRadius: 10,
-    background: PRIMARY,
-    color: WHITE,
-    fontWeight: 600,
-    fontSize: isMobile ? 13 : 14,
-    border: "none",
-    cursor: "pointer",
-    transition: "all 0.15s ease",
-    fontFamily: "'DM Sans', sans-serif",
-    whiteSpace: "nowrap" as const,
-  };
-}
-
-function S_btnSecondary(isMobile: boolean): React.CSSProperties {
-  return {
-    padding: isMobile ? "7px 12px" : "8px 14px",
-    borderRadius: 8,
-    background: "rgba(255,255,255,0.03)",
-    color: MUTED,
-    fontWeight: 600,
-    fontSize: isMobile ? 11 : 12,
-    border: `1px solid ${NEUTRAL_BORDER}`,
-    cursor: "pointer",
-    transition: "all 0.15s ease",
-    fontFamily: "'DM Sans', sans-serif",
-    whiteSpace: "nowrap" as const,
-  };
-}
-
-function S_input(isMobile: boolean): React.CSSProperties {
-  return {
-    width: "100%",
-    padding: isMobile ? "10px 12px" : "10px 14px",
-    borderRadius: 8,
-    border: `1px solid ${NEUTRAL_BORDER}`,
-    background: "rgba(255,255,255,0.03)",
-    color: FOREGROUND,
-    fontSize: isMobile ? 13 : 14,
-    fontFamily: "'DM Sans', sans-serif",
-    outline: "none",
-    transition: "border-color 0.15s ease",
-    boxSizing: "border-box" as const,
-  };
-}
-
-function S_label(): React.CSSProperties {
-  return {
-    fontSize: 11,
-    fontWeight: 700,
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.1em",
-    color: MUTED,
-    marginBottom: 6,
-  };
-}
-
-function S_tag(isMobile: boolean): React.CSSProperties {
-  return {
-    display: "inline-flex" as const,
-    alignItems: "center" as const,
-    gap: 4,
-    fontSize: isMobile ? 9 : 10,
-    fontWeight: 700,
-    textTransform: "uppercase" as const,
-    letterSpacing: "0.08em",
-    borderRadius: 6,
-    padding: "3px 8px",
-    whiteSpace: "nowrap" as const,
-  };
-}
-
-// =========================
 // WEEKLY SPARKLINE
 // =========================
 
 function WeeklySparkline({ data, color }: { data: number[]; color: string }) {
-  const width = 56;
-  const height = 16;
+  const width = 64;
+  const height = 18;
   const points = data.map((v, i) => {
     const x = (i / Math.max(data.length - 1, 1)) * width;
     const y = height - (v / 100) * height;
@@ -273,7 +184,7 @@ function WeeklySparkline({ data, color }: { data: number[]; color: string }) {
   }).join(" ");
 
   return (
-    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ display: "block", flexShrink: 0 }}>
+    <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ display: "block" }}>
       <polyline points={points} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
     </svg>
   );
@@ -296,7 +207,8 @@ function WeeklyGoalCard({
 }) {
   const cardRef = useRef<HTMLDivElement>(null);
   const { showXP } = useXPAnimation();
-  const color = goal.color;
+  const colorInfo = getGoalColors(goal.color);
+  const hit = isWeeklyGoalHit(goalToWeekly(goal));
 
   const norm = useMemo(
     () =>
@@ -320,7 +232,6 @@ function WeeklyGoalCard({
 
   const [days, setDays] = useState<boolean[]>(norm.goal.daysCompletedWeek);
   const [streak, setStreak] = useState(norm.goal.streak);
-  const [recordStreak] = useState(norm.goal.recordStreak);
 
   useEffect(() => {
     if (norm.changed) {
@@ -328,17 +239,13 @@ function WeeklyGoalCard({
       setStreak(norm.goal.streak);
       persistWeek(norm.goal.daysCompletedWeek, norm.goal.streak);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [norm.changed]);
 
   const habit = linkedHabits.find(h => h.id === goal.linked_habit_id);
 
-  const persistWeek = async (newDays: boolean[], newStreak: number, newRecordStreak?: number) => {
+  const persistWeek = async (newDays: boolean[], newStreak: number) => {
     const weekStart = getMondayOfDate(new Date());
-    const payload: any = { days_completed_week: newDays, week_start: weekStart, streak: newStreak };
-    if (newRecordStreak !== undefined) payload.record_streak = newRecordStreak;
-    const { error } = await supabase.from("goals").update(payload).eq("id", goal.id);
-    if (error) { showToast("Erro ao atualizar meta", "info", "❌"); return; }
+    await supabase.from("goals").update({ days_completed_week: newDays, week_start: weekStart, streak: newStreak }).eq("id", goal.id);
     reloadGoals();
   };
 
@@ -348,28 +255,19 @@ function WeeklyGoalCard({
     d.setDate(monday.getDate() + dayIndex);
     const todayStr = new Date().toISOString().slice(0, 10);
     const dayStr = d.toISOString().slice(0, 10);
-    if (dayStr > todayStr) { showToast("Você só pode marcar dias até hoje", "info", "📅"); return; }
+    if (dayStr > todayStr) { showToast("Somente dias passados ou hoje", "info", "📅"); return; }
 
     const newDays = days.map((v, i) => (i === dayIndex ? !v : v));
     setDays(newDays);
 
-    const completedCount = newDays.filter(Boolean).length;
-    const target = goal.target_frequency ?? 1;
-    const wasHitBefore = days.filter(Boolean).length >= target;
-
     const rect = cardRef.current?.getBoundingClientRect();
     if (rect) showXP(5, rect.left + rect.width / 2, rect.top);
-    if (completedCount >= target && !wasHitBefore) {
-      if (rect) showXP(25, rect.left + rect.width / 2, rect.top + 30);
-      showToast(`Meta semanal atingida! 🔥 ${completedCount}/${target}`, "success", "🎉");
-    }
     await persistWeek(newDays, streak);
   };
 
   const completedCount = days.filter(Boolean).length;
   const target = goal.target_frequency ?? 1;
-  const hit = isWeeklyGoalHit({ ...norm.goal, daysCompletedWeek: days });
-  const sparklineData = getWeeklySparkline({ ...norm.goal, daysCompletedWeek: days, weeklyHistory: norm.goal.weeklyHistory });
+  const sparklineData = getWeeklySparkline({ ...norm.goal, daysCompletedWeek: days });
 
   const todayIdx = (() => {
     const jsDay = new Date().getDay();
@@ -380,90 +278,78 @@ function WeeklyGoalCard({
     <div
       ref={cardRef}
       style={{
-        ...S_card(isMobile),
-        padding: isMobile ? 14 : 18,
+        background: hit ? "linear-gradient(145deg, rgba(16,185,129,0.06), var(--card))" : `linear-gradient(145deg, ${colorInfo.light}, var(--card))`,
+        border: `1px solid ${hit ? "rgba(16,185,129,0.25)" : colorInfo.glow}`,
+        borderRadius: isMobile ? 16 : 20,
+        padding: isMobile ? 14 : 20,
         position: "relative",
-        borderColor: hit ? EMERALD_BORDER : `${color}30`,
+        transition: "all 0.2s ease",
       }}
     >
-      {/* Top color bar */}
-      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: hit ? EMERALD : color, borderRadius: "12px 12px 0 0" }} />
+      <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: hit ? "linear-gradient(90deg, #10B981, #34D399)" : colorInfo.gradient, borderRadius: "20px 20px 0 0", opacity: 0.8 }} />
 
-      {/* Header */}
-      <div style={{ display: "flex", gap: isMobile ? 10 : 12, marginBottom: 12, alignItems: "flex-start" }}>
-        <div style={{ width: isMobile ? 36 : 40, height: isMobile ? 36 : 40, borderRadius: "50%", background: `${color}20`, border: `2px solid ${color}50`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? 16 : 18, flexShrink: 0 }}>
+      <div style={{ display: "flex", gap: isMobile ? 10 : 12, marginBottom: 14, alignItems: "flex-start" }}>
+        <div style={{ width: isMobile ? 40 : 48, height: isMobile ? 40 : 48, borderRadius: "50%", background: `linear-gradient(135deg, ${goal.color}, ${goal.color}CC)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? 18 : 22, boxShadow: `0 4px 16px ${goal.color}40`, flexShrink: 0 }}>
           {goal.emoji}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 6 }}>
-            <h3 style={{ fontSize: isMobile ? 13 : 14, fontWeight: 700, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{goal.title}</h3>
-            <div style={{ display: "flex", alignItems: "center", gap: 3, color: ORANGE, flexShrink: 0 }}>
-              <Flame size={13} />
-              <span style={{ fontSize: isMobile ? 13 : 14, fontWeight: 800 }}>{streak}</span>
+          <h3 style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{goal.title}</h3>
+          <div style={{ display: "flex", alignItems: "center", gap: 6, marginTop: 4 }}>
+            <span style={{ fontSize: 10, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.05em", color: hit ? "#10B981" : goal.color, background: hit ? "rgba(16,185,129,0.1)" : colorInfo.light, padding: "2px 8px", borderRadius: 6 }}>
+              {hit ? "Atingida" : `${completedCount}/${target}`}
+            </span>
+            <div style={{ display: "flex", alignItems: "center", gap: 2, color: "#F97316" }}>
+              <Flame size={12} fill="#F97316" />
+              <span style={{ fontSize: 12, fontWeight: 800 }}>{streak}</span>
             </div>
           </div>
-          <span style={{ ...S_tag(isMobile), color: hit ? EMERALD : color, background: hit ? EMERALD_LIGHT : `${color}15`, marginTop: 3 }}>
-            {hit ? "✓ Atingida" : `${completedCount}/${target}`}
-          </span>
-          <p style={{ fontSize: isMobile ? 10 : 11, color: MUTED, marginTop: 3, lineHeight: 1.4, margin: 0 }}>
-            {habit ? `${habit.emoji} ${habit.title}` : goal.description || `${target}x por semana`}
-          </p>
         </div>
       </div>
 
-      {/* Progress bar */}
-      <div style={{ height: 4, borderRadius: 999, background: "rgba(255,255,255,0.06)", marginBottom: 10, overflow: "hidden" }}>
-        <div style={{ width: `${Math.min(100, (completedCount / target) * 100)}%`, height: "100%", background: hit ? EMERALD : color, borderRadius: 999, transition: "width 0.3s ease" }} />
+      <div style={{ height: 6, borderRadius: 999, background: "rgba(255,255,255,0.06)", marginBottom: 14, overflow: "hidden" }}>
+        <div style={{ width: `${Math.min(100, (completedCount / target) * 100)}%`, height: "100%", background: hit ? "linear-gradient(90deg, #10B981, #34D399)" : colorInfo.gradient, borderRadius: 999, transition: "width 0.4s ease" }} />
       </div>
 
-      {/* 7 day indicators */}
-      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: isMobile ? 2 : 3, marginBottom: 8 }}>
+      <div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: isMobile ? 3 : 4, marginBottom: 12 }}>
         {days.map((completed, i) => {
           const isToday = i === todayIdx;
           const monday = new Date(`${getMondayOfDate(new Date())}T12:00:00`);
-          const dayDate = new Date(monday);
-          dayDate.setDate(monday.getDate() + i);
-          const isFuture = dayDate.toISOString().slice(0, 10) > new Date().toISOString().slice(0, 10);
+          const d = new Date(monday);
+          d.setDate(monday.getDate() + i);
+          const isFuture = d.toISOString().slice(0, 10) > new Date().toISOString().slice(0, 10);
 
           return (
             <button
               key={i}
               onClick={() => handleToggleDay(i)}
               disabled={isFuture}
-              aria-label={`${WEEKDAY_LABELS[i]} ${completed ? "concluído" : "pendente"}`}
               style={{
                 display: "flex",
                 flexDirection: "column",
                 alignItems: "center",
-                gap: isMobile ? 2 : 3,
-                padding: isMobile ? "4px 0" : "5px 1px",
-                borderRadius: 6,
-                border: completed ? `1px solid ${color}50` : isToday ? `1.5px solid ${color}` : "1px solid rgba(255,255,255,0.06)",
-                background: completed ? `${color}20` : "transparent",
-                opacity: isFuture ? 0.35 : 1,
+                gap: 3,
+                padding: "6px 0",
+                borderRadius: 8,
+                border: completed ? `1px solid ${goal.color}80` : isToday ? `2px solid ${goal.color}` : "1px solid rgba(255,255,255,0.06)",
+                background: completed ? `${goal.color}20` : "transparent",
+                opacity: isFuture ? 0.3 : 1,
                 cursor: isFuture ? "not-allowed" : "pointer",
-                minWidth: 0,
               }}
             >
-              <div style={{ width: isMobile ? 10 : 12, height: isMobile ? 10 : 12, borderRadius: "50%", background: completed ? color : "transparent", border: `1.5px solid ${completed ? color : "rgba(255,255,255,0.12)"}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                {completed && <Check size={isMobile ? 6 : 7} color="white" />}
+              <div style={{ width: 12, height: 12, borderRadius: "50%", background: completed ? goal.color : "transparent", border: `1.5px solid ${completed ? goal.color : "rgba(255,255,255,0.2)"}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+                {completed && <Check size={8} color="white" />}
               </div>
-              <span style={{ fontSize: isMobile ? 7 : 8, fontWeight: isToday ? 800 : 500, color: isToday ? color : MUTED, textTransform: "uppercase" }}>
-                {WEEKDAY_LABELS[i].slice(0, 2)}
-              </span>
+              <span style={{ fontSize: 8, fontWeight: isToday ? 800 : 500, color: isToday ? goal.color : "var(--muted-foreground)" }}>{WEEKDAY_LABELS[i].slice(0, 2)}</span>
             </button>
           );
         })}
       </div>
 
-      {/* Record streak + sparkline */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 8, borderTop: `1px solid ${NEUTRAL_BORDER}` }}>
-        {recordStreak > 0 ? (
-          <span style={{ fontSize: 9, color: GOLD, display: "flex", alignItems: "center", gap: 3 }}>
-            <Trophy size={9} /> {recordStreak}
-          </span>
-        ) : <span />}
-        <WeeklySparkline data={sparklineData} color={hit ? EMERALD : color} />
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 10, borderTop: "1px solid rgba(255,255,255,0.05)" }}>
+        <span style={{ fontSize: 10, color: "var(--muted-foreground)", display: "flex", alignItems: "center", gap: 4 }}>
+          {norm.goal.recordStreak > 0 && <><Trophy size={10} color="#FCD34D" /> Recorde: {norm.goal.recordStreak}</>}
+        </span>
+        <WeeklySparkline data={sparklineData} color={hit ? "#10B981" : goal.color} />
       </div>
     </div>
   );
@@ -478,7 +364,7 @@ function GoalCard({ goal, reloadGoals, isMobile }: { goal: Goal; reloadGoals: ()
   const { showXP } = useXPAnimation();
   const cardRef = useRef<HTMLDivElement>(null);
   const progress = getGoalProgress(goal);
-  const color = goal.color;
+  const colorInfo = getGoalColors(goal.color);
   const isCompleted = !!goal.completed_at;
 
   const handleToggleStep = async (stepId: string) => {
@@ -493,8 +379,8 @@ function GoalCard({ goal, reloadGoals, isMobile }: { goal: Goal; reloadGoals: ()
   };
 
   const handleDelete = async () => {
+    if (!confirm("Deletar esta meta?")) return;
     await supabase.from("goals").delete().eq("id", goal.id);
-    showToast("Meta deletada", "info", "🗑️");
     reloadGoals();
   };
 
@@ -502,56 +388,51 @@ function GoalCard({ goal, reloadGoals, isMobile }: { goal: Goal; reloadGoals: ()
     <div
       ref={cardRef}
       style={{
-        ...S_card(isMobile),
-        padding: isMobile ? 14 : 18,
+        background: isCompleted ? "linear-gradient(145deg, rgba(245,158,11,0.06), var(--card))" : `linear-gradient(145deg, ${colorInfo.light}, var(--card))`,
+        border: `1px solid ${isCompleted ? "rgba(245,158,11,0.25)" : colorInfo.glow}`,
+        borderRadius: isMobile ? 16 : 20,
+        padding: isMobile ? 14 : 20,
         position: "relative",
-        borderColor: isCompleted ? `${GOLD_BORDER}50` : `${color}30`,
+        transition: "all 0.2s ease",
       }}
     >
-      {isCompleted && <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: GOLD_BORDER, borderRadius: "12px 12px 0 0" }} />}
+      {isCompleted && <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 3, background: "linear-gradient(90deg, #F59E0B, #FCD34D)", borderRadius: "20px 20px 0 0", opacity: 0.8 }} />}
 
-      {/* Header */}
-      <div style={{ display: "flex", gap: isMobile ? 10 : 12, marginBottom: 12, alignItems: "flex-start" }}>
-        <div style={{ width: isMobile ? 36 : 40, height: isMobile ? 36 : 40, borderRadius: "50%", background: isCompleted ? `${EMERALD}20` : `${color}20`, border: `2px solid ${isCompleted ? EMERALD_BORDER : `${color}50`}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? 16 : 18, flexShrink: 0 }}>
+      <div style={{ display: "flex", gap: isMobile ? 10 : 12, marginBottom: 14, alignItems: "flex-start" }}>
+        <div style={{ width: isMobile ? 40 : 48, height: isMobile ? 40 : 48, borderRadius: "50%", background: isCompleted ? "linear-gradient(135deg, #10B981, #34D399)" : `linear-gradient(135deg, ${goal.color}, ${goal.color}CC)`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? 18 : 22, boxShadow: isCompleted ? "0 4px 16px rgba(16,185,129,0.3)" : `0 4px 16px ${goal.color}30`, flexShrink: 0 }}>
           {goal.emoji}
         </div>
         <div style={{ flex: 1, minWidth: 0 }}>
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 6 }}>
-            <h3 style={{ fontSize: isMobile ? 13 : 14, fontWeight: 700, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{goal.title}</h3>
-            <button onClick={() => setExpanded(!expanded)} style={{ background: "transparent", border: `1px solid ${NEUTRAL_BORDER}`, borderRadius: 6, padding: 4, cursor: "pointer", color: MUTED, display: "flex", alignItems: "center", flexShrink: 0 }}>
-              {expanded ? <ChevronUp size={12} /> : <ChevronDown size={12} />}
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}>
+            <h3 style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{goal.title}</h3>
+            <button onClick={() => setExpanded(!expanded)} style={{ background: "rgba(255,255,255,0.05)", border: "none", borderRadius: 8, padding: 4, cursor: "pointer", color: "var(--muted-foreground)" }}>
+              {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
             </button>
           </div>
-          <p style={{ fontSize: isMobile ? 10 : 11, color: MUTED, lineHeight: 1.4, margin: 0, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{goal.description}</p>
-          {isCompleted && (
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "rgba(245,158,11,0.12)", border: `1px solid ${AMBER_BORDER}`, borderRadius: 6, padding: "2px 8px", marginTop: 4, fontSize: 9, fontWeight: 700, color: GOLD }}>
-              <Crown size={9} /> {new Date(goal.completed_at!).toLocaleDateString("pt-BR")}
-            </span>
-          )}
+          <p style={{ fontSize: isMobile ? 11 : 12, color: "var(--muted-foreground)", marginTop: 4, lineHeight: 1.4, margin: 0, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{goal.description}</p>
         </div>
       </div>
 
-      {/* Progress bar */}
-      <div style={{ height: 4, borderRadius: 999, background: "rgba(255,255,255,0.06)", marginBottom: 12, overflow: "hidden" }}>
-        <div style={{ width: `${progress}%`, height: "100%", background: isCompleted ? EMERALD : color, borderRadius: 999, transition: "width 0.3s ease" }} />
+      <div style={{ height: 6, borderRadius: 999, background: "rgba(255,255,255,0.06)", marginBottom: 14, overflow: "hidden" }}>
+        <div style={{ width: `${progress}%`, height: "100%", background: isCompleted ? "linear-gradient(90deg, #10B981, #34D399)" : colorInfo.gradient, borderRadius: 999, transition: "width 0.4s ease" }} />
       </div>
 
       {expanded && (
-        <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+        <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10 }}>
           {goal.steps.map(step => (
             <button
               key={step.id}
               onClick={() => handleToggleStep(step.id)}
-              style={{ display: "flex", alignItems: "center", gap: 8, padding: isMobile ? "8px 10px" : "8px 10px", borderRadius: 8, border: `1px solid ${step.completed ? EMERALD_BORDER : NEUTRAL_BORDER}`, background: step.completed ? EMERALD_LIGHT : "rgba(255,255,255,0.02)", cursor: "pointer", textAlign: "left", width: "100%" }}
+              style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 10, border: `1px solid ${step.completed ? "rgba(16,185,129,0.2)" : "rgba(255,255,255,0.05)"}`, background: step.completed ? "rgba(16,185,129,0.05)" : "rgba(255,255,255,0.02)", cursor: "pointer", textAlign: "left" }}
             >
-              <div style={{ width: 16, height: 16, borderRadius: 4, background: step.completed ? EMERALD : "transparent", border: `1.5px solid ${step.completed ? EMERALD : color}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
-                {step.completed && <Check size={9} color="white" />}
+              <div style={{ width: 18, height: 18, borderRadius: 5, background: step.completed ? "#10B981" : "transparent", border: `2px solid ${step.completed ? "#10B981" : goal.color}`, display: "flex", alignItems: "center", justifyContent: "center", flexShrink: 0 }}>
+                {step.completed && <Check size={10} color="white" />}
               </div>
-              <span style={{ textDecoration: step.completed ? "line-through" : "none", color: step.completed ? MUTED : FOREGROUND, fontSize: isMobile ? 11 : 12, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{step.title}</span>
+              <span style={{ textDecoration: step.completed ? "line-through" : "none", color: step.completed ? "var(--muted-foreground)" : "var(--foreground)", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{step.title}</span>
             </button>
           ))}
-          <button onClick={handleDelete} style={{ marginTop: 4, padding: "8px", borderRadius: 8, border: "1px solid rgba(239,68,68,0.2)", background: "rgba(239,68,68,0.05)", color: "#EF4444", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontWeight: 600, fontSize: 11 }}>
-            <Trash2 size={11} /> Deletar
+          <button onClick={handleDelete} style={{ marginTop: 6, padding: "8px", borderRadius: 10, border: "none", background: "rgba(239,68,68,0.1)", color: "#EF4444", cursor: "pointer", display: "flex", alignItems: "center", justifyContent: "center", gap: 6, fontWeight: 600, fontSize: 12 }}>
+            <Trash2 size={14} /> Deletar Meta
           </button>
         </div>
       )}
@@ -563,15 +444,15 @@ function GoalCard({ goal, reloadGoals, isMobile }: { goal: Goal; reloadGoals: ()
 // EMPTY SECTION
 // =========================
 
-function EmptySection({ icon, title, subtitle, onAction, actionLabel, isMobile }: { icon: string; title: string; subtitle: string; onAction?: () => void; actionLabel?: string; isMobile: boolean }) {
+function EmptySection({ icon, title, subtitle, onAction, actionLabel, isMobile }: { icon: React.ReactNode; title: string; subtitle: string; onAction?: () => void; actionLabel?: string; isMobile: boolean }) {
   return (
-    <div style={{ ...S_card(isMobile), padding: isMobile ? "24px 16px" : "32px 20px", textAlign: "center", display: "flex", flexDirection: "column", alignItems: "center", gap: 8, borderStyle: "dashed" }}>
-      <div style={{ fontSize: isMobile ? 24 : 28 }}>{icon}</div>
-      <h4 style={{ fontSize: isMobile ? 13 : 14, fontWeight: 700, margin: 0 }}>{title}</h4>
-      <p style={{ fontSize: isMobile ? 10 : 11, color: MUTED, maxWidth: isMobile ? 200 : 240, lineHeight: 1.5, margin: 0 }}>{subtitle}</p>
+    <div style={{ padding: isMobile ? "30px 20px" : "50px 20px", textAlign: "center", background: "rgba(255,255,255,0.02)", borderRadius: 24, border: "2px dashed rgba(255,255,255,0.05)", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}>
+      <div style={{ fontSize: isMobile ? 32 : 48, opacity: 0.5 }}>{icon}</div>
+      <h4 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, margin: 0 }}>{title}</h4>
+      <p style={{ fontSize: isMobile ? 12 : 14, color: "var(--muted-foreground)", maxWidth: 300, lineHeight: 1.5, margin: 0 }}>{subtitle}</p>
       {onAction && (
-        <button onClick={onAction} style={{ ...S_btnPrimary(isMobile), marginTop: 4, padding: isMobile ? "8px 14px" : "8px 16px", fontSize: isMobile ? 11 : 12 }}>
-          <Plus size={12} style={{ marginRight: 4 }} /> {actionLabel}
+        <button onClick={onAction} style={{ marginTop: 8, padding: isMobile ? "8px 16px" : "10px 20px", borderRadius: 10, background: "linear-gradient(135deg, #8B5CF6, #A855F7)", color: "white", fontWeight: 600, fontSize: isMobile ? 12 : 13, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 6, boxShadow: "0 2px 12px rgba(139,92,246,0.3)" }}>
+          <Plus size={isMobile ? 14 : 16} /> {actionLabel}
         </button>
       )}
     </div>
@@ -589,21 +470,21 @@ function WeeklySummaryBar({ weeklyGoals, isMobile }: { weeklyGoals: Goal[]; isMo
   const totalStreak = weeklyGoals.reduce((acc, g) => acc + (g.streak ?? 0), 0);
 
   const stats = [
-    { icon: Target, value: `${avgConsistency}%`, label: "Consistência", color: EMERALD },
-    { icon: CalendarDays, value: activeCount, label: "Ativas", color: PRIMARY },
-    { icon: Flame, value: totalStreak, label: "Streak", color: ORANGE },
+    { icon: Target, value: `${avgConsistency}%`, label: "Consistência", color: "#10B981" },
+    { icon: CalendarDays, value: activeCount, label: "Ativas", color: "#8B5CF6" },
+    { icon: Flame, value: totalStreak, label: "Streak Total", color: "#F97316" },
   ];
 
   return (
-    <div style={{ ...S_card(isMobile), padding: isMobile ? 10 : 12, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: isMobile ? 4 : 8, borderColor: PRIMARY_BORDER }}>
+    <div style={{ display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: isMobile ? 8 : 16, marginBottom: 20 }}>
       {stats.map(({ icon: Icon, value, label, color }) => (
-        <div key={label} style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 8 }}>
-          <div style={{ width: isMobile ? 24 : 28, height: isMobile ? 24 : 28, borderRadius: 8, background: `${color}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Icon size={isMobile ? 12 : 14} color={color} />
+        <div key={label} style={{ background: "var(--card)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 16, padding: isMobile ? 10 : 16, display: "flex", alignItems: "center", gap: isMobile ? 8 : 12 }}>
+          <div style={{ width: isMobile ? 30 : 40, height: isMobile ? 30 : 40, borderRadius: 10, background: `${color}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Icon size={isMobile ? 16 : 20} color={color} />
           </div>
           <div>
-            <div style={{ fontSize: isMobile ? 14 : 16, fontWeight: 800, color }}>{value}</div>
-            <div style={{ fontSize: isMobile ? 8 : 9, color: MUTED }}>{label}</div>
+            <div style={{ fontSize: isMobile ? 16 : 20, fontWeight: 800, color: "var(--foreground)" }}>{value}</div>
+            <div style={{ fontSize: isMobile ? 9 : 11, color: "var(--muted-foreground)" }}>{label}</div>
           </div>
         </div>
       ))}
@@ -637,29 +518,27 @@ function NewGoalModal({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [emoji, setEmoji] = useState("🎯");
-  const [color, setColor] = useState(PRIMARY);
+  const [color, setColor] = useState("#8B5CF6");
   const [deadline, setDeadline] = useState("");
   const [steps, setSteps] = useState<string[]>([""]);
   const [goalType, setGoalType] = useState<GoalType>("longo_prazo");
   const [targetFrequency, setTargetFrequency] = useState<number>(4);
   const [selectedHabitId, setSelectedHabitId] = useState<string | null>(null);
 
-  const frequencyChips = COMMON_FREQUENCIES;
-
   const handleSubmit = async () => {
-    if (!title.trim()) { showToast("Digite o nome da meta", "info", "⚠️"); return; }
+    if (!title.trim()) return;
 
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) { showToast("Usuário não encontrado", "info", "❌"); return; }
+    if (!user) return;
 
     if (goalType === "semanal" && !isPro && weeklyGoalsCount >= FREE_LIMITS.weeklyGoals) {
-      showToast(`O plano Free permite até ${FREE_LIMITS.weeklyGoals} metas semanais simultâneas`, "info");
+      showToast(`Limite de ${FREE_LIMITS.weeklyGoals} metas semanais atingido no plano Free`, "info");
       onOpenUpgrade();
       return;
     }
 
     if (goalType === "semanal") {
-      const { error } = await supabase.from("goals").insert({
+      await supabase.from("goals").insert({
         user_id: user.id,
         title: title.trim(),
         description: description || null,
@@ -674,11 +553,9 @@ function NewGoalModal({
         linked_habit_id: selectedHabitId || null,
         weekly_history: [],
       });
-      if (error) { console.log(error); showToast("Erro ao criar meta", "info", "❌"); return; }
-      showToast("Meta semanal criada!", "success", "🔥");
     } else {
       const validSteps = steps.filter(s => s.trim()).map(s => ({ id: crypto.randomUUID(), title: s, completed: false }));
-      const { error } = await supabase.from("goals").insert({
+      await supabase.from("goals").insert({
         user_id: user.id,
         title: title.trim(),
         description: description || null,
@@ -689,134 +566,81 @@ function NewGoalModal({
         steps: validSteps,
         completed_at: null,
       });
-      if (error) { console.log(error); showToast("Erro ao criar meta", "info", "❌"); return; }
-      showToast("Meta criada com sucesso!", "success", "🎯");
     }
 
     onClose();
-    await reloadGoals();
+    reloadGoals();
   };
 
   return (
     <Modal open={open} onClose={onClose} title="Nova Meta" maxWidth={isMobile ? "100%" : "480px"}>
-      <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? 12 : 14 }}>
-        {/* Type selector */}
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
         <div>
-          <p style={S_label()}>Tipo</p>
-          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: "var(--muted-foreground)", marginBottom: 6, display: "block" }}>Tipo de Meta</label>
+          <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             {([
-              { value: "longo_prazo", label: "Longo prazo", icon: "🎯" },
+              { value: "longo_prazo", label: "Longo Prazo", icon: "🎯" },
               { value: "semanal", label: "Semanal", icon: "🔥" },
             ] as const).map(t => (
               <button
                 key={t.value}
                 onClick={() => setGoalType(t.value)}
                 style={{
-                  padding: isMobile ? 10 : 12,
-                  borderRadius: 8,
-                  border: goalType === t.value ? `2px solid ${PRIMARY}` : `1px solid ${NEUTRAL_BORDER}`,
-                  background: goalType === t.value ? PRIMARY_LIGHT : "rgba(255,255,255,0.02)",
+                  padding: "12px",
+                  borderRadius: 12,
+                  border: goalType === t.value ? `2px solid ${color}` : "1px solid rgba(255,255,255,0.05)",
+                  background: goalType === t.value ? `${color}15` : "rgba(255,255,255,0.02)",
                   cursor: "pointer",
                   display: "flex",
                   flexDirection: "column",
                   alignItems: "center",
                   gap: 4,
-                  transition: "all 0.15s ease",
+                  transition: "all 0.2s ease",
                 }}
               >
-                <span style={{ fontSize: isMobile ? 18 : 20 }}>{t.icon}</span>
-                <span style={{ fontWeight: 700, fontSize: isMobile ? 11 : 12, color: goalType === t.value ? PRIMARY : FOREGROUND }}>{t.label}</span>
+                <span style={{ fontSize: 20 }}>{t.icon}</span>
+                <span style={{ fontWeight: 700, fontSize: 13, color: goalType === t.value ? color : "var(--foreground)" }}>{t.label}</span>
               </button>
             ))}
           </div>
         </div>
 
         <div>
-          <p style={S_label()}>Nome</p>
-          <input placeholder="Ex: Ler 1 livro por mês" value={title} onChange={e => setTitle(e.target.value)} style={S_input(isMobile)} />
+          <label style={{ fontSize: 12, fontWeight: 600, color: "var(--muted-foreground)", marginBottom: 6, display: "block" }}>Título</label>
+          <input placeholder="Ex: Aprender React" value={title} onChange={e => setTitle(e.target.value)} style={{ width: "100%", padding: "12px 16px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)", background: "rgba(255,255,255,0.02)", color: "white", outline: "none", boxSizing: "border-box" }} />
         </div>
 
         <div>
-          <p style={S_label()}>Descrição (opcional)</p>
-          <textarea placeholder="Detalhes..." value={description} onChange={e => setDescription(e.target.value)} style={{ ...S_input(isMobile), minHeight: 44, resize: "vertical" }} />
-        </div>
-
-        {/* Emoji */}
-        <div>
-          <p style={S_label()}>Ícone</p>
-          <div style={{ display: "flex", gap: isMobile ? 3 : 4, flexWrap: "wrap" }}>
-            {EMOJIS.map(e => (
-              <button key={e} type="button" onClick={() => setEmoji(e)} style={{ width: isMobile ? 30 : 34, height: isMobile ? 30 : 34, borderRadius: 8, border: emoji === e ? `2px solid ${color}` : `1px solid ${NEUTRAL_BORDER}`, background: emoji === e ? `${color}15` : "rgba(255,255,255,0.03)", cursor: "pointer", fontSize: isMobile ? 13 : 15, display: "flex", alignItems: "center", justifyContent: "center" }}>
-                {e}
-              </button>
-            ))}
-          </div>
-        </div>
-
-        {/* Color */}
-        <div>
-          <p style={S_label()}>Cor</p>
-          <div style={{ display: "flex", gap: isMobile ? 5 : 6, flexWrap: "wrap" }}>
+          <label style={{ fontSize: 12, fontWeight: 600, color: "var(--muted-foreground)", marginBottom: 6, display: "block" }}>Cor</label>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
             {COLORS.map(c => (
-              <button key={c} type="button" onClick={() => setColor(c)} style={{ width: isMobile ? 24 : 28, height: isMobile ? 24 : 28, borderRadius: "50%", border: color === c ? "2px solid white" : "2px solid transparent", background: c, cursor: "pointer", transform: color === c ? "scale(1.15)" : "scale(1)" }} />
+              <button key={c} type="button" onClick={() => setColor(c)} style={{ width: 30, height: 30, borderRadius: "50%", border: color === c ? "2px solid white" : "none", background: c, cursor: "pointer", transform: color === c ? "scale(1.1)" : "scale(1)", transition: "all 0.2s ease" }} />
             ))}
           </div>
         </div>
 
-        {/* Weekly-specific */}
         {goalType === "semanal" ? (
-          <>
-            <div>
-              <p style={S_label()}>Frequência por semana</p>
-              <div style={{ display: "flex", gap: isMobile ? 3 : 4, flexWrap: "wrap" }}>
-                {frequencyChips.map(chip => (
-                  <button key={chip.value} type="button" onClick={() => setTargetFrequency(chip.value)} style={{ ...S_btnSecondary(isMobile), border: targetFrequency === chip.value ? `2px solid ${PRIMARY}` : `1px solid ${NEUTRAL_BORDER}`, color: targetFrequency === chip.value ? PRIMARY : MUTED, background: targetFrequency === chip.value ? PRIMARY_LIGHT : "rgba(255,255,255,0.03)" }}>
-                    {chip.label}
-                  </button>
-                ))}
-              </div>
+          <div>
+            <label style={{ fontSize: 12, fontWeight: 600, color: "var(--muted-foreground)", marginBottom: 6, display: "block" }}>Frequência (vezes por semana)</label>
+            <div style={{ display: "flex", gap: 6 }}>
+              {COMMON_FREQUENCIES.map(f => (
+                <button key={f.value} onClick={() => setTargetFrequency(f.value)} style={{ padding: "8px 12px", borderRadius: 10, border: targetFrequency === f.value ? `2px solid ${color}` : "1px solid rgba(255,255,255,0.05)", background: targetFrequency === f.value ? `${color}15` : "rgba(255,255,255,0.02)", color: "white", cursor: "pointer" }}>{f.label}</button>
+              ))}
             </div>
-            {habits.length > 0 && (
-              <div>
-                <p style={S_label()}>Vincular hábito</p>
-                <div style={{ display: "flex", flexWrap: "wrap", gap: isMobile ? 3 : 4 }}>
-                  <button type="button" onClick={() => setSelectedHabitId(null)} style={{ ...S_btnSecondary(isMobile), border: selectedHabitId === null ? `2px solid ${PRIMARY}` : `1px solid ${NEUTRAL_BORDER}`, color: selectedHabitId === null ? PRIMARY : MUTED }}>Manual</button>
-                  {habits.map(h => (
-                    <button key={h.id} type="button" onClick={() => setSelectedHabitId(h.id)} style={{ ...S_btnSecondary(isMobile), border: selectedHabitId === h.id ? `2px solid ${PRIMARY}` : `1px solid ${NEUTRAL_BORDER}`, color: selectedHabitId === h.id ? PRIMARY : MUTED }}>
-                      {h.emoji} {h.title}
-                    </button>
-                  ))}
-                </div>
-              </div>
-            )}
-          </>
+          </div>
         ) : (
           <div>
-            <p style={S_label()}>Prazo (opcional)</p>
-            <input type="date" value={deadline} onChange={e => setDeadline(e.target.value)} style={S_input(isMobile)} />
-          </div>
-        )}
-
-        {/* Steps */}
-        {goalType === "longo_prazo" && (
-          <div>
-            <p style={S_label()}>Etapas</p>
-            <div style={{ display: "flex", flexDirection: "column", gap: 6 }}>
+            <label style={{ fontSize: 12, fontWeight: 600, color: "var(--muted-foreground)", marginBottom: 6, display: "block" }}>Etapas</label>
+            <div style={{ display: "flex", flexDirection: "column", gap: 8 }}>
               {steps.map((step, i) => (
-                <input key={i} placeholder={`Etapa ${i + 1}`} value={step} onChange={e => setSteps(prev => { const u = [...prev]; u[i] = e.target.value; return u; })} style={S_input(isMobile)} />
+                <input key={i} placeholder={`Etapa ${i + 1}`} value={step} onChange={e => setSteps(prev => { const u = [...prev]; u[i] = e.target.value; return u; })} style={{ width: "100%", padding: "10px 14px", borderRadius: 10, border: "1px solid rgba(255,255,255,0.05)", background: "rgba(255,255,255,0.02)", color: "white", outline: "none", boxSizing: "border-box" }} />
               ))}
-              <button type="button" onClick={() => setSteps([...steps, ""])} style={{ ...S_btnSecondary(isMobile), color: PRIMARY, border: `1px solid ${PRIMARY_BORDER}` }}>
-                <Plus size={12} style={{ marginRight: 4 }} /> Adicionar etapa
-              </button>
+              <button onClick={() => setSteps([...steps, ""])} style={{ padding: "8px", borderRadius: 10, border: "1px dashed rgba(255,255,255,0.1)", background: "transparent", color: "var(--muted-foreground)", cursor: "pointer", fontSize: 12 }}>+ Adicionar Etapa</button>
             </div>
           </div>
         )}
 
-        {/* Submit */}
-        <button onClick={handleSubmit} style={{ ...S_btnPrimary(isMobile), display: "flex", alignItems: "center", justifyContent: "center", gap: 6 }}>
-          <Sparkles size={14} />
-          {goalType === "semanal" ? "Criar Meta Semanal" : "Criar Meta"}
-        </button>
+        <button onClick={handleSubmit} style={{ marginTop: 10, padding: "14px", borderRadius: 12, background: "linear-gradient(135deg, #8B5CF6, #A855F7)", color: "white", fontWeight: 700, fontSize: 14, border: "none", cursor: "pointer", boxShadow: "0 4px 16px rgba(139,92,246,0.3)" }}>Criar Meta</button>
       </div>
     </Modal>
   );
@@ -874,8 +698,8 @@ export default function Goals({
 
   const sortedWeekly = useMemo(() => {
     return [...weeklyGoals].sort((a, b) => {
-      const aHit = (a.days_completed_week?.filter(Boolean).length ?? 0) >= (a.target_frequency ?? 1);
-      const bHit = (b.days_completed_week?.filter(Boolean).length ?? 0) >= (b.target_frequency ?? 1);
+      const aHit = isWeeklyGoalHit(goalToWeekly(a));
+      const bHit = isWeeklyGoalHit(goalToWeekly(b));
       if (aHit !== bHit) return aHit ? 1 : -1;
       const aRem = (a.target_frequency ?? 1) - (a.days_completed_week?.filter(Boolean).length ?? 0);
       const bRem = (b.target_frequency ?? 1) - (b.days_completed_week?.filter(Boolean).length ?? 0);
@@ -905,62 +729,63 @@ export default function Goals({
   ] as const;
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: isMobile ? 18 : 24, maxWidth: 900 }}>
-      {/* Page Header */}
-      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: isMobile ? 10 : 12 }}>
-        <h2 style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, display: "flex", alignItems: "center", gap: 8, margin: 0 }}>
-          <Target size={isMobile ? 18 : 20} color={PRIMARY} />
-          Metas
-        </h2>
-        <button onClick={() => setShowModal(true)} style={S_btnPrimary(isMobile)}>
-          <Plus size={14} style={{ marginRight: 4 }} /> Nova Meta
+    <div style={{ paddingBottom: 40, maxWidth: 1000, margin: "0 auto" }}>
+      {/* Header */}
+      <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isMobile ? 20 : 30, flexWrap: "wrap", gap: 12 }}>
+        <div>
+          <h2 style={{ fontSize: isMobile ? 24 : 32, fontWeight: 800, margin: 0, display: "flex", alignItems: "center", gap: 10 }}>
+            <Target size={isMobile ? 24 : 32} color="#8B5CF6" />
+            Metas
+          </h2>
+          <p style={{ color: "var(--muted-foreground)", fontSize: isMobile ? 12 : 14, margin: "4px 0 0" }}>Transforme objetivos em conquistas diárias</p>
+        </div>
+        <button onClick={() => setShowModal(true)} style={{ padding: isMobile ? "10px 18px" : "12px 24px", borderRadius: 14, background: "linear-gradient(135deg, #8B5CF6, #A855F7)", color: "white", fontWeight: 700, fontSize: isMobile ? 13 : 14, border: "none", cursor: "pointer", display: "flex", alignItems: "center", gap: 8, boxShadow: "0 4px 16px rgba(139,92,246,0.3)" }}>
+          <Plus size={isMobile ? 16 : 18} /> Nova Meta
         </button>
       </div>
 
       {/* ==================== WEEKLY SECTION ==================== */}
-      <section>
-        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: PRIMARY_LIGHT, border: `1px solid ${PRIMARY_BORDER}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Zap size={14} color={PRIMARY} />
+      <section style={{ marginBottom: isMobile ? 30 : 40 }}>
+        <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 16 }}>
+          <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(139,92,246,0.1)", border: "1px solid rgba(139,92,246,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Zap size={18} color="#8B5CF6" />
           </div>
           <div>
-            <h3 style={{ fontSize: isMobile ? 14 : 15, fontWeight: 700, margin: 0 }}>Metas Semanais</h3>
-            <p style={{ fontSize: isMobile ? 10 : 11, color: MUTED, margin: 0 }}>Consistência — reset toda segunda</p>
+            <h3 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, margin: 0 }}>Metas Semanais</h3>
+            <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>Foco e consistência — resets a cada segunda-feira</p>
           </div>
         </div>
 
         {weeklyGoals.length > 0 && <WeeklySummaryBar weeklyGoals={weeklyGoals} isMobile={isMobile} />}
 
         {weeklyWithHabitCheckins.length > 0 ? (
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(280px, 1fr))", gap: isMobile ? 10 : 12, marginTop: 10 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(300px, 1fr))", gap: isMobile ? 12 : 20 }}>
             {weeklyWithHabitCheckins.map(goal => (
               <WeeklyGoalCard key={goal.id} goal={goal} linkedHabits={habits} reloadGoals={loadGoals} isMobile={isMobile} />
             ))}
           </div>
         ) : (
-          <div style={{ marginTop: 10 }}>
-            <EmptySection icon="🔥" title="Nenhuma meta semanal" subtitle="Crie metas semanais para construir consistência." onAction={() => setShowModal(true)} actionLabel="Criar meta semanal" isMobile={isMobile} />
-          </div>
+          <EmptySection icon={<Zap size={48} />} title="Nenhuma meta semanal" subtitle="Crie metas que resetam toda semana para construir novos hábitos e consistência." onAction={() => setShowModal(true)} actionLabel="Criar Meta Semanal" isMobile={isMobile} />
         )}
       </section>
 
       {/* Divider */}
-      <div style={{ height: 1, background: NEUTRAL_BORDER }} />
+      <div style={{ height: 1, background: "rgba(255,255,255,0.05)", marginBottom: isMobile ? 30 : 40 }} />
 
       {/* ==================== LONG-TERM SECTION ==================== */}
       <section>
-        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap", gap: 8 }}>
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 16, flexWrap: "wrap", gap: 10 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(139,92,246,0.12)", border: `1px solid ${PRIMARY_BORDER}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Rocket size={14} color={PRIMARY} />
+            <div style={{ width: 36, height: 36, borderRadius: 10, background: "rgba(245,158,11,0.1)", border: "1px solid rgba(245,158,11,0.2)", display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Rocket size={18} color="#F59E0B" />
             </div>
             <div>
-              <h3 style={{ fontSize: isMobile ? 14 : 15, fontWeight: 700, margin: 0 }}>Metas de Longo Prazo</h3>
-              <p style={{ fontSize: isMobile ? 10 : 11, color: MUTED, margin: 0 }}>Objetivos com etapas e prazos</p>
+              <h3 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, margin: 0 }}>Metas de Longo Prazo</h3>
+              <p style={{ fontSize: 12, color: "var(--muted-foreground)", margin: 0 }}>Objetivos maiores divididos em etapas</p>
             </div>
           </div>
-          {/* Tabs */}
-          <div style={{ display: "flex", gap: 2, background: "rgba(255,255,255,0.03)", border: `1px solid ${NEUTRAL_BORDER}`, borderRadius: 8, padding: 2 }}>
+          
+          <div style={{ display: "flex", gap: 4, background: "rgba(255,255,255,0.03)", border: "1px solid rgba(255,255,255,0.05)", borderRadius: 12, padding: 4 }}>
             {longTermTabs.map(f => {
               const isActive = longTermFilter === f.value;
               const Icon = f.icon;
@@ -969,21 +794,21 @@ export default function Goals({
                   key={f.value}
                   onClick={() => setLongTermFilter(f.value as any)}
                   style={{
-                    padding: isMobile ? "5px 8px" : "6px 10px",
-                    borderRadius: 6,
+                    padding: isMobile ? "6px 10px" : "8px 14px",
+                    borderRadius: 8,
                     border: "none",
-                    background: isActive ? PRIMARY : "transparent",
-                    color: isActive ? WHITE : MUTED,
+                    background: isActive ? "linear-gradient(135deg, #8B5CF6, #A855F7)" : "transparent",
+                    color: isActive ? "white" : "var(--muted-foreground)",
                     fontWeight: 600,
-                    fontSize: isMobile ? 9 : 10,
+                    fontSize: 12,
                     cursor: "pointer",
                     display: "flex",
                     alignItems: "center",
-                    gap: 3,
-                    transition: "all 0.15s ease",
+                    gap: 6,
+                    transition: "all 0.2s ease",
                   }}
                 >
-                  <Icon size={isMobile ? 10 : 11} />
+                  <Icon size={14} />
                   {isMobile ? "" : f.label}
                 </button>
               );
@@ -992,15 +817,13 @@ export default function Goals({
         </div>
 
         {filteredLongTerm.length > 0 ? (
-          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(300px, 1fr))", gap: isMobile ? 10 : 12, marginTop: 10 }}>
+          <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "repeat(auto-fill, minmax(300px, 1fr))", gap: isMobile ? 12 : 20 }}>
             {filteredLongTerm.map(goal => (
               <GoalCard key={goal.id} goal={goal} reloadGoals={loadGoals} isMobile={isMobile} />
             ))}
           </div>
         ) : (
-          <div style={{ marginTop: 10 }}>
-            <EmptySection icon="🚀" title="Nenhuma meta de longo prazo" subtitle="Defina objetivos maiores com etapas." onAction={() => setShowModal(true)} actionLabel="Criar meta" isMobile={isMobile} />
-          </div>
+          <EmptySection icon={<Rocket size={48} />} title="Nenhuma meta de longo prazo" subtitle="Defina objetivos grandes e acompanhe seu progresso passo a passo." onAction={() => setShowModal(true)} actionLabel="Criar Meta" isMobile={isMobile} />
         )}
       </section>
 
