@@ -200,6 +200,7 @@ function WeeklyGoalCard({
   linkedHabits,
   reloadGoals,
   isMobile,
+  onDelete,
 }: {
   goal: Goal;
   linkedHabits: { id: string; title: string; emoji: string; completed_dates?: string[] | null }[];
