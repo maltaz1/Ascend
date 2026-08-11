@@ -20,6 +20,8 @@ import {
   loadHabitsData,
   initRealtimeSync,
   stopRealtimeSync,
+  initializeStore,
+  store,
   _data,
 } from "./lib/store";
 
@@ -244,6 +246,16 @@ function App() {
 
     setIsPro(Boolean(profile.is_pro));
 
+    store.update(state => {
+      state.user.id = currentUser.id;
+      state.user.xp = profile.xp || 0;
+      state.user.level = profile.level || 1;
+      state.user.streak = profile.streak || 0;
+      state.user.name = profile.name || "Usuário";
+      state.user.isPro = Boolean(profile.is_pro);
+    });
+
+    _data.user.id = currentUser.id;
     _data.user.xp = profile.xp || 0;
     _data.user.level = profile.level || 1;
     _data.user.streak = profile.streak || 0;
@@ -314,6 +326,9 @@ function App() {
         if (!mounted) return;
 
         setUser(authResult.user);
+
+        // Inicializa o store local (cache)
+        await initializeStore();
 
         if (authResult.user) {
           // Redirecionar para dashboard se estiver na home
