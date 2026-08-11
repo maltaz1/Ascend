@@ -358,12 +358,6 @@ export async function searchFoods(query: string): Promise<FoodSearchResult[]> {
 
   const lowerQuery = query.toLowerCase();
 
-  // Verificar cache
-  if (foodCache.has(lowerQuery)) {
-    const cached = foodCache.get(lowerQuery);
-    return cached || [];
-  }
-
   // Buscar no banco local primeiro (sempre, para termos em português)
   const localResults = searchLocalFoods(lowerQuery);
 
@@ -406,17 +400,24 @@ export async function searchFoods(query: string): Promise<FoodSearchResult[]> {
           return true;
         });
 
-        foodCache.set(lowerQuery, uniqueResults);
+        // Só cachear se tiver resultados
+        if (uniqueResults.length > 0) {
+          foodCache.set(lowerQuery, uniqueResults);
+        }
         return uniqueResults;
       }
     }
     
     // Se API falhou ou não retornou nada, usar apenas locais
-    foodCache.set(lowerQuery, localResults);
+    if (localResults.length > 0) {
+      foodCache.set(lowerQuery, localResults);
+    }
     return localResults;
   } catch (error) {
     // Se API falhou, usar apenas banco local
-    foodCache.set(lowerQuery, localResults);
+    if (localResults.length > 0) {
+      foodCache.set(lowerQuery, localResults);
+    }
     return localResults;
   }
 }
