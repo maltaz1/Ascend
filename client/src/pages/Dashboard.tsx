@@ -290,11 +290,11 @@ function StreakBadge({ streak }: { streak: number }) {
 // =========================
 function StreakHeatmap({ tasks, habits }: { tasks: any[]; habits: any[] }) {
   const days = 90;
-  
+
   const { weeks, maxCount } = useMemo(() => {
     const heatmapData: { date: string; count: number }[] = [];
     const today = new Date();
-    
+
     for (let i = days - 1; i >= 0; i--) {
       const d = new Date(today);
       d.setDate(d.getDate() - i);
@@ -313,7 +313,7 @@ function StreakHeatmap({ tasks, habits }: { tasks: any[]; habits: any[] }) {
     const firstDay = new Date(today);
     firstDay.setDate(firstDay.getDate() - days + 1);
     const startDayOfWeek = firstDay.getDay();
-    
+
     for (let i = 0; i < startDayOfWeek; i++) {
       currentWeek.push({ date: "", count: -1 });
     }
@@ -328,7 +328,7 @@ function StreakHeatmap({ tasks, habits }: { tasks: any[]; habits: any[] }) {
       while (currentWeek.length < 7) currentWeek.push({ date: "", count: -1 });
       resultWeeks.push(currentWeek);
     }
-    
+
     return { weeks: resultWeeks, maxCount: max };
   }, [tasks, habits]);
 

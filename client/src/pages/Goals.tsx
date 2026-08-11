@@ -202,7 +202,7 @@ function GoalCard({
         .eq("id", goal.id);
 
       if (error) {
-        onGoalUpdated(goal.id, goal.steps, goal.completed_at);
+        onGoalUpdated(goal.id, goal.steps, goal.completed_at ?? null);
         showToast("Não foi possível atualizar a meta", "info");
       }
     })();

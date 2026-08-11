@@ -33,7 +33,7 @@ export default function Today() {
     };
   }, [todayTasks, habits, today]);
 
-  const overallProgress = useMemo(() => 
+  const overallProgress = useMemo(() =>
     todayStats.tasksTotal > 0 || todayStats.habitsTotal > 0
       ? Math.round(
           ((todayStats.tasksCompleted + todayStats.habitsCompleted) /

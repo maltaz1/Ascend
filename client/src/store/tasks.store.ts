@@ -242,7 +242,7 @@ export async function loadTasksData(): Promise<void> {
     category: task.category,
     createdAt: task.created_at,
     isRecurring: task.is_recurring ?? false,
-    recurrence: task.recurrence as Record<string, unknown> | undefined,
+    recurrence: task.recurrence as Task["recurrence"],
   }));
 
   const t3 = performance.now();

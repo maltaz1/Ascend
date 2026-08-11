@@ -835,7 +835,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
             </p>
             {!searchTerm && (
               <button
-                onClick={() => setShowNewHabit(true)}
+                onClick={() => setShowModal(true)}
                 className="px-6 py-3 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-violet-900/20"
               >
                 + Criar primeiro hábito
