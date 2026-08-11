@@ -41,13 +41,14 @@ export async function toggleHabitDate(
   const habit = _data.habits.find(item => item.id === habitId);
   if (!habit) return { xpGained: 0 };
 
+  const previousCompletedDates = [...habit.completedDates];
   const existingIndex = habit.completedDates.indexOf(date);
   let xpGained = 0;
 
   if (existingIndex === -1) {
     habit.completedDates.push(date);
     markActiveToday();
-    addXP(5);
+    void addXP(5);
     xpGained = 5;
     evaluateAchievements(_data);
   } else {
@@ -56,6 +57,21 @@ export async function toggleHabitDate(
 
   notify();
   persistState();
+
+  void (async () => {
+    const { error } = await supabase
+      .from("habits")
+      .update({ completed_dates: habit.completedDates })
+      .eq("id", habitId);
+
+    if (error) {
+      console.error("Erro ao salvar hábito:", error);
+      habit.completedDates = previousCompletedDates;
+      notify();
+      persistState();
+    }
+  })();
+
   return { xpGained };
 }
 

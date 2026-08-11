@@ -2,8 +2,8 @@
 
 import React, { useMemo } from "react";
 import { Check, Sun, Target, Flame } from "lucide-react";
-import { supabase } from "@/lib/supabase";
 import { useStore } from "@/hooks/useStore";
+import { toggleHabitDate, updateTask } from "@/lib/store";
 
 import { CircularProgress } from "@/components/ui/CircularProgress";
 import { showToast } from "@/components/ui/FlowToast";
@@ -54,53 +54,31 @@ export default function Today() {
     };
   }, [profile]);
 
-  const handleToggleTask = async (
+  const handleToggleTask = (
     taskId: string,
     completed: boolean,
     e: React.MouseEvent
   ) => {
     e.stopPropagation();
-    await supabase
-      .from("tasks")
-      .update({
-        completed: !completed,
-      })
-      .eq("id", taskId);
-
+    void updateTask(taskId, { completed: !completed });
     showToast(completed ? "Tarefa desmarcada" : "Tarefa concluída!", "success");
 
     if (!completed) {
-      await awardXp(createXpPayload("TASK_COMPLETED", 10));
+      void awardXp(createXpPayload("TASK_COMPLETED", 10));
     }
   };
 
-  const handleToggleHabit = async (habitId: string, e: React.MouseEvent) => {
+  const handleToggleHabit = (habitId: string, e: React.MouseEvent) => {
     e.stopPropagation();
     const habit = habits.find(h => h.id === habitId);
     if (!habit) return;
 
-    const completedDates = habit.completedDates || [];
-    const isCompleted = completedDates.includes(today);
-
-    const updatedDates = isCompleted
-      ? completedDates.filter((d: string) => d !== today)
-      : [...completedDates, today];
-
-    await supabase
-      .from("habits")
-      .update({
-        completed_dates: updatedDates,
-      })
-      .eq("id", habitId);
-
+    const isCompleted = (habit.completedDates || []).includes(today);
+    void toggleHabitDate(habitId, today);
     showToast(
       isCompleted ? "Hábito desmarcado" : "Hábito concluído!",
       "success"
     );
-
-    if (!isCompleted) {
-      await awardXp(createXpPayload("HABIT_COMPLETED", 5));
-    }
   };
 
   const getGoalProgress = (goal: any) => {

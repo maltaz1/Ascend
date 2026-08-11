@@ -159,10 +159,14 @@ const GOAL_COLORS_MAP: Record<
 
 function GoalCard({
   goal,
-  reloadGoals,
+  onGoalUpdated,
+  onGoalDeleted,
+  onGoalRestored,
 }: {
   goal: Goal;
-  reloadGoals: () => void;
+  onGoalUpdated: (goalId: string, steps: Goal["steps"], completedAt: string | null) => void;
+  onGoalDeleted: (goalId: string) => void;
+  onGoalRestored: (goal: Goal) => void;
 }) {
   const [expanded, setExpanded] = useState(false);
 
@@ -176,41 +180,45 @@ function GoalCard({
 
   const isCompleted = !!goal.completed_at;
 
-  const handleToggleStep = async (stepId: string) => {
+  const handleToggleStep = (stepId: string) => {
     const updatedSteps = goal.steps.map(step =>
-      step.id === stepId
-        ? {
-            ...step,
-            completed: !step.completed,
-          }
-        : step
+      step.id === stepId ? { ...step, completed: !step.completed } : step
     );
+    const completedAt = updatedSteps.every(step => step.completed)
+      ? new Date().toISOString()
+      : null;
 
-    const allCompleted = updatedSteps.every(s => s.completed);
-
-    await supabase
-      .from("goals")
-      .update({
-        steps: updatedSteps,
-        completed_at: allCompleted ? new Date().toISOString() : null,
-      })
-      .eq("id", goal.id);
+    onGoalUpdated(goal.id, updatedSteps, completedAt);
 
     const rect = cardRef.current?.getBoundingClientRect();
-
     if (rect) {
       showXP(10, rect.left + rect.width / 2, rect.top);
     }
 
-    reloadGoals();
+    void (async () => {
+      const { error } = await supabase
+        .from("goals")
+        .update({ steps: updatedSteps, completed_at: completedAt })
+        .eq("id", goal.id);
+
+      if (error) {
+        onGoalUpdated(goal.id, goal.steps, goal.completed_at);
+        showToast("Não foi possível atualizar a meta", "info");
+      }
+    })();
   };
 
-  const handleDelete = async () => {
-    await supabase.from("goals").delete().eq("id", goal.id);
-
+  const handleDelete = () => {
+    onGoalDeleted(goal.id);
     showToast("Meta deletada", "info", "🗑️");
 
-    reloadGoals();
+    void (async () => {
+      const { error } = await supabase.from("goals").delete().eq("id", goal.id);
+      if (error) {
+        onGoalRestored(goal);
+        showToast("Não foi possível remover a meta", "info");
+      }
+    })();
   };
 
   return (
@@ -659,6 +667,24 @@ export default function Goals() {
     setGoals(data || []);
   };
 
+  const updateGoalLocally = (goalId: string, steps: Goal["steps"], completedAt: string | null) => {
+    setGoals(previous =>
+      previous.map(goal =>
+        goal.id === goalId
+          ? { ...goal, steps, completed_at: completedAt }
+          : goal
+      )
+    );
+  };
+
+  const removeGoalLocally = (goalId: string) => {
+    setGoals(previous => previous.filter(goal => goal.id !== goalId));
+  };
+
+  const restoreGoalLocally = (goal: Goal) => {
+    setGoals(previous => [goal, ...previous]);
+  };
+
   const filteredGoals =
     filter === "all"
       ? goals
@@ -762,7 +788,13 @@ export default function Goals() {
           }}
         >
           {filteredGoals.map(goal => (
-            <GoalCard key={goal.id} goal={goal} reloadGoals={loadGoals} />
+            <GoalCard
+              key={goal.id}
+              goal={goal}
+              onGoalUpdated={updateGoalLocally}
+              onGoalDeleted={removeGoalLocally}
+              onGoalRestored={restoreGoalLocally}
+            />
           ))}
         </div>
       )}
