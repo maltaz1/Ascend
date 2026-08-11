@@ -620,6 +620,27 @@ function NewGoalModal({
         </div>
 
         <div>
+          <label style={{ fontSize: 12, fontWeight: 600, color: "var(--muted-foreground)", marginBottom: 6, display: "block" }}>Emoji</label>
+          <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginBottom: 12 }}>
+            {EMOJIS.map(e => (
+              <button
+                key={e}
+                type="button"
+                onClick={() => setEmoji(e)}
+                style={{
+                  padding: "6px 10px",
+                  borderRadius: 8,
+                  border: emoji === e ? `2px solid ${color}` : "1px solid rgba(255,255,255,0.05)",
+                  background: emoji === e ? `${color}15` : "rgba(255,255,255,0.02)",
+                  fontSize: 18,
+                  cursor: "pointer",
+                  transition: "all 0.2s ease"
+                }}
+              >
+                {e}
+              </button>
+            ))}
+          </div>
           <label style={{ fontSize: 12, fontWeight: 600, color: "var(--muted-foreground)", marginBottom: 6, display: "block" }}>Título</label>
           <input placeholder="Ex: Aprender React" value={title} onChange={e => setTitle(e.target.value)} style={{ width: "100%", padding: "12px 16px", borderRadius: 12, border: "1px solid rgba(255,255,255,0.05)", background: "rgba(255,255,255,0.02)", color: "white", outline: "none", boxSizing: "border-box" }} />
         </div>
