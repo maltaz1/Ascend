@@ -434,7 +434,7 @@ function AddFoodModal({
     <Modal open={open} onClose={onClose} title="Adicionar Alimento">
       <div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", minWidth: 0 }}>
         {/* Food Input with AI Button */}
-        <div style={{ position: "relative", width: "100%", minWidth: 0 }}>
+        <div style={{ width: "100%", minWidth: 0 }}>
           <label
             style={{
               fontFamily: "DM Sans",
@@ -490,20 +490,17 @@ function AddFoodModal({
             </button>
           </div>
 
+          {/* Dropdown de sugestões - inline (não absolute) para não ser cortado pelo Modal overflow */}
           {showSuggestions && foodSuggestions.length > 0 && (
             <div
               style={{
-                position: "absolute",
-                top: "100%",
-                left: 0,
-                right: 0,
+                width: "100%",
                 marginTop: 4,
                 background: "rgba(15,23,42,0.95)",
                 border: "1px solid rgba(168,85,247,0.3)",
                 borderRadius: 8,
                 maxHeight: 200,
                 overflowY: "auto",
-                zIndex: 1000,
               }}
             >
               {foodSuggestions.slice(0, 5).map((food, idx) => (
