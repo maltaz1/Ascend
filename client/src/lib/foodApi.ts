@@ -350,76 +350,23 @@ function searchLocalFoods(query: string): FoodSearchResult[] {
 }
 
 /**
- * Busca alimentos na USDA API e/ou banco local
- * Sempre retorna resultados do banco local (BR) para termos em português
+ * Busca alimentos no banco de dados local (BR) em português
+ * Busca instantânea e confiável sem depender de API externa
  */
 export async function searchFoods(query: string): Promise<FoodSearchResult[]> {
   if (!query || query.length < 2) return [];
 
   const lowerQuery = query.toLowerCase();
 
-  // Buscar no banco local primeiro (sempre, para termos em português)
+  // Buscar no banco local (BR) - sempre rápido e confiável
   const localResults = searchLocalFoods(lowerQuery);
 
-  try {
-    // Tentar buscar na USDA API com timeout
-    const controller = new AbortController();
-    const timeoutId = setTimeout(() => controller.abort(), 3000);
-
-    const response = await fetch(
-      `${USDA_API_BASE}?query=${encodeURIComponent(query)}&pageSize=5&api_key=${USDA_API_KEY}`,
-      { 
-        method: 'GET',
-        signal: controller.signal,
-      }
-    );
-
-    clearTimeout(timeoutId);
-
-    if (response.ok) {
-      const data = await response.json();
-      const foods = (data.foods || []).filter((f: any) => f.description && f.foodNutrients);
-
-      if (foods.length > 0) {
-        const apiResults: FoodSearchResult[] = foods.slice(0, 5).map((food: any) => ({
-          fdcId: food.fdcId,
-          description: food.description.substring(0, 100),
-          nutrients: extractNutrients(food),
-          servingSize: food.servingSize || 100,
-          servingUnit: food.servingUnit || 'g',
-        }));
-
-        // Combinar resultados: locais primeiro (em português), depois API
-        const allResults = [...localResults, ...apiResults].slice(0, 10);
-        
-        // Remover duplicatas (mesmo id)
-        const seen = new Set<string>();
-        const uniqueResults = allResults.filter(r => {
-          if (seen.has(r.fdcId)) return false;
-          seen.add(r.fdcId);
-          return true;
-        });
-
-        // Só cachear se tiver resultados
-        if (uniqueResults.length > 0) {
-          foodCache.set(lowerQuery, uniqueResults);
-        }
-        return uniqueResults;
-      }
-    }
-    
-    // Se API falhou ou não retornou nada, usar apenas locais
-    if (localResults.length > 0) {
-      foodCache.set(lowerQuery, localResults);
-    }
-    return localResults;
-  } catch (error) {
-    // Se API falhou, usar apenas banco local
-    if (localResults.length > 0) {
-      foodCache.set(lowerQuery, localResults);
-    }
-    return localResults;
+  // Só cachear se tiver resultados
+  if (localResults.length > 0) {
+    foodCache.set(lowerQuery, localResults);
   }
+
+  return localResults;
 }
 
 /**
