@@ -11,7 +11,6 @@ import {
   Flame,
   Sparkles,
   CalendarDays,
-  TrendingUp,
   Crown,
   Zap,
   Rocket,
@@ -113,7 +112,7 @@ function normalizeWeeklyGoals(goals: Goal[]): { normalized: Goal[]; changed: boo
 }
 
 // =========================
-// CONSTANTS — Solid colors, NO gradients
+// CONSTANTS — Original app colors (no gradients)
 // =========================
 
 const EMOJIS = [
@@ -121,26 +120,30 @@ const EMOJIS = [
   "🏆", "⚡", "🔥", "💎", "🌙", "🎵", "✈️", "🏠", "💻", "🌱",
 ];
 
-// Solid colors only — no purple/violet gradients
 const COLORS = [
+  "#8B5CF6", // violet (primary — original)
   "#F59E0B", // amber
   "#10B981", // emerald
   "#EF4444", // red
   "#EC4899", // pink
   "#06B6D4", // cyan
   "#84CC16", // lime
-  "#6366F1", // indigo
   "#6B7280", // gray
 ];
 
-// Accent palette
+// Original app palette
+const PRIMARY = "#8B5CF6";
+const PRIMARY_DARK = "#7C3AED";
+const PRIMARY_LIGHT = "rgba(139,92,246,0.12)";
+const PRIMARY_BORDER = "rgba(139,92,246,0.3)";
+
 const AMBER = "#F59E0B";
-const AMBER_LIGHT = "rgba(245,158,11,0.08)";
-const AMBER_BORDER = "rgba(245,158,11,0.25)";
+const AMBER_LIGHT = "rgba(245,158,11,0.12)";
+const AMBER_BORDER = "rgba(245,158,11,0.3)";
 
 const EMERALD = "#10B981";
-const EMERALD_LIGHT = "rgba(16,185,129,0.08)";
-const EMERALD_BORDER = "rgba(16,185,129,0.25)";
+const EMERALD_LIGHT = "rgba(16,185,129,0.12)";
+const EMERALD_BORDER = "rgba(16,185,129,0.3)";
 
 const ORANGE = "#F97316";
 
@@ -186,7 +189,7 @@ function S_btnPrimary(isMobile: boolean): React.CSSProperties {
   return {
     padding: isMobile ? "10px 16px" : "10px 20px",
     borderRadius: 10,
-    background: AMBER,
+    background: PRIMARY,
     color: WHITE,
     fontWeight: 600,
     fontSize: isMobile ? 13 : 14,
@@ -383,7 +386,7 @@ function WeeklyGoalCard({
         borderColor: hit ? EMERALD_BORDER : `${color}30`,
       }}
     >
-      {/* Top color bar — solid */}
+      {/* Top color bar */}
       <div style={{ position: "absolute", top: 0, left: 0, right: 0, height: 2, background: hit ? EMERALD : color, borderRadius: "12px 12px 0 0" }} />
 
       {/* Header */}
@@ -521,7 +524,7 @@ function GoalCard({ goal, reloadGoals, isMobile }: { goal: Goal; reloadGoals: ()
           </div>
           <p style={{ fontSize: isMobile ? 10 : 11, color: MUTED, lineHeight: 1.4, margin: 0, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{goal.description}</p>
           {isCompleted && (
-            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "rgba(245,158,11,0.08)", border: `1px solid ${AMBER_BORDER}`, borderRadius: 6, padding: "2px 8px", marginTop: 4, fontSize: 9, fontWeight: 700, color: GOLD }}>
+            <span style={{ display: "inline-flex", alignItems: "center", gap: 4, background: "rgba(245,158,11,0.12)", border: `1px solid ${AMBER_BORDER}`, borderRadius: 6, padding: "2px 8px", marginTop: 4, fontSize: 9, fontWeight: 700, color: GOLD }}>
               <Crown size={9} /> {new Date(goal.completed_at!).toLocaleDateString("pt-BR")}
             </span>
           )}
@@ -587,12 +590,12 @@ function WeeklySummaryBar({ weeklyGoals, isMobile }: { weeklyGoals: Goal[]; isMo
 
   const stats = [
     { icon: Target, value: `${avgConsistency}%`, label: "Consistência", color: EMERALD },
-    { icon: CalendarDays, value: activeCount, label: "Ativas", color: AMBER },
+    { icon: CalendarDays, value: activeCount, label: "Ativas", color: PRIMARY },
     { icon: Flame, value: totalStreak, label: "Streak", color: ORANGE },
   ];
 
   return (
-    <div style={{ ...S_card(isMobile), padding: isMobile ? 10 : 12, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: isMobile ? 4 : 8, borderColor: AMBER_BORDER }}>
+    <div style={{ ...S_card(isMobile), padding: isMobile ? 10 : 12, display: "grid", gridTemplateColumns: "repeat(3, 1fr)", gap: isMobile ? 4 : 8, borderColor: PRIMARY_BORDER }}>
       {stats.map(({ icon: Icon, value, label, color }) => (
         <div key={label} style={{ display: "flex", alignItems: "center", gap: isMobile ? 6 : 8 }}>
           <div style={{ width: isMobile ? 24 : 28, height: isMobile ? 24 : 28, borderRadius: 8, background: `${color}15`, display: "flex", alignItems: "center", justifyContent: "center" }}>
@@ -634,7 +637,7 @@ function NewGoalModal({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [emoji, setEmoji] = useState("🎯");
-  const [color, setColor] = useState(AMBER);
+  const [color, setColor] = useState(PRIMARY);
   const [deadline, setDeadline] = useState("");
   const [steps, setSteps] = useState<string[]>([""]);
   const [goalType, setGoalType] = useState<GoalType>("longo_prazo");
@@ -711,8 +714,8 @@ function NewGoalModal({
                 style={{
                   padding: isMobile ? 10 : 12,
                   borderRadius: 8,
-                  border: goalType === t.value ? `2px solid ${AMBER}` : `1px solid ${NEUTRAL_BORDER}`,
-                  background: goalType === t.value ? AMBER_LIGHT : "rgba(255,255,255,0.02)",
+                  border: goalType === t.value ? `2px solid ${PRIMARY}` : `1px solid ${NEUTRAL_BORDER}`,
+                  background: goalType === t.value ? PRIMARY_LIGHT : "rgba(255,255,255,0.02)",
                   cursor: "pointer",
                   display: "flex",
                   flexDirection: "column",
@@ -722,7 +725,7 @@ function NewGoalModal({
                 }}
               >
                 <span style={{ fontSize: isMobile ? 18 : 20 }}>{t.icon}</span>
-                <span style={{ fontWeight: 700, fontSize: isMobile ? 11 : 12, color: goalType === t.value ? AMBER : FOREGROUND }}>{t.label}</span>
+                <span style={{ fontWeight: 700, fontSize: isMobile ? 11 : 12, color: goalType === t.value ? PRIMARY : FOREGROUND }}>{t.label}</span>
               </button>
             ))}
           </div>
@@ -767,7 +770,7 @@ function NewGoalModal({
               <p style={S_label()}>Frequência por semana</p>
               <div style={{ display: "flex", gap: isMobile ? 3 : 4, flexWrap: "wrap" }}>
                 {frequencyChips.map(chip => (
-                  <button key={chip.value} type="button" onClick={() => setTargetFrequency(chip.value)} style={{ ...S_btnSecondary(isMobile), border: targetFrequency === chip.value ? `2px solid ${AMBER}` : `1px solid ${NEUTRAL_BORDER}`, color: targetFrequency === chip.value ? AMBER : MUTED, background: targetFrequency === chip.value ? AMBER_LIGHT : "rgba(255,255,255,0.03)" }}>
+                  <button key={chip.value} type="button" onClick={() => setTargetFrequency(chip.value)} style={{ ...S_btnSecondary(isMobile), border: targetFrequency === chip.value ? `2px solid ${PRIMARY}` : `1px solid ${NEUTRAL_BORDER}`, color: targetFrequency === chip.value ? PRIMARY : MUTED, background: targetFrequency === chip.value ? PRIMARY_LIGHT : "rgba(255,255,255,0.03)" }}>
                     {chip.label}
                   </button>
                 ))}
@@ -777,9 +780,9 @@ function NewGoalModal({
               <div>
                 <p style={S_label()}>Vincular hábito</p>
                 <div style={{ display: "flex", flexWrap: "wrap", gap: isMobile ? 3 : 4 }}>
-                  <button type="button" onClick={() => setSelectedHabitId(null)} style={{ ...S_btnSecondary(isMobile), border: selectedHabitId === null ? `2px solid ${AMBER}` : `1px solid ${NEUTRAL_BORDER}`, color: selectedHabitId === null ? AMBER : MUTED }}>Manual</button>
+                  <button type="button" onClick={() => setSelectedHabitId(null)} style={{ ...S_btnSecondary(isMobile), border: selectedHabitId === null ? `2px solid ${PRIMARY}` : `1px solid ${NEUTRAL_BORDER}`, color: selectedHabitId === null ? PRIMARY : MUTED }}>Manual</button>
                   {habits.map(h => (
-                    <button key={h.id} type="button" onClick={() => setSelectedHabitId(h.id)} style={{ ...S_btnSecondary(isMobile), border: selectedHabitId === h.id ? `2px solid ${AMBER}` : `1px solid ${NEUTRAL_BORDER}`, color: selectedHabitId === h.id ? AMBER : MUTED }}>
+                    <button key={h.id} type="button" onClick={() => setSelectedHabitId(h.id)} style={{ ...S_btnSecondary(isMobile), border: selectedHabitId === h.id ? `2px solid ${PRIMARY}` : `1px solid ${NEUTRAL_BORDER}`, color: selectedHabitId === h.id ? PRIMARY : MUTED }}>
                       {h.emoji} {h.title}
                     </button>
                   ))}
@@ -802,7 +805,7 @@ function NewGoalModal({
               {steps.map((step, i) => (
                 <input key={i} placeholder={`Etapa ${i + 1}`} value={step} onChange={e => setSteps(prev => { const u = [...prev]; u[i] = e.target.value; return u; })} style={S_input(isMobile)} />
               ))}
-              <button type="button" onClick={() => setSteps([...steps, ""])} style={{ ...S_btnSecondary(isMobile), color: AMBER, border: `1px solid ${AMBER_BORDER}` }}>
+              <button type="button" onClick={() => setSteps([...steps, ""])} style={{ ...S_btnSecondary(isMobile), color: PRIMARY, border: `1px solid ${PRIMARY_BORDER}` }}>
                 <Plus size={12} style={{ marginRight: 4 }} /> Adicionar etapa
               </button>
             </div>
@@ -906,7 +909,7 @@ export default function Goals({
       {/* Page Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: isMobile ? 10 : 12 }}>
         <h2 style={{ fontSize: isMobile ? 20 : 24, fontWeight: 700, display: "flex", alignItems: "center", gap: 8, margin: 0 }}>
-          <Target size={isMobile ? 18 : 20} color={AMBER} />
+          <Target size={isMobile ? 18 : 20} color={PRIMARY} />
           Metas
         </h2>
         <button onClick={() => setShowModal(true)} style={S_btnPrimary(isMobile)}>
@@ -917,8 +920,8 @@ export default function Goals({
       {/* ==================== WEEKLY SECTION ==================== */}
       <section>
         <div style={{ display: "flex", alignItems: "center", gap: 10, marginBottom: 10 }}>
-          <div style={{ width: 28, height: 28, borderRadius: 8, background: AMBER_LIGHT, border: `1px solid ${AMBER_BORDER}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
-            <Zap size={14} color={AMBER} />
+          <div style={{ width: 28, height: 28, borderRadius: 8, background: PRIMARY_LIGHT, border: `1px solid ${PRIMARY_BORDER}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+            <Zap size={14} color={PRIMARY} />
           </div>
           <div>
             <h3 style={{ fontSize: isMobile ? 14 : 15, fontWeight: 700, margin: 0 }}>Metas Semanais</h3>
@@ -948,8 +951,8 @@ export default function Goals({
       <section>
         <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", marginBottom: 10, flexWrap: "wrap", gap: 8 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-            <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(6,182,212,0.1)", border: "1px solid rgba(6,182,212,0.25)", display: "flex", alignItems: "center", justifyContent: "center" }}>
-              <Rocket size={14} color="#06B6D4" />
+            <div style={{ width: 28, height: 28, borderRadius: 8, background: "rgba(139,92,246,0.12)", border: `1px solid ${PRIMARY_BORDER}`, display: "flex", alignItems: "center", justifyContent: "center" }}>
+              <Rocket size={14} color={PRIMARY} />
             </div>
             <div>
               <h3 style={{ fontSize: isMobile ? 14 : 15, fontWeight: 700, margin: 0 }}>Metas de Longo Prazo</h3>
@@ -969,7 +972,7 @@ export default function Goals({
                     padding: isMobile ? "5px 8px" : "6px 10px",
                     borderRadius: 6,
                     border: "none",
-                    background: isActive ? AMBER : "transparent",
+                    background: isActive ? PRIMARY : "transparent",
                     color: isActive ? WHITE : MUTED,
                     fontWeight: 600,
                     fontSize: isMobile ? 9 : 10,
