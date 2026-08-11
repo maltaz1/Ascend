@@ -729,7 +729,7 @@ export default function Goals({
   ] as const;
 
   return (
-    <div style={{ paddingBottom: 40, maxWidth: 1000, margin: "0 auto" }}>
+    <div style={{ paddingBottom: 40, width: "100%" }}>
       {/* Header */}
       <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: isMobile ? 20 : 30, flexWrap: "wrap", gap: 12 }}>
         <div>
