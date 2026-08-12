@@ -242,6 +242,10 @@ function HabitCard({
     if (!rail) return;
 
     const handleActivityWheel = (event: WheelEvent) => {
+      // A escuta em captura no window evita que o scroll da página consuma a roda
+      // antes da faixa receber o evento. O handler só atua sobre a faixa em hover.
+      if (!rail.matches(":hover")) return;
+
       const rawDelta = event.deltaX !== 0 ? event.deltaX : event.deltaY;
 
       if (!rawDelta || rail.scrollWidth <= rail.clientWidth) return;
@@ -260,8 +264,12 @@ function HabitCard({
       rail.scrollLeft = nextScrollLeft;
     };
 
-    rail.addEventListener("wheel", handleActivityWheel, { passive: false });
-    return () => rail.removeEventListener("wheel", handleActivityWheel);
+    window.addEventListener("wheel", handleActivityWheel, {
+      passive: false,
+      capture: true,
+    });
+    return () =>
+      window.removeEventListener("wheel", handleActivityWheel, { capture: true });
   }, []);
 
   return (
@@ -307,7 +315,7 @@ function HabitCard({
       <div className="habit-card-activity" role="group" aria-label={`Atividade de ${habit.title} em ${MONTHS[month]}`}>
         <div className="habit-card-activity-label">
           <span>Atividade no mês</span>
-          <span>Deslize ou use a roda para ver os dias</span>
+          <span>Passe o mouse e use a roda para ver os dias</span>
         </div>
 
         <div
