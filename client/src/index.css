@@ -1016,6 +1016,58 @@
      HÁBITOS — cards unificados + faixa rolável
   ============================================ */
 
+  .habit-header-actions {
+    display: flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 10px;
+    flex-shrink: 0;
+  }
+
+  .habit-view-switch {
+    display: inline-flex;
+    padding: 3px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .habit-view-switch button {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 5px;
+    border: 0;
+    border-radius: 7px;
+    padding: 6px 9px;
+    background: transparent;
+    color: var(--muted-foreground);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: color 160ms ease, background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+  }
+
+  .habit-view-switch button:hover:not(.active) {
+    color: var(--foreground);
+    background: rgba(255, 255, 255, 0.055);
+  }
+
+  .habit-view-switch button.active {
+    color: #f5f3ff;
+    background: rgba(139, 92, 246, 0.8);
+    box-shadow: 0 3px 12px rgba(124, 58, 237, 0.28);
+  }
+
+  .habit-view-switch button:active {
+    transform: scale(0.97);
+  }
+
+  .habit-view-switch button:focus-visible {
+    outline: 2px solid #c084fc;
+    outline-offset: 2px;
+  }
+
   .habit-insight-card {
     padding: 22px;
     margin-bottom: 20px;
@@ -1274,6 +1326,19 @@
   }
 
   @media (max-width: 480px) {
+    .habit-header-actions {
+      gap: 0;
+    }
+
+    .habit-view-switch button {
+      min-width: 32px;
+      padding: 7px 8px;
+    }
+
+    .habit-view-switch button span {
+      display: none;
+    }
+
     .habit-insight-card {
       padding: 16px 14px;
     }

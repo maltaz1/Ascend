@@ -13,6 +13,8 @@ import {
   Search,
   Download,
   Flame,
+  LayoutGrid,
+  Table2,
 } from "lucide-react";
 
 import { addXP } from "@/lib/store";
@@ -161,6 +163,145 @@ function getMonthDaysRail(year: number, month: number, daysInMonth: number): {
       weekday: new Date(year, month, day).getDay(),
     };
   });
+}
+
+function HabitRow({
+  habit,
+  year,
+  month,
+  daysInMonth,
+  onHabitUpdated,
+  onHabitDeleted,
+  onHabitRestored,
+}: {
+  habit: any;
+  year: number;
+  month: number;
+  daysInMonth: number;
+  onHabitUpdated: (habitId: string, completedDates: string[]) => void;
+  onHabitDeleted: (habitId: string) => void;
+  onHabitRestored: (habit: any) => void;
+}) {
+  const { showXP } = useXPAnimation();
+  const [animatingDate, setAnimatingDate] = useState<string | null>(null);
+  const today = getTodayString();
+  const progress = getHabitMonthProgress(habit, year, month);
+  const streak = getHabitStreak(habit);
+  const days = Array.from({ length: daysInMonth }, (_, index) => index + 1);
+
+  const handleToggle = (
+    day: number,
+    event: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+    const previousDates = habit.completedDates || [];
+    const wasCompleted = previousDates.includes(dateStr);
+    const updatedDates = wasCompleted
+      ? previousDates.filter((date: string) => date !== dateStr)
+      : [...previousDates, dateStr];
+
+    onHabitUpdated(habit.id, updatedDates);
+
+    if (!wasCompleted) {
+      void addXP(5);
+      showXP(5, event.clientX, event.clientY);
+      setAnimatingDate(dateStr);
+      window.setTimeout(() => setAnimatingDate(null), 260);
+    }
+
+    void (async () => {
+      await syncHabitToGoals({ id: habit.id, completed_dates: updatedDates });
+      const { error } = await supabase
+        .from("habits")
+        .update({ completed_dates: updatedDates })
+        .eq("id", habit.id);
+      if (error) {
+        onHabitUpdated(habit.id, previousDates);
+        showToast("Erro ao atualizar", "info", "❌");
+      }
+    })();
+  };
+
+  const handleDelete = () => {
+    onHabitDeleted(habit.id);
+    showToast("Hábito removido", "info", "🗑️");
+
+    void (async () => {
+      const { error } = await supabase.from("habits").delete().eq("id", habit.id);
+      if (error) {
+        onHabitRestored(habit);
+        showToast("Erro ao remover", "info", "❌");
+      }
+    })();
+  };
+
+  return (
+    <div className="habit-row">
+      <div className="habit-row-info">
+        <div className="habit-row-title">
+          <span style={{ fontSize: 16 }}>{habit.emoji}</span>
+          <span
+            style={{
+              fontWeight: 500,
+              fontSize: 12,
+              color: "var(--foreground)",
+            }}
+          >
+            {habit.title}
+          </span>
+          <button
+            onClick={handleDelete}
+            className="habit-row-delete"
+            aria-label={`Remover hábito ${habit.title}`}
+            type="button"
+          >
+            <Trash2 size={14} />
+          </button>
+        </div>
+
+        <div className="habit-row-meta">
+          <span style={{ color: habit.color, fontWeight: 600 }}>
+            {progress}/{daysInMonth}
+          </span>
+          <span style={{ color: "var(--muted-foreground)" }}>•</span>
+          <span style={{ color: "var(--muted-foreground)" }}>🔥 {streak}d</span>
+        </div>
+      </div>
+
+      <div className="habit-row-days">
+        {days.map(day => {
+          const dateStr = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+          const isCompleted = habit.completedDates.includes(dateStr);
+          const isFuture = dateStr > today;
+          const isCurrentDay = dateStr === today;
+          const weekDay = WEEK_DAYS[new Date(year, month, day).getDay()];
+          const dayLabel = `${habit.title} — ${weekDay} ${day}/${String(month + 1).padStart(2, "0")}`;
+
+          return (
+            <button
+              key={day}
+              type="button"
+              onClick={event => !isFuture && handleToggle(day, event)}
+              className={`habit-day-button${isCurrentDay ? " current-day" : ""}`}
+              aria-label={dayLabel}
+              aria-pressed={isCompleted}
+              title={dayLabel}
+              disabled={isFuture}
+            >
+              <div
+                className={`habit-day-dot${isCompleted ? " completed" : ""}${
+                  animatingDate === dateStr ? " animate" : ""
+                }`}
+                style={{
+                  background: isCompleted ? habit.color : "var(--border)",
+                }}
+              />
+            </button>
+          );
+        })}
+      </div>
+    </div>
+  );
 }
 
 function HabitCard({
@@ -614,6 +755,18 @@ export default function Habits({ isPro }: { isPro: boolean }) {
 
   const [chartType, setChartType] = useState<"daily" | "weekly">("daily");
 
+  const [viewMode, setViewMode] = useState<"cards" | "table">(() => {
+    if (typeof window === "undefined") return "cards";
+    return window.sessionStorage.getItem("habitsViewMode") === "table"
+      ? "table"
+      : "cards";
+  });
+
+  const handleViewModeChange = (mode: "cards" | "table") => {
+    setViewMode(mode);
+    window.sessionStorage.setItem("habitsViewMode", mode);
+  };
+
   // =========================
   // LOAD HABITS
   // =========================
@@ -670,6 +823,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
   // =========================
 
   const daysInMonth = new Date(viewYear, viewMonth + 1, 0).getDate();
+  const dayNumbers = Array.from({ length: daysInMonth }, (_, index) => index + 1);
 
   // =========================
   // FILTER
@@ -802,11 +956,38 @@ export default function Habits({ isPro }: { isPro: boolean }) {
           </p>
         </div>
 
-        {!isMobile && (
-          <button className="fz-btn-primary" onClick={() => setShowModal(true)}>
-            Novo hábito
-          </button>
-        )}
+        <div className="habit-header-actions">
+          <div className="habit-view-switch" aria-label="Visualização dos hábitos">
+            <button
+              type="button"
+              className={viewMode === "cards" ? "active" : ""}
+              aria-label="Usar visão em cards"
+              aria-pressed={viewMode === "cards"}
+              onClick={() => handleViewModeChange("cards")}
+              title="Usar visão em cards"
+            >
+              <LayoutGrid size={14} aria-hidden="true" />
+              <span>Cards</span>
+            </button>
+            <button
+              type="button"
+              className={viewMode === "table" ? "active" : ""}
+              aria-label="Usar visão clássica em tabela"
+              aria-pressed={viewMode === "table"}
+              onClick={() => handleViewModeChange("table")}
+              title="Usar visão clássica em tabela"
+            >
+              <Table2 size={14} aria-hidden="true" />
+              <span>Tabela</span>
+            </button>
+          </div>
+
+          {!isMobile && (
+            <button className="fz-btn-primary" onClick={() => setShowModal(true)}>
+              Novo hábito
+            </button>
+          )}
+        </div>
       </div>
 
       {/* SEARCH */}
@@ -999,8 +1180,8 @@ export default function Habits({ isPro }: { isPro: boolean }) {
             </button>
           )}
         </div>
-      ) : (
-        <section className="habit-cards" aria-label="Seus hábitos">
+      ) : viewMode === "cards" ? (
+        <section className="habit-cards" aria-label="Seus hábitos em cards">
           {filteredHabits.map(habit => (
             <HabitCard
               key={habit.id}
@@ -1014,6 +1195,40 @@ export default function Habits({ isPro }: { isPro: boolean }) {
               addXPAmount={showXP}
             />
           ))}
+        </section>
+      ) : (
+        <section
+          className="fz-card habit-table-card"
+          style={{ padding: 0, marginBottom: 20 }}
+          aria-label="Seus hábitos em tabela"
+        >
+          <div className="habit-table-scroll">
+            <div className="habit-table-head">
+              <div className="habit-table-head-info">Hábito</div>
+              <div className="habit-table-head-days">
+                {dayNumbers.map(day => (
+                  <div key={day} className="habit-day-header-item">
+                    {day}
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="habit-table-body">
+              {filteredHabits.map(habit => (
+                <HabitRow
+                  key={habit.id}
+                  habit={habit}
+                  year={viewYear}
+                  month={viewMonth}
+                  daysInMonth={daysInMonth}
+                  onHabitUpdated={updateHabitLocally}
+                  onHabitDeleted={removeHabitLocally}
+                  onHabitRestored={restoreHabitLocally}
+                />
+              ))}
+            </div>
+          </div>
         </section>
       )}
 
