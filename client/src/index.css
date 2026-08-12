@@ -729,6 +729,289 @@
     }
   }
 
+  /* ============================================
+     MOBILE CARDS — visão alternativa para telas
+     pequenas: card por hábito com grade da semana
+     atual (toques grandes) + barra de progresso.
+  ============================================ */
+
+  .habit-cards {
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .habit-card {
+    background: var(--background);
+    border: 1px solid var(--border);
+    border-radius: 14px;
+    padding: 12px;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+  }
+
+  .habit-card-header {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+  }
+
+  .habit-card-title-row {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+  }
+
+  .habit-card-emoji {
+    width: 36px;
+    height: 36px;
+    border-radius: 10px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 18px;
+    flex-shrink: 0;
+  }
+
+  .habit-card-title-text {
+    flex: 1;
+    min-width: 0;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+
+  .habit-card-name {
+    font-size: 13px;
+    font-weight: 600;
+    color: var(--foreground);
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+    line-height: 1.3;
+  }
+
+  .habit-card-meta {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 11px;
+    color: var(--muted-foreground);
+    white-space: nowrap;
+  }
+
+  .habit-card-dot {
+    color: var(--border);
+  }
+
+  .habit-card-delete {
+    background: transparent;
+    border: none;
+    color: var(--muted-foreground);
+    cursor: pointer;
+    padding: 6px;
+    border-radius: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-shrink: 0;
+  }
+
+  .habit-card-delete:active {
+    background: rgba(239, 68, 68, 0.12);
+    color: #ef4444;
+  }
+
+  /* Grade da semana: 7 colunas com toques grandes */
+  .habit-card-week {
+    display: grid;
+    grid-template-columns: repeat(7, 1fr);
+    gap: 4px;
+  }
+
+  .habit-week-cell {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    min-height: 56px;
+    border: none;
+    background: transparent;
+    border-radius: 10px;
+    padding: 4px 2px;
+    cursor: pointer;
+    transition: background 0.15s ease, transform 0.15s ease;
+  }
+
+  .habit-week-cell.current {
+    background: rgba(139, 92, 246, 0.1);
+  }
+
+  .habit-week-cell.other-month .habit-week-day-label {
+    opacity: 0.35;
+  }
+
+  .habit-week-cell:hover:not(:disabled) {
+    background: rgba(139, 92, 246, 0.1);
+    transform: scale(1.03);
+  }
+
+  .habit-week-cell:active:not(:disabled) {
+    transform: scale(0.94);
+  }
+
+  .habit-week-cell:focus-visible {
+    outline: 2px solid #8b5cf6;
+    outline-offset: 2px;
+  }
+
+  .habit-week-cell:disabled {
+    cursor: not-allowed;
+    opacity: 0.25;
+  }
+
+  .habit-week-day-label {
+    display: flex;
+    align-items: center;
+    gap: 2px;
+    font-size: 10px;
+    font-weight: 700;
+    color: var(--muted-foreground);
+    line-height: 1;
+  }
+
+  .habit-week-day-num {
+    font-size: 10px;
+    font-weight: 500;
+    color: var(--muted-foreground);
+  }
+
+  .habit-week-cell.current .habit-week-day-label,
+  .habit-week-cell.current .habit-week-day-num {
+    color: #8b5cf6;
+  }
+
+  .habit-week-dot {
+    width: 20px;
+    height: 20px;
+    border-radius: 50%;
+    flex-shrink: 0;
+    transition: transform 0.18s ease, box-shadow 0.18s ease;
+  }
+
+  .habit-week-dot.completed {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
+  }
+
+  .habit-week-dot.animate {
+    animation: habit-mark 240ms ease-out both;
+  }
+
+  /* Barra de progresso do mês */
+  .habit-card-progress-track {
+    height: 4px;
+    border-radius: 999px;
+    background: var(--border);
+    overflow: hidden;
+  }
+
+  .habit-card-progress-fill {
+    height: 100%;
+    border-radius: 999px;
+    transition: width 0.3s ease;
+  }
+
+  /* Expandir tabela do mês */
+  .habit-card-expand {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    font-size: 11px;
+    font-weight: 600;
+    color: var(--muted-foreground);
+    background: rgba(255, 255, 255, 0.03);
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    padding: 8px 10px;
+    cursor: pointer;
+    transition: color 0.15s ease, background 0.15s ease;
+  }
+
+  .habit-card-expand:active {
+    background: rgba(139, 92, 246, 0.12);
+    color: #a78bfa;
+  }
+
+  .habit-card-expand-chevron {
+    transform: rotate(-90deg);
+    transition: transform 0.2s ease;
+  }
+
+  .habit-card-expand-chevron.expanded {
+    transform: rotate(90deg);
+  }
+
+  .habit-card-month-table {
+    border-top: 1px solid var(--border);
+    padding-top: 8px;
+  }
+
+  .habit-card-month-table .habit-table-scroll {
+    padding-bottom: 4px;
+  }
+
+  /* Toggle tabela completa / voltar para semana */
+  .habit-table-toggle {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 6px;
+    width: 100%;
+    font-size: 12px;
+    font-weight: 600;
+    color: #a78bfa;
+    background: rgba(139, 92, 246, 0.08);
+    border: 1px solid rgba(139, 92, 246, 0.25);
+    border-radius: 12px;
+    padding: 10px 12px;
+    cursor: pointer;
+    margin-bottom: 12px;
+    transition: background 0.15s ease;
+  }
+
+  .habit-table-toggle:active {
+    background: rgba(139, 92, 246, 0.16);
+  }
+
+  /* FAB — novo hábito no mobile */
+  .habit-fab {
+    position: fixed;
+    right: 16px;
+    bottom: 84px;
+    width: 52px;
+    height: 52px;
+    border-radius: 16px;
+    border: none;
+    background: linear-gradient(135deg, #8b5cf6, #7c3aed);
+    color: #fff;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    cursor: pointer;
+    box-shadow: 0 8px 24px rgba(124, 58, 237, 0.4);
+    z-index: 40;
+    transition: transform 0.15s ease, box-shadow 0.15s ease;
+  }
+
+  .habit-fab:active {
+    transform: scale(0.92);
+  }
+
   /* Modal */
   .fz-modal-overlay {
     position: fixed;

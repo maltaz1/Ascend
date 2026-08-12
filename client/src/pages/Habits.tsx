@@ -2,7 +2,7 @@
 // IMPORTS
 // =========================
 
-import React, { useState, useMemo, useEffect } from "react";
+import React, { useState, useMemo, useEffect, useCallback } from "react";
 
 import {
   Plus,
@@ -13,6 +13,7 @@ import {
   Search,
   Download,
   Flame,
+  CalendarDays,
 } from "lucide-react";
 
 import { addXP } from "@/lib/store";
@@ -31,6 +32,7 @@ import {
 } from "recharts";
 
 import { useXPAnimation } from "@/hooks/useStore";
+import { useIsMobile } from "@/hooks/useMobile";
 
 import {
   getHabitMonthProgress,
@@ -316,6 +318,228 @@ function HabitRow({
 }
 
 // =========================
+// MOBILE CARD — grade da semana atual com toques maiores
+// =========================
+
+function getWeekDaysGrid(): {
+  day: number;
+  month: number;
+  year: number;
+  dateStr: string;
+  weekday: number;
+}[] {
+  const now = new Date();
+  const weekDay = now.getDay();
+  const start = new Date(now);
+  start.setDate(now.getDate() - weekDay);
+  const grid = [];
+  for (let i = 0; i < 7; i++) {
+    const d = new Date(start);
+    d.setDate(start.getDate() + i);
+    grid.push({
+      day: d.getDate(),
+      month: d.getMonth(),
+      year: d.getFullYear(),
+      dateStr: `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}-${String(d.getDate()).padStart(2, "0")}`,
+      weekday: d.getDay(),
+    });
+  }
+  return grid;
+}
+
+function HabitCard({
+  habit,
+  year,
+  month,
+  daysInMonth,
+  onHabitUpdated,
+  onHabitDeleted,
+  onHabitRestored,
+  addXPAmount,
+}: {
+  habit: any;
+  year: number;
+  month: number;
+  daysInMonth: number;
+  onHabitUpdated: (habitId: string, completedDates: string[]) => void;
+  onHabitDeleted: (habitId: string) => void;
+  onHabitRestored: (habit: any) => void;
+  addXPAmount: (amount: number, x: number, y: number) => void;
+}) {
+  const [animatingDate, setAnimatingDate] = useState<string | null>(null);
+  const [expanding, setExpanding] = useState(false);
+
+  const today = getTodayString();
+
+  const progress = getHabitMonthProgress(habit, year, month);
+  const rate = getHabitMonthRate(habit, year, month);
+  const streak = getHabitStreak(habit);
+  const weekGrid = getWeekDaysGrid();
+
+  const handleToggle = (
+    dateStr: string,
+    e: React.MouseEvent<HTMLButtonElement>
+  ) => {
+    if (dateStr > today) return;
+    const previousDates = habit.completedDates || [];
+    const wasCompleted = previousDates.includes(dateStr);
+    const updatedDates = wasCompleted
+      ? previousDates.filter((d: string) => d !== dateStr)
+      : [...previousDates, dateStr];
+    onHabitUpdated(habit.id, updatedDates);
+    if (!wasCompleted) {
+      void addXP(5);
+      addXPAmount(5, e.clientX, e.clientY);
+      setAnimatingDate(dateStr);
+      window.setTimeout(() => setAnimatingDate(null), 260);
+    }
+    void (async () => {
+      await syncHabitToGoals({ id: habit.id, completed_dates: updatedDates });
+      const { error } = await supabase
+        .from("habits")
+        .update({ completed_dates: updatedDates })
+        .eq("id", habit.id);
+      if (error) {
+        onHabitUpdated(habit.id, previousDates);
+        showToast("Erro ao atualizar", "info", "❌");
+      }
+    })();
+  };
+
+  const handleDelete = () => {
+    onHabitDeleted(habit.id);
+    showToast("Hábito removido", "info", "🗑️");
+
+    void (async () => {
+      const { error } = await supabase.from("habits").delete().eq("id", habit.id);
+      if (error) {
+        onHabitRestored(habit);
+        showToast("Erro ao remover", "info", "❌");
+      }
+    })();
+  };
+
+  const rateLabel = `${progress}/${daysInMonth}`;
+
+  return (
+    <div className="habit-card" style={{ borderColor: "var(--border)" }}>
+      <div className="habit-card-header">
+        <div className="habit-card-title-row">
+          <span
+            className="habit-card-emoji"
+            style={{ background: `${habit.color}1A`, color: habit.color }}
+          >
+            {habit.emoji}
+          </span>
+
+          <div className="habit-card-title-text">
+            <span className="habit-card-name">{habit.title}</span>
+
+            <span className="habit-card-meta">
+              <Flame size={12} style={{ color: "#F59E0B" }} />
+
+              <span style={{ color: "#F59E0B", fontWeight: 700 }}>{streak}d</span>
+
+              <span className="habit-card-dot">•</span>
+
+              <span style={{ color: habit.color, fontWeight: 700 }}>{rateLabel}</span>
+
+              <span className="habit-card-dot">•</span>
+
+              <span>{rate}% no mês</span>
+            </span>
+          </div>
+
+          <button
+            onClick={handleDelete}
+            className="habit-card-delete"
+            aria-label={`Remover hábito ${habit.title}`}
+            type="button"
+          >
+            <Trash2 size={15} />
+          </button>
+        </div>
+      </div>
+
+      <div className="habit-card-week">
+        {weekGrid.map(cell => {
+          const isCompleted = habit.completedDates.includes(cell.dateStr);
+          const isFuture = cell.dateStr > today;
+          const isCurrentDay = cell.dateStr === today;
+          const isTodayMonth = cell.month === month && cell.year === year;
+          const dayLabel = `${habit.title} — ${WEEK_DAYS[cell.weekday]} ${cell.day}/${String(cell.month + 1).padStart(2, "0")}`;
+
+          return (
+            <button
+              key={cell.dateStr}
+              type="button"
+              onClick={e => !isFuture && handleToggle(cell.dateStr, e)}
+              className={`habit-week-cell${isCurrentDay ? " current" : ""}${isTodayMonth ? "" : " other-month"}`}
+              aria-label={dayLabel}
+              aria-pressed={isCompleted}
+              disabled={isFuture}
+            >
+              <span className="habit-week-day-label">
+                {WEEK_DAYS[cell.weekday]}
+                <span className="habit-week-day-num">{cell.day}</span>
+              </span>
+
+              <span
+                className={`habit-week-dot${isCompleted ? " completed" : ""}${
+                  animatingDate === cell.dateStr ? " animate" : ""
+                }`}
+                style={{
+                  background: isCompleted ? habit.color : "var(--border)",
+                }}
+              />
+            </button>
+          );
+        })}
+      </div>
+
+      <div className="habit-card-progress-track">
+        <div
+          className="habit-card-progress-fill"
+          style={{
+            width: `${daysInMonth > 0 ? Math.round((progress / daysInMonth) * 100) : 0}%`,
+            background: habit.color,
+          }}
+        />
+      </div>
+
+      <button
+        type="button"
+        className="habit-card-expand"
+        onClick={() => setExpanding(prev => !prev)}
+      >
+        <CalendarDays size={13} />
+
+        {expanding ? "Ocultar tabela do mês" : "Ver tabela do mês"}
+
+        <ChevronLeft
+          size={13}
+          className={`habit-card-expand-chevron${expanding ? " expanded" : ""}`}
+        />
+      </button>
+
+      {expanding && (
+        <div className="habit-card-month-table">
+          <HabitRow
+            habit={habit}
+            year={year}
+            month={month}
+            daysInMonth={daysInMonth}
+            onHabitUpdated={onHabitUpdated}
+            onHabitDeleted={onHabitDeleted}
+            onHabitRestored={onHabitRestored}
+          />
+        </div>
+      )}
+    </div>
+  );
+}
+
+// =========================
 // NEW HABIT MODAL
 // =========================
 
@@ -501,6 +725,12 @@ function NewHabitModal({
 // =========================
 
 export default function Habits({ isPro }: { isPro: boolean }) {
+  const { showXP } = useXPAnimation();
+
+  const isMobile = useIsMobile();
+
+  const [showMonthTable, setShowMonthTable] = useState(false);
+
   const [habits, setHabits] = useState<any[]>([]);
 
   const today = new Date();
@@ -658,33 +888,57 @@ export default function Habits({ isPro }: { isPro: boolean }) {
         style={{
           display: "flex",
           justifyContent: "space-between",
-          alignItems: "center",
-          marginBottom: 20,
+          alignItems: isMobile ? "flex-start" : "center",
+          gap: 12,
+          marginBottom: isMobile ? 16 : 20,
         }}
       >
         <div>
           <h1
             style={{
-              fontSize: 26,
+              fontSize: isMobile ? 22 : 26,
               fontWeight: 700,
+              lineHeight: 1.2,
+              display: "flex",
+              alignItems: "center",
+              gap: 8,
             }}
           >
+            {isMobile && (
+              <span
+                style={{
+                  width: 28,
+                  height: 28,
+                  borderRadius: 8,
+                  background: "rgba(139,92,246,0.15)",
+                  display: "inline-flex",
+                  alignItems: "center",
+                  justifyContent: "center",
+                  flexShrink: 0,
+                }}
+              >
+                <Flame size={15} style={{ color: "#A855F7" }} />
+              </span>
+            )}
             Hábitos
           </h1>
 
           <p
             style={{
-              fontSize: 12,
+              fontSize: isMobile ? 11 : 12,
               color: "var(--muted-foreground)",
+              margin: isMobile ? "2px 0 0" : 0,
             }}
           >
             Consistência é tudo 🔥
           </p>
         </div>
 
-        <button className="fz-btn-primary" onClick={() => setShowModal(true)}>
-          Novo hábito
-        </button>
+        {!isMobile && (
+          <button className="fz-btn-primary" onClick={() => setShowModal(true)}>
+            Novo hábito
+          </button>
+        )}
       </div>
 
       {/* SEARCH */}
@@ -736,22 +990,52 @@ export default function Habits({ isPro }: { isPro: boolean }) {
           display: "flex",
           justifyContent: "center",
           alignItems: "center",
-          gap: 20,
-          marginBottom: 20,
+          gap: isMobile ? 14 : 20,
+          marginBottom: isMobile ? 14 : 20,
         }}
       >
         <button
           onClick={() => setViewMonth(prev => (prev === 0 ? 11 : prev - 1))}
+          style={{
+            width: isMobile ? 34 : undefined,
+            height: isMobile ? 34 : undefined,
+            borderRadius: 10,
+            border: "1px solid var(--border)",
+            background: "var(--card)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          aria-label="Mês anterior"
+          type="button"
         >
           <ChevronLeft size={16} />
         </button>
 
-        <h2>
+        <h2
+          style={{
+            fontSize: isMobile ? 15 : undefined,
+            fontWeight: 700,
+            margin: 0,
+          }}
+        >
           {MONTHS[viewMonth]} {viewYear}
         </h2>
 
         <button
           onClick={() => setViewMonth(prev => (prev === 11 ? 0 : prev + 1))}
+          style={{
+            width: isMobile ? 34 : undefined,
+            height: isMobile ? 34 : undefined,
+            borderRadius: 10,
+            border: "1px solid var(--border)",
+            background: "var(--card)",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+          }}
+          aria-label="Próximo mês"
+          type="button"
         >
           <ChevronRight size={16} />
         </button>
@@ -778,7 +1062,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
           <button onClick={() => setChartType("weekly")}>Semanal</button>
         </div>
 
-        <ResponsiveContainer width="100%" height={220}>
+        <ResponsiveContainer width="100%" height={isMobile ? 150 : 220}>
           {chartType === "daily" ? (
             <AreaChart data={dailyData}>
               <CartesianGrid strokeDasharray="3 3" />
@@ -817,7 +1101,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
       <div
         className="fz-card habit-table-card"
         style={{
-          padding: "0",
+          padding: isMobile && !showMonthTable ? "12px" : "0",
           marginBottom: 20,
         }}
       >
@@ -843,6 +1127,22 @@ export default function Habits({ isPro }: { isPro: boolean }) {
                 + Criar primeiro hábito
               </button>
             )}
+          </div>
+        ) : isMobile && !showMonthTable ? (
+          <div className="habit-cards">
+            {filteredHabits.map(habit => (
+              <HabitCard
+                key={habit.id}
+                habit={habit}
+                year={viewYear}
+                month={viewMonth}
+                daysInMonth={daysInMonth}
+                onHabitUpdated={updateHabitLocally}
+                onHabitDeleted={removeHabitLocally}
+                onHabitRestored={restoreHabitLocally}
+                addXPAmount={showXP}
+              />
+            ))}
           </div>
         ) : (
           <div className="habit-table-scroll">
@@ -875,6 +1175,41 @@ export default function Habits({ isPro }: { isPro: boolean }) {
           </div>
         )}
       </div>
+
+      {/* MOBILE: toggle tabela completa + FAB novo hábito */}
+
+      {isMobile && (
+        <>
+          {!showMonthTable ? (
+            <button
+              type="button"
+              className="habit-table-toggle"
+              onClick={() => setShowMonthTable(true)}
+            >
+              <CalendarDays size={14} />
+
+              Ver tabela do mês
+            </button>
+          ) : (
+            <button
+              type="button"
+              className="habit-table-toggle"
+              onClick={() => setShowMonthTable(false)}
+            >
+              Voltar para a semana
+            </button>
+          )}
+
+          <button
+            type="button"
+            className="habit-fab"
+            onClick={() => setShowModal(true)}
+            aria-label="Novo hábito"
+          >
+            <Plus size={22} />
+          </button>
+        </>
+      )}
 
       {/* STATS */}
 
