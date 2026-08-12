@@ -100,6 +100,8 @@ export default function Academy({ onTabChange }: AcademyProps) {
   const sessions = useMemo(() => getWorkoutSessions(), [data]);
   const progressData = useMemo(() => getWorkoutProgressData(), [data]);
   const exerciseCatalog = useMemo(() => getCatalogExercises(), [data]);
+  const defaultExercises = exerciseCatalog.filter(exercise => exercise.isBuiltIn);
+  const personalExercises = exerciseCatalog.filter(exercise => !exercise.isBuiltIn);
 
   const [activeSubTab, setActiveSubTab] = useState<"workouts" | "catalog" | "evolution">("workouts");
 
@@ -1051,17 +1053,24 @@ export default function Academy({ onTabChange }: AcademyProps) {
             </button>
           </div>
 
-          {exerciseCatalog.length === 0 ? (
-            <div className="fz-card" style={{ padding: "40px 20px", textAlign: "center" }}>
-              <Dumbbell size={32} style={{ margin: "0 auto 12px", opacity: 0.5 }} />
-              <p style={{ color: "var(--muted-foreground)", fontSize: 14 }}>
-                Seu catálogo está vazio. Adicione exercícios para usá-los nos seus treinos.
-              </p>
+          <div className="fz-card" style={{ padding: "14px 16px", marginBottom: 20, borderLeft: "3px solid #A855F7" }}>
+            <p style={{ margin: 0, fontSize: 13, color: "var(--muted-foreground)", lineHeight: 1.5 }}>
+              Os exercícios mais comuns já estão disponíveis. Crie um novo exercício apenas quando ele não estiver na lista padrão.
+            </p>
+          </div>
+
+          <section>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 12 }}>
+              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "var(--foreground)" }}>
+                Exercícios padrão
+              </h3>
+              <span style={{ color: "var(--muted-foreground)", fontSize: 12 }}>
+                {defaultExercises.length} exercícios
+              </span>
             </div>
-          ) : (
-            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(280px, 1fr))", gap: 16 }}>
-              {exerciseCatalog.map(ex => (
-                <div key={ex.id} className="fz-card" style={{ padding: "16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+            <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 12 }}>
+              {defaultExercises.map(ex => (
+                <div key={ex.id} className="fz-card" style={{ padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
                   <div>
                     <div style={{ fontWeight: 600, fontSize: 14, color: "var(--foreground)" }}>{ex.name}</div>
                     {ex.targetMuscleGroup && (
@@ -1070,16 +1079,53 @@ export default function Academy({ onTabChange }: AcademyProps) {
                       </div>
                     )}
                   </div>
-                  <button
-                    onClick={() => deleteCatalogExercise(ex.id)}
-                    style={{ background: "transparent", border: "none", cursor: "pointer", padding: 8 }}
-                  >
-                    <Trash2 size={16} color="#EF4444" />
-                  </button>
+                  <span style={{ color: "#A855F7", background: "rgba(168,85,247,0.12)", fontSize: 10, fontWeight: 700, padding: "4px 7px", borderRadius: 999 }}>
+                    PADRÃO
+                  </span>
                 </div>
               ))}
             </div>
-          )}
+          </section>
+
+          <section style={{ marginTop: 28 }}>
+            <div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 12 }}>
+              <h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "var(--foreground)" }}>
+                Meus exercícios
+              </h3>
+              <span style={{ color: "var(--muted-foreground)", fontSize: 12 }}>
+                {personalExercises.length} {personalExercises.length === 1 ? "exercício" : "exercícios"}
+              </span>
+            </div>
+            {personalExercises.length === 0 ? (
+              <div className="fz-card" style={{ padding: "24px 20px", textAlign: "center" }}>
+                <p style={{ margin: 0, color: "var(--muted-foreground)", fontSize: 13 }}>
+                  Seus exercícios personalizados aparecerão aqui.
+                </p>
+              </div>
+            ) : (
+              <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 12 }}>
+                {personalExercises.map(ex => (
+                  <div key={ex.id} className="fz-card" style={{ padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}>
+                    <div>
+                      <div style={{ fontWeight: 600, fontSize: 14, color: "var(--foreground)" }}>{ex.name}</div>
+                      {ex.targetMuscleGroup && (
+                        <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 4 }}>
+                          {ex.targetMuscleGroup}
+                        </div>
+                      )}
+                    </div>
+                    <button
+                      onClick={() => deleteCatalogExercise(ex.id)}
+                      aria-label={`Excluir ${ex.name}`}
+                      style={{ background: "transparent", border: "none", cursor: "pointer", padding: 8 }}
+                    >
+                      <Trash2 size={16} color="#EF4444" />
+                    </button>
+                  </div>
+                ))}
+              </div>
+            )}
+          </section>
         </div>
       )}
 
@@ -1218,11 +1264,22 @@ export default function Academy({ onTabChange }: AcademyProps) {
               }}
             >
               <option value="">-- Selecione um exercício --</option>
-              {exerciseCatalog.map(ex => (
-                <option key={ex.id} value={ex.id}>
-                  {ex.name} {ex.targetMuscleGroup ? `(${ex.targetMuscleGroup})` : ""}
-                </option>
-              ))}
+              <optgroup label="Exercícios padrão">
+                {defaultExercises.map(ex => (
+                  <option key={ex.id} value={ex.id}>
+                    {ex.name} {ex.targetMuscleGroup ? `(${ex.targetMuscleGroup})` : ""}
+                  </option>
+                ))}
+              </optgroup>
+              {personalExercises.length > 0 && (
+                <optgroup label="Meus exercícios">
+                  {personalExercises.map(ex => (
+                    <option key={ex.id} value={ex.id}>
+                      {ex.name} {ex.targetMuscleGroup ? `(${ex.targetMuscleGroup})` : ""}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
             </select>
           </div>
 

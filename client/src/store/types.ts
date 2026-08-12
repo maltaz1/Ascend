@@ -55,6 +55,8 @@ export interface CatalogExercise {
   name: string;
   targetMuscleGroup?: string;
   createdAt: string;
+  /** Identifica exercícios pré-carregados e não removíveis do aplicativo. */
+  isBuiltIn?: boolean;
 }
 
 export interface Exercise {

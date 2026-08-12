@@ -1,5 +1,6 @@
 import { supabase } from "@/lib/supabase";
 import { Workout, WorkoutSession, CatalogExercise, Exercise } from "./types";
+import { DEFAULT_EXERCISE_CATALOG, isDefaultExercise } from "./default-exercises";
 import { _data, notify, persistState, markActiveToday } from "./state";
 import { generateId } from "./utils";
 import { addXP } from "./xp-system";
@@ -68,6 +69,9 @@ export async function addCatalogExercise(
 }
 
 export async function deleteCatalogExercise(id: string): Promise<void> {
+  // Os exercícios padrão pertencem ao aplicativo e não podem ser removidos.
+  if (isDefaultExercise(id)) return;
+
   const previousCatalog = [..._data.exerciseCatalog];
   _data.exerciseCatalog = _data.exerciseCatalog.filter(item => item.id !== id);
 
@@ -86,7 +90,9 @@ export async function deleteCatalogExercise(id: string): Promise<void> {
 }
 
 export function getCatalogExercises(): CatalogExercise[] {
-  return _data.exerciseCatalog;
+  return [...DEFAULT_EXERCISE_CATALOG, ..._data.exerciseCatalog].sort((a, b) =>
+    a.name.localeCompare(b.name, "pt-BR")
+  );
 }
 
 // --- Workout Functions ---
