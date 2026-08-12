@@ -236,10 +236,32 @@ function HabitCard({
 
   const rateLabel = `${progress}/${daysInMonth}`;
   const activityRailRef = useRef<HTMLDivElement>(null);
+  const wheelAnimationFrameRef = useRef<number | null>(null);
+  const wheelTargetScrollRef = useRef<number | null>(null);
 
   useEffect(() => {
     const rail = activityRailRef.current;
     if (!rail) return;
+
+    const prefersReducedMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+    const animateWheelScroll = () => {
+      const targetScrollLeft = wheelTargetScrollRef.current;
+      if (targetScrollLeft === null) {
+        wheelAnimationFrameRef.current = null;
+        return;
+      }
+
+      const distance = targetScrollLeft - rail.scrollLeft;
+      if (Math.abs(distance) < 0.5) {
+        rail.scrollLeft = targetScrollLeft;
+        wheelAnimationFrameRef.current = null;
+        return;
+      }
+
+      rail.scrollLeft += distance * 0.22;
+      wheelAnimationFrameRef.current = requestAnimationFrame(animateWheelScroll);
+    };
 
     const handleActivityWheel = (event: WheelEvent) => {
       // A escuta em captura no window evita que o scroll da página consuma a roda
@@ -247,29 +269,51 @@ function HabitCard({
       if (!rail.matches(":hover")) return;
 
       const rawDelta = event.deltaX !== 0 ? event.deltaX : event.deltaY;
-
       if (!rawDelta || rail.scrollWidth <= rail.clientWidth) return;
 
       const delta = event.deltaMode === 1 ? rawDelta * 20 : rawDelta;
       const maxScrollLeft = rail.scrollWidth - rail.clientWidth;
+      const currentTarget = wheelTargetScrollRef.current ?? rail.scrollLeft;
       const nextScrollLeft = Math.max(
         0,
-        Math.min(maxScrollLeft, rail.scrollLeft + delta)
+        Math.min(maxScrollLeft, currentTarget + delta)
       );
 
       // Mantém o scroll normal da página ao atingir o início ou o fim da faixa.
-      if (nextScrollLeft === rail.scrollLeft) return;
+      if (nextScrollLeft === currentTarget) return;
 
       event.preventDefault();
-      rail.scrollLeft = nextScrollLeft;
+      wheelTargetScrollRef.current = nextScrollLeft;
+
+      if (prefersReducedMotion) {
+        rail.scrollLeft = nextScrollLeft;
+        return;
+      }
+
+      if (wheelAnimationFrameRef.current === null) {
+        wheelAnimationFrameRef.current = requestAnimationFrame(animateWheelScroll);
+      }
     };
 
+    const syncWheelTarget = () => {
+      if (wheelAnimationFrameRef.current === null) {
+        wheelTargetScrollRef.current = rail.scrollLeft;
+      }
+    };
+
+    rail.addEventListener("scroll", syncWheelTarget, { passive: true });
     window.addEventListener("wheel", handleActivityWheel, {
       passive: false,
       capture: true,
     });
-    return () =>
+
+    return () => {
+      rail.removeEventListener("scroll", syncWheelTarget);
       window.removeEventListener("wheel", handleActivityWheel, { capture: true });
+      if (wheelAnimationFrameRef.current !== null) {
+        cancelAnimationFrame(wheelAnimationFrameRef.current);
+      }
+    };
   }, []);
 
   return (
