@@ -756,10 +756,10 @@ export default function Habits({ isPro }: { isPro: boolean }) {
   const [chartType, setChartType] = useState<"daily" | "weekly">("daily");
 
   const [viewMode, setViewMode] = useState<"cards" | "table">(() => {
-    if (typeof window === "undefined") return "cards";
-    return window.sessionStorage.getItem("habitsViewMode") === "table"
-      ? "table"
-      : "cards";
+    if (typeof window === "undefined") return "table";
+    return window.sessionStorage.getItem("habitsViewMode") === "cards"
+      ? "cards"
+      : "table";
   });
 
   const handleViewModeChange = (mode: "cards" | "table") => {
