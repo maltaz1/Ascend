@@ -2,7 +2,7 @@
 // IMPORTS
 // =========================
 
-import React, { useState, useMemo, useEffect, useCallback } from "react";
+import React, { useState, useMemo, useEffect, useCallback, useRef } from "react";
 
 import {
   Plus,
@@ -235,6 +235,34 @@ function HabitCard({
   };
 
   const rateLabel = `${progress}/${daysInMonth}`;
+  const activityRailRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    const rail = activityRailRef.current;
+    if (!rail) return;
+
+    const handleActivityWheel = (event: WheelEvent) => {
+      const rawDelta = event.deltaX !== 0 ? event.deltaX : event.deltaY;
+
+      if (!rawDelta || rail.scrollWidth <= rail.clientWidth) return;
+
+      const delta = event.deltaMode === 1 ? rawDelta * 20 : rawDelta;
+      const maxScrollLeft = rail.scrollWidth - rail.clientWidth;
+      const nextScrollLeft = Math.max(
+        0,
+        Math.min(maxScrollLeft, rail.scrollLeft + delta)
+      );
+
+      // Mantém o scroll normal da página ao atingir o início ou o fim da faixa.
+      if (nextScrollLeft === rail.scrollLeft) return;
+
+      event.preventDefault();
+      rail.scrollLeft = nextScrollLeft;
+    };
+
+    rail.addEventListener("wheel", handleActivityWheel, { passive: false });
+    return () => rail.removeEventListener("wheel", handleActivityWheel);
+  }, []);
 
   return (
     <div className="habit-card" style={{ borderColor: "var(--border)" }}>
@@ -279,10 +307,13 @@ function HabitCard({
       <div className="habit-card-activity" role="group" aria-label={`Atividade de ${habit.title} em ${MONTHS[month]}`}>
         <div className="habit-card-activity-label">
           <span>Atividade no mês</span>
-          <span>Deslize para ver os dias</span>
+          <span>Deslize ou use a roda para ver os dias</span>
         </div>
 
-        <div className="habit-card-activity-rail">
+        <div
+          ref={activityRailRef}
+          className="habit-card-activity-rail"
+        >
           {activityRail.map(cell => {
             const isCompleted = habit.completedDates.includes(cell.dateStr);
             const isFuture = cell.dateStr > today;
