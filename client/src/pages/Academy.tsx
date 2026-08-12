@@ -93,6 +93,13 @@ interface AcademyProps {
   onTabChange?: (tab: "evolution") => void;
 }
 
+function normalizeExerciseSearch(value: string): string {
+  return value
+    .normalize("NFD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .toLocaleLowerCase("pt-BR");
+}
+
 export default function Academy({ onTabChange }: AcademyProps) {
   const data = useStore();
   const stats = useMemo(() => getGymStats(), [data]);
@@ -135,12 +142,22 @@ export default function Academy({ onTabChange }: AcademyProps) {
   const [catalogExerciseMuscle, setCatalogExerciseMuscle] = useState("");
   const [showNewCatalogModal, setShowNewCatalogModal] = useState(false);
   const [selectedCatalogId, setSelectedCatalogId] = useState<string | "">("");
+  const [exerciseSearch, setExerciseSearch] = useState("");
   const [showEditExerciseModal, setShowEditExerciseModal] = useState(false);
   const [exerciseToEdit, setExerciseToEdit] = useState<Exercise | null>(null);
 
   const selectedWorkout = selectedWorkoutId
     ? workouts.find(w => w.id === selectedWorkoutId)
     : null;
+
+  const normalizedExerciseSearch = normalizeExerciseSearch(exerciseSearch.trim());
+  const filteredCatalogExercises = exerciseCatalog.filter(exercise => {
+    if (!normalizedExerciseSearch) return true;
+    return normalizeExerciseSearch(exercise.name).includes(normalizedExerciseSearch) ||
+      normalizeExerciseSearch(exercise.targetMuscleGroup || "").includes(normalizedExerciseSearch);
+  });
+  const filteredDefaultExercises = filteredCatalogExercises.filter(exercise => exercise.isBuiltIn);
+  const filteredPersonalExercises = filteredCatalogExercises.filter(exercise => !exercise.isBuiltIn);
 
   const filteredSessions = useMemo(() => {
     const days = parseInt(historyFilter);
@@ -202,6 +219,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
       restSeconds: 60,
     });
     setSelectedCatalogId("");
+    setExerciseSearch("");
     setShowNewExerciseModal(false);
   };
 
@@ -1220,7 +1238,10 @@ export default function Academy({ onTabChange }: AcademyProps) {
             {/* Modal: Novo Exercício */}
       <Modal
         open={showNewExerciseModal}
-        onClose={() => setShowNewExerciseModal(false)}
+        onClose={() => {
+          setShowNewExerciseModal(false);
+          setExerciseSearch("");
+        }}
         title="Novo Exercício"
       >
         <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
@@ -1245,6 +1266,18 @@ export default function Academy({ onTabChange }: AcademyProps) {
                 + Criar Novo
               </button>
             </div>
+            <input
+              type="search"
+              value={exerciseSearch}
+              onChange={event => {
+                setExerciseSearch(event.target.value);
+                setSelectedCatalogId("");
+              }}
+              placeholder="Pesquisar por nome ou grupo muscular..."
+              className="fz-input"
+              aria-label="Pesquisar exercício"
+              style={{ marginBottom: 8 }}
+            />
             <select
               value={selectedCatalogId}
               onChange={e => {
@@ -1254,33 +1287,44 @@ export default function Academy({ onTabChange }: AcademyProps) {
                   const catalogEx = exerciseCatalog.find(ex => ex.id === id);
                   if (catalogEx) {
                     setNewExercise({ ...newExercise, name: catalogEx.name });
+                    setExerciseSearch("");
                   }
                 }
               }}
               className="fz-input"
-              style={{ 
-                marginBottom: 12,
+              style={{
+                marginBottom: 4,
                 borderColor: !selectedCatalogId ? "rgba(168,85,247,0.3)" : "var(--border)"
               }}
             >
               <option value="">-- Selecione um exercício --</option>
-              <optgroup label="Exercícios padrão">
-                {defaultExercises.map(ex => (
-                  <option key={ex.id} value={ex.id}>
-                    {ex.name} {ex.targetMuscleGroup ? `(${ex.targetMuscleGroup})` : ""}
-                  </option>
-                ))}
-              </optgroup>
-              {personalExercises.length > 0 && (
-                <optgroup label="Meus exercícios">
-                  {personalExercises.map(ex => (
+              {filteredDefaultExercises.length > 0 && (
+                <optgroup label="Exercícios padrão">
+                  {filteredDefaultExercises.map(ex => (
                     <option key={ex.id} value={ex.id}>
                       {ex.name} {ex.targetMuscleGroup ? `(${ex.targetMuscleGroup})` : ""}
                     </option>
                   ))}
                 </optgroup>
               )}
+              {filteredPersonalExercises.length > 0 && (
+                <optgroup label="Meus exercícios">
+                  {filteredPersonalExercises.map(ex => (
+                    <option key={ex.id} value={ex.id}>
+                      {ex.name} {ex.targetMuscleGroup ? `(${ex.targetMuscleGroup})` : ""}
+                    </option>
+                  ))}
+                </optgroup>
+              )}
+              {filteredCatalogExercises.length === 0 && (
+                <option value="" disabled>Nenhum exercício encontrado</option>
+              )}
             </select>
+            {exerciseSearch.trim() && (
+              <p style={{ margin: "6px 0 0", fontSize: 11, color: "var(--muted-foreground)" }}>
+                {filteredCatalogExercises.length} {filteredCatalogExercises.length === 1 ? "resultado encontrado" : "resultados encontrados"}
+              </p>
+            )}
           </div>
 
           <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12 }}>
