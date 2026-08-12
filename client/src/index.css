@@ -1012,6 +1012,294 @@
     transform: scale(0.92);
   }
 
+  /* ============================================
+     HÁBITOS — cards unificados + faixa rolável
+  ============================================ */
+
+  .habit-insight-card {
+    padding: 22px;
+    margin-bottom: 20px;
+    overflow: hidden;
+    background:
+      radial-gradient(circle at top right, rgba(168, 85, 247, 0.12), transparent 40%),
+      var(--card);
+  }
+
+  .habit-insight-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 16px;
+    margin-bottom: 12px;
+  }
+
+  .habit-insight-title {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+  }
+
+  .habit-insight-icon {
+    width: 38px;
+    height: 38px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    border-radius: 12px;
+    color: #d8b4fe;
+    background: rgba(168, 85, 247, 0.16);
+    box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.1);
+  }
+
+  .habit-insight-title h2 {
+    margin: 0;
+    color: var(--foreground);
+    font-size: 15px;
+    font-weight: 750;
+    line-height: 1.25;
+  }
+
+  .habit-insight-title p {
+    margin: 3px 0 0;
+    color: var(--muted-foreground);
+    font-size: 12px;
+  }
+
+  .habit-chart-switch {
+    display: inline-flex;
+    padding: 3px;
+    border: 1px solid var(--border);
+    border-radius: 10px;
+    background: rgba(255, 255, 255, 0.035);
+  }
+
+  .habit-chart-switch button {
+    border: 0;
+    border-radius: 7px;
+    padding: 6px 9px;
+    background: transparent;
+    color: var(--muted-foreground);
+    font-size: 11px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: color 160ms ease, background 160ms ease, box-shadow 160ms ease;
+  }
+
+  .habit-chart-switch button.active {
+    color: #f5f3ff;
+    background: rgba(139, 92, 246, 0.8);
+    box-shadow: 0 3px 12px rgba(124, 58, 237, 0.28);
+  }
+
+  .habit-cards {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr);
+    gap: 12px;
+    margin-bottom: 20px;
+  }
+
+  .habit-card {
+    min-width: 0;
+    padding: 15px;
+    gap: 14px;
+    border-radius: 16px;
+    background:
+      linear-gradient(140deg, rgba(255, 255, 255, 0.035), transparent 38%),
+      var(--card);
+    box-shadow: 0 10px 28px rgba(0, 0, 0, 0.08);
+  }
+
+  .habit-card-title-row {
+    gap: 10px;
+  }
+
+  .habit-card-emoji {
+    width: 40px;
+    height: 40px;
+    border-radius: 12px;
+  }
+
+  .habit-card-name {
+    font-size: 14px;
+    font-weight: 750;
+  }
+
+  .habit-card-meta {
+    font-size: 11px;
+  }
+
+  .habit-card-delete:hover {
+    color: #f87171;
+    background: rgba(239, 68, 68, 0.1);
+  }
+
+  .habit-card-activity {
+    min-width: 0;
+  }
+
+  .habit-card-activity-label {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: 10px;
+    margin-bottom: 8px;
+    color: var(--muted-foreground);
+    font-size: 11px;
+    font-weight: 650;
+  }
+
+  .habit-card-activity-label span:last-child {
+    color: rgba(196, 181, 253, 0.78);
+    font-weight: 600;
+  }
+
+  .habit-card-activity-rail {
+    display: flex;
+    gap: 7px;
+    overflow-x: auto;
+    overscroll-behavior-inline: contain;
+    padding: 2px 2px 8px;
+    scroll-snap-type: x proximity;
+    scrollbar-width: thin;
+    scrollbar-color: rgba(168, 85, 247, 0.5) transparent;
+    -webkit-overflow-scrolling: touch;
+  }
+
+  .habit-card-activity-rail::-webkit-scrollbar {
+    height: 4px;
+  }
+
+  .habit-card-activity-rail::-webkit-scrollbar-thumb {
+    border-radius: 999px;
+    background: rgba(168, 85, 247, 0.5);
+  }
+
+  .habit-activity-cell {
+    flex: 0 0 54px;
+    min-height: 68px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    padding: 7px 4px;
+    border: 1px solid transparent;
+    border-radius: 12px;
+    background: rgba(255, 255, 255, 0.025);
+    color: var(--muted-foreground);
+    cursor: pointer;
+    scroll-snap-align: start;
+    transition: transform 160ms ease, background 160ms ease, border-color 160ms ease;
+  }
+
+  .habit-activity-cell:hover:not(:disabled) {
+    border-color: rgba(168, 85, 247, 0.34);
+    background: rgba(139, 92, 246, 0.11);
+    transform: translateY(-2px);
+  }
+
+  .habit-activity-cell:active:not(:disabled) {
+    transform: scale(0.94);
+  }
+
+  .habit-activity-cell:focus-visible {
+    outline: 2px solid #c084fc;
+    outline-offset: 2px;
+  }
+
+  .habit-activity-cell:disabled {
+    opacity: 0.34;
+    cursor: not-allowed;
+  }
+
+  .habit-activity-cell.current {
+    border-color: rgba(192, 132, 252, 0.58);
+    background: rgba(139, 92, 246, 0.16);
+  }
+
+  .habit-activity-weekday {
+    font-size: 10px;
+    font-weight: 750;
+    line-height: 1;
+  }
+
+  .habit-activity-day {
+    color: var(--foreground);
+    font-size: 13px;
+    font-weight: 750;
+    line-height: 1;
+  }
+
+  .habit-activity-cell.current .habit-activity-weekday,
+  .habit-activity-cell.current .habit-activity-day {
+    color: #d8b4fe;
+  }
+
+  .habit-activity-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 999px;
+    transition: transform 180ms ease, box-shadow 180ms ease;
+  }
+
+  .habit-activity-dot.completed {
+    transform: scale(1.1);
+    box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.06);
+  }
+
+  .habit-activity-dot.animate {
+    animation: habit-mark 240ms ease-out both;
+  }
+
+  @media (min-width: 768px) {
+    .habit-insight-card {
+      padding: 26px;
+    }
+
+    .habit-cards {
+      grid-template-columns: repeat(2, minmax(0, 1fr));
+      gap: 16px;
+    }
+
+    .habit-card {
+      padding: 18px;
+      border-radius: 18px;
+      gap: 16px;
+    }
+
+    .habit-activity-cell {
+      flex-basis: 56px;
+      min-height: 72px;
+    }
+  }
+
+  @media (max-width: 480px) {
+    .habit-insight-card {
+      padding: 16px 14px;
+    }
+
+    .habit-insight-header {
+      align-items: center;
+    }
+
+    .habit-insight-title p {
+      display: none;
+    }
+
+    .habit-card-activity-label span:last-child {
+      font-size: 10px;
+    }
+
+    .habit-card {
+      padding: 13px;
+    }
+
+    .habit-activity-cell {
+      flex-basis: 52px;
+      min-height: 66px;
+    }
+  }
+
   /* Modal */
   .fz-modal-overlay {
     position: fixed;
