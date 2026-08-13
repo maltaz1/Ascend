@@ -11,6 +11,11 @@ const SUPABASE_URL = process.env.SUPABASE_URL!;
 const SUPABASE_SERVICE_ROLE_KEY = process.env.SUPABASE_SERVICE_ROLE_KEY!;
 const CAKTO_WEBHOOK_SECRET = process.env.CAKTO_WEBHOOK_SECRET;
 
+// Máximo de idade aceitável para o timestamp do evento (5 minutos).
+// Impede replay attacks: um atacante que interceptar uma assinatura
+// válida não consegue reutilizá-la após a janela expirar.
+const MAX_TIMESTAMP_AGE_MS = 5 * 60 * 1000;
+
 const supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY, {
   auth: {
     persistSession: false,
@@ -86,6 +91,34 @@ export default async function handler(req: any, res: any) {
     if (!signature || !verifySignature(bodyString, signature as string, CAKTO_WEBHOOK_SECRET)) {
       console.error("[CAKTO] Assinatura inválida ou ausente");
       return res.status(401).json({ ok: false, error: "Não autorizado" });
+    }
+
+    // 1b. Validação de timestamp (anti-replay).
+    // O header X-Cakto-Timestamp é enviado pela Cakto em segundos.
+    // Se ausente (proteção contra erros de integração), aceitamos o
+    // evento mas registramos um aviso.
+    const tsHeader = req.headers["x-cakto-timestamp"];
+    if (tsHeader) {
+      const eventTimeMs = Number(tsHeader) * 1000;
+      if (!Number.isFinite(eventTimeMs) || eventTimeMs <= 0) {
+        console.warn("[CAKTO] X-Cakto-Timestamp inválido:", tsHeader);
+        return res
+          .status(400)
+          .json({ ok: false, error: "Timestamp do evento inválido" });
+      }
+      const ageMs = Math.abs(Date.now() - eventTimeMs);
+      if (ageMs > MAX_TIMESTAMP_AGE_MS) {
+        console.error(
+          `[CAKTO] Evento muito antigo (${Math.round(
+            ageMs / 1000
+          )}s) — possível replay`
+        );
+        return res
+          .status(400)
+          .json({ ok: false, error: "Evento expirado (replay detectado)" });
+      }
+    } else {
+      console.warn("[CAKTO] X-Cakto-Timestamp ausente — assumindo confiabilidade da fonte");
     }
 
     const payload = JSON.parse(bodyString);
