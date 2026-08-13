@@ -192,65 +192,79 @@ export default function Settings() {
     }
   }
 
+  const [reauthPassword, setReauthPassword] = useState("");
+  const [showReauthDialog, setShowReauthDialog] = useState(false);
+
   /**
-   * Exclui a conta do usuário:
+   * Exclui a conta do usuário via Edge Function (service role):
    * 1. Remove dados de todas as tabelas relacionadas
-   * 2. Remove o perfil
-   * 3. Remove a conta de autenticação
-   * 4. Faz logout
+   * 2. Remove o perfil (PK = id) e arquivos de avatar
+   * 3. Remove a conta de autenticação (auth.users)
+   * 4. Faz logout e redireciona
+   * O fluxo exige reautenticação com senha antes de executar (LGPD).
    */
   async function handleDeleteAccount() {
+    if (!reauthPassword.trim()) {
+      notifyError("Confirme sua senha antes de excluir a conta.");
+      setShowReauthDialog(true);
+      return;
+    }
+
+    setShowReauthDialog(false);
     setDeletingAccount(true);
     try {
       const {
-        data: { user },
-      } = await supabase.auth.getUser();
-      if (!user) {
-        notifyError("Usuário não encontrado.");
+        data: { session },
+      } = await supabase.auth.getSession();
+      if (!session) {
+        notifyError("Sessão expirada. Faça login novamente.");
         setDeletingAccount(false);
         return;
       }
-      const userId = user.id;
 
-      // 1. Excluir dados de todas as tabelas do usuário
-      const tablesToDelete = [
-        "tasks",
-        "goals",
-        "habits",
-        "workouts",
-        "workout_sessions",
-        "meals",
-        "hydration_logs",
-        "diet_settings",
-        "financial_transactions",
-        "notes",
-        "note_folders",
-        "profiles",
-      ];
-
-      for (const table of tablesToDelete) {
-        const { error } = await supabase
-          .from(table)
-          .delete()
-          .eq("user_id", userId);
-        if (error) {
-          console.warn(`Erro ao excluir dados de ${table}:`, error.message);
+      const url = import.meta.env.VITE_SUPABASE_URL.replace(
+        /\/$/,
+        ""
+      );
+      const projectRef = url.replace("https://", "").split(".")[0];
+      const res = await fetch(
+        `https://${projectRef}.functions.${url
+          .replace("https://", "")
+          .split(".")
+          .slice(1)
+          .join(".")}/delete-account`,
+        {
+          method: "POST",
+          headers: {
+            Authorization: `Bearer ${session.access_token}`,
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({ password: reauthPassword.trim() }),
         }
+      );
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        const msg =
+          (err as { error?: string }).error ===
+          "Re-authentication failed; account not deleted"
+            ? "Senha incorreta. A conta não foi excluída."
+            : "Erro ao excluir conta. Tente novamente.";
+        notifyError(msg);
+        setDeletingAccount(false);
+        return;
       }
 
-      // 2. Limpar dados locais
+      // Limpar dados locais
       localStorage.removeItem("flowzone_data");
       localStorage.removeItem("ascend_app_state");
       localStorage.removeItem("ascend_schema_version");
 
-      // 3. Fazer logout
+      // Logout e redirecionamento (auth user já removido no servidor)
       await supabase.auth.signOut();
-
       notifySuccess(
         "Conta excluída com sucesso. Seus dados foram removidos."
       );
-
-      // 4. Redirecionar para a home
       setTimeout(() => {
         window.location.href = "/";
       }, 1000);
@@ -603,6 +617,40 @@ export default function Settings() {
               </button>
 
               {/* Excluir Conta */}
+              {showReauthDialog && (
+                <div className="border border-red-500/30 bg-red-500/5 rounded-2xl p-4 space-y-3">
+                  <p className="text-sm text-red-300">
+                    Para proteger sua conta, confirme sua senha antes de excluir.
+                  </p>
+                  <input
+                    type="password"
+                    autoFocus
+                    placeholder="Sua senha"
+                    value={reauthPassword}
+                    onChange={e => setReauthPassword(e.target.value)}
+                    onKeyDown={e => e.key === "Enter" && handleDeleteAccount()}
+                    className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-3 text-white"
+                  />
+                  <div className="flex gap-2">
+                    <button
+                      onClick={handleDeleteAccount}
+                      disabled={deletingAccount || !reauthPassword.trim()}
+                      className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold rounded-2xl px-4 py-3 disabled:opacity-50 transition-all"
+                    >
+                      Confirmar exclusão
+                    </button>
+                    <button
+                      onClick={() => {
+                        setShowReauthDialog(false);
+                        setReauthPassword("");
+                      }}
+                      className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-2xl px-4 py-3 transition-all"
+                    >
+                      Cancelar
+                    </button>
+                  </div>
+                </div>
+              )}
               <button
                 onClick={() => {
                   if (
