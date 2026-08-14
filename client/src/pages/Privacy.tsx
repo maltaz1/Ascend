@@ -271,7 +271,7 @@ export default function Privacy() {
             <li>Sua sessão será encerrada em todos os dispositivos.</li>
           </ul>
           <p style={{ color: "#d1d5db", fontSize: 14, lineHeight: 1.7, marginTop: 16 }}>
-            Para excluir sua conta, acesse <strong>Configurações &gt; Privacidade e Dados &gt; Excluir Conta</strong>.
+            Para excluir sua conta, acesse <strong>Configurações &gt; Privacidade e Dados &gt; Excluir Conta</strong>. Por segurança, o processo exige a confirmação da sua senha antes da exclusão (reautenticação), impedindo que sessões abertas por terceiros apaguem seus dados.
           </p>
         </Section>
 
