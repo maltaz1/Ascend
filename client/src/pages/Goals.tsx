@@ -592,6 +592,7 @@ function NewGoalModal({
   habits,
   isPro,
   weeklyGoalsCount,
+  longTermGoalsCount,
   onOpenUpgrade,
   isMobile,
 }: {
@@ -601,6 +602,7 @@ function NewGoalModal({
   habits: { id: string; title: string; emoji: string }[];
   isPro: boolean;
   weeklyGoalsCount: number;
+  longTermGoalsCount: number;
   onOpenUpgrade: () => void;
   isMobile: boolean;
 }) {
@@ -622,6 +624,12 @@ function NewGoalModal({
 
     if (goalType === "semanal" && !isPro && weeklyGoalsCount >= FREE_LIMITS.weeklyGoals) {
       showToast(`Limite de ${FREE_LIMITS.weeklyGoals} metas semanais atingido no plano Free`, "info");
+      onOpenUpgrade();
+      return;
+    }
+
+    if (goalType === "longo_prazo" && !isPro && longTermGoalsCount >= FREE_LIMITS.goals) {
+      showToast(`Limite de ${FREE_LIMITS.goals} meta de longo prazo atingido no plano Free`, "info");
       onOpenUpgrade();
       return;
     }
@@ -1012,6 +1020,7 @@ export default function Goals({
         habits={habits}
         isPro={isPro}
         weeklyGoalsCount={weeklyGoals.length}
+        longTermGoalsCount={longTermGoals.length}
         onOpenUpgrade={onOpenUpgrade ?? (() => {})}
         isMobile={isMobile}
       />

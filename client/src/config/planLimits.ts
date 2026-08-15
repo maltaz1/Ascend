@@ -10,6 +10,7 @@ export const FREE_TABS = [
   "dashboard",
   "habits",
   "tasks",
+  "goals",
   "calendar",
   "settings",
   "download",
