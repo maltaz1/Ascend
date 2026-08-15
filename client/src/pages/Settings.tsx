@@ -23,6 +23,9 @@ import { notifyError, notifySuccess } from "@/lib/notifications";
 
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { CancellationModal } from "@/components/CancellationModal";
+import { CancellationStatusCard } from "@/components/CancellationStatusCard";
+import { getPendingCancellationRequest, CancellationRequest } from "@/lib/cancellation";
 
 const defaultAvatar = "/user-anon.jpg";
 
@@ -43,10 +46,18 @@ export default function Settings() {
   const [animationsEnabled, setAnimationsEnabled] = useState(true);
   const [deletingAccount, setDeletingAccount] = useState(false);
   const [exportingData, setExportingData] = useState(false);
+  const [isCancellationModalOpen, setIsCancellationModalOpen] = useState(false);
+  const [pendingRequest, setPendingRequest] = useState<CancellationRequest | null>(null);
 
   useEffect(() => {
     loadProfile();
+    loadPendingCancellation();
   }, []);
+
+  async function loadPendingCancellation() {
+    const request = await getPendingCancellationRequest();
+    setPendingRequest(request);
+  }
 
   async function loadProfile() {
     const {
@@ -97,13 +108,8 @@ export default function Settings() {
     window.location.href = "mailto:ascendprod1@gmail.com";
   };
 
-  const handleCancellationRequest = async () => {
-    const { data: { user } } = await supabase.auth.getUser();
-    const subject = encodeURIComponent("Solicitação de cancelamento - Ascend PRO");
-    const body = encodeURIComponent(
-      `Olá!\n\nGostaria de solicitar o cancelamento da minha assinatura do Ascend PRO.\n\nNome: ${profile.name || "Não informado"}\nE-mail da conta: ${user?.email || "Não informado"}\n\nMotivo do cancelamento (opcional):\n\nObrigado.`
-    );
-    window.location.href = `mailto:ascendprod1@gmail.com?subject=${subject}&body=${body}`;
+  const handleCancellationRequest = () => {
+    setIsCancellationModalOpen(true);
   };
 
   function toggleNotification(type: keyof typeof notifications) {
@@ -158,9 +164,7 @@ export default function Settings() {
       }
 
       const fileExt = file.name.split(".").pop();
-
       const fileName = `${user.id}-${Date.now()}.${fileExt}`;
-
       const filePath = `Avatars/${fileName}`;
 
       const { error: uploadError } = await supabase.storage
@@ -171,9 +175,7 @@ export default function Settings() {
 
       if (uploadError) {
         console.error(uploadError);
-
         notifyError(uploadError.message);
-
         return;
       }
 
@@ -187,7 +189,6 @@ export default function Settings() {
       notifySuccess("Imagem enviada!");
     } catch (error) {
       console.error(error);
-
       notifyError("Erro ao enviar imagem", "Tente novamente mais tarde.");
     }
   }
@@ -195,14 +196,6 @@ export default function Settings() {
   const [reauthPassword, setReauthPassword] = useState("");
   const [showReauthDialog, setShowReauthDialog] = useState(false);
 
-  /**
-   * Exclui a conta do usuário via Edge Function (service role):
-   * 1. Remove dados de todas as tabelas relacionadas
-   * 2. Remove o perfil (PK = id) e arquivos de avatar
-   * 3. Remove a conta de autenticação (auth.users)
-   * 4. Faz logout e redireciona
-   * O fluxo exige reautenticação com senha antes de executar (LGPD).
-   */
   async function handleDeleteAccount() {
     if (!reauthPassword.trim()) {
       notifyError("Confirme sua senha antes de excluir a conta.");
@@ -222,10 +215,7 @@ export default function Settings() {
         return;
       }
 
-      const url = import.meta.env.VITE_SUPABASE_URL.replace(
-        /\/$/,
-        ""
-      );
+      const url = import.meta.env.VITE_SUPABASE_URL.replace(/\/$/, "");
       const projectRef = url.replace("https://", "").split(".")[0];
       const res = await fetch(
         `https://${projectRef}.functions.${url
@@ -255,16 +245,12 @@ export default function Settings() {
         return;
       }
 
-      // Limpar dados locais
       localStorage.removeItem("flowzone_data");
       localStorage.removeItem("ascend_app_state");
       localStorage.removeItem("ascend_schema_version");
 
-      // Logout e redirecionamento (auth user já removido no servidor)
       await supabase.auth.signOut();
-      notifySuccess(
-        "Conta excluída com sucesso. Seus dados foram removidos."
-      );
+      notifySuccess("Conta excluída com sucesso. Seus dados foram removidos.");
       setTimeout(() => {
         window.location.href = "/";
       }, 1000);
@@ -276,9 +262,6 @@ export default function Settings() {
     }
   }
 
-  /**
-   * Exporta todos os dados do usuário em formato JSON.
-   */
   async function handleExportData() {
     setExportingData(true);
     try {
@@ -292,7 +275,6 @@ export default function Settings() {
       }
       const userId = user.id;
 
-      // Buscar todos os dados do usuário
       const [profileResult, tasksResult, goalsResult, habitsResult, workoutsResult, sessionsResult, mealsResult, hydrationResult, dietResult, financialResult, notesResult, foldersResult] = await Promise.all([
         supabase.from("profiles").select("*").eq("id", userId).single(),
         supabase.from("tasks").select("*").eq("user_id", userId),
@@ -329,7 +311,6 @@ export default function Settings() {
         noteFolders: foldersResult.data || [],
       };
 
-      // Criar blob e baixar
       const blob = new Blob([JSON.stringify(exportData, null, 2)], {
         type: "application/json",
       });
@@ -357,7 +338,6 @@ export default function Settings() {
         {/* HEADER */}
         <div className="mb-8">
           <h1 className="text-4xl font-bold mb-2">⚙️ Configurações</h1>
-
           <p className="text-zinc-400">
             Personalize sua experiência no Ascend, gerencie sua conta e aproveite ao máximo nossos recursos!
           </p>
@@ -376,16 +356,13 @@ export default function Settings() {
               src={profile.avatar}
               className="w-24 h-24 rounded-full border-2 border-zinc-700"
             />
-
             <div>
               <h2 className="text-2xl font-bold">
                 🔥 {profile.name || "Usuário"}
               </h2>
-
               <p className="text-zinc-400 mt-1">
                 {profile.bio || "Sem bio definida"}
               </p>
-
               <div
                 className={`mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold tracking-wide border uppercase ${
                   profile.isPro
@@ -407,7 +384,6 @@ export default function Settings() {
               <User className="text-[#8B5CF6]" />
               <h2 className="text-2xl font-bold">👤 Perfil</h2>
             </div>
-
             <div className="space-y-4">
               <input
                 type="text"
@@ -421,14 +397,12 @@ export default function Settings() {
                 }
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-3"
               />
-
               <div className="space-y-4">
                 <div className="flex items-center gap-4">
                   <img
                     src={profile.avatar}
                     className="w-24 h-24 rounded-full object-cover border-4 border-[#8B5CF6]"
                   />
-
                   <label className="cursor-pointer bg-[#8B5CF6] hover:bg-[#7C3AED] transition-all px-5 py-3 rounded-2xl font-semibold text-white">
                     Escolher Foto
                     <input
@@ -439,10 +413,8 @@ export default function Settings() {
                     />
                   </label>
                 </div>
-
                 <p className="text-sm text-zinc-400">PNG, JPG ou WEBP</p>
               </div>
-
               <textarea
                 rows={4}
                 placeholder="Sua bio"
@@ -455,7 +427,6 @@ export default function Settings() {
                 }
                 className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-3 resize-none"
               />
-
               <button
                 onClick={saveProfile}
                 className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold px-5 py-3 rounded-2xl flex items-center gap-2 transition-all shadow-lg shadow-[#8B5CF6]/20 hover:shadow-[#8B5CF6]/30"
@@ -472,17 +443,12 @@ export default function Settings() {
               <Palette className="text-pink-400" />
               <h2 className="text-2xl font-bold">🎨 Aparência</h2>
             </div>
-
             <div className="space-y-4">
               <div className="flex items-center justify-between bg-zinc-950 rounded-2xl p-4 border border-zinc-800">
                 <div>
                   <p className="font-medium">Animações</p>
-
-                  <p className="text-sm text-zinc-400">
-                    Ativar efeitos visuais
-                  </p>
+                  <p className="text-sm text-zinc-400">Ativar efeitos visuais</p>
                 </div>
-
                 <button
                   onClick={toggleAnimations}
                   className={`px-4 py-2 rounded-xl font-medium transition-all ${
@@ -503,28 +469,17 @@ export default function Settings() {
               <Bell className="text-blue-400" />
               <h2 className="text-2xl font-bold">🔔 Notificações</h2>
             </div>
-
             <div className="space-y-3">
               {[
-                {
-                  key: "habits",
-                  label: "Hábitos",
-                },
-                {
-                  key: "tasks",
-                  label: "Tarefas",
-                },
-                {
-                  key: "academy",
-                  label: "Academia",
-                },
+                { key: "habits", label: "Hábitos" },
+                { key: "tasks", label: "Tarefas" },
+                { key: "academy", label: "Academia" },
               ].map(item => (
                 <div
                   key={item.key}
                   className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-4"
                 >
                   <span>{item.label}</span>
-
                   <button
                     onClick={() =>
                       toggleNotification(item.key as keyof typeof notifications)
@@ -554,9 +509,7 @@ export default function Settings() {
               <Shield className="text-violet-400" />
               <h2 className="text-2xl font-bold">🔒 Privacidade e Dados</h2>
             </div>
-
             <div className="space-y-3">
-              {/* Política de Privacidade */}
               <a
                 href="/privacy"
                 target="_blank"
@@ -574,8 +527,6 @@ export default function Settings() {
                 </div>
                 <ExternalLink size={16} className="text-zinc-500 group-hover:text-violet-400 transition-all" />
               </a>
-
-              {/* Termos de Uso */}
               <a
                 href="/terms"
                 target="_blank"
@@ -593,8 +544,6 @@ export default function Settings() {
                 </div>
                 <ExternalLink size={16} className="text-zinc-500 group-hover:text-violet-400 transition-all" />
               </a>
-
-              {/* Solicitar meus dados */}
               <button
                 onClick={handleExportData}
                 disabled={exportingData}
@@ -607,21 +556,15 @@ export default function Settings() {
                   <div className="text-left">
                     <p className="font-medium text-zinc-200">Solicitar meus dados</p>
                     <p className="text-xs text-zinc-500">
-                      {exportingData
-                        ? "Gerando exportação..."
-                        : "Baixar cópia de todos os seus dados"}
+                      {exportingData ? "Gerando exportação..." : "Baixar cópia de todos os seus dados"}
                     </p>
                   </div>
                 </div>
                 <Download size={16} className="text-zinc-500 group-hover:text-blue-400 transition-all" />
               </button>
-
-              {/* Excluir Conta */}
               {showReauthDialog && (
                 <div className="border border-red-500/30 bg-red-500/5 rounded-2xl p-4 space-y-3">
-                  <p className="text-sm text-red-300">
-                    Para proteger sua conta, confirme sua senha antes de excluir.
-                  </p>
+                  <p className="text-sm text-red-300">Confirme sua senha antes de excluir.</p>
                   <input
                     type="password"
                     autoFocus
@@ -640,10 +583,7 @@ export default function Settings() {
                       Confirmar exclusão
                     </button>
                     <button
-                      onClick={() => {
-                        setShowReauthDialog(false);
-                        setReauthPassword("");
-                      }}
+                      onClick={() => { setShowReauthDialog(false); setReauthPassword(""); }}
                       className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-2xl px-4 py-3 transition-all"
                     >
                       Cancelar
@@ -653,11 +593,7 @@ export default function Settings() {
               )}
               <button
                 onClick={() => {
-                  if (
-                    window.confirm(
-                      "ATENÇÃO: Esta ação é irreversível.\n\nTodos os seus dados (perfil, tarefas, hábitos, metas, treinos, dieta, financeiro, notas, orações) serão permanentemente excluídos.\n\nDeseja continuar?"
-                    )
-                  ) {
+                  if (window.confirm("ATENÇÃO: Esta ação é irreversível.\n\nDeseja continuar?")) {
                     handleDeleteAccount();
                   }
                 }}
@@ -676,7 +612,6 @@ export default function Settings() {
               <Shield className="text-red-400" />
               <h2 className="text-2xl font-bold">🔐 Conta</h2>
             </div>
-
             <div className="space-y-4">
               <button
                 onClick={resetPassword}
@@ -685,7 +620,6 @@ export default function Settings() {
                 <Lock />
                 Alterar senha
               </button>
-
               <button
                 onClick={logout}
                 className="w-full flex items-center gap-3 bg-red-500/20 border border-red-500/20 text-red-400 rounded-2xl p-4"
@@ -707,12 +641,8 @@ export default function Settings() {
               <Mail className="text-blue-400" />
               <h2 className="text-2xl font-bold">📧 Contato</h2>
             </div>
-
             <div className="space-y-4">
-              <p className="text-zinc-400 text-sm">
-                Entre em contato caso tenha dúvidas, sugestões ou precise de ajuda.
-              </p>
-
+              <p className="text-zinc-400 text-sm">Entre em contato caso tenha dúvidas ou sugestões.</p>
               <button
                 onClick={handleSupportContact}
                 className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-4 hover:border-blue-500/40 transition-all group"
@@ -740,13 +670,11 @@ export default function Settings() {
                 <CreditCard className="text-emerald-400" />
                 <h2 className="text-2xl font-bold">💎 Assinatura</h2>
               </div>
-
               <div className="space-y-3">
                 <div className="flex justify-between items-center bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
                   <span className="text-zinc-400">Plano</span>
                   <span className="font-bold text-emerald-400">Ascend PRO</span>
                 </div>
-
                 <div className="flex justify-between items-center bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
                   <span className="text-zinc-400">Status</span>
                   <div className="flex items-center gap-2">
@@ -765,19 +693,26 @@ export default function Settings() {
                 <XCircle className="text-red-400" />
                 <h2 className="text-2xl font-bold">⚠️ Cancelamento</h2>
               </div>
-
               <div className="space-y-4">
-                <p className="text-zinc-400 text-sm">
-                  Seu acesso ao Ascend PRO continuará disponível até o final do período já pago.
-                </p>
-
-                <button
-                  onClick={handleCancellationRequest}
-                  className="w-full flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl p-4 hover:bg-red-500/20 transition-all font-bold justify-center"
-                >
-                  <XCircle size={18} />
-                  Solicitar cancelamento
-                </button>
+                {pendingRequest ? (
+                  <CancellationStatusCard 
+                    request={pendingRequest} 
+                    onCancelSuccess={loadPendingCancellation} 
+                  />
+                ) : (
+                  <>
+                    <p className="text-zinc-400 text-sm">
+                      Seu acesso ao Ascend PRO continuará disponível até o final do período já pago.
+                    </p>
+                    <button
+                      onClick={handleCancellationRequest}
+                      className="w-full flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl p-4 hover:bg-red-500/20 transition-all font-bold justify-center"
+                    >
+                      <XCircle size={18} />
+                      Solicitar cancelamento
+                    </button>
+                  </>
+                )}
               </div>
             </motion.div>
           )}
@@ -788,23 +723,25 @@ export default function Settings() {
               <Info className="text-zinc-300" />
               <h2 className="text-2xl font-bold">📱 Sobre</h2>
             </div>
-
             <div className="space-y-3">
               <div className="flex justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
                 <span>Versão do app</span>
-
                 <span className="text-zinc-400">1.0.0</span>
               </div>
-
               <div className="flex justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-4">
                 <span>Status</span>
-
                 <span className="text-[#8B5CF6]">Online</span>
               </div>
             </div>
           </motion.div>
         </div>
       </div>
+
+      <CancellationModal
+        isOpen={isCancellationModalOpen}
+        onClose={() => setIsCancellationModalOpen(false)}
+        onSuccess={loadPendingCancellation}
+      />
     </div>
   );
 }
