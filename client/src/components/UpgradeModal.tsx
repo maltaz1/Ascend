@@ -74,14 +74,6 @@ export default function UpgradeModal({
             </button>
 
             <div className="p-[30px_26px_26px]">
-              {/* Badge */}
-              <div className="mb-3.5 inline-flex items-center gap-[5px] rounded-[4px] border border-violet-500/20 bg-violet-500/[0.08] px-2.5 py-1">
-                <span className="h-1 w-1 rounded-full bg-violet-400" />
-                <span className="text-[10px] font-medium uppercase tracking-[0.1em] text-violet-400">
-                  7 dias grátis
-                </span>
-              </div>
-
               {/* Title */}
               <h2
                 className="mb-2 text-[30px] font-semibold leading-[1.15] text-violet-50"
