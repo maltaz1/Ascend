@@ -734,16 +734,7 @@
     padding-left: 22px;
   }
   .notebook-sheet--margined::before {
-    content: '';
-    position: absolute;
-    top: 0;
-    bottom: 0;
-    left: 14px;
-    width: 0;
-    border-left: 1.5px solid #c95c4e;
-    opacity: 0.7;
-    pointer-events: none;
-    z-index: 1;
+    display: none;
   }
   /* furos de espiral na margem */
   .notebook-holes {
