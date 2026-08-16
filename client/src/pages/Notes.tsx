@@ -406,7 +406,7 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  }
 
  return (
- <div className="flex h-[calc(100vh-40px)] bg-[#111118] lg:rounded-[8px] lg:border lg:border-[#262630] overflow-hidden notes-page-container relative"><style>{`
+ <div className="flex h-[calc(100vh-40px)] bg-transparent lg:rounded-[8px] lg:border lg:border-[#262630] overflow-hidden notes-page-container relative notebook-page"><style>{`
  .quill { height: 100%; display: flex; flex-direction: column; }
  .ql-container.ql-snow { border: none !important; flex: 1; font-family: inherit; }
  .ql-editor { font-size: 1.125rem; line-height: 1.8; color: #d1d5db; padding: 0 !important; }
@@ -525,7 +525,7 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  {/* EDITOR */}
  <main className={`
  ${isMobile ? (viewMode === 'editor' ? 'flex w-full' : 'hidden') : 'flex w-full'} 
- flex-1 flex flex-col bg-[#111118] relative
+ flex-1 flex flex-col bg-transparent relative notebook-page
  `}>
  {selectedNote ? (
  <><header className="notebook-sheet notebook-sheet--margined px-6 lg:px-12 py-6 lg:py-8 flex flex-col gap-4 lg:gap-5"><div className="flex items-start justify-between gap-4"><div className="flex-1 min-w-0">
