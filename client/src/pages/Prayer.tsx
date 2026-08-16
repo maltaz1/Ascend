@@ -8,12 +8,12 @@ import { showToast } from '@/components/ui/FlowToast';
 import { supabase } from '@/lib/supabase';
 
 const PRAYER_SUGGESTIONS = [
- { emoji: ' ', title: 'Gratidão', prompt: 'Ajude-me a expressar gratidão pelos bênçãos da minha vida' },
- { emoji: ' ', title: 'Força', prompt: 'Preciso de força para enfrentar os desafios de hoje' },
- { emoji: ' ', title: 'Paz', prompt: 'Busco paz interior e tranquilidade' },
- { emoji: ' ', title: 'Amor', prompt: 'Ajude-me a cultivar mais amor e compaixão' },
- { emoji: ' ', title: 'Propósito', prompt: 'Gostaria de entender melhor meu propósito de vida' },
- { emoji: '', title: 'Perdão', prompt: 'Preciso aprender a perdoar e deixar ir' },
+ { emoji: '🙏', title: 'Gratidão', prompt: 'Ajude-me a expressar gratidão pelos bênçãos da minha vida' },
+ { emoji: '💪', title: 'Força', prompt: 'Preciso de força para enfrentar os desafios de hoje' },
+ { emoji: '☮', title: 'Paz', prompt: 'Busco paz interior e tranquilidade' },
+ { emoji: '💚', title: 'Amor', prompt: 'Ajude-me a cultivar mais amor e compaixão' },
+ { emoji: '🧭', title: 'Propósito', prompt: 'Gostaria de entender melhor meu propósito de vida' },
+ { emoji: '🕊', title: 'Perdão', prompt: 'Preciso aprender a perdoar e deixar ir' },
 ];
 
 // Enhanced AI prayer response generator with more complete responses
@@ -372,7 +372,7 @@ const loadFavorites = async () => {
  e.currentTarget.style.background = '#12121a';
  e.currentTarget.style.transform = 'translateY(0)';
  }}
- ><span style={{ width: 22, height: 2, background: `${['#F59E0B', '#8B5CF6', '#10B981', '#06B6D4', '#A855F7', '#F59E0B'][idx % 6]}`, opacity: 0.75, display: 'block' }}></span><span style={{ fontWeight: 600, fontSize: 12.5, letterSpacing: '0.04em' }}>{suggestion.title}</span></button>
+ ><span style={{ width: 22, height: 2, background: `${['#F59E0B', '#8B5CF6', '#10B981', '#06B6D4', '#A855F7', '#F59E0B'][idx % 6]}`, opacity: 0.75, display: 'block' }}></span><span style={{ fontSize: 17 }}>{suggestion.emoji}</span><span style={{ fontWeight: 600, fontSize: 12.5, letterSpacing: '0.04em' }}>{suggestion.title}</span></button>
  ))}
  </div></div>
  ) : (

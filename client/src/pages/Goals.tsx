@@ -287,8 +287,8 @@ function WeeklyGoalCard({
  ref={cardRef}
  className={`ledger-paper ${paperVariant}`}
  style={{ padding: isMobile ? "14px 16px" : "18px 22px" }}
- ><div style={{ display: "flex", gap: isMobile ? 10 : 14, marginBottom: 14, alignItems: "flex-start" }}><div style={{ width: isMobile ? 38 : 44, height: isMobile ? 38 : 44, borderRadius: 4, background: colorInfo.dark, border: `1px solid ${goal.color}66`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? 15 : 17, fontWeight: 800, fontFamily: "'Space Grotesk', sans-serif", color: goal.color, flexShrink: 0 }}>
- {String(goal.title || "M").trim().charAt(0).toUpperCase()}
+ ><div style={{ display: "flex", gap: isMobile ? 10 : 14, marginBottom: 14, alignItems: "flex-start" }}><div style={{ width: isMobile ? 38 : 44, height: isMobile ? 38 : 44, borderRadius: 4, background: colorInfo.dark, border: `1px solid ${goal.color}66`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? 17 : 20, flexShrink: 0 }}>
+ {goal.emoji || String(goal.title || "M").trim().charAt(0).toUpperCase()}
  </div><div style={{ flex: 1, minWidth: 0 }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}><h3 style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap", flex: 1 }}>{goal.title}</h3><button
  onClick={(e) => {
  e.stopPropagation();
@@ -429,8 +429,8 @@ function GoalCard({
  className={`ledger-paper ${paperVariant}`}
  style={{ padding: isMobile ? "14px 16px" : "18px 22px" }}
  >
- <div style={{ display: "flex", gap: isMobile ? 10 : 14, marginBottom: 14, alignItems: "flex-start" }}><div style={{ width: isMobile ? 38 : 44, height: isMobile ? 38 : 44, borderRadius: 4, background: isCompleted ? "rgba(16,185,129,0.15)" : colorInfo.dark, border: `1px solid ${isCompleted ? "rgba(16,185,129,0.5)" : `${goal.color}66`}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? 15 : 17, fontWeight: 800, fontFamily: "'Space Grotesk', sans-serif", color: isCompleted ? "#10B981" : goal.color, flexShrink: 0 }}>
- {String(goal.title || "M").trim().charAt(0).toUpperCase()}
+ <div style={{ display: "flex", gap: isMobile ? 10 : 14, marginBottom: 14, alignItems: "flex-start" }}><div style={{ width: isMobile ? 38 : 44, height: isMobile ? 38 : 44, borderRadius: 4, background: isCompleted ? "rgba(16,185,129,0.15)" : colorInfo.dark, border: `1px solid ${isCompleted ? "rgba(16,185,129,0.5)" : `${goal.color}66`}`, display: "flex", alignItems: "center", justifyContent: "center", fontSize: isMobile ? 17 : 20, flexShrink: 0 }}>
+ {goal.emoji || String(goal.title || "M").trim().charAt(0).toUpperCase()}
  </div><div style={{ flex: 1, minWidth: 0 }}><div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start" }}><h3 style={{ fontSize: isMobile ? 14 : 16, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", margin: 0, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{goal.title}</h3><button onClick={() => setExpanded(!expanded)} style={{ background: "transparent", border: "none", borderRadius: 3, padding: 4, cursor: "pointer", color: "var(--muted-foreground)" }}>
  {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
  </button></div><div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5, flexWrap: "wrap" }}><span className={`ledger-stamp ${isCompleted ? "ledger-stamp--green" : "ledger-stamp--violet"}`}>
@@ -605,6 +605,10 @@ function NewGoalModal({
  transition: "all 0.2s ease",
  }}
  ><Icon size={16} color={goalType === value ? color : "#6b6b78"} /><span style={{ fontWeight: 700, fontSize: 13, color: goalType === value ? color : "var(--foreground)" }}>{label}</span></button>
+ ))}
+ </div></div><div><div className="ledger-marginalia mb-2">Ícone</div><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+ {["📚", "🏃", "💼", "💰", "🎯", "💪", "🧘", "✈", "🎨", "💧", "📷", "🎓"].map(em => (
+ <button key={em} type="button" onClick={() => setEmoji(em)} style={{ fontSize: 15, padding: "6px 8px", borderRadius: 3, border: emoji === em ? "2px solid #F59E0B" : "1px solid #33333f", background: emoji === em ? "rgba(245,158,11,0.15)" : "transparent", cursor: "pointer", transition: "all 0.15s ease" }}>{em}</button>
  ))}
  </div></div><div><div className="ledger-marginalia mb-2">Cor da tinta</div><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
  {COLORS.map(c => (

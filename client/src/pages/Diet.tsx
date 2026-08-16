@@ -31,10 +31,10 @@ import { getTodayString } from "@/store/utils";
 import { supabase } from "@/lib/supabase";
 
 const MEAL_TYPES = {
- breakfast: { label: "Café da Manhã", emoji: "☀", color: "#F59E0B" },
- lunch: { label: "Almoço", emoji: "◫", color: "#10B981" },
- dinner: { label: "Jantar", emoji: "◐", color: "#8B5CF6" },
- snack: { label: "Lanche", emoji: "▵", color: "#EC4899" },
+ breakfast: { label: "Café da Manhã", emoji: "🍳", color: "#F59E0B" },
+ lunch: { label: "Almoço", emoji: "🍽", color: "#10B981" },
+ dinner: { label: "Jantar", emoji: "🌙", color: "#8B5CF6" },
+ snack: { label: "Lanche", emoji: "🍎", color: "#EC4899" },
 };
 
 function NutritionCircle({
@@ -1109,7 +1109,7 @@ export default function Diet() {
  alignItems: "center",
  justifyContent: "center",
  }}
- ><span style={{ fontSize: 12, color: MEAL_TYPES[type].color }}>{String(type).charAt(0).toUpperCase()}</span></div><div
+ ><span style={{ fontSize: 14 }}>{MEAL_TYPES[type].emoji}</span></div><div
  style={{
  fontSize: 14,
  fontWeight: 600,
