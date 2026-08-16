@@ -449,9 +449,8 @@ export default function Academy({ onTabChange }: AcademyProps) {
  Fichas de Treino
  </h2><button
  onClick={() => setShowNewWorkoutModal(true)}
- className="fz-btn-primary"
+ className="ledger-btn ledger-btn--violet"
  style={{
- padding: "8px 14px",
  fontSize: 12,
  display: "flex",
  alignItems: "center",
@@ -516,9 +515,8 @@ export default function Academy({ onTabChange }: AcademyProps) {
  e.stopPropagation();
  handleStartWorkout(workout);
  }}
- className="fz-btn-primary"
+ className="ledger-btn ledger-btn--amber"
  style={{
- padding: "8px 12px",
  fontSize: 12,
  display: "flex",
  alignItems: "center",
@@ -576,16 +574,8 @@ export default function Academy({ onTabChange }: AcademyProps) {
  name: e.target.value,
  })
  }
- className="fz-input"
- /></div><div><div
- style={{
- fontSize: 12,
- color: "var(--muted-foreground)",
- marginBottom: 8,
- fontFamily: "DM Sans",
- fontWeight: 500,
- }}
- >
+ className="ledger-input"
+ /></div><div><div className="ledger-marginalia mb-2">
  Dias da Semana
  </div><div style={{ display: "flex", flexWrap: "wrap", gap: 6 }}>
  {DAYS_OF_WEEK.map((day, idx) => {
@@ -779,10 +769,9 @@ export default function Academy({ onTabChange }: AcademyProps) {
 
  <button
  onClick={() => setShowNewExerciseModal(true)}
- className="fz-btn-ghost"
+ className="ledger-btn ledger-btn--ghost"
  style={{
  width: "100%",
- padding: "10px",
  fontSize: 12,
  display: "flex",
  alignItems: "center",
@@ -823,8 +812,8 @@ export default function Academy({ onTabChange }: AcademyProps) {
  </h2><select
  value={historyFilter}
  onChange={e => setHistoryFilter(e.target.value)}
- className="fz-input"
- style={{ width: "140px", fontSize: 12 }}
+ className="ledger-input"
+ style={{ width: "140px", fontSize: 12, background: "transparent", outline: "none", color: "#ededed" }}
  ><option value="7">Últimos 7 dias</option><option value="30">Últimos 30 dias</option><option value="90">Últimos 90 dias</option></select></div>
 
  {filteredSessions.length === 0 ? (
@@ -924,8 +913,8 @@ export default function Academy({ onTabChange }: AcademyProps) {
  Catálogo de Exercícios
  </h2><button
  onClick={() => setShowNewCatalogModal(true)}
- className="fz-btn-primary"
- style={{ padding: "8px 14px", fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}
+ className="ledger-btn ledger-btn--violet"
+ style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}
  ><Plus size={14} />
  Novo Exercício
  </button></div><div className="ledger-paper ledger-paper--violet" style={{ padding: "14px 16px", marginBottom: 20, borderLeft: "3px solid #A855F7" }}><p style={{ margin: 0, fontSize: 13, color: "var(--muted-foreground)", lineHeight: 1.5 }}>
@@ -987,31 +976,13 @@ export default function Academy({ onTabChange }: AcademyProps) {
  open={showNewWorkoutModal}
  onClose={() => setShowNewWorkoutModal(false)}
  title="Nova Ficha de Treino"
- ><div style={{ display: "flex", flexDirection: "column", gap: 16 }}><div><label
- style={{
- fontSize: 12,
- color: "var(--muted-foreground)",
- display: "block",
- marginBottom: 6,
- }}
- >
- Nome da Ficha
- </label><input
+ ><div style={{ display: "flex", flexDirection: "column", gap: 16 }}><div><div className="ledger-marginalia mb-2">Nome da Ficha</div><input
  type="text"
  value={workoutName}
  onChange={e => setWorkoutName(e.target.value)}
  placeholder="Ex: Peito + Ombro + Tríceps"
- className="fz-input"
- /></div><div><label
- style={{
- fontSize: 12,
- color: "var(--muted-foreground)",
- display: "block",
- marginBottom: 8,
- }}
- >
- Dias da Semana
- </label><div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
+ className="ledger-input"
+ /></div><div><div className="ledger-marginalia mb-2">Dias da Semana</div><div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
  {DAYS_OF_WEEK.map((day, idx) => {
  const isSelected = workoutDays.includes(idx);
  return (
@@ -1024,18 +995,8 @@ export default function Academy({ onTabChange }: AcademyProps) {
  setWorkoutDays([...workoutDays, idx].sort());
  }
  }}
- style={{
- padding: "8px 12px",
- borderRadius: 10,
- fontSize: 12,
- fontWeight: 600,
- border: "1px solid",
- borderColor: isSelected ? "#A855F7" : "var(--border)",
- background: isSelected ? "rgba(168,85,247,0.1)" : "transparent",
- color: isSelected ? "#A855F7" : "var(--muted-foreground)",
- cursor: "pointer",
- transition: "all 0.2s"
- }}
+ className={`ledger-stamp ${isSelected ? "ledger-stamp--violet" : "ledger-stamp--ink"}`}
+ style={{ fontSize: 11, padding: "5px 10px" }}
  >
  {day.substring(0, 3)}
  </button>
@@ -1043,8 +1004,8 @@ export default function Academy({ onTabChange }: AcademyProps) {
  })}
  </div></div><button
  onClick={handleCreateWorkout}
- className="fz-btn-primary"
- style={{ width: "100%", padding: "12px" }}
+ className="ledger-btn ledger-btn--violet"
+ style={{ width: "100%" }}
  >
  Criar Ficha
  </button></div></Modal>
@@ -1057,20 +1018,10 @@ export default function Academy({ onTabChange }: AcademyProps) {
  setExerciseSearch("");
  }}
  title="Novo Exercício"
- ><div style={{ display: "flex", flexDirection: "column", gap: 16 }}><div><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}><label style={{ fontSize: 12, color: "var(--muted-foreground)", fontWeight: 600 }}>
- Exercício do Catálogo
- </label><button
+ ><div style={{ display: "flex", flexDirection: "column", gap: 16 }}><div><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}><div className="ledger-marginalia">Exercício do Catálogo</div><button
  onClick={() => setShowNewCatalogModal(true)}
- style={{
- fontSize: 10,
- color: "#A855F7",
- background: "rgba(168,85,247,0.1)",
- border: "none",
- padding: "2px 8px",
- borderRadius: 6,
- cursor: "pointer",
- fontWeight: 700
- }}
+ className="ledger-stamp ledger-stamp--violet"
+ style={{ fontSize: 10, padding: "3px 8px" }}
  >
  + Criar Novo
  </button></div><input
@@ -1081,7 +1032,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  setSelectedCatalogId("");
  }}
  placeholder="Pesquisar por nome ou grupo muscular..."
- className="fz-input"
+ className="ledger-input"
  aria-label="Pesquisar exercício"
  style={{ marginBottom: 8 }}
  /><select
@@ -1097,12 +1048,14 @@ export default function Academy({ onTabChange }: AcademyProps) {
  }
  }
  }}
- className="fz-input"
+ className="ledger-input"
  style={{
  marginBottom: 4,
- borderColor: !selectedCatalogId ? "rgba(168,85,247,0.3)" : "var(--border)"
+ background: "transparent",
+ outline: "none",
+ color: "#ededed"
  }}
- ><option value="">-- Selecione um exercício --</option>
+><option value="">-- Selecione um exercício --</option>
  {filteredDefaultExercises.length > 0 && (
  <optgroup label="Exercícios padrão">
  {filteredDefaultExercises.map(ex => (
@@ -1130,45 +1083,36 @@ export default function Academy({ onTabChange }: AcademyProps) {
  {filteredCatalogExercises.length} {filteredCatalogExercises.length === 1 ? "resultado encontrado" : "resultados encontrados"}
  </p>
  )}
- </div><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12 }}><div><label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
- Séries
- </label><input
+ </div><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12 }}><div><div className="ledger-marginalia mb-2">Séries</div><input
  type="number"
  value={newExercise.series}
  onChange={e => setNewExercise({ ...newExercise, series: parseInt(e.target.value) })}
- className="fz-input"
+ className="ledger-input"
  style={{ width: "100%", boxSizing: "border-box" }}
- /></div><div><label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
- Reps Mín
- </label><input
+ /></div><div><div className="ledger-marginalia mb-2">Reps Mín</div><input
  type="number"
  value={newExercise.repMin}
  onChange={e => setNewExercise({ ...newExercise, repMin: parseInt(e.target.value) })}
- className="fz-input"
+ className="ledger-input"
  style={{ width: "100%", boxSizing: "border-box" }}
- /></div></div><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12 }}><div><label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
- Reps Máx
- </label><input
+ /></div></div><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12 }}><div><div className="ledger-marginalia mb-2">Reps Máx</div><input
  type="number"
  value={newExercise.repMax}
  onChange={e => setNewExercise({ ...newExercise, repMax: parseInt(e.target.value) })}
- className="fz-input"
+ className="ledger-input"
  style={{ width: "100%", boxSizing: "border-box" }}
- /></div><div><label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
- Descanso (s)
- </label><input
+ /></div><div><div className="ledger-marginalia mb-2">Descanso (s)</div><input
  type="number"
  value={newExercise.restSeconds}
  onChange={e => setNewExercise({ ...newExercise, restSeconds: parseInt(e.target.value) })}
- className="fz-input"
+ className="ledger-input"
  style={{ width: "100%", boxSizing: "border-box" }}
  /></div></div><button
  onClick={handleAddExercise}
- className="fz-btn-primary"
+ className="ledger-btn ledger-btn--violet"
  disabled={!selectedCatalogId}
  style={{ 
- width: "100%", 
- padding: "12px",
+ width: "100%",
  opacity: !selectedCatalogId ? 0.5 : 1,
  cursor: !selectedCatalogId ? "not-allowed" : "pointer"
  }}
@@ -1183,49 +1127,39 @@ export default function Academy({ onTabChange }: AcademyProps) {
  title="Editar Exercício"
  >
  {exerciseToEdit && (
- <div style={{ display: "flex", flexDirection: "column", gap: 16 }}><div><label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
- Nome do Exercício
- </label><input
+ <div style={{ display: "flex", flexDirection: "column", gap: 16 }}><div><div className="ledger-marginalia mb-2">Nome do Exercício</div><input
  type="text"
  value={exerciseToEdit.name}
  onChange={e => setExerciseToEdit({ ...exerciseToEdit, name: e.target.value })}
- className="fz-input"
- /></div><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12 }}><div><label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
- Séries
- </label><input
+ className="ledger-input"
+ /></div><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12 }}><div><div className="ledger-marginalia mb-2">Séries</div><input
  type="number"
  value={exerciseToEdit.series}
  onChange={e => setExerciseToEdit({ ...exerciseToEdit, series: parseInt(e.target.value) })}
- className="fz-input"
+ className="ledger-input"
  style={{ width: "100%", boxSizing: "border-box" }}
- /></div><div><label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
- Reps Mín
- </label><input
+ /></div><div><div className="ledger-marginalia mb-2">Reps Mín</div><input
  type="number"
  value={exerciseToEdit.repMin}
  onChange={e => setExerciseToEdit({ ...exerciseToEdit, repMin: parseInt(e.target.value) })}
- className="fz-input"
+ className="ledger-input"
  style={{ width: "100%", boxSizing: "border-box" }}
- /></div></div><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12 }}><div><label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
- Reps Máx
- </label><input
+ /></div></div><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fit, minmax(120px, 1fr))", gap: 12 }}><div><div className="ledger-marginalia mb-2">Reps Máx</div><input
  type="number"
  value={exerciseToEdit.repMax}
  onChange={e => setExerciseToEdit({ ...exerciseToEdit, repMax: parseInt(e.target.value) })}
- className="fz-input"
+ className="ledger-input"
  style={{ width: "100%", boxSizing: "border-box" }}
- /></div><div><label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
- Descanso (s)
- </label><input
+ /></div><div><div className="ledger-marginalia mb-2">Descanso (s)</div><input
  type="number"
  value={exerciseToEdit.restSeconds}
  onChange={e => setExerciseToEdit({ ...exerciseToEdit, restSeconds: parseInt(e.target.value) })}
- className="fz-input"
+ className="ledger-input"
  style={{ width: "100%", boxSizing: "border-box" }}
  /></div></div><button
  onClick={handleSaveExerciseEdit}
- className="fz-btn-primary"
- style={{ width: "100%", padding: "12px" }}
+ className="ledger-btn ledger-btn--violet"
+ style={{ width: "100%" }}
  >
  Salvar Alterações
  </button></div>
@@ -1560,12 +1494,15 @@ export default function Academy({ onTabChange }: AcademyProps) {
  e.target.value
  )
  }
- className="fz-input"
+ className="ledger-input"
  style={{
  marginBottom: 12,
  fontWeight: 700,
  width: "100%",
  boxSizing: "border-box",
+ background: "transparent",
+ outline: "none",
+ color: "#ededed",
  }}
  ><option value="warmup"> Aquecimento</option><option value="normal"> Normal</option><option value="failed"> Falhada</option><option value="drop">⬇ Drop</option></select>
 
@@ -1599,7 +1536,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  parseFloat(e.target.value) || 0
  )
  }
- className="fz-input"
+ className="ledger-input"
  style={{
  height: 52,
  fontSize: 20,
@@ -1629,7 +1566,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  parseInt(e.target.value) || 0
  )
  }
- className="fz-input"
+ className="ledger-input"
  style={{
  height: 52,
  fontSize: 20,
@@ -1697,26 +1634,22 @@ export default function Academy({ onTabChange }: AcademyProps) {
  open={showNewCatalogModal}
  onClose={() => setShowNewCatalogModal(false)}
  title="Novo Exercício no Catálogo"
- ><div style={{ display: "flex", flexDirection: "column", gap: 16 }}><div><label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
- Nome do Exercício
- </label><input
+ ><div style={{ display: "flex", flexDirection: "column", gap: 16 }}><div><div className="ledger-marginalia mb-2">Nome do Exercício</div><input
  type="text"
  value={catalogExerciseName}
  onChange={e => setCatalogExerciseName(e.target.value)}
  placeholder="Ex: Supino Reto"
- className="fz-input"
- /></div><div><label style={{ fontSize: 12, color: "var(--muted-foreground)", display: "block", marginBottom: 6 }}>
- Grupo Muscular
- </label><input
+ className="ledger-input"
+ /></div><div><div className="ledger-marginalia mb-2">Grupo Muscular</div><input
  type="text"
  value={catalogExerciseMuscle}
  onChange={e => setCatalogExerciseMuscle(e.target.value)}
  placeholder="Ex: Peito"
- className="fz-input"
+ className="ledger-input"
  /></div><button
  onClick={handleAddCatalogExercise}
- className="fz-btn-primary"
- style={{ width: "100%", padding: "12px" }}
+ className="ledger-btn ledger-btn--violet"
+ style={{ width: "100%" }}
  >
  Adicionar ao Catálogo
  </button></div></Modal><style>{`

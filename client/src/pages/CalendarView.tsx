@@ -352,16 +352,16 @@ export default function CalendarView() {
  Calendário
  </h1><p style={{ fontFamily: 'DM Sans', fontSize: 14, color: 'var(--muted-foreground)' }}>
  Visão geral de tarefas e metas
- </p></div><button className="fz-btn-ghost" style={{ padding: '8px 16px', fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}
+ </p></div><button className="ledger-btn ledger-btn--ghost" style={{ fontSize: 13, display: 'flex', alignItems: 'center', gap: 6 }}
  onClick={goToToday}><Calendar size={14} />
  Hoje
  </button></div><div className="calendar-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20 }}>
  {/* Calendar Grid */}
  <div className="ledger-paper ledger-paper--violet calendar-main-card" style={{ padding: '20px 22px' }}>
  {/* Month Navigation */}
- <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}><button onClick={prevMonth} className="fz-btn-ghost" style={{ padding: '6px 10px', borderRadius: 8 }}><ChevronLeft size={16} color="var(--muted-foreground)" /></button><h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 18, color: 'var(--foreground)' }}>
+ <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}><button onClick={prevMonth} className="ledger-btn ledger-btn--ghost" style={{ padding: '6px 10px' }}><ChevronLeft size={16} color="var(--muted-foreground)" /></button><h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 18, color: 'var(--foreground)' }}>
  {MONTHS[viewMonth]} {viewYear}
- </h2><button onClick={nextMonth} className="fz-btn-ghost" style={{ padding: '6px 10px', borderRadius: 8 }}><ChevronRight size={16} color="var(--muted-foreground)" /></button></div>
+ </h2><button onClick={nextMonth} className="ledger-btn ledger-btn--ghost" style={{ padding: '6px 10px' }}><ChevronRight size={16} color="var(--muted-foreground)" /></button></div>
 
  {/* Weekday headers */}
  <div className="calendar-weekday-header" style={{ display: 'grid', gridTemplateColumns: 'repeat(7, 1fr)', gap: 6, marginBottom: 8 }}>

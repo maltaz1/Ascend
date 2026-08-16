@@ -1173,9 +1173,11 @@ export default function Financial() {
  }}
  ><span
  style={{
- fontSize: "15px",
+ fontFamily: "'Space Grotesk', sans-serif",
+ fontSize: "17px",
  fontWeight: 700,
- color: "var(--foreground)",
+ color: "#ededed",
+ letterSpacing: "-0.02em",
  }}
  >
  Registrar transação
@@ -1196,7 +1198,7 @@ export default function Financial() {
  style={{ display: "flex", flexDirection: "column", gap: "14px" }}
  >
  {/* Type toggle */}
- <div><label style={labelStyle}>Tipo</label><div
+ <div><div className="ledger-marginalia mb-2">Tipo</div><div
  style={{
  display: "grid",
  gridTemplateColumns: "1fr 1fr",
@@ -1261,34 +1263,35 @@ export default function Financial() {
  </button></div></div>
 
  {/* Description */}
- <div><label style={labelStyle}>Descrição</label><input
+ <div><div className="ledger-marginalia mb-2">Descrição</div><input
  type="text"
  placeholder="Ex: Almoço no restaurante"
  value={formData.name}
  onChange={e =>
  setFormData({ ...formData, name: e.target.value })
  }
- className="fz-input"
+ className="ledger-input"
  /></div>
 
  {/* Amount */}
- <div><label style={labelStyle}>Valor</label><input
+ <div><div className="ledger-marginalia mb-2">Valor</div><input
  type="number"
  placeholder="0,00"
  value={formData.amount}
  onChange={e =>
  setFormData({ ...formData, amount: e.target.value })
  }
- className="fz-input"
+ className="ledger-input"
  /></div>
 
  {/* Category — dynamic */}
- <div><label style={labelStyle}>Categoria</label><select
+ <div><div className="ledger-marginalia mb-2">Categoria</div><select
  value={formData.category}
  onChange={e =>
  setFormData({ ...formData, category: e.target.value })
  }
- className="fz-input"
+ className="ledger-input"
+ style={{ background: "transparent", outline: "none", color: "#ededed" }}
  >
  {activeCategories.map(cat => (
  <option key={cat.name} value={cat.name}>
@@ -1298,37 +1301,17 @@ export default function Financial() {
  </select></div>
 
  {/* Date */}
- <div><label style={labelStyle}>Data</label><input
+ <div><div className="ledger-marginalia mb-2">Data</div><input
  type="date"
  value={formData.date}
  onChange={e =>
  setFormData({ ...formData, date: e.target.value })
  }
- className="fz-input"
+ className="ledger-input"
+ style={{ colorScheme: "dark" }}
  /></div> <button
  onClick={handleAddTransaction}
- style={{
- padding: "12px 16px",
- borderRadius: 6,
- background: "#7c3aed",
- border: "1px solid #262630",
- color: "#f3e8ff",
- cursor: "pointer",
- fontFamily: "Space Grotesk",
- fontWeight: 700,
- fontSize: 13,
- transition: "all 0.15s ease",
- boxShadow: "4px 4px 0 rgba(0,0,0,0.3)",
- marginTop: 4,
- }}
- onMouseEnter={e => {
- e.currentTarget.style.transform = "translateY(-2px)";
- e.currentTarget.style.boxShadow = "6px 6px 0 rgba(0,0,0,0.35)";
- }}
- onMouseLeave={e => {
- e.currentTarget.style.transform = "translateY(0)";
- e.currentTarget.style.boxShadow = "4px 4px 0 rgba(0,0,0,0.3)";
- }}
+ className="ledger-btn ledger-btn--violet"
  >
  Registrar transação
  </button></div></div></div>

@@ -466,19 +466,17 @@ const loadFavorites = async () => {
  }
  }}
  placeholder="Compartilhe sua intenção de oração..."
- className="fz-input"
+ className="ledger-input"
  style={{
  flex: 1,
- padding: '12px 16px',
  fontSize: 13,
  }}
  disabled={isLoading}
  /><button
  onClick={() => handleSendMessage()}
  disabled={isLoading || !inputValue.trim()}
- className="fz-btn-primary"
+ className="ledger-btn ledger-btn--amber"
  style={{
- padding: '12px 16px',
  display: 'flex',
  alignItems: 'center',
  justifyContent: 'center',
@@ -488,9 +486,8 @@ const loadFavorites = async () => {
  }}
  ><Send size={14} /></button><button
  onClick={handleClearChat}
- className="fz-btn-ghost"
+ className="ledger-btn ledger-btn--ghost"
  style={{
-  padding: '12px 16px',
  display: 'flex',
  alignItems: 'center',
  justifyContent: 'center',

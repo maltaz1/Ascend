@@ -172,9 +172,9 @@ function MiniCalendar({
  `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 
  return (
- <div className="ledger-paper ledger-paper--violet p-5"><div className="flex items-center justify-between mb-4"><button onClick={prevMonth} className="fz-btn-ghost p-1.5 rounded-lg"><ChevronLeft size={16} className="text-muted-foreground" /></button><h3 className="font-bold text-base text-foreground font-space">
+ <div className="ledger-paper ledger-paper--violet p-5"><div className="flex items-center justify-between mb-4"><button onClick={prevMonth} className="ledger-btn ledger-btn--ghost p-1.5"><ChevronLeft size={16} className="text-muted-foreground" /></button><h3 className="font-bold text-base text-foreground font-space">
  {MONTHS[viewMonth]} {viewYear}
- </h3><button onClick={nextMonth} className="fz-btn-ghost p-1.5 rounded-lg"><ChevronRight size={16} className="text-muted-foreground" /></button></div><div className="grid grid-cols-7 gap-1 mb-2">
+ </h3><button onClick={nextMonth} className="ledger-btn ledger-btn--ghost p-1.5"><ChevronRight size={16} className="text-muted-foreground" /></button></div><div className="grid grid-cols-7 gap-1 mb-2">
  {WEEKDAYS.map(d => (
  <div key={d} className="text-center font-semibold text-[11px] text-muted-foreground py-1 font-space uppercase tracking-wider">
  {d}
@@ -380,51 +380,48 @@ function TaskModal({
  };
 
  return (
- <Modal open={open} onClose={onClose} title={task ? "Editar Tarefa" : "Nova Tarefa"}><div className="flex flex-col gap-4">
+ <Modal open={open} onClose={onClose} title={task ? "Editar Tarefa" : "Nova Tarefa"}><div className="flex flex-col gap-5">
  {/* Tabs for Recurring Task */}
  {task?.isRecurring && (
- <div className="flex gap-2 p-1 bg-muted rounded-xl mb-2"><button
+ <div className="flex gap-2 mb-1"><button
  onClick={() => setActiveTab("edit")}
- className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[13px] font-semibold transition-all ${
- activeTab === "edit" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+ className={`ledger-stamp flex-1 justify-center transition-all ${
+ activeTab === "edit" ? "ledger-stamp--violet" : "ledger-stamp--ink"
  }`}
- ><Info size={14} /> Detalhes
+ ><Info size={12} /> Detalhes
  </button><button
  onClick={() => setActiveTab("recurrence")}
- className={`flex-1 flex items-center justify-center gap-2 py-2 rounded-lg text-[13px] font-semibold transition-all ${
- activeTab === "recurrence" ? "bg-card shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"
+ className={`ledger-stamp flex-1 justify-center transition-all ${
+ activeTab === "recurrence" ? "ledger-stamp--violet" : "ledger-stamp--ink"
  }`}
- ><History size={14} /> Recorrência
+ ><History size={12} /> Recorrência
  </button></div>
  )}
 
  {activeTab === "edit" ? (
- <><div><label className="text-[12px] font-medium text-muted-foreground mb-1.5 block">Título *</label><input
- className="fz-input w-full"
+ <><div><div className="ledger-marginalia mb-2">Título *</div><input
+ className="ledger-input"
  placeholder="O que precisa ser feito?"
  value={title}
  onChange={e => setTitle(e.target.value)}
- /></div><div><label className="text-[12px] font-medium text-muted-foreground mb-1.5 block">Descrição (opcional)</label><textarea
- className="fz-input w-full min-h-[80px] resize-none"
+ /></div><div><div className="ledger-marginalia mb-2">Descrição (opcional)</div><textarea
+ className="ledger-input min-h-[80px] resize-none"
  placeholder="Detalhes..."
  value={description}
  onChange={e => setDescription(e.target.value)}
- /></div><div className="grid grid-cols-2 gap-4"><div><label className="text-[12px] font-medium text-muted-foreground mb-1.5 block">Data *</label><input
+ /></div><div className="grid grid-cols-2 gap-4"><div><div className="ledger-marginalia mb-2">Data *</div><input
  type="date"
- className="fz-input w-full"
+ className="ledger-input"
  value={date}
  onChange={e => setDate(e.target.value)}
- /></div><div><label className="text-[12px] font-medium text-muted-foreground mb-1.5 block">Prioridade</label><div className="flex gap-1.5">
+ style={{ colorScheme: "dark" }}
+ /></div><div><div className="ledger-marginalia mb-2">Prioridade</div><div className="flex gap-2 flex-wrap">
  {PRIORITIES.map(p => (
  <button
  key={p.value}
  onClick={() => setPriority(p.value)}
- className={`flex-1 py-2 rounded-lg border text-[12px] font-bold transition-all ${
- priority === p.value 
- ? 'border-current bg-current/10' 
- : 'border-border bg-transparent text-muted-foreground hover:border-muted-foreground/30'
- }`}
- style={{ color: priority === p.value ? p.color : undefined }}
+ className={`ledger-stamp flex-1 justify-center transition-all ${priority === p.value ? "" : "ledger-stamp--ink"}`}
+ style={priority === p.value ? { borderColor: `${p.color}80`, color: p.color, background: `${p.color}15` } : undefined}
  >
  {p.label}
  </button>
@@ -432,13 +429,9 @@ function TaskModal({
  </div></div></div>
 
  {!task && (
- <div className="mt-2"><button
+ <div className="mt-1"><button
  onClick={() => setShowRecurrenceSection(!showRecurrenceSection)}
- className={`w-full py-2.5 rounded-xl border text-[13px] font-bold flex items-center justify-center gap-2 transition-all ${
- showRecurrenceSection 
- ? "border-primary bg-primary/10 text-primary" 
- : "border-border bg-transparent text-muted-foreground hover:border-muted-foreground/30"
- }`}
+ className="ledger-btn ledger-btn--ghost w-full"
  ><RotateCw size={14} />
  {showRecurrenceSection ? "Remover recorrência" : "Adicionar recorrência"}
  </button>
@@ -449,11 +442,11 @@ function TaskModal({
  )}
  </>
  ) : (
- <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-right-2 duration-300"><RecurrenceSection recurrence={recurrence} onChange={setRecurrence} /><div className="p-4 bg-[#18181f] rounded-md border border-[#262630]"><div className="flex items-center gap-2 mb-4"><History size={16} className="text-primary" /><span className="text-[14px] font-bold text-foreground font-space">Histórico Recente</span></div><div className="flex flex-col gap-2"><div className="flex items-center justify-between p-2.5 bg-emerald-500/10 border border-emerald-500/20 rounded-md"><div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /><span className="text-[12px] text-foreground font-medium">15 Jul 2026</span></div><span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Concluída</span></div><div className="flex items-center justify-between p-2.5 bg-amber-500/10 border border-amber-500/20 rounded-md opacity-60"><div className="flex items-center gap-2"><AlertCircle size={14} className="text-amber-500" /><span className="text-[12px] text-foreground font-medium">14 Jul 2026</span></div><span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Atrasada</span></div></div></div></div>
+ <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-right-2 duration-300"><RecurrenceSection recurrence={recurrence} onChange={setRecurrence} /><div className="p-4 bg-[#18181f] rounded-md border border-[#262630]"><div className="flex items-center gap-2 mb-4"><History size={16} className="text-[#8b5cf6]" /><span className="text-[14px] font-bold text-foreground font-space">Histórico Recente</span></div><div className="flex flex-col gap-2"><div className="flex items-center justify-between p-2.5 bg-[#18181f] border border-[#262630] rounded-md"><div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /><span className="text-[12px] text-foreground font-medium">15 Jul 2026</span></div><span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Concluída</span></div><div className="flex items-center justify-between p-2.5 bg-[#18181f] border border-[#262630] rounded-md opacity-60"><div className="flex items-center gap-2"><AlertCircle size={14} className="text-amber-500" /><span className="text-[12px] text-foreground font-medium">14 Jul 2026</span></div><span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Atrasada</span></div></div></div></div>
  )}
 
  <button
- className="fz-btn-primary w-full py-3.5 text-[15px] font-bold mt-4 shadow-lg shadow-primary/20"
+ className="ledger-btn ledger-btn--violet w-full mt-2"
  onClick={handleSubmit}
  >
  {task ? "Salvar Alterações" : "Criar Tarefa"}
@@ -719,7 +712,7 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
  setEditingTask(null);
  setShowModal(true);
  }}
- className="fz-btn-primary flex items-center gap-1.5 px-3 py-2 text-[13px] font-bold"
+ className="ledger-btn ledger-btn--violet flex items-center gap-1.5 text-[13px] font-bold"
  ><Plus size={16} /> Nova Tarefa
  </button></div>
 
@@ -729,11 +722,7 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
  <button
  key={status}
  onClick={() => setFilterStatus(status)}
- className={`px-3 py-1.5 rounded-lg border text-[12px] font-bold transition-all ${
- filterStatus === status 
- ? "border-primary bg-primary/10 text-primary" 
- : "border-border bg-transparent text-muted-foreground hover:border-muted-foreground/30"
- }`}
+ className={`ledger-stamp text-[12px] font-bold ${filterStatus === status ? "ledger-stamp--violet" : "ledger-stamp--ink"}`}
  >
  {status === "all" ? "Todas" : status === "pending" ? "Pendentes" : status === "completed" ? "Concluídas" : "Atrasadas"}
  </button>
@@ -746,7 +735,7 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
  placeholder="Buscar tarefas..."
  value={search}
  onChange={e => setSearch(e.target.value)}
- className="fz-input w-full pl-10"
+ className="ledger-input w-full pl-10"
  /></div></div>
 
  {/* Tasks List */}
@@ -814,14 +803,14 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
  </p>
 
  {/* Container unificado estilo Raycast/Linear */}
- <div className="rounded-xl border border-border overflow-hidden">
+ <div className="rounded-md border border-[#262630] overflow-hidden">
  {/* Opção: Excluir de todos os dias */}
  <button
  onClick={() => {
  handleDeleteAllOccurrences();
  }}
  disabled={deletingAll}
- className="w-full flex items-center gap-3 py-3.5 px-4 hover:bg-[#1f1f29] transition-colors text-left disabled:opacity-60 rounded-md"
+ className="w-full flex items-center gap-3 py-3.5 px-4 hover:bg-[#1f1f29] transition-colors text-left disabled:opacity-60"
  ><Trash2 size={16} className="flex-shrink-0" style={{ color: '#ef4444' }} /><div className="flex-1 min-w-0"><div className="text-[13px] font-semibold" style={{ color: '#ef4444' }}>
  {deletingAll ? "Excluindo..." : "Excluir de todos os dias"}
  </div><div className="text-[12px] mt-0.5" style={{ color: 'var(--muted-foreground)', opacity: 0.7 }}>
@@ -829,7 +818,7 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
  </div></div></button>
 
  {/* Divisor */}
- <div className="h-px mx-4" style={{ backgroundColor: 'rgba(255,255,255,0.07)' }} />
+ <div className="ledger-rule mx-4" />
 
  {/* Opção: Excluir apenas esta ocorrência */}
  <button
@@ -837,24 +826,21 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
  handleDeleteThisOccurrence();
  }}
  disabled={deletingAll}
- className="w-full flex items-center gap-3 py-3.5 px-4 hover:bg-[#1f1f29] transition-colors text-left disabled:opacity-60 rounded-md"
+ className="w-full flex items-center gap-3 py-3.5 px-4 hover:bg-[#1f1f29] transition-colors text-left disabled:opacity-60"
  ><CalendarDays size={16} className="flex-shrink-0" style={{ color: 'var(--muted-foreground)' }} /><div className="flex-1 min-w-0"><div className="text-[13px] font-semibold" style={{ color: 'var(--foreground)' }}>
  {deletingAll ? "Excluindo..." : "Excluir apenas esta ocorrência"}
  </div><div className="text-[12px] mt-0.5" style={{ color: 'var(--muted-foreground)', opacity: 0.7 }}>
  Mantém a recorrência nos demais dias
  </div></div></button></div>
 
- {/* Botão Cancelar - texto simples */}
+ {/* Botão Cancelar */}
  <button
  onClick={() => {
  setDeleteRecurringTask(null);
  setDeletingAll(false);
  }}
  disabled={deletingAll}
- className="mt-4 text-[13px] font-medium mx-auto transition-colors disabled:opacity-60"
- style={{ color: 'var(--muted-foreground)' }}
- onMouseEnter={e => (e.currentTarget.style.color = 'var(--foreground)')}
- onMouseLeave={e => (e.currentTarget.style.color = 'var(--muted-foreground)')}
+ className="ledger-btn ledger-btn--ghost w-full mt-3 disabled:opacity-60"
  >
  Cancelar
  </button></div></Modal></div>

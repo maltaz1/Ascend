@@ -447,6 +447,8 @@
   .ledger-paper--green  { border-top-color: #10b981; }
   .ledger-paper--red    { border-top-color: #ef4444; }
 
+  .mb-2 { margin-bottom: 8px; }
+
   /* Label marginalia (caixa alta pequena, cinza-ardósia) */
   .ledger-marginalia {
     font-family: 'DM Sans', sans-serif;
@@ -524,6 +526,14 @@
   .ledger-btn--ghost { background: transparent; border: 1px solid #33333f; color: #d4d4dc; box-shadow: none; }
   .ledger-btn--ghost:hover { background: #22222b; color: #fff; border-color: #3f3f4c; }
   .ledger-btn--ghost--amber:hover { border-color: rgba(245, 158, 11, 0.5); color: #fbbf24; }
+  .ledger-btn--red { background: #b91c1c; color: #ffffff; }
+  .ledger-btn--red:hover { background: #991b1b; transform: translate(0, -2px); box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.4); }
+
+  /* Overlay de modal sem blur (anti-glass) */
+  .ledger-modal-overlay {
+    background: rgba(0, 0, 0, 0.62);
+    backdrop-filter: none;
+  }
 
   /* Blocos de métrica estilo ficha de caderno */
   .ledger-metric {
@@ -570,6 +580,37 @@
   }
   .ledger-input::placeholder { color: #4a4a57; }
   .ledger-input:focus { border-bottom-color: #8b5cf6; }
+
+  /* Range de pauta — trilho fino, thumb quadrado */
+  .ledger-range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: #262630;
+    border-radius: 2px;
+    outline: none;
+    margin: 8px 0;
+  }
+  .ledger-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: #8b5cf6;
+    border-radius: 3px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.35);
+  }
+  .ledger-range::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: #8b5cf6;
+    border-radius: 3px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.35);
+  }
 
   /* Checkbox de pauta (quadrado vivo, sem arredondamento) */
   .ledger-check {

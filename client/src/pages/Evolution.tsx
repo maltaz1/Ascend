@@ -114,7 +114,7 @@ export default function Evolution({ onTabChange, hideHeader }: EvolutionProps) {
  {!hideHeader && (
  <div style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}><button
  onClick={() => onTabChange?.('academy')}
- className="fz-btn-ghost"
+ className="ledger-btn ledger-btn--ghost"
  style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
  ><ChevronLeft size={18} /></button><h1 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 24, color: 'var(--foreground)' }}>
  Evolução
@@ -181,12 +181,13 @@ export default function Evolution({ onTabChange, hideHeader }: EvolutionProps) {
 
  {/* Exercise Selection */}
  {allExercises.length > 0 && (
- <><div style={{ marginBottom: 16 }}><label style={{ fontSize: 12, color: 'var(--muted-foreground)', display: 'block', marginBottom: 8, fontFamily: 'DM Sans', fontWeight: 500 }}>
+ <><div style={{ marginBottom: 16 }}><div className="ledger-marginalia mb-2">
  Selecione um Exercício
- </label><select
+ </div><select
  value={selectedExercise || ''}
  onChange={e => setSelectedExercise(e.target.value)}
- className="fz-input"
+ className="ledger-input"
+ style={{ background: "transparent", outline: "none", color: "#ededed" }}
  >
  {allExercises.map(ex => (
  <option key={ex} value={ex}>

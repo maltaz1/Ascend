@@ -546,7 +546,7 @@ function NewHabitModal({
  return;
  }
 
- showToast("Hábito criado! ", "success", " ");
+ showToast("Hábito criado!", "success");
 
  setTitle("");
  setEmoji("🏃");
@@ -559,100 +559,66 @@ function NewHabitModal({
  };
 
  return (
- <Modal open={open} onClose={onClose} title="Novo Hábito"><div
- style={{
- display: "flex",
- flexDirection: "column",
- gap: 20,
- }}
- >
+ <Modal open={open} onClose={onClose} title="Novo Hábito"><div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
  {/* TITLE */}
-
- <input
- className="fz-input"
- placeholder="Nome do hábito"
- value={title}
- onChange={e => setTitle(e.target.value)}
- />
+ <div><div className="ledger-marginalia mb-2">Nome do hábito</div><input className="ledger-input" placeholder="Ex: Correr 30 minutos" value={title} onChange={e => setTitle(e.target.value)} /></div>
 
  {/* EMOJIS */}
-
- <div
- style={{
- display: "flex",
- gap: 10,
- flexWrap: "wrap",
- }}
- >
+ <div><div className="ledger-marginalia mb-2">Ícone</div><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
  {EMOJIS.map(e => (
  <button
  key={e}
  onClick={() => setEmoji(e)}
  style={{
- fontSize: 24,
- padding: 10,
- borderRadius: 10,
- border:
- emoji === e ? "2px solid #F59E0B" : "1px solid var(--border)",
- background:
- emoji === e ? "rgba(245,158,11,0.15)" : "transparent",
+ fontSize: 16,
+ padding: "7px 9px",
+ borderRadius: 3,
+ border: emoji === e ? "2px solid #F59E0B" : "1px solid #33333f",
+ background: emoji === e ? "rgba(245,158,11,0.15)" : "transparent",
  cursor: "pointer",
+ fontFamily: "'Space Grotesk', sans-serif",
+ fontWeight: 700,
+ color: "#ededed",
  }}
  >
  {e}
  </button>
  ))}
- </div>
+ </div></div>
 
  {/* COLORS */}
-
- <div
- style={{
- display: "flex",
- gap: 10,
- flexWrap: "wrap",
- }}
- >
+ <div><div className="ledger-marginalia mb-2">Cor da tinta</div><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
  {COLORS.map(c => (
  <button
  key={c}
  onClick={() => setCustomColor(c)}
  style={{
- width: 32,
- height: 32,
- borderRadius: "50%",
+ width: 26,
+ height: 26,
+ borderRadius: 3,
  background: c,
- border: customColor === c ? "3px solid white" : "none",
+ border: customColor === c ? "2px solid #ededed" : "1px solid #33333f",
  cursor: "pointer",
+ transform: customColor === c ? "scale(1.1)" : "scale(1)",
+ transition: "all 0.2s ease",
  }}
  />
  ))}
- </div>
+ </div></div>
 
  {/* TARGET */}
-
- <div><p
- style={{
- marginBottom: 6,
- fontSize: 12,
- color: "var(--muted-foreground)",
- }}
- >
- Meta mensal: {targetDays} dias
- </p><input
+ <div><div className="ledger-marginalia mb-2">Meta mensal · {targetDays} dias</div><input
  type="range"
  min={1}
  max={31}
  value={targetDays}
  onChange={e => setTargetDays(Number(e.target.value))}
- style={{
- width: "100%",
- }}
+ className="ledger-range"
+ style={{ width: "100%" }}
  /></div>
 
  {/* BUTTON */}
-
- <button className="fz-btn-primary" onClick={handleSubmit}>
+ <button className="ledger-btn ledger-btn--violet" style={{ width: "100%" }} onClick={handleSubmit}>
  Criar Hábito
  </button></div></Modal>
  );
@@ -890,7 +856,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
  ><Table2 size={14} aria-hidden="true" /><span>Tabela</span></button></div>
 
  {!isMobile && (
- <button className="fz-btn-primary" onClick={() => setShowModal(true)}>
+ <button className="ledger-btn ledger-btn--violet" onClick={() => setShowModal(true)}>
  Novo hábito
  </button>
  )}
@@ -926,7 +892,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
  outline: "none",
  flex: 1,
  }}
- /></div><button className="fz-btn-ghost" onClick={exportData}><Download size={14} /></button></div>
+ /></div><button className="ledger-btn ledger-btn--ghost" onClick={exportData}><Download size={14} /></button></div>
 
  {/* MONTH */}
 

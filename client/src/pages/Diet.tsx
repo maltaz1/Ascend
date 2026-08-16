@@ -420,7 +420,7 @@ function AddFoodModal({
  };
 
  await addMeal(meal);
- showToast("Refeição adicionada!", "success", " ");
+ showToast("Refeição adicionada!", "success");
  setFoods([]);
  onClose();
  };
@@ -428,18 +428,8 @@ function AddFoodModal({
  return (
  <Modal open={open} onClose={onClose} title="Adicionar Alimento"><div style={{ display: "flex", flexDirection: "column", gap: 16, width: "100%", minWidth: 0 }}>
  {/* Food Input with AI Button */}
- <div style={{ width: "100%", minWidth: 0 }}><label
- style={{
- fontFamily: "DM Sans",
- fontSize: 12,
- color: "var(--muted-foreground)",
- marginBottom: 6,
- display: "block",
- }}
- >
- Nome do Alimento *
- </label><div style={{ display: "flex", gap: 8, width: "100%", minWidth: 0 }}><input
- className="fz-input"
+ <div style={{ width: "100%", minWidth: 0 }}><div className="ledger-marginalia mb-2">Nome do Alimento *</div><div style={{ display: "flex", gap: 8, width: "100%", minWidth: 0 }}><input
+ className="ledger-input"
  placeholder="Ex: Frango grelhado"
  value={foodName}
  onChange={e => setFoodName(e.target.value)}
@@ -447,33 +437,15 @@ function AddFoodModal({
  /><button
  onClick={calculateMacrosWithAI}
  disabled={calculatingMacros || !foodName}
+ className="ledger-btn ledger-btn--ghost"
  style={{
- padding: "8px 12px",
- borderRadius: 6,
- background: calculatingMacros
- ? "#1f1333"
- : "#16141e",
- border: "1px solid rgba(139,92,246,0.45)",
+ borderColor: "rgba(139,92,246,0.45)",
  color: "#a78bfa",
+ fontSize: 12,
+ padding: "9px 12px",
  cursor:
  calculatingMacros || !foodName ? "not-allowed" : "pointer",
- fontFamily: "DM Sans",
- fontWeight: 600,
- fontSize: 12,
- whiteSpace: "nowrap",
- flexShrink: 0,
- transition: "all 0.2s ease",
  opacity: calculatingMacros || !foodName ? 0.5 : 1,
- }}
- onMouseEnter={e => {
- if (!calculatingMacros && foodName) {
- e.currentTarget.style.background = "#1f1333";
- }
- }}
- onMouseLeave={e => {
- if (!calculatingMacros && foodName) {
- e.currentTarget.style.background = "#16141e";
- }
  }}
  >
  {calculatingMacros ? "Calc..." : "Calcular"}
@@ -532,86 +504,36 @@ function AddFoodModal({
  </div>
 
  {/* Nutrition Inputs */}
- <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full"><div style={{ minWidth: 0 }}><label
- style={{
- fontFamily: "DM Sans",
- fontSize: 12,
- color: "var(--muted-foreground)",
- marginBottom: 6,
- display: "block",
- }}
- >
- Calorias *
- </label><input
- className="fz-input"
+ <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 w-full"><div style={{ minWidth: 0 }}><div className="ledger-marginalia mb-2">Calorias *</div><input
+ className="ledger-input"
  type="number"
  placeholder="0"
  value={calories}
  onChange={e => setCalories(e.target.value)}
  style={{ width: "100%", boxSizing: "border-box" }}
- /></div><div style={{ minWidth: 0 }}><label
- style={{
- fontFamily: "DM Sans",
- fontSize: 12,
- color: "var(--muted-foreground)",
- marginBottom: 6,
- display: "block",
- }}
- >
- Quantidade (g)
- </label><input
- className="fz-input"
+ /></div><div style={{ minWidth: 0 }}><div className="ledger-marginalia mb-2">Quantidade (g)</div><input
+ className="ledger-input"
  type="number"
  placeholder="100"
  value={quantity}
  onChange={e => setQuantity(e.target.value)}
  style={{ width: "100%", boxSizing: "border-box" }}
- /></div><div style={{ minWidth: 0 }}><label
- style={{
- fontFamily: "DM Sans",
- fontSize: 12,
- color: "var(--muted-foreground)",
- marginBottom: 6,
- display: "block",
- }}
- >
- Proteína (g)
- </label><input
- className="fz-input"
+ /></div><div style={{ minWidth: 0 }}><div className="ledger-marginalia mb-2">Proteína (g)</div><input
+ className="ledger-input"
  type="number"
  placeholder="0"
  value={protein}
  onChange={e => setProtein(e.target.value)}
  style={{ width: "100%", boxSizing: "border-box" }}
- /></div><div style={{ minWidth: 0 }}><label
- style={{
- fontFamily: "DM Sans",
- fontSize: 12,
- color: "var(--muted-foreground)",
- marginBottom: 6,
- display: "block",
- }}
- >
- Carboidratos (g)
- </label><input
- className="fz-input"
+ /></div><div style={{ minWidth: 0 }}><div className="ledger-marginalia mb-2">Carboidratos (g)</div><input
+ className="ledger-input"
  type="number"
  placeholder="0"
  value={carbs}
  onChange={e => setCarbs(e.target.value)}
  style={{ width: "100%", boxSizing: "border-box" }}
- /></div><div style={{ gridColumn: "1 / 2", minWidth: 0 }}><label
- style={{
- fontFamily: "DM Sans",
- fontSize: 12,
- color: "var(--muted-foreground)",
- marginBottom: 6,
- display: "block",
- }}
- >
- Gordura (g)
- </label><input
- className="fz-input"
+ /></div><div style={{ gridColumn: "1 / 2", minWidth: 0 }}><div className="ledger-marginalia mb-2">Gordura (g)</div><input
+ className="ledger-input"
  type="number"
  placeholder="0"
  value={fat}
@@ -622,24 +544,7 @@ function AddFoodModal({
  {/* Add Button */}
  <button
  onClick={handleAddFood}
- style={{
- padding: "10px 16px",
- borderRadius: 6,
- background: "#241a0e",
- border: "1px solid rgba(245,158,11,0.4)",
- color: "#fbbf24",
- cursor: "pointer",
- fontFamily: "DM Sans",
- fontWeight: 600,
- fontSize: 13,
- transition: "all 0.2s ease",
- }}
- onMouseEnter={e => {
- e.currentTarget.style.background = "#2a1e10";
- }}
- onMouseLeave={e => {
- e.currentTarget.style.background = "#241a0e";
- }}
+ className="ledger-btn ledger-btn--amber"
  >
  + Adicionar Alimento
  </button>
@@ -821,45 +726,12 @@ function WaterModal({
  </div></div>
 
  {/* Quick Options */}
- <div><label
- style={{
- fontFamily: "DM Sans",
- fontSize: 12,
- color: "rgba(255,255,255,0.6)",
- marginBottom: 10,
- display: "block",
- }}
- >
- Quantidade rápida (mL)
- </label><div
- style={{
- display: "flex",
- flexWrap: "wrap",
- gap: 8,
- }}
- >
+ <div><div className="ledger-marginalia mb-2">Quantidade rápida (mL)</div><div style={{ display: "flex", flexWrap: "wrap", gap: 8 }}>
  {quickOptions.map(ml => (
  <button
  key={ml}
  onClick={() => setMlAmount(ml.toString())}
- style={{
- padding: "8px 14px",
- borderRadius: 6,
- background:
- mlAmount === ml.toString()
- ? "#0f2430"
- : "transparent",
- border:
- mlAmount === ml.toString()
- ? "1px solid rgba(56,189,248,0.55)"
- : "1px solid rgba(56,189,248,0.25)",
- color: mlAmount === ml.toString() ? "#38BDF8" : "#a0a0ad",
- cursor: "pointer",
- fontFamily: "Space Grotesk",
- fontWeight: 600,
- fontSize: 13,
- transition: "all 0.2s ease",
- }}
+ className={`ledger-stamp ${mlAmount === ml.toString() ? "ledger-stamp--violet" : "ledger-stamp--ink"}`}
  >
  {ml} mL
  </button>
@@ -867,18 +739,8 @@ function WaterModal({
  </div></div>
 
  {/* Custom Input */}
- <div><label
- style={{
- fontFamily: "DM Sans",
- fontSize: 12,
- color: "rgba(255,255,255,0.6)",
- marginBottom: 8,
- display: "block",
- }}
- >
- Ou digite a quantidade personalizada (mL)
- </label><input
- className="fz-input"
+ <div><div className="ledger-marginalia mb-2">Ou digite a quantidade personalizada (mL)</div><input
+ className="ledger-input"
  type="number"
  placeholder="250"
  value={mlAmount}
@@ -890,51 +752,8 @@ function WaterModal({
  <button
  onClick={handleAdd}
  disabled={isAdding || !parseFloat(mlAmount) || parseFloat(mlAmount) <= 0}
- style={{
- padding: "14px 16px",
- borderRadius: 6,
- background:
- isAdding || !parseFloat(mlAmount) || parseFloat(mlAmount) <= 0
- ? "#13171d"
- : "#0EA5E9",
- border: "1px solid #262630",
- color:
- isAdding || !parseFloat(mlAmount) || parseFloat(mlAmount) <= 0
- ? "#5b5b6a"
- : "#031219",
- cursor:
- isAdding || !parseFloat(mlAmount) || parseFloat(mlAmount) <= 0
- ? "not-allowed"
- : "pointer",
- fontFamily: "Space Grotesk",
- fontWeight: 700,
- fontSize: 15,
- transition: "all 0.2s ease",
- boxShadow:
- isAdding || !parseFloat(mlAmount) || parseFloat(mlAmount) <= 0
- ? "none"
- : "4px 4px 0 rgba(0,0,0,0.3)",
- }}
- onMouseEnter={e => {
- if (
- !isAdding &&
- parseFloat(mlAmount) &&
- parseFloat(mlAmount) > 0
- ) {
- e.currentTarget.style.transform = "translateY(-2px)";
- e.currentTarget.style.boxShadow = "6px 6px 0 rgba(0,0,0,0.35)";
- }
- }}
- onMouseLeave={e => {
- if (
- !isAdding &&
- parseFloat(mlAmount) &&
- parseFloat(mlAmount) > 0
- ) {
- e.currentTarget.style.transform = "translateY(0)";
- e.currentTarget.style.boxShadow = "0 4px 12px rgba(56,189,248,0.3)";
- }
- }}
+ className="ledger-btn ledger-btn--violet"
+ style={{ opacity: isAdding || !parseFloat(mlAmount) || parseFloat(mlAmount) <= 0 ? 0.45 : 1 }}
  >
  {isAdding ? "Adicionando..." : `+ Adicionar ${mlAmount || "0"} mL`}
  </button></div></Modal>

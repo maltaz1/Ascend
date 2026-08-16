@@ -129,18 +129,14 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
     <div className="flex flex-col gap-4">
       {/* Seção de Recorrência */}
       <div>
-        <label className="text-[12px] font-medium text-muted-foreground mb-2 block">
-          Recorrência
-        </label>
+        <div className="ledger-marginalia mb-2">Recorrência</div>
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-2">
           {RECURRENCE_OPTIONS.map(option => (
             <button
               key={option.value}
               onClick={() => handleTypeChange(option.value)}
-              className={`px-3 py-2 rounded-lg border text-[12px] font-medium transition-all ${
-                recurrence.type === option.value 
-                ? 'border-primary bg-primary/10 text-primary' 
-                : 'border-border bg-transparent text-muted-foreground hover:border-muted-foreground/30'
+              className={`ledger-stamp justify-center transition-all ${
+                recurrence.type === option.value ? 'ledger-stamp--violet' : 'ledger-stamp--ink'
               }`}
             >
               {option.label}
@@ -151,12 +147,10 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
 
       {/* Configuração Personalizada */}
       {showCustom && (
-        <div className="flex flex-col gap-3 p-3 bg-muted/30 rounded-xl border border-border">
+        <div className="flex flex-col gap-3 p-3 bg-[#18181f] rounded-md border border-[#262630]">
           <div className="flex gap-3">
             <div className="flex-1">
-              <label className="text-[11px] font-medium text-muted-foreground mb-1 block">
-                Repetir a cada
-              </label>
+              <div className="ledger-marginalia mb-2">Repetir a cada</div>
               <input
                 type="number"
                 min="1"
@@ -167,13 +161,11 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
                     interval: Math.max(1, parseInt(e.target.value) || 1),
                   })
                 }
-                className="fz-input w-full h-9"
+                className="ledger-input w-full"
               />
             </div>
             <div className="flex-1">
-              <label className="text-[11px] font-medium text-muted-foreground mb-1 block">
-                Unidade
-              </label>
+              <div className="ledger-marginalia mb-2">Unidade</div>
               <select
                 value={recurrence.intervalUnit || 'days'}
                 onChange={e =>
@@ -182,7 +174,8 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
                     intervalUnit: e.target.value as 'days' | 'weeks' | 'months' | 'years',
                   })
                 }
-                className="fz-input w-full h-9"
+                className="ledger-input w-full"
+                style={{ background: "transparent", outline: "none", color: "#ededed" }}
               >
                 <option value="days">Dias</option>
                 <option value="weeks">Semanas</option>
@@ -195,18 +188,16 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
           {/* Seleção de dias da semana */}
           {recurrence.intervalUnit === 'weeks' && (
             <div>
-              <label className="text-[11px] font-medium text-muted-foreground mb-2 block">
-                Dias da semana
-              </label>
+              <div className="ledger-marginalia mb-2">Dias da semana</div>
               <div className="flex gap-1.5 flex-wrap">
                 {WEEKDAYS.map(day => (
                   <button
                     key={day.value}
                     onClick={() => handleDayToggle(day.value)}
-                    className={`w-8 h-8 rounded-md border text-[11px] font-bold transition-all ${
+                    className={`w-8 h-8 rounded-[3px] border text-[11px] font-bold transition-all ${
                       (recurrence.daysOfWeek || []).includes(day.value)
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border bg-transparent text-muted-foreground hover:border-muted-foreground/30'
+                        ? 'ledger-stamp ledger-stamp--violet'
+                        : 'ledger-stamp ledger-stamp--ink'
                     }`}
                   >
                     {day.label}
@@ -221,18 +212,14 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
       {/* Configuração de Término */}
       {recurrence.type !== 'never' && (
         <div className="flex flex-col gap-3">
-          <label className="text-[12px] font-medium text-muted-foreground mb-0 block">
-            Término da recorrência
-          </label>
+          <div className="ledger-marginalia">Término da recorrência</div>
           <div className="flex gap-2 flex-wrap">
             {(['never', 'after_occurrences', 'on_date'] as const).map((type) => (
               <button
                 key={type}
                 onClick={() => handleEndTypeChange(type)}
-                className={`px-3 py-2 rounded-lg border text-[12px] font-medium transition-all ${
-                  recurrence.endType === type 
-                  ? 'border-primary bg-primary/10 text-primary' 
-                  : 'border-border bg-transparent text-muted-foreground hover:border-muted-foreground/30'
+                className={`ledger-stamp transition-all ${
+                  recurrence.endType === type ? 'ledger-stamp--violet' : 'ledger-stamp--ink'
                 }`}
               >
                 {type === 'never' ? 'Nunca' : type === 'after_occurrences' ? 'Após X vezes' : 'Em uma data'}
@@ -244,9 +231,7 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
           <div className="grid grid-cols-1 gap-3">
             {recurrence.endType === 'after_occurrences' && (
               <div>
-                <label className="text-[11px] font-medium text-muted-foreground mb-1 block">
-                  Número de ocorrências
-                </label>
+                <div className="ledger-marginalia mb-2">Número de ocorrências</div>
                 <input
                   type="number"
                   min="1"
@@ -257,16 +242,14 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
                       occurrences: Math.max(1, parseInt(e.target.value) || 1),
                     })
                   }
-                  className="fz-input w-full h-9"
+                  className="ledger-input w-full"
                 />
               </div>
             )}
 
             {recurrence.endType === 'on_date' && (
               <div>
-                <label className="text-[11px] font-medium text-muted-foreground mb-1 block">
-                  Data de término
-                </label>
+                <div className="ledger-marginalia mb-2">Data de término</div>
                 <input
                   type="date"
                   value={recurrence.endDate || ''}
@@ -276,7 +259,7 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
                       endDate: e.target.value,
                     })
                   }
-                  className="fz-input w-full h-9"
+                  className="ledger-input w-full"
                   style={{ colorScheme: 'dark' }}
                 />
               </div>
@@ -287,20 +270,20 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
 
       {/* Prévia da Recorrência */}
       {recurrence.type !== 'never' && (
-        <div className="mt-2 p-3 bg-primary/5 rounded-xl border border-primary/10">
+        <div className="mt-2 p-3 bg-[#18181f] rounded-md border border-[#262630] border-t-2 border-t-[#8b5cf6]">
           <div className="flex items-center gap-2 mb-2">
-            <RotateCw size={14} className="text-primary" />
+            <RotateCw size={14} className="text-[#a78bfa]" />
             <span className="text-[13px] font-semibold text-foreground">Resumo</span>
           </div>
           <p className="text-[12px] text-muted-foreground mb-2 leading-relaxed">
             {recurrencePreview}
           </p>
-          <div className="flex items-center gap-2 pt-2 border-t border-primary/5">
+          <div className="flex items-center gap-2 pt-2 border-t border-[#262630]">
             <Calendar size={12} className="text-muted-foreground" />
             <span className="text-[11px] text-muted-foreground">Próximas:</span>
             <div className="flex gap-2">
               {nextDates.map((date, i) => (
-                <span key={i} className="text-[11px] font-medium text-primary bg-primary/10 px-1.5 py-0.5 rounded">
+                <span key={i} className="ledger-stamp ledger-stamp--violet" style={{ padding: "3px 7px", fontSize: 10 }}>
                   {date}
                 </span>
               ))}
