@@ -24,6 +24,7 @@ import {
  Wallet,
  Calendar,
  Flame,
+ Zap,
 } from "lucide-react";
 
 import { useStore } from "@/hooks/useStore";
@@ -973,6 +974,7 @@ export default function Dashboard() {
 
       {/* ===== INSIGHTS ===== */}
       <ExpandableSection
+        indexNum="— Insights"
         icon={Zap}
         title="Insights"
         subtitle="Análises automáticas do seu desempenho"
