@@ -118,13 +118,13 @@ export default function Login() {
           to   { width: 72%; }
         }
 
-        /* ── LEDGER NOTURNO — tinta sobre papel, sem glow ── */
+        /* ── LEDGER — tinta sobre papel, sem glow (respeita light/dark) ── */
         .asc-root {
           height: 100vh;
           min-height: 600px;
           display: flex;
           font-family: 'DM Sans', sans-serif;
-          background: #111118;
+          background: var(--page-bg, #111118);
           position: relative;
           overflow-x: hidden;
         }
@@ -143,7 +143,7 @@ export default function Login() {
           scrollbar-color: rgba(139, 92, 246, 0.35) transparent;
         }
         .asc-left::-webkit-scrollbar { width: 6px; }
-        .asc-left::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.35); border-radius: 3px; }
+        .asc-left::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb, rgba(139, 92, 246, 0.35)); border-radius: 3px; }
 
         /* Textura de pauta: linhas horizontais finas, como caderno */
         .asc-left::before {
@@ -154,8 +154,8 @@ export default function Login() {
             to bottom,
             transparent,
             transparent 47px,
-            rgba(255, 255, 255, 0.028) 47px,
-            rgba(255, 255, 255, 0.028) 48px
+            rgba(139, 92, 246, 0.12) 47px,
+            rgba(139, 92, 246, 0.12) 48px
           );
           pointer-events: none;
         }
@@ -167,7 +167,7 @@ export default function Login() {
           top: 0; bottom: 0;
           left: 40px;
           width: 1px;
-          background: rgba(245, 158, 11, 0.28);
+          background: rgba(245, 158, 11, 0.32);
           pointer-events: none;
         }
 
@@ -208,6 +208,7 @@ export default function Login() {
           text-transform: uppercase;
           color: var(--primary);
           margin-bottom: 18px;
+          border-color: var(--primary);
         }
 
         .asc-hero-tag::before {
@@ -276,7 +277,7 @@ export default function Login() {
         .asc-mock-title {
           font-size: 11px;
           font-weight: 600;
-          color: rgba(255,255,255,0.4);
+          color: var(--ink-muted);
           text-transform: uppercase;
           letter-spacing: 0.1em;
           white-space: nowrap;
@@ -307,7 +308,7 @@ export default function Login() {
           flex-wrap: wrap;
           margin-bottom: 14px;
           padding: 12px;
-          background: #111118;
+          background: var(--bg-secondary, #1a1a22);
           border: 1px solid var(--ledger-paper-border);
           border-radius: 4px;
         }
@@ -331,7 +332,7 @@ export default function Login() {
           justify-content: center;
           font-size: 12px;
           font-weight: 700;
-          color: #fff;
+          color: var(--ink);
           font-family: 'DM Sans', sans-serif;
         }
 
@@ -340,13 +341,13 @@ export default function Login() {
         .asc-progress-info .pi-label {
           font-size: 12px;
           font-weight: 600;
-          color: rgba(255,255,255,0.8);
+          color: var(--ink);
           margin: 0 0 4px;
         }
 
         .asc-progress-info .pi-sub {
           font-size: 11px;
-          color: rgba(255,255,255,0.3);
+          color: var(--ink-muted);
           margin: 0;
         }
 
@@ -392,7 +393,7 @@ export default function Login() {
         .asc-habit-name {
           flex: 1;
           font-size: 12px;
-          color: rgba(255,255,255,0.6);
+          color: var(--ink);
         }
 
         .asc-habit-check {
@@ -423,7 +424,7 @@ export default function Login() {
         .asc-habit-row:nth-child(3) .asc-habit-check.done { animation: checkPop3 0.4s 1.2s ease both; }
 
         .asc-habit-check.pending {
-          border: 1.5px solid #3f3f4c;
+          border: 1.5px solid var(--ledger-paper-border);
           border-radius: 2px;
         }
 
@@ -543,7 +544,7 @@ export default function Login() {
 
         .asc-stat-label {
           font-size: 11px;
-          color: rgba(255,255,255,0.35);
+          color: var(--ink-muted);
           text-transform: uppercase;
           letter-spacing: 0.08em;
           font-weight: 500;
@@ -551,7 +552,7 @@ export default function Login() {
 
         .asc-divider-v {
           width: 1px;
-          background: rgba(255,255,255,0.08);
+          background: var(--ledger-paper-border);
           align-self: stretch;
         }
 
@@ -565,7 +566,7 @@ export default function Login() {
           justify-content: center;
           padding: 40px 48px;
           overflow-y: auto;
-          background: #16161d;
+          background: var(--ledger-paper-bg, #18181f);
           border-left: 1px solid var(--ledger-paper-border);
           position: relative;
         }
@@ -579,8 +580,8 @@ export default function Login() {
             to bottom,
             transparent,
             transparent 47px,
-            rgba(255, 255, 255, 0.022) 47px,
-            rgba(255, 255, 255, 0.022) 48px
+            rgba(139, 92, 246, 0.09) 47px,
+            rgba(139, 92, 246, 0.09) 48px
           );
           pointer-events: none;
         }
@@ -618,7 +619,7 @@ export default function Login() {
           padding: 10px;
           border: 1px solid var(--ledger-paper-border);
           background: transparent;
-          color: #8a8a98;
+          color: var(--ink-muted);
           font-family: 'DM Sans', sans-serif;
           font-size: 11px;
           font-weight: 700;
@@ -629,13 +630,13 @@ export default function Login() {
           transition: all 0.15s;
         }
 
-        .asc-tab:hover { border-color: #46465a; color: #d4d4dc; }
+        .asc-tab:hover { border-color: var(--ink-muted); color: var(--ink); }
 
         .asc-tab.active {
           background: var(--primary);
           border-color: var(--primary);
-          color: #fff;
-          box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
+          color: var(--primary-foreground, #fff);
+          box-shadow: 3px 3px 0 var(--ledger-paper-shadow, rgba(0,0,0,0.4));
         }
 
         /* ── Greeting ─────────────────────────────────── */
@@ -646,14 +647,14 @@ export default function Login() {
         .asc-greeting h2 {
           font-size: 22px;
           font-weight: 700;
-          color: #fff;
+          color: var(--ink);
           margin: 0 0 6px;
           letter-spacing: -0.02em;
         }
 
         .asc-greeting p {
           font-size: 13px;
-          color: rgba(255,255,255,0.4);
+          color: var(--ink-muted);
           margin: 0;
           font-weight: 300;
         }
@@ -715,13 +716,13 @@ export default function Login() {
           -webkit-text-fill-color: var(--ink);
         }
 
-        .asc-input::placeholder { color: #4a4a57; }
+        .asc-input::placeholder { color: var(--ink-muted); opacity: 0.6; }
 
         .asc-input:focus { border-bottom-color: var(--primary); }
 
         .asc-input:-webkit-autofill,
         .asc-input:-webkit-autofill:focus {
-          -webkit-box-shadow: 0 0 0 1000px #16161d inset;
+          -webkit-box-shadow: 0 0 0 1000px var(--field-bg) inset;
           -webkit-text-fill-color: var(--ink);
           caret-color: var(--ink);
         }
@@ -793,10 +794,10 @@ export default function Login() {
         .asc-btn:hover:not(:disabled) {
           background: #6d28d9;
           transform: translate(0, -2px);
-          box-shadow: 3px 5px 0 rgba(0,0,0,0.4);
+          box-shadow: 3px 5px 0 var(--ledger-paper-shadow, rgba(0,0,0,0.4));
         }
 
-        .asc-btn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 rgba(0,0,0,0.4); }
+        .asc-btn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ledger-paper-shadow, rgba(0,0,0,0.4)); }
         .asc-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
         .asc-btn svg {
@@ -894,7 +895,7 @@ export default function Login() {
             padding: 40px 28px 36px;
             overflow-y: auto;
           }
-          .asc-right::before { inset: 0; background-image: repeating-linear-gradient(to bottom, transparent, transparent 47px, rgba(255,255,255,0.022) 47px, rgba(255,255,255,0.022) 48px); }
+          .asc-right::before { inset: 0; background-image: repeating-linear-gradient(to bottom, transparent, transparent 47px, rgba(139,92,246,0.09) 47px, rgba(139,92,246,0.09) 48px); }
           .asc-left {
             display: flex;
             flex-direction: column;
@@ -1090,7 +1091,7 @@ export default function Login() {
                 <div className="asc-habit-row">
                   <div
                     className="asc-habit-dot"
-                    style={{ background: "rgba(255,255,255,0.2)" }}
+                    style={{ background: "var(--ink-muted)" }}
                   />
                   <span className="asc-habit-name">Correr</span>
                   <div className="asc-habit-check pending" />
@@ -1325,7 +1326,7 @@ export default function Login() {
                       style={{
                         marginTop: 8,
                         fontSize: 12,
-                        color: "rgba(255,255,255,0.5)",
+                        color: "var(--ink-muted)",
                         lineHeight: 1.5,
                       }}
                     >
@@ -1366,7 +1367,7 @@ export default function Login() {
                     htmlFor="accept-terms"
                     style={{
                       fontSize: 13,
-                      color: "rgba(255,255,255,0.6)",
+                      color: "var(--ink-muted)",
                       lineHeight: 1.5,
                       cursor: "pointer",
                       userSelect: "none",

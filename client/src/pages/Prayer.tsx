@@ -238,16 +238,14 @@ const loadFavorites = async () => {
  color: 'var(--ink-muted)',
  }}>
  Onde você escreve o que carrega no peito.
- </p></div><div style={{ display: 'flex', gap: 8 }}><span className="ledger-stamp ledger-stamp--amber" style={{ marginRight: 4, fontSize: 10 }}>
- CHAT
- </span><button
+ </p></div><div style={{ display: 'flex', gap: 8 }}><button
  onClick={() => setViewMode('chat')}
  style={{
  padding: '9px 14px',
  borderRadius: 6,
  border: viewMode === 'chat' ? '1px solid rgba(245,158,11,0.6)' : '1px solid var(--ledger-paper-border)',
- background: viewMode === 'chat' ? '#fef3c7' : 'transparent',
- color: viewMode === 'chat' ? '#92400e' : 'var(--ink-muted)',
+ background: viewMode === 'chat' ? 'rgba(245,158,11,0.14)' : 'transparent',
+ color: viewMode === 'chat' ? 'var(--accent)' : 'var(--ink-muted)',
  cursor: 'pointer',
  fontFamily: 'DM Sans',
  fontSize: 12.5,
@@ -258,7 +256,7 @@ const loadFavorites = async () => {
  }}
  onMouseEnter={(e) => {
  if (viewMode !== 'chat') {
- e.currentTarget.style.background = 'rgba(245,158,11,0.05)';
+ e.currentTarget.style.background = 'rgba(245,158,11,0.07)';
  }
  }}
  onMouseLeave={(e) => {
@@ -274,8 +272,8 @@ const loadFavorites = async () => {
  padding: '9px 14px',
  borderRadius: 6,
  border: viewMode === 'favorites' ? '1px solid rgba(245,158,11,0.6)' : '1px solid var(--ledger-paper-border)',
- background: viewMode === 'favorites' ? '#fef3c7' : 'transparent',
- color: viewMode === 'favorites' ? '#92400e' : 'var(--ink-muted)',
+ background: viewMode === 'favorites' ? 'rgba(245,158,11,0.14)' : 'transparent',
+ color: viewMode === 'favorites' ? 'var(--accent)' : 'var(--ink-muted)',
  cursor: 'pointer',
  fontFamily: 'DM Sans',
  fontSize: 12.5,
@@ -289,7 +287,7 @@ const loadFavorites = async () => {
  }}
  onMouseEnter={(e) => {
  if (viewMode !== 'favorites') {
- e.currentTarget.style.background = 'rgba(245,158,11,0.05)';
+ e.currentTarget.style.background = 'rgba(245,158,11,0.07)';
  }
  }}
  onMouseLeave={(e) => {
@@ -372,7 +370,7 @@ const loadFavorites = async () => {
  e.currentTarget.style.background = 'var(--ledger-paper-bg)';
  e.currentTarget.style.transform = 'translateY(0)';
  }}
- ><span style={{ width: 22, height: 2, background: `${['var(--accent)', 'var(--primary)', '#10B981', '#06B6D4', 'var(--primary)', 'var(--accent)'][idx % 6]}`, opacity: 0.75, display: 'block' }}></span><span style={{ fontSize: 17 }}>{suggestion.emoji}</span><span style={{ fontWeight: 600, fontSize: 12.5, letterSpacing: '0.04em' }}>{suggestion.title}</span></button>
+ ><span style={{ width: 22, height: 2, background: `${['var(--accent)', 'var(--primary)', '#10B981', '#06B6D4', 'var(--primary)', 'var(--accent)'][idx % 6]}`, opacity: 0.75, display: 'block' }}></span><span style={{ fontSize: 17 }}>{suggestion.emoji}</span><span style={{ fontWeight: 600, fontSize: 12.5, letterSpacing: '0.04em', whiteSpace: 'nowrap' }}>{suggestion.title}</span></button>
  ))}
  </div></div>
  ) : (
@@ -389,8 +387,8 @@ const loadFavorites = async () => {
  padding: '12px 16px',
  borderRadius: 6,
  background: msg.role === 'user'
- ? '#fef3c7'
- : '#ede9fe',
+ ? 'rgba(245,158,11,0.12)'
+ : 'rgba(139,92,246,0.10)',
  border: msg.role === 'user'
  ? '1px solid rgba(245,158,11,0.45)'
  : '1px solid rgba(139,92,246,0.35)',
@@ -409,7 +407,7 @@ const loadFavorites = async () => {
  justifyContent: 'space-between',
  marginBottom: 8,
  paddingBottom: 8,
- borderBottom: '1px solid rgba(139,92,246,0.3)',
+ borderBottom: '1px solid rgba(139,92,246,0.35)',
  }}><span className="ledger-stamp ledger-stamp--violet" style={{ fontSize: 9, marginBottom: 2 }}>
  ORIENTAÇÃO
  </span><button
@@ -446,7 +444,7 @@ const loadFavorites = async () => {
  }}><div style={{
  padding: '12px 16px',
  borderRadius: 6,
- background: '#ede9fe',
+ background: 'rgba(139,92,246,0.10)',
  border: '1px solid rgba(139,92,246,0.35)',
  color: 'var(--ink-muted)',
  fontFamily: 'DM Sans',
