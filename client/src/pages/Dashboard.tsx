@@ -24,7 +24,6 @@ import {
  Wallet,
  Calendar,
  Flame,
- Zap,
 } from "lucide-react";
 
 import { useStore } from "@/hooks/useStore";
@@ -972,41 +971,6 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ===== INSIGHTS ===== */}
-      <ExpandableSection
-        indexNum="— Insights"
-        icon={Zap}
-        title="Insights"
-        subtitle="Análises automáticas do seu desempenho"
-        defaultOpen={true}
-      >
-        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-          {insights.map((insight, index) => (
-            <div
-              key={index}
-              style={{
-                display: "flex",
-                alignItems: "flex-start",
-                gap: 12,
-                padding: "12px 14px",
-                borderRadius: 12,
-                background: "rgba(139, 92, 246, 0.06)",
-                border: `1px solid ${insight.color}25`,
-              }}
-            >
-              <span style={{ fontSize: 18 }}>{insight.icon}</span>
-              <div>
-                <div style={{ fontSize: 13, fontWeight: 700, color: insight.color }}>
-                  {insight.title}
-                </div>
-                <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 2 }}>
-                  {insight.detail}
-                </div>
-              </div>
-            </div>
-          ))}
-        </div>
-      </ExpandableSection>
 
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-4">
         <div className="ledger-paper" style={{ padding: "22px 24px", background: "var(--ledger-paper-bg)" }}>
