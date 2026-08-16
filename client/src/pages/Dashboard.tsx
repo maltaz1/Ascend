@@ -35,6 +35,13 @@ import { useStore } from "@/hooks/useStore";
 import { getTodayString, toYYYYMMDD } from "@/store/utils";
 
 import { getFinancialData } from "@/store/financial.store";
+import {
+  generateInsights,
+  getBestDayOfWeek,
+  getCompletionTrend,
+  getHabitAdherence,
+  getPriorityDistribution,
+} from "@/utils/analytics";
 import { CircularProgress } from "@/components/ui/CircularProgress";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 
@@ -569,6 +576,18 @@ export default function Dashboard() {
     });
   }, [habits]);
 
+  // =========================
+  // ANALYTICS AVANÇADAS
+  // =========================
+  const completionTrend = useMemo(() => getCompletionTrend(tasks), [tasks]);
+  const bestDaysOfWeek = useMemo(() => getBestDayOfWeek(tasks), [tasks]);
+  const priorityDistribution = useMemo(() => getPriorityDistribution(tasks), [tasks]);
+  const habitAdherence = useMemo(() => getHabitAdherence(habits), [habits]);
+  const insights = useMemo(
+    () => generateInsights(tasks, habits, globalStreak, weeklyData),
+    [tasks, habits, globalStreak, weeklyData]
+  );
+
   const bestHabitStreak = useMemo(() => {
     if (habitStreaks.length === 0) return { name: "-", streak: 0 };
     return habitStreaks.reduce(
@@ -867,7 +886,245 @@ export default function Dashboard() {
         </div>
       </div>
 
-      {/* ===== CONSISTENCY ===== */}
+      {/* ===== INSIGHTS ===== */}
+      <ExpandableSection
+        icon={Zap}
+        title="Insights"
+        subtitle="Análises automáticas do seu desempenho"
+        defaultOpen={true}
+      >
+        <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+          {insights.map((insight, index) => (
+            <div
+              key={index}
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 12,
+                padding: "12px 14px",
+                borderRadius: 12,
+                background: "rgba(139, 92, 246, 0.06)",
+                border: `1px solid ${insight.color}25`,
+              }}
+            >
+              <span style={{ fontSize: 18 }}>{insight.icon}</span>
+              <div>
+                <div style={{ fontSize: 13, fontWeight: 700, color: insight.color }}>
+                  {insight.title}
+                </div>
+                <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 2 }}>
+                  {insight.detail}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </ExpandableSection>
+
+      {/* ===== TENDÊNCIA DE PRODUTIVIDADE ===== */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-4">
+        <div className="fz-card p-5 lg:p-6" style={{ minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+            <TrendingUp size={16} color="#06B6D4" />
+            <h3 style={{ fontWeight: 700, fontSize: 15 }}>Tendência de Conclusão</h3>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+            <CircularProgress
+              value={completionTrend.currentRate}
+              size={90}
+              strokeWidth={6}
+              color={
+                completionTrend.direction === "up"
+                  ? "#10B981"
+                  : completionTrend.direction === "down"
+                  ? "#EF4444"
+                  : "#06B6D4"
+              }
+            >
+              <span
+                style={{
+                  fontSize: 18,
+                  fontWeight: 800,
+                  color:
+                    completionTrend.direction === "up"
+                      ? "#10B981"
+                      : completionTrend.direction === "down"
+                      ? "#EF4444"
+                      : "#06B6D4",
+                }}
+              >
+                {completionTrend.currentRate}%
+              </span>
+            </CircularProgress>
+            <div>
+              <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 4 }}>
+                Últimos 7 dias vs 7 dias anteriores
+              </div>
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color:
+                    completionTrend.direction === "up"
+                      ? "#10B981"
+                      : completionTrend.direction === "down"
+                      ? "#EF4444"
+                      : "var(--foreground)",
+                }}
+              >
+                {completionTrend.direction === "up" && "▲"}
+                {completionTrend.direction === "down" && "▼"}
+                {completionTrend.direction === "stable" && "●"} {Math.abs(completionTrend.delta)}{" "}
+                pontos ({completionTrend.previousRate}% → {completionTrend.currentRate}%)
+              </div>
+              <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 4 }}>
+                Comparação da taxa de conclusão entre as duas janelas
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="fz-card p-5 lg:p-6" style={{ minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+            <Calendar size={16} color="#F59E0B" />
+            <h3 style={{ fontWeight: 700, fontSize: 15 }}>Produtividade por Dia da Semana</h3>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart
+              data={bestDaysOfWeek}
+              margin={{ top: 5, right: 5, left: 0, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="day" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+              <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+              <Bar
+                dataKey="completed"
+                name="Concluídas"
+                fill="#8B5CF6"
+                radius={[4, 4, 0, 0]}
+              />
+              <Bar
+                dataKey="total"
+                name="Total agendadas"
+                fill="rgba(139, 92, 246, 0.25)"
+                radius={[4, 4, 0, 0]}
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* ===== CONSISTÊNCIA (ADERÊNCIA DE HÁBITOS + PRIORIDADES) ===== */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-4">
+        <div className="fz-card p-5 lg:p-6">
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+            <Target size={16} color="#10B981" />
+            <h3 style={{ fontWeight: 700, fontSize: 15 }}>Aderência de Hábitos — 30 dias</h3>
+          </div>
+          {habitAdherence.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {habitAdherence.map((h, index) => (
+                <div key={index}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontSize: 12,
+                      marginBottom: 6,
+                    }}
+                  >
+                    <span style={{ fontWeight: 600 }}>{h.name}</span>
+                    <span
+                      style={{
+                        color:
+                          h.trend === "up" ? "#10B981" : h.trend === "down" ? "#EF4444" : "var(--muted-foreground)",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {h.trend === "up" ? "▲" : h.trend === "down" ? "▼" : "●"} {h.rate}%
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      height: 6,
+                      background: "rgba(255,255,255,0.08)",
+                      borderRadius: 999,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${h.rate}%`,
+                        height: "100%",
+                        background: "linear-gradient(90deg, #10B981 0%, #8B5CF6 100%)",
+                        borderRadius: 999,
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ textAlign: "center", padding: 12, color: "var(--muted-foreground)", fontSize: 13 }}>
+              Adicione hábitos para acompanhar sua aderência.
+            </div>
+          )}
+        </div>
+
+        <div className="fz-card p-5 lg:p-6">
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+            <Award size={16} color="#A855F7" />
+            <h3 style={{ fontWeight: 700, fontSize: 15 }}>Tarefas por Prioridade — 30 dias</h3>
+          </div>
+          {priorityDistribution.length > 0 ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <ResponsiveContainer width="50%" height={180}>
+                <PieChart>
+                  <Pie
+                    data={priorityDistribution}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={70}
+                    dataKey="value"
+                    nameKey="name"
+                    stroke="none"
+                  >
+                    {priorityDistribution.map((entry, index) => (
+                      <Cell key={index} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {priorityDistribution.map((entry, index) => (
+                  <div
+                    key={index}
+                    style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}
+                  >
+                    <div
+                      style={{ width: 12, height: 12, borderRadius: 4, background: entry.color }}
+                    />
+                    <span style={{ fontWeight: 600 }}>{entry.name}</span>
+                    <span style={{ color: "var(--muted-foreground)", marginLeft: "auto" }}>
+                      {entry.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div style={{ textAlign: "center", padding: 12, color: "var(--muted-foreground)", fontSize: 13 }}>
+              Complete tarefas nos últimos 30 dias para ver a distribuição por prioridade.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ===== CONSISTÊNCIA ===== */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-4">
         <div className="fz-card p-5 lg:p-6">
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
