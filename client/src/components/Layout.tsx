@@ -496,6 +496,7 @@ export function Layout({
         className="fz-main-content notebook-page"
         style={{
           flex: 1,
+          minWidth: 0,
           display: "flex",
           flexDirection: "column",
           padding: isMobile ? "16px 12px" : "28px 36px",

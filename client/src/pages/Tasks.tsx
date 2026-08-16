@@ -705,8 +705,8 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
  <div className="lg:hidden w-full mb-5"><MiniCalendar selectedDate={selectedDate} onSelectDate={handleSelectDate} tasks={tasks} /></div>
 
  {/* Header — folha solta de caderno */}
- <div className="notebook-sheet notebook-sheet--margined mb-6">
- <div className="flex justify-between items-center gap-3 w-full mb-4"><h2 className="text-xl font-bold text-foreground font-space capitalize whitespace-nowrap">
+ <div className="notebook-sheet notebook-sheet--margined max-md:pl-4 mb-6">
+ <div className="flex justify-between items-center gap-3 w-full min-w-0 mb-4"><h2 className="text-base sm:text-lg lg:text-xl font-bold text-foreground font-space capitalize min-w-0 truncate flex-1">
  {selectedDateFormatted}
  </h2><button
  onClick={() => {
@@ -714,7 +714,7 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
  setShowModal(true);
  }}
  className="ledger-btn ledger-btn--violet flex items-center gap-1.5 text-[13px] font-bold whitespace-nowrap flex-shrink-0"
- ><Plus size={16} /> Nova Tarefa
+ ><Plus size={16} /><span className="hidden min-[400px]:inline">Nova Tarefa</span>
  </button></div>
 
  {/* Filtros */}

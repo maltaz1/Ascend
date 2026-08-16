@@ -1877,11 +1877,13 @@
     }
   }
 
-  @media (max-width: 480px) {
+    @media (max-width: 480px) {
     body {
       font-size: 14px;
     }
-
+    .ledger-btn {
+      padding: 9px 14px;
+    }
     .fz-main-content {
       padding: 16px 12px !important;
     }
