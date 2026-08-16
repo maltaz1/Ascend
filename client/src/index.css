@@ -427,6 +427,187 @@
   }
 
   /* ============================================
+     LEDGER DESIGN SYSTEM (v2) — "Ledger Noturno"
+     Tinta sobre papel noturno. Sem glow, sem blur,
+     sem gradientes de fundo. Linhas de pauta,
+     carimbos de status e sombras duras de papel.
+  ============================================ */
+
+  .ledger-paper {
+    background: #18181f;
+    border: 1px solid #262630;
+    border-top: 2px solid #262630;
+    border-radius: 6px;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.32);
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+
+  .ledger-paper--violet { border-top-color: #8b5cf6; }
+  .ledger-paper--amber  { border-top-color: #f59e0b; }
+  .ledger-paper--green  { border-top-color: #10b981; }
+  .ledger-paper--red    { border-top-color: #ef4444; }
+
+  /* Label marginalia (caixa alta pequena, cinza-ardósia) */
+  .ledger-marginalia {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: #6b6b78;
+  }
+
+  /* Número de ficha editorial: "04 — METAS" */
+  .ledger-index {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: #6b6b78;
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ledger-index::after {
+    content: '';
+    height: 1px;
+    background: #262630;
+    flex: 1;
+  }
+
+  /* Carimbo de status — retângulo de canto vivo, borda, caixa alta */
+  .ledger-stamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 9px;
+    border-radius: 3px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 1px solid #33333f;
+    color: #a0a0ad;
+    background: transparent;
+  }
+  .ledger-stamp--violet { border-color: rgba(139, 92, 246, 0.55); color: #a78bfa; background: rgba(139, 92, 246, 0.08); }
+  .ledger-stamp--amber  { border-color: rgba(245, 158, 11, 0.55); color: #fbbf24; background: rgba(245, 158, 11, 0.08); }
+  .ledger-stamp--green  { border-color: rgba(16, 185, 129, 0.55); color: #34d399; background: rgba(16, 185, 129, 0.08); }
+  .ledger-stamp--red    { border-color: rgba(239, 68, 68, 0.55); color: #f87171; background: rgba(239, 68, 68, 0.08); }
+  .ledger-stamp--ink    { border-color: #3a3a47; color: #d4d4dc; }
+
+  /* Botão primário: tinta sólida, sombra dura */
+  .ledger-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    border-radius: 5px;
+    border: none;
+    padding: 11px 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.4);
+    white-space: nowrap;
+  }
+  .ledger-btn:active { transform: translate(2px, 2px) !important; box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4) !important; }
+  .ledger-btn--violet { background: #7c3aed; color: #ffffff; }
+  .ledger-btn--violet:hover { background: #6d28d9; transform: translate(0, -2px); box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.4); }
+  .ledger-btn--amber { background: #b45309; color: #fff; }
+  .ledger-btn--amber:hover { background: #92400e; transform: translate(0, -2px); box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.4); }
+  .ledger-btn--ghost { background: transparent; border: 1px solid #33333f; color: #d4d4dc; box-shadow: none; }
+  .ledger-btn--ghost:hover { background: #22222b; color: #fff; border-color: #3f3f4c; }
+  .ledger-btn--ghost--amber:hover { border-color: rgba(245, 158, 11, 0.5); color: #fbbf24; }
+
+  /* Blocos de métrica estilo ficha de caderno */
+  .ledger-metric {
+    background: #18181f;
+    border: 1px solid #262630;
+    border-top: 2px solid #262630;
+    border-radius: 6px;
+    padding: 18px 20px 16px;
+    position: relative;
+  }
+  .ledger-metric--violet { border-top-color: #8b5cf6; }
+  .ledger-metric--amber  { border-top-color: #f59e0b; }
+  .ledger-metric--green  { border-top-color: #10b981; }
+  .ledger-metric--red    { border-top-color: #ef4444; }
+
+  .ledger-metric-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em;
+    color: #ededed;
+    line-height: 1;
+  }
+
+  /* Linha de pauta (divisória interna de ficha) */
+  .ledger-rule {
+    height: 1px;
+    background: #262630;
+    border: none;
+  }
+
+  /* Input sublinhado estilo pauta de caderno */
+  .ledger-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1.5px solid #33333f;
+    color: #ededed;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 10px 2px 8px;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+  .ledger-input::placeholder { color: #4a4a57; }
+  .ledger-input:focus { border-bottom-color: #8b5cf6; }
+
+  /* Checkbox de pauta (quadrado vivo, sem arredondamento) */
+  .ledger-check {
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    border: 1.5px solid #3f3f4c;
+    background: transparent;
+    flex-shrink: 0;
+  }
+  .ledger-check--done {
+    background: #10b981;
+    border-color: #10b981;
+  }
+
+  /* Marcas de contagem para streak (tally) */
+  .ledger-tally {
+    display: inline-flex;
+    gap: 3px;
+    align-items: center;
+  }
+  .ledger-tally span {
+    display: block;
+    width: 2px;
+    height: 10px;
+    background: #3f3f4c;
+    border-radius: 1px;
+  }
+  .ledger-tally em {
+    display: block;
+    width: 12px;
+    height: 2px;
+    background: #f59e0b;
+    transform: rotate(-45deg);
+    font-style: normal;
+  }
+
+  /* ============================================
      HABIT TABLE — layout unificado via --habit-cell
      Números e bolinhas sempre alinhados porque
      header e rows usam a mesma largura de célula.

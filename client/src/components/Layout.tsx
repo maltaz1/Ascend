@@ -126,14 +126,14 @@ export function Layout({
         position: "relative",
       }}
     >
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar — lombada do caderno */}
       <aside
         className="fz-sidebar"
         style={{
           width: collapsed ? 72 : 240,
           minHeight: "100vh",
-          background: "var(--bg-secondary)",
-          borderRight: "1px solid var(--border-subtle)",
+          background: "#15151c",
+          borderRight: "1px solid #262630",
           display: "flex",
           flexDirection: "column",
           padding: "20px 12px",
@@ -242,16 +242,27 @@ export function Layout({
                   justifyContent: collapsed ? "center" : "flex-start",
                   padding: collapsed ? "10px" : "10px 12px",
                   opacity: draggedItem === item.id ? 0.5 : 1,
-                  background:
-                    draggedItem && draggedItem !== item.id
-                      ? "rgba(245, 158, 11, 0.1)"
-                      : undefined,
+                  background: isActive ? "#1b1b24" : "transparent",
+                  borderLeft: `2px solid ${isActive ? "#f59e0b" : "transparent"}`,
+                  color: isActive ? "#fbbf24" : "#9a9aa8",
                   cursor: "grab",
-                  transition: "all 0.2s ease",
+                  transition: "all 0.15s ease",
+                }}
+                onMouseEnter={e => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = "#ededed";
+                    e.currentTarget.style.background = "#1b1b24";
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = "#9a9aa8";
+                    e.currentTarget.style.background = "transparent";
+                  }
                 }}
                 title={collapsed ? item.label : undefined}
               >
-                <Icon size={18} style={{ flexShrink: 0 }} />
+                <Icon size={18} style={{ flexShrink: 0, color: "inherit" }} />
                 {!collapsed && (
                   <div
                     style={{
@@ -260,7 +271,7 @@ export function Layout({
                       gap: 8,
                     }}
                   >
-                    <span className="fz-sidebar-label">{item.label}</span>
+                    <span className="fz-sidebar-label" style={{ color: "inherit", fontSize: 13, fontWeight: isActive ? 700 : 500, letterSpacing: "0.02em" }}>{item.label}</span>
 
                     {item.id === "download" && isInstallable && !isInstalled && (
                       <div
@@ -277,7 +288,7 @@ export function Layout({
                             e.stopPropagation();
                             const success = await handleInstall();
                             if (success) {
-                              showToast("Aplicativo instalado com sucesso! 🎉", "success");
+                              showToast("Aplicativo instalado com sucesso!", "success");
                             }
                           }}
                           onKeyDown={async (e) => {
@@ -286,17 +297,20 @@ export function Layout({
                               e.stopPropagation();
                               const success = await handleInstall();
                               if (success) {
-                                showToast("Aplicativo instalado com sucesso! 🎉", "success");
+                                showToast("Aplicativo instalado com sucesso!", "success");
                               }
                             }
                           }}
                           style={{
-                            fontSize: 11,
-                            padding: "4px 10px",
-                            borderRadius: 999,
-                            background: "rgba(139, 92, 246, 0.12)",
-                            border: "1px solid rgba(139, 92, 246, 0.3)",
-                            color: "#A78BFA",
+                            fontSize: 10,
+                            padding: "3px 8px",
+                            borderRadius: 3,
+                            background: "transparent",
+                            border: "1px solid rgba(139, 92, 246, 0.55)",
+                            color: "#a78bfa",
+                            fontWeight: 700,
+                            letterSpacing: "0.08em",
+                            textTransform: "uppercase",
                             cursor: "pointer",
                             userSelect: "none",
                             whiteSpace: "nowrap",
@@ -309,34 +323,16 @@ export function Layout({
                         </div>
 
                         {isLocked && (
-                          <span
-                            style={{
-                              fontSize: 10,
-                              background: "#7C3AED",
-                              color: "white",
-                              padding: "2px 6px",
-                              borderRadius: 999,
-                              fontWeight: 700,
-                            }}
-                          >
-                            PRO
+                          <span className="ledger-stamp ledger-stamp--violet" style={{ padding: "2px 7px" }}>
+                            Pro
                           </span>
                         )}
                       </div>
                     )}
 
                     {item.id !== "download" && isLocked && (
-                      <span
-                        style={{
-                          fontSize: 10,
-                          background: "#7C3AED",
-                          color: "white",
-                          padding: "2px 6px",
-                          borderRadius: 999,
-                          fontWeight: 700,
-                        }}
-                      >
-                        PRO
+                      <span className="ledger-stamp ledger-stamp--violet" style={{ padding: "2px 7px" }}>
+                        Pro
                       </span>
                     )}
                   </div>
@@ -353,7 +349,7 @@ export function Layout({
               onClick={async () => {
                 const success = await handleInstall();
                 if (success) {
-                  showToast("Aplicativo instalado com sucesso! 🎉", "success");
+                  showToast("Aplicativo instalado com sucesso!", "success");
                 }
               }}
               style={{
@@ -363,53 +359,50 @@ export function Layout({
                 justifyContent: "center",
                 gap: 8,
                 padding: "12px 14px",
-                borderRadius: 12,
-                border: "1px solid rgba(139, 92, 246, 0.3)",
-                background: "rgba(139, 92, 246, 0.15)",
-                color: "#fff",
+                borderRadius: 5,
+                border: "1px solid rgba(139, 92, 246, 0.55)",
+                background: "transparent",
+                color: "#a78bfa",
                 cursor: "pointer",
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: 700,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
               }}
             >
               <Download size={16} />
-              Instalar App
+              Instalar
             </button>
           </div>
         )}
 
-        {/* Streak */}
+        {/* Streak — carimbo na lombada */}
         {!collapsed && data.user.streak > 0 && (
           <div
             style={{
-              background: "rgba(239,68,68,0.08)",
-              border: "1px solid rgba(239,68,68,0.15)",
-              borderRadius: 12,
+              background: "#1b1b24",
+              border: "1px solid #262630",
+              borderLeft: "2px solid #ef4444",
+              borderRadius: 0,
               padding: "10px 12px",
               display: "flex",
               alignItems: "center",
-              gap: 8,
+              gap: 10,
               marginTop: "auto",
               marginBottom: 12,
             }}
           >
-            <span style={{ fontSize: 20 }}>🔥</span>
             <div>
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "rgba(255,255,255,0.4)",
-                  fontFamily: "DM Sans",
-                }}
-              >
+              <div className="ledger-marginalia" style={{ marginBottom: 3 }}>
                 Sequência ativa
               </div>
               <div
                 style={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: "#EF4444",
+                  fontSize: 15,
+                  fontWeight: 800,
+                  color: "#f87171",
                   fontFamily: "Space Grotesk",
+                  letterSpacing: "-0.02em",
                 }}
               >
                 {data.user.streak} dias
@@ -424,7 +417,7 @@ export function Layout({
             onClick={async () => {
               const success = await handleInstall();
               if (success) {
-                showToast("Aplicativo instalado com sucesso! 🎉", "success");
+                showToast("Aplicativo instalado com sucesso!", "success");
               }
             }}
             style={{
@@ -433,10 +426,10 @@ export function Layout({
               justifyContent: "center",
               width: "100%",
               padding: collapsed ? "10px" : "10px 12px",
-              borderRadius: 10,
-                background: "rgba(139, 92, 246, 0.12)",
-                border: "1.5px solid rgba(139, 92, 246, 0.3)",
-                color: "#A78BFA",
+              borderRadius: 5,
+                background: "transparent",
+                border: "1.5px solid rgba(139, 92, 246, 0.55)",
+                color: "#a78bfa",
               cursor: "pointer",
               transition: "all 0.3s ease",
               marginTop: !collapsed && data.user.streak > 0 ? 0 : "auto",
@@ -473,22 +466,22 @@ export function Layout({
             justifyContent: "center",
             width: "100%",
             padding: "10px 12px",
-            borderRadius: 10,
+            borderRadius: 4,
             background: "transparent",
-            border: "1px solid var(--border-subtle)",
-            color: "rgba(255,255,255,0.5)",
+            border: "1px solid #33333f",
+            color: "#6b6b78",
             cursor: "pointer",
-            transition: "all 0.2s ease",
+            transition: "all 0.15s ease",
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.background = "rgba(245,158,11,0.08)";
-            e.currentTarget.style.borderColor = "rgba(245,158,11,0.2)";
-            e.currentTarget.style.color = "#F59E0B";
+            e.currentTarget.style.background = "#1b1b24";
+            e.currentTarget.style.borderColor = "#46465a";
+            e.currentTarget.style.color = "#fbbf24";
           }}
           onMouseLeave={e => {
             e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.borderColor = "var(--border-subtle)";
-            e.currentTarget.style.color = "rgba(255,255,255,0.5)";
+            e.currentTarget.style.borderColor = "#33333f";
+            e.currentTarget.style.color = "#6b6b78";
           }}
         >
           {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
@@ -502,9 +495,10 @@ export function Layout({
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          background: "var(--bg-primary)",
-          padding: isMobile ? "16px 12px" : "32px 40px",
+          padding: isMobile ? "16px 12px" : "28px 36px",
           overflowX: "hidden",
+          background: "#1c1c24",
+          position: "relative",
         }}
       >
         {children}
@@ -564,8 +558,7 @@ export function Layout({
               left: 0,
               right: 0,
               bottom: 0,
-              background: "rgba(0,0,0,0.45)",
-              backdropFilter: "blur(6px)",
+              background: "rgba(0,0,0,0.55)",
               zIndex: 90,
               animation: "fadeIn 0.2s ease",
             }}
@@ -582,9 +575,9 @@ export function Layout({
               width: "85%",
               maxWidth: 320,
               height: "100vh",
-              background: "rgba(13, 14, 28, 0.98)",
-              backdropFilter: "blur(20px)",
-              borderRight: "1px solid rgba(255, 255, 255, 0.08)",
+              background: "#15151c",
+              borderRight: "1px solid #262630",
+              boxShadow: "4px 0 0 rgba(0,0,0,0.25)",
               zIndex: 95,
               flexDirection: "column",
               padding: "20px 16px",
@@ -641,28 +634,26 @@ export function Layout({
                       alignItems: "center",
                       gap: 14,
                       padding: "14px 16px",
-                      borderRadius: 14,
+                      borderRadius: 4,
                       background: isActive
-                        ? "rgba(139, 92, 246, 0.12)"
+                        ? "#1b1b24"
                         : "transparent",
-                      border: "1px solid transparent",
-                      color: isActive ? "#8B5CF6" : "rgba(255,255,255,0.65)",
+                      borderLeft: isActive ? "2px solid #f59e0b" : "2px solid transparent",
+                      color: isActive ? "#fbbf24" : "rgba(255,255,255,0.65)",
                       cursor: "pointer",
-                      transition: "all 0.2s ease",
+                      transition: "all 0.15s ease",
                       fontFamily: "DM Sans",
                       fontSize: 15,
-                      fontWeight: isActive ? 600 : 400,
+                      fontWeight: isActive ? 700 : 400,
                       textAlign: "left",
                     }}
                   >
-                    <Icon size={20} style={{ flexShrink: 0, color: isActive ? "#8B5CF6" : "inherit" }} />
+                    <Icon size={20} style={{ flexShrink: 0, color: isActive ? "#fbbf24" : "#6b6b78" }} />
                     <div className="flex-1 flex items-center justify-between">
                       <span>{item.label}</span>
 
                       {isLocked && (
-                        <span className="text-[10px] font-bold bg-zinc-100 text-zinc-900 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                          PRO
-                        </span>
+                        <span className="ledger-stamp ledger-stamp--violet">Pro</span>
                       )}
                     </div>
                   </button>
