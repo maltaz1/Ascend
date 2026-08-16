@@ -579,6 +579,37 @@ export default function Dashboard() {
   // =========================
   // ANALYTICS AVANÇADAS
   // =========================
+  // Evolução mensal — últimos 12 meses (tarefas + hábitos concluídos por mês)
+  const monthlyTrend = useMemo(() => {
+    const result = [];
+    const now = new Date();
+    const monthNames = [
+      "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+      "Jul", "Ago", "Set", "Out", "Nov", "Dez",
+    ];
+    for (let i = 11; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const year = d.getFullYear();
+      const month = d.getMonth();
+      const prefix = `${year}-${String(month + 1).padStart(2, "0")}`;
+      const tasksCompleted = tasks.filter(
+        (t) => t.completed && t.date.startsWith(prefix)
+      ).length;
+      const habitsCompleted = habits.reduce(
+        (sum, h) =>
+          sum +
+          (h.completedDates || []).filter((ds) => ds.startsWith(prefix)).length,
+        0
+      );
+      result.push({
+        month: `${monthNames[month]}/${String(year).slice(2)}`,
+        tasks: tasksCompleted,
+        habits: habitsCompleted,
+      });
+    }
+    return result;
+  }, [tasks, habits]);
+
   const completionTrend = useMemo(() => getCompletionTrend(tasks), [tasks]);
   const bestDaysOfWeek = useMemo(() => getBestDayOfWeek(tasks), [tasks]);
   const priorityDistribution = useMemo(() => getPriorityDistribution(tasks), [tasks]);
@@ -804,14 +835,77 @@ export default function Dashboard() {
         <StreakBadge streak={globalStreak} />
       </div>
 
-      {/* ===== HEATMAP ===== */}
+      {/* ===== HEATMAP + MENSAL (lado a lado) ===== */}
       <ExpandableSection
         icon={Calendar}
         title="Atividade — Últimos 90 dias"
-        subtitle="Heatmap de atividades diárias"
+        subtitle="Heatmap de atividades diárias e evolução mensal"
         defaultOpen={true}
       >
-        <StreakHeatmap tasks={tasks} habits={habits} />
+        <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+          <div>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: "var(--muted-foreground)",
+                marginBottom: 8,
+              }}
+            >
+              Heatmap diário
+            </div>
+            <StreakHeatmap tasks={tasks} habits={habits} />
+          </div>
+          <div>
+            <div
+              style={{
+                fontSize: 12,
+                fontWeight: 600,
+                color: "var(--muted-foreground)",
+                marginBottom: 8,
+              }}
+            >
+              Evolução — últimos 12 meses
+            </div>
+            <ResponsiveContainer width="100%" height={220}>
+              <AreaChart data={monthlyTrend}>
+                <defs>
+                  <linearGradient id="gradMonthly" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#8B5CF6" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#8B5CF6" stopOpacity={0} />
+                  </linearGradient>
+                  <linearGradient id="gradMonthlyHabits" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#A855F7" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#A855F7" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis
+                  dataKey="month"
+                  tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+                  interval="preserveStartEnd"
+                />
+                <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+                <Tooltip content={<CustomTooltip />} />
+                <Legend />
+                <Area
+                  type="monotone"
+                  dataKey="tasks"
+                  name="Tarefas"
+                  stroke="#8B5CF6"
+                  fill="url(#gradMonthly)"
+                />
+                <Area
+                  type="monotone"
+                  dataKey="habits"
+                  name="Hábitos"
+                  stroke="#A855F7"
+                  fill="url(#gradMonthlyHabits)"
+                />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        </div>
       </ExpandableSection>
 
       {/* ===== MAIN CHARTS ===== */}
