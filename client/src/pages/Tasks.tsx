@@ -706,7 +706,6 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
 
  {/* Header — folha solta de caderno */}
  <div className="notebook-sheet notebook-sheet--margined mb-6">
- <div className="notebook-holes" aria-hidden="true"><span/><span/><span/></div>
  <div className="flex justify-between items-center mb-4"><h2 className="text-xl font-bold text-foreground font-space capitalize">
  {selectedDateFormatted}
  </h2><button

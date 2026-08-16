@@ -214,7 +214,7 @@ const loadFavorites = async () => {
  marginBottom: 16,
  overflow: 'hidden',
  background: '#18181f',
- }}><div className="notebook-holes" aria-hidden="true"><span/><span/><span/></div><div style={{ display: 'flex',
+ }}><div style={{ display: 'flex',
  alignItems: 'center',
  justifyContent: 'space-between',
  padding: '22px 24px 18px',

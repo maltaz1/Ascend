@@ -113,7 +113,6 @@ export default function Today() {
  {/* Header — folha solta de caderno */}
  <div className="notebook-sheet notebook-sheet--margined" style={{ marginBottom: 28 }}>
  {/* furos de espiral na margem */}
- <div className="notebook-holes" aria-hidden="true"><span/><span/><span/></div>
  <div
  style={{
  display: "flex",

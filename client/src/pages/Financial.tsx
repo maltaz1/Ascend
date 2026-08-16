@@ -406,7 +406,7 @@ export default function Financial() {
  border: "1px solid #262630",
  borderRadius: 6,
  padding: "22px 24px 18px",
- }}><div className="notebook-holes" aria-hidden="true"><span/><span/><span/></div><div className="ledger-marginalia" style={{ marginBottom: 10 }}>
+ }}><div className="ledger-marginalia" style={{ marginBottom: 10 }}>
  07 — Movimento
  </div><h1 style={{
  fontSize: 28,

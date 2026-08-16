@@ -655,14 +655,14 @@
     background-color: #17171f;
     background-image:
       /* margem vermelha de caderno escolar */
-      linear-gradient(to right, transparent 52px, rgba(197, 88, 78, 0.35) 52px, rgba(197, 88, 78, 0.35) 53px, transparent 53px),
+      linear-gradient(to right, transparent 52px, rgba(197, 88, 78, 0.5) 52px, rgba(197, 88, 78, 0.5) 53px, transparent 53px),
       /* linhas de pauta clássicas: fio fino a cada 30px */
       repeating-linear-gradient(
         to bottom,
         transparent 0px,
         transparent 29px,
-        rgba(148, 150, 170, 0.075) 29px,
-        rgba(148, 150, 170, 0.075) 30px
+        rgba(148, 150, 170, 0.14) 29px,
+        rgba(148, 150, 170, 0.14) 30px
       );
     border-radius: 4px;
   }

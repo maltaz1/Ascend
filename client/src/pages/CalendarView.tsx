@@ -348,7 +348,7 @@ export default function CalendarView() {
  return (
  <div className="animate-fade-in">
  {/* Header */}
- <div className="notebook-sheet notebook-sheet--margined" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}><div className="notebook-holes" aria-hidden="true"><span/><span/><span/></div><div><h1 style={{ fontFamily: 'Space Grotesk', fontWeight: 800, fontSize: 28, color: 'var(--foreground)', marginBottom: 4 }}>
+ <div className="notebook-sheet notebook-sheet--margined" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 24 }}><div><h1 style={{ fontFamily: 'Space Grotesk', fontWeight: 800, fontSize: 28, color: 'var(--foreground)', marginBottom: 4 }}>
  Calendário
  </h1><p style={{ fontFamily: 'DM Sans', fontSize: 14, color: 'var(--muted-foreground)' }}>
  Visão geral de tarefas e metas

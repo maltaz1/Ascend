@@ -892,7 +892,7 @@ export default function Diet() {
  <div className="ledger-paper notebook-sheet notebook-sheet--margined" style={{
  overflow: "hidden",
  background: "#18181f",
- }}><div className="notebook-holes" aria-hidden="true"><span/><span/><span/></div><div
+ }}><div
  style={{
  display: "flex",
  justifyContent: "space-between",

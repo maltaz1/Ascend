@@ -799,7 +799,6 @@ export default function Habits({ isPro }: { isPro: boolean }) {
  {/* HEADER — folha solta de caderno */}
 
  <div className="notebook-sheet notebook-sheet--margined">
- <div className="notebook-holes" aria-hidden="true"><span/><span/><span/></div>
  <div
  style={{
  display: "flex",

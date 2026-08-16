@@ -497,7 +497,6 @@ export function Layout({
           flexDirection: "column",
           padding: isMobile ? "16px 12px" : "28px 36px",
           overflowX: "hidden",
-          background: "#1c1c24",
           position: "relative",
         }}
       >

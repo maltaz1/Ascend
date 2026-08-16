@@ -112,7 +112,7 @@ export default function Evolution({ onTabChange, hideHeader }: EvolutionProps) {
  <div className="animate-fade-in">
  {/* Header */}
  {!hideHeader && (
- <div className="notebook-sheet notebook-sheet--margined" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}><div className="notebook-holes" aria-hidden="true"><span/><span/><span/></div><button
+ <div className="notebook-sheet notebook-sheet--margined" style={{ display: 'flex', alignItems: 'center', gap: 12, marginBottom: 28 }}><button
  onClick={() => onTabChange?.('academy')}
  className="ledger-btn ledger-btn--ghost"
  style={{ padding: '8px', display: 'flex', alignItems: 'center', justifyContent: 'center' }}
