@@ -888,11 +888,11 @@ export default function Diet() {
 
  return (
  <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
- {/* Header ficha */}
- <div className="ledger-paper" style={{
+ {/* Header ficha — folha solta de caderno */}
+ <div className="ledger-paper notebook-sheet notebook-sheet--margined" style={{
  overflow: "hidden",
  background: "#18181f",
- }}><div
+ }}><div className="notebook-holes" aria-hidden="true"><span/><span/><span/></div><div
  style={{
  display: "flex",
  justifyContent: "space-between",

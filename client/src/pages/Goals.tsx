@@ -762,9 +762,10 @@ export default function Goals({
 
  return (
  <div style={{ paddingBottom: 40, width: "100%" }}>
- {/* Header */}
- <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: isMobile ? 24 : 34, flexWrap: "wrap", gap: 12 }}><div style={{ flex: 1 }}><div className="ledger-index" style={{ marginBottom: 10 }}>Metas · Livro de objetivos</div><h2 style={{ fontSize: isMobile ? 26 : 34, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", margin: 0, letterSpacing: "-0.02em" }}>O que você quer conquistar.</h2><p style={{ color: "#6b6b78", fontSize: isMobile ? 12 : 14, margin: "8px 0 0", maxWidth: 420 }}>Metas anotadas a tinta: semanal, de longo prazo e tudo que fica pelo caminho.</p></div><button onClick={() => setShowModal(true)} className="ledger-btn ledger-btn--violet"><Plus size={isMobile ? 15 : 17} /> Nova Meta
+ {/* Header — folha solta de caderno */}
+ <div className="notebook-sheet notebook-sheet--margined"><div className="notebook-holes" aria-hidden="true"><span/><span/><span/></div><div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: isMobile ? 24 : 34, flexWrap: "wrap", gap: 12 }}><div style={{ flex: 1 }}><div className="ledger-index" style={{ marginBottom: 10 }}>Metas · Livro de objetivos</div><h2 style={{ fontSize: isMobile ? 26 : 34, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", margin: 0, letterSpacing: "-0.02em" }}>O que você quer conquistar.</h2><p style={{ color: "#6b6b78", fontSize: isMobile ? 12 : 14, margin: "8px 0 0", maxWidth: 420 }}>Metas anotadas a tinta: semanal, de longo prazo e tudo que fica pelo caminho.</p></div><button onClick={() => setShowModal(true)} className="ledger-btn ledger-btn--violet"><Plus size={isMobile ? 15 : 17} /> Nova Meta
  </button></div>
+ </div>
 
  {/* ==================== WEEKLY SECTION ==================== */}
  <section style={{ marginBottom: isMobile ? 30 : 40 }}><div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 14 }}><div><div className="ledger-index" style={{ marginBottom: 8 }}>01 — Semanais</div><h3 style={{ fontSize: isMobile ? 17 : 20, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", margin: 0 }}>Metas Semanais</h3></div><p style={{ fontSize: 11, color: "#6b6b78", margin: 0, paddingBottom: 2 }}>Resets a cada segunda-feira</p></div>

@@ -209,12 +209,12 @@ const loadFavorites = async () => {
 
  return (
  <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)', gap: 16 }}>
- {/* Header ficha */}
- <div className="ledger-paper" style={{
+ {/* Header ficha — folha solta de caderno */}
+ <div className="ledger-paper notebook-sheet notebook-sheet--margined" style={{
  marginBottom: 16,
  overflow: 'hidden',
  background: '#18181f',
- }}><div style={{ display: 'flex',
+ }}><div className="notebook-holes" aria-hidden="true"><span/><span/><span/></div><div style={{ display: 'flex',
  alignItems: 'center',
  justifyContent: 'space-between',
  padding: '22px 24px 18px',

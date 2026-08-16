@@ -528,7 +528,7 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  flex-1 flex flex-col bg-[#111118] relative
  `}>
  {selectedNote ? (
- <><header className="px-6 lg:px-12 py-6 lg:py-8 flex flex-col gap-4 lg:gap-5"><div className="flex items-start justify-between gap-4"><div className="flex-1 min-w-0">
+ <><header className="notebook-sheet notebook-sheet--margined px-6 lg:px-12 py-6 lg:py-8 flex flex-col gap-4 lg:gap-5"><div className="notebook-holes" aria-hidden="true"><span/><span/><span/></div><div className="flex items-start justify-between gap-4"><div className="flex-1 min-w-0">
  {/* Recuo no mobile para não bater no hamburguer */}
  <div className={`${isMobile ? "pl-12" : ""}`}><input 
  type="text"

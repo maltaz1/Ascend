@@ -488,9 +488,9 @@ export function Layout({
         </button>
       </aside>
 
-      {/* Main Content */}
+      {/* Main Content — página de caderno: pauta, textura e canto virado */}
       <main
-        className="fz-main-content"
+        className="fz-main-content notebook-page"
         style={{
           flex: 1,
           display: "flex",
@@ -501,6 +501,8 @@ export function Layout({
           position: "relative",
         }}
       >
+        {/* canto de página virada */}
+        <span className="page-curl" aria-hidden="true" />
         {children}
       </main>
 

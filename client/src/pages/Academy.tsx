@@ -438,15 +438,15 @@ export default function Academy({ onTabChange }: AcademyProps) {
  alignItems: "center",
  marginBottom: 16,
  }}
- ><h2
- style={{
+ ><h2 className="notebook-sheet notebook-sheet--margined" style={{
  fontSize: 18,
  fontWeight: 600,
  color: "var(--foreground)",
  fontFamily: "Space Grotesk",
- }}
- >
- Fichas de Treino
+ padding: '10px 16px',
+ marginBottom: 0
+ }}>
+ <span className="notebook-holes" aria-hidden="true"><span/><span/><span/></span>Fichas de Treino
  </h2><button
  onClick={() => setShowNewWorkoutModal(true)}
  className="ledger-btn ledger-btn--violet"
@@ -909,7 +909,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  )}
 
  {activeSubTab === "catalog" && (
- <div className="animate-in fade-in duration-500"><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}><h2 style={{ fontSize: 18, fontWeight: 600, color: "var(--foreground)", fontFamily: "Space Grotesk" }}>
+ <div className="animate-in fade-in duration-500"><div className="notebook-sheet notebook-sheet--margined" style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 20 }}><div className="notebook-holes" aria-hidden="true"><span/><span/><span/></div><h2 style={{ fontSize: 18, fontWeight: 600, color: "var(--foreground)", fontFamily: "Space Grotesk" }}>
  Catálogo de Exercícios
  </h2><button
  onClick={() => setShowNewCatalogModal(true)}

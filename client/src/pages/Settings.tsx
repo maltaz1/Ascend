@@ -334,8 +334,8 @@ export default function Settings() {
 
  return (
  <div className="min-h-screen bg-background text-white"><div className="max-w-4xl mx-auto px-4 py-8">
- {/* HEADER */}
- <div className="mb-8"><div className="ledger-marginalia mb-2">14 — Ajustes</div><h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "Space Grotesk", letterSpacing: "-0.03em" }}> Configurações</h1><p className="text-zinc-400" style={{ fontFamily: "DM Sans", fontSize: 13 }}>
+ {/* HEADER — folha solta de caderno */}
+ <div className="notebook-sheet notebook-sheet--margined mb-8"><div className="notebook-holes" aria-hidden="true"><span/><span/><span/></div><div className="ledger-marginalia mb-2">14 — Ajustes</div><h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "Space Grotesk", letterSpacing: "-0.03em" }}> Configurações</h1><p className="text-zinc-400" style={{ fontFamily: "DM Sans", fontSize: 13 }}>
  Ajuste o caderno ao seu jeito.
  </p></div>
 

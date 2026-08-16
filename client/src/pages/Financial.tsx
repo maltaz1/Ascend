@@ -400,13 +400,13 @@ export default function Financial() {
  fontFamily: "'Sora', sans-serif",
  }}
  >
- {/* ── Header ficha ── */}
- <div style={{
+ {/* ── Header ficha — folha solta de caderno ── */}
+ <div className="notebook-sheet notebook-sheet--margined" style={{
  background: "#18181f",
  border: "1px solid #262630",
  borderRadius: 6,
  padding: "22px 24px 18px",
- }}><div className="ledger-marginalia" style={{ marginBottom: 10 }}>
+ }}><div className="notebook-holes" aria-hidden="true"><span/><span/><span/></div><div className="ledger-marginalia" style={{ marginBottom: 10 }}>
  07 — Movimento
  </div><h1 style={{
  fontSize: 28,

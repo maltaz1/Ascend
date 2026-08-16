@@ -796,8 +796,10 @@ export default function Habits({ isPro }: { isPro: boolean }) {
 
  return (
  <div className="animate-fade-in">
- {/* HEADER */}
+ {/* HEADER — folha solta de caderno */}
 
+ <div className="notebook-sheet notebook-sheet--margined">
+ <div className="notebook-holes" aria-hidden="true"><span/><span/><span/></div>
  <div
  style={{
  display: "flex",
@@ -861,6 +863,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
  </button>
  )}
  </div></div>
+ </div>
 
  {/* SEARCH */}
 

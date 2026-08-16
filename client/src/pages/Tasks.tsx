@@ -704,8 +704,10 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
  {/* Mini Calendário em Mobile */}
  <div className="lg:hidden w-full mb-5"><MiniCalendar selectedDate={selectedDate} onSelectDate={handleSelectDate} tasks={tasks} /></div>
 
- {/* Header */}
- <div className="mb-6"><div className="flex justify-between items-center mb-4"><h2 className="text-xl font-bold text-foreground font-space capitalize">
+ {/* Header — folha solta de caderno */}
+ <div className="notebook-sheet notebook-sheet--margined mb-6">
+ <div className="notebook-holes" aria-hidden="true"><span/><span/><span/></div>
+ <div className="flex justify-between items-center mb-4"><h2 className="text-xl font-bold text-foreground font-space capitalize">
  {selectedDateFormatted}
  </h2><button
  onClick={() => {
