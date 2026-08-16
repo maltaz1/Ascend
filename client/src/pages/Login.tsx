@@ -253,6 +253,7 @@ export default function Login() {
         /* Ficha de caderno: papel opaco, borda superior violeta, sombra dura */
         .asc-mock-card {
           width: min(42vw, 520px);
+          min-width: 264px;
           max-width: 520px;
           background: var(--ledger-paper-bg);
           border: 1px solid var(--ledger-paper-border);
@@ -277,6 +278,9 @@ export default function Login() {
           color: rgba(255,255,255,0.4);
           text-transform: uppercase;
           letter-spacing: 0.1em;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .asc-mock-level {
@@ -299,6 +303,7 @@ export default function Login() {
           display: flex;
           align-items: center;
           gap: 14px;
+          flex-wrap: wrap;
           margin-bottom: 14px;
           padding: 12px;
           background: #111118;
@@ -460,6 +465,7 @@ export default function Login() {
           top: 14px; right: 14px;
           background: var(--ledger-paper-bg);
           border: 1px solid rgba(245,158,11,0.55);
+          white-space: nowrap;
           border-radius: 3px;
           padding: 6px 11px;
           display: flex;
@@ -481,6 +487,7 @@ export default function Login() {
           bottom: 14px; left: 14px;
           background: var(--ledger-paper-bg);
           border: 1px solid rgba(139,92,246,0.55);
+          white-space: nowrap;
           border-radius: 3px;
           padding: 6px 11px;
           display: flex;
@@ -902,6 +909,49 @@ export default function Login() {
             justify-content: center;
             padding: 28px 0 16px;
           }
+          .asc-stats { display: none; }
+        }
+
+        /* ── Largura estreita (mobile / tela dividida) ── */
+        @media (max-width: 768px) {
+          .asc-root {
+            flex-direction: column;
+            height: auto;
+            min-height: 100vh;
+            overflow-y: auto;
+          }
+          .asc-right {
+            width: 100%;
+            height: 90vh;
+            min-height: 90vh;
+            order: -1;
+            border-left: none;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.08);
+            padding: 40px 24px 36px;
+            overflow-y: auto;
+          }
+          .asc-left {
+            display: flex;
+            flex-direction: column;
+            height: auto;
+            width: 100%;
+            padding: 28px 24px 48px;
+            grid-template-rows: none;
+            order: 0;
+            min-width: 0;
+          }
+          .asc-left-logo { display: none; }
+          .asc-left-hero { padding-top: 0; }
+          .asc-mock-scene {
+            justify-content: center;
+            padding: 24px 0 16px;
+          }
+          .asc-mock-card {
+            width: min(86vw, 420px);
+            margin-left: 0;
+          }
+          .asc-badge-streak,
+          .asc-badge-xp { display: none; }
           .asc-stats { display: none; }
         }
 
