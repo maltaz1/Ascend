@@ -35,6 +35,13 @@ import { useStore } from "@/hooks/useStore";
 import { getTodayString, toYYYYMMDD } from "@/store/utils";
 
 import { getFinancialData } from "@/store/financial.store";
+import {
+  generateInsights,
+  getBestDayOfWeek,
+  getCompletionTrend,
+  getHabitAdherence,
+  getPriorityDistribution,
+} from "@/utils/analytics";
 import { CircularProgress } from "@/components/ui/CircularProgress";
 import { AnimatedCounter } from "@/components/ui/AnimatedCounter";
 
@@ -305,27 +312,30 @@ function StreakHeatmap({ tasks, habits }: { tasks: any[]; habits: any[] }) {
  };
 
  return (
- <div style={{ overflowX: "auto" }}><div style={{ display: "flex", gap: 4, paddingLeft: 28, marginBottom: 8 }}>
+ <div style={{ overflowX: "auto" }}>{/* Rótulos dos meses — largura alinhada às colunas (16 + 4 por coluna, exceto a última) */}<div style={{ display: "flex", marginBottom: 8 }}>
+ <div style={{ width: 20, flexShrink: 0 }} />
  {["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"].map((m, i) => (
  <span
  key={i}
  style={{
  fontSize: 10,
  color: "var(--muted-foreground)",
- width: 24,
+ width: 16,
+ minWidth: 16,
+ marginRight: i < 11 ? 4 : 0,
  visibility: i % 2 === 0 ? "visible" : "hidden",
+ textAlign: "left",
  }}
  >
  {m}
  </span>
  ))}
- </div><div style={{ display: "flex", gap: 4 }}><div
+ </div><div style={{ display: "flex" }}>{/* Rótulos dos dias da semana — altura alinhada às linhas (16 + 4 por linha) */}<div
  style={{
  display: "flex",
  flexDirection: "column",
- gap: 4,
- marginRight: 4,
- paddingTop: 2,
+ width: 20,
+ flexShrink: 0,
  }}
  >
  {["D", "S", "T", "Q", "Q", "S", "S"].map((d, i) => (
@@ -520,6 +530,49 @@ export default function Dashboard() {
  };
  });
  }, [habits]);
+
+ // =========================
+ // ANALYTICS AVANÇADAS (main — adaptado ao Ledger)
+ // =========================
+ // Evolução mensal — últimos 12 meses (tarefas + hábitos concluídos por mês)
+ const monthlyTrend = useMemo(() => {
+   const result = [];
+   const now = new Date();
+   const monthNames = [
+     "Jan", "Fev", "Mar", "Abr", "Mai", "Jun",
+     "Jul", "Ago", "Set", "Out", "Nov", "Dez",
+   ];
+   for (let i = 11; i >= 0; i--) {
+     const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+     const year = d.getFullYear();
+     const month = d.getMonth();
+     const prefix = `${year}-${String(month + 1).padStart(2, "0")}`;
+     const tasksCompleted = tasks.filter(
+       (t) => t.completed && t.date.startsWith(prefix)
+     ).length;
+     const habitsCompleted = habits.reduce(
+       (sum, h) =>
+         sum +
+         (h.completedDates || []).filter((ds) => ds.startsWith(prefix)).length,
+       0
+     );
+     result.push({
+       month: `${monthNames[month]}/${String(year).slice(2)}`,
+       tasks: tasksCompleted,
+       habits: habitsCompleted,
+     });
+   }
+   return result;
+ }, [tasks, habits]);
+
+ const completionTrend = useMemo(() => getCompletionTrend(tasks), [tasks]);
+ const bestDaysOfWeek = useMemo(() => getBestDayOfWeek(tasks), [tasks]);
+ const priorityDistribution = useMemo(() => getPriorityDistribution(tasks), [tasks]);
+ const habitAdherence = useMemo(() => getHabitAdherence(habits), [habits]);
+ const insights = useMemo(
+   () => generateInsights(tasks, habits, globalStreak, weeklyData),
+   [tasks, habits, globalStreak, weeklyData]
+ );
 
  const bestHabitStreak = useMemo(() => {
  if (habitStreaks.length === 0) return { name: "-", streak: 0 };
@@ -738,9 +791,46 @@ export default function Dashboard() {
  icon={Calendar}
  indexNum="06"
  title="Atividade — Últimos 90 dias"
- subtitle="Registros diários"
+ subtitle="Registros diários e evolução mensal"
  defaultOpen={true}
- ><StreakHeatmap tasks={tasks} habits={habits} /></ExpandableSection>
+ >
+ <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
+ <div className="ledger-paper" style={{ padding: "18px 22px", background: "#18181f", minWidth: 0 }}><div style={{ fontSize: 11, fontWeight: 700, color: "#a78bfa", letterSpacing: "0.12em", marginBottom: 12, textTransform: "uppercase" }}>
+ 06a — Heatmap diário
+ </div><StreakHeatmap tasks={tasks} habits={habits} /></div>
+ <div className="ledger-paper" style={{ padding: "18px 22px", background: "#18181f", minWidth: 0 }}><div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}><div className="ledger-marginalia">06b — Evolução · 12 meses</div></div><ResponsiveContainer width="100%" height={232}>
+ <AreaChart data={monthlyTrend}>
+ <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+ <XAxis
+ dataKey="month"
+ tick={{ fontSize: 10, fill: "var(--muted-foreground)" }}
+ interval="preserveStartEnd"
+ />
+ <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+ <Tooltip content={<CustomTooltip />} />
+ <Legend />
+ <Area
+ type="monotone"
+ dataKey="tasks"
+ name="Tarefas"
+ stroke="#8B5CF6"
+ strokeWidth={2}
+ fill="#8b5cf6"
+ fillOpacity={0.12}
+ />
+ <Area
+ type="monotone"
+ dataKey="habits"
+ name="Hábitos"
+ stroke="#A855F7"
+ strokeWidth={2}
+ fill="#a855f7"
+ fillOpacity={0.08}
+ />
+ </AreaChart>
+ </ResponsiveContainer></div>
+ </div>
+ </ExpandableSection>
 
  {/* ===== MAIN CHARTS ===== */}
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-4"><div className="ledger-paper" style={{ minWidth: 0, padding: "22px 24px", background: "#18181f" }}><div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}><div className="ledger-marginalia">07 — Linha do mês</div></div><ResponsiveContainer width="100%" height={220}><AreaChart data={activityData}><CartesianGrid strokeDasharray="3 3" stroke="var(--border)" /><XAxis dataKey="day" /><YAxis /><Tooltip content={<CustomTooltip />} /><Legend /><Area
@@ -771,8 +861,241 @@ export default function Dashboard() {
  radius={[4, 4, 0, 0]}
  /></BarChart></ResponsiveContainer></div></div>
 
- {/* ===== CONSISTENCY ===== */}
- <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-4"><div className="ledger-paper" style={{ padding: "22px 24px", background: "#18181f" }}><div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}><div className="ledger-marginalia">09 — Consistência</div></div><div style={{ display: "flex", alignItems: "center", gap: 20 }}><CircularProgress value={monthlyCompletionRate} size={90} strokeWidth={6} color="#10B981"><span style={{ fontSize: 18, fontWeight: 800, color: "#10B981" }}>
+
+      {/* ===== INSIGHTS ===== */}
+      <ExpandableSection
+        icon={Zap}
+        title="Insights"
+        subtitle="Análises automáticas do seu desempenho"
+        defaultOpen={true}
+      >
+        <div style={{ display: "flex", flexDirection: "column" }}>
+          {insights.map((insight, index) => (
+            <div
+              key={index}
+              style={{
+                display: "flex",
+                alignItems: "flex-start",
+                gap: 16,
+                padding: "14px 4px",
+                borderBottom: "1px solid #262630",
+              }}
+            >
+              <span style={{ fontSize: 10, fontWeight: 700, color: "#71717a", letterSpacing: "0.18em", minWidth: 26, paddingTop: 3, textTransform: "uppercase" }}>
+                {String(index + 1).padStart(2, "0")}
+              </span>
+              <div style={{ width: 1, background: insight.color, minHeight: 34, flexShrink: 0 }} />
+              <div style={{ flex: 1, minWidth: 0 }}>
+                <div style={{ fontSize: 14, fontWeight: 700, color: insight.color, fontFamily: "var(--font-space, 'Space Grotesk'), sans-serif" }}>
+                  {insight.title}
+                </div>
+                <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 3, lineHeight: "1.5" }}>
+                  {insight.detail}
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      </ExpandableSection>
+
+      {/* ===== TENDÊNCIA E DIA DA SEMANA (ANALYTICS) ===== */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-4">
+        <div className="ledger-paper" style={{ padding: "22px 24px", background: "#18181f", minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+            <div className="ledger-marginalia">11 — Tendência</div>
+          </div>
+          <div style={{ display: "flex", alignItems: "center", gap: 20 }}>
+            <CircularProgress
+              value={completionTrend.currentRate}
+              size={90}
+              strokeWidth={6}
+              color={
+                completionTrend.direction === "up"
+                  ? "#10B981"
+                  : completionTrend.direction === "down"
+                  ? "#EF4444"
+                  : "#8B5CF6"
+              }
+            >
+              <span
+                style={{
+                  fontSize: 18,
+                  fontWeight: 800,
+                  color:
+                    completionTrend.direction === "up"
+                      ? "#10B981"
+                      : completionTrend.direction === "down"
+                      ? "#EF4444"
+                      : "#a78bfa",
+                }}
+              >
+                {completionTrend.currentRate}%
+              </span>
+            </CircularProgress>
+            <div>
+              <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginBottom: 4 }}>
+                Últimos 7 dias vs 7 dias anteriores
+              </div>
+              <div
+                style={{
+                  fontSize: 14,
+                  fontWeight: 700,
+                  color:
+                    completionTrend.direction === "up"
+                      ? "#10B981"
+                      : completionTrend.direction === "down"
+                      ? "#EF4444"
+                      : "#a78bfa",
+                }}
+              >
+                {completionTrend.direction === "up" && "▲"}
+                {completionTrend.direction === "down" && "▼"}
+                {completionTrend.direction === "stable" && "●"} {Math.abs(completionTrend.delta)}{" "}
+                pontos ({completionTrend.previousRate}% → {completionTrend.currentRate}%)
+              </div>
+              <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 4 }}>
+                Comparação da taxa de conclusão entre as duas janelas
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <div className="ledger-paper" style={{ padding: "22px 24px", background: "#18181f", minWidth: 0 }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+            <div className="ledger-marginalia">12 — Dia da semana</div>
+          </div>
+          <ResponsiveContainer width="100%" height={220}>
+            <BarChart
+              data={bestDaysOfWeek}
+              margin={{ top: 5, right: 5, left: 0, bottom: 5 }}
+            >
+              <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+              <XAxis dataKey="day" tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+              <YAxis tick={{ fontSize: 11, fill: "var(--muted-foreground)" }} />
+              <Tooltip content={<CustomTooltip />} />
+              <Legend />
+              <Bar
+                dataKey="completed"
+                name="Concluídas"
+                fill="#8B5CF6"
+              />
+              <Bar
+                dataKey="total"
+                name="Total agendadas"
+                fill="rgba(139, 92, 246, 0.25)"
+              />
+            </BarChart>
+          </ResponsiveContainer>
+        </div>
+      </div>
+
+      {/* ===== ADERÊNCIA DE HÁBITOS + PRIORIDADES (ANALYTICS) ===== */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-4">
+        <div className="ledger-paper" style={{ padding: "22px 24px", background: "#18181f" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+            <div className="ledger-marginalia">13 — Aderência · 30 dias</div>
+          </div>
+          {habitAdherence.length > 0 ? (
+            <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
+              {habitAdherence.map((h, index) => (
+                <div key={index}>
+                  <div
+                    style={{
+                      display: "flex",
+                      justifyContent: "space-between",
+                      fontSize: 12,
+                      marginBottom: 6,
+                    }}
+                  >
+                    <span style={{ fontWeight: 600 }}>{h.name}</span>
+                    <span
+                      style={{
+                        color:
+                          h.trend === "up" ? "#10B981" : h.trend === "down" ? "#EF4444" : "var(--muted-foreground)",
+                        fontWeight: 600,
+                      }}
+                    >
+                      {h.trend === "up" ? "▲" : h.trend === "down" ? "▼" : "●"} {h.rate}%
+                    </span>
+                  </div>
+                  <div
+                    style={{
+                      height: 6,
+                      background: "rgba(255,255,255,0.08)",
+                      borderRadius: 999,
+                      overflow: "hidden",
+                    }}
+                  >
+                    <div
+                      style={{
+                        width: `${h.rate}%`,
+                        height: "100%",
+                        background: h.rate >= 75 ? "#10B981" : h.rate >= 40 ? "#F59E0B" : "#8B5CF6",
+                      }}
+                    />
+                  </div>
+                </div>
+              ))}
+            </div>
+          ) : (
+            <div style={{ textAlign: "center", padding: 12, color: "var(--muted-foreground)", fontSize: 13 }}>
+              Adicione hábitos para acompanhar sua aderência.
+            </div>
+          )}
+        </div>
+
+        <div className="ledger-paper" style={{ padding: "22px 24px", background: "#18181f" }}>
+          <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
+            <div className="ledger-marginalia">14 — Prioridades · 30 dias</div>
+          </div>
+          {priorityDistribution.length > 0 ? (
+            <div style={{ display: "flex", alignItems: "center", gap: 16 }}>
+              <ResponsiveContainer width="50%" height={180}>
+                <PieChart>
+                  <Pie
+                    data={priorityDistribution}
+                    cx="50%"
+                    cy="50%"
+                    innerRadius={40}
+                    outerRadius={70}
+                    dataKey="value"
+                    nameKey="name"
+                    stroke="none"
+                  >
+                    {priorityDistribution.map((entry, index) => (
+                      <Cell key={index} fill={entry.color} />
+                    ))}
+                  </Pie>
+                  <Tooltip content={<CustomTooltip />} />
+                </PieChart>
+              </ResponsiveContainer>
+              <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
+                {priorityDistribution.map((entry, index) => (
+                  <div
+                    key={index}
+                    style={{ display: "flex", alignItems: "center", gap: 8, fontSize: 13 }}
+                  >
+                    <div
+                      style={{ width: 12, height: 12, borderRadius: 4, background: entry.color }}
+                    />
+                    <span style={{ fontWeight: 600 }}>{entry.name}</span>
+                    <span style={{ color: "var(--muted-foreground)", marginLeft: "auto" }}>
+                      {entry.value}
+                    </span>
+                  </div>
+                ))}
+              </div>
+            </div>
+          ) : (
+            <div style={{ textAlign: "center", padding: 12, color: "var(--muted-foreground)", fontSize: 13 }}>
+              Complete tarefas nos últimos 30 dias para ver a distribuição por prioridade.
+            </div>
+          )}
+        </div>
+      </div>
+
+      {/* ===== CONSISTÊNCIA (manter da versão ledger) ===== */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-4"><div className="ledger-paper" style={{ padding: "22px 24px", background: "#18181f" }}><div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}><div className="ledger-marginalia">09 — Consistência</div></div><div style={{ display: "flex", alignItems: "center", gap: 20 }}><CircularProgress value={monthlyCompletionRate} size={90} strokeWidth={6} color="#10B981"><span style={{ fontSize: 18, fontWeight: 800, color: "#10B981" }}>
  {monthlyCompletionRate}%
  </span></CircularProgress><div><div style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
  Tarefas do mês
@@ -789,7 +1112,7 @@ export default function Dashboard() {
  {/* ===== FINANÇAS ===== */}
  <ExpandableSection
  icon={Wallet}
- indexNum="11"
+ indexNum="15"
  title="Finanças"
  subtitle={`Saldo: R$ ${(monthlyIncome - monthlyExpenses).toFixed(2)} • Gastos: R$ ${monthlyExpenses.toFixed(2)}`}
  defaultOpen={false}
