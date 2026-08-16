@@ -349,41 +349,55 @@ function StreakHeatmap({ tasks, habits }: { tasks: any[]; habits: any[] }) {
     return "rgba(139,92,246,0.9)";
   };
 
+  // Células: 16px de largura + 4px de gap entre colunas
+  const CELL = 16;
+  const CELL_GAP = 4;
+
   return (
     <div style={{ overflowX: "auto" }}>
-      <div style={{ display: "flex", gap: 4, paddingLeft: 28, marginBottom: 8 }}>
+      {/* Rótulos dos meses — largura alinhada às colunas (16 + 4 por coluna, exceto a última) */}
+      <div
+        style={{
+          display: "flex",
+          marginBottom: 8,
+        }}
+      >
+        <div style={{ width: 20, flexShrink: 0 }} />
         {["J", "F", "M", "A", "M", "J", "J", "A", "S", "O", "N", "D"].map((m, i) => (
           <span
             key={i}
             style={{
               fontSize: 10,
               color: "var(--muted-foreground)",
-              width: 24,
+              width: CELL,
+              minWidth: CELL,
+              marginRight: i < 11 ? CELL_GAP : 0,
               visibility: i % 2 === 0 ? "visible" : "hidden",
+              textAlign: "left",
             }}
           >
             {m}
           </span>
         ))}
       </div>
-      <div style={{ display: "flex", gap: 4 }}>
+      <div style={{ display: "flex" }}>
+        {/* Rótulos dos dias da semana — altura alinhada às linhas (16 + 4 por linha) */}
         <div
           style={{
             display: "flex",
             flexDirection: "column",
-            gap: 4,
-            marginRight: 4,
-            paddingTop: 2,
+            width: 20,
+            flexShrink: 0,
           }}
         >
-          {["D", "S", "T", "Q", "Q", "S", "S"].map((d, i) => (
+          {(["D", "S", "T", "Q", "Q", "S", "S"] as const).map((d, i) => (
             <span
               key={i}
               style={{
                 fontSize: 10,
                 color: "var(--muted-foreground)",
-                height: 16,
-                lineHeight: "16px",
+                height: CELL,
+                lineHeight: `${CELL}px`,
                 visibility: i % 2 === 1 ? "visible" : "hidden",
               }}
             >
@@ -391,7 +405,7 @@ function StreakHeatmap({ tasks, habits }: { tasks: any[]; habits: any[] }) {
             </span>
           ))}
         </div>
-        <div style={{ display: "flex", gap: 4 }}>
+        <div style={{ display: "flex", gap: CELL_GAP }}>
           {weeks.map((week, wi) => (
             <div key={wi} style={{ display: "flex", flexDirection: "column", gap: 4 }}>
               {week.map((day, di) => (
@@ -399,8 +413,8 @@ function StreakHeatmap({ tasks, habits }: { tasks: any[]; habits: any[] }) {
                   key={di}
                   title={day.date ? `${day.date}: ${day.count} atividades` : ""}
                   style={{
-                    width: 16,
-                    height: 16,
+                    width: CELL,
+                    height: CELL,
                     borderRadius: 4,
                     background: getColor(day.count),
                   }}
