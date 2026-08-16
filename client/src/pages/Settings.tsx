@@ -127,7 +127,7 @@ export default function Settings() {
  }
 
  const cardClass =
- "ledger-paper !rounded-md";
+ "ledger-paper !rounded-md p-5 sm:p-6";
 
  async function resetPassword() {
  const {
@@ -338,7 +338,7 @@ export default function Settings() {
  const { theme, toggleTheme } = useTheme();
 
  return (
- <div className="min-h-screen bg-background text-white"><div className="max-w-4xl mx-auto px-5 sm:px-8 py-10 sm:py-12">
+ <div className="min-h-screen bg-background" style={{ color: "var(--ink)" }}><div className="max-w-4xl mx-auto px-5 sm:px-8 py-10 sm:py-12">
  {/* HEADER — folha solta de caderno */}
  <div className="notebook-sheet notebook-sheet--margined mb-8"><div className="ledger-marginalia mb-2">14 — Ajustes</div><h1 className="text-3xl font-bold mb-2" style={{ color: "var(--ink)", fontFamily: "Space Grotesk", letterSpacing: "-0.03em" }}> Configurações</h1><p style={{ fontFamily: "DM Sans", fontSize: 13 }}>
  Ajuste o caderno ao seu jeito.
@@ -367,9 +367,19 @@ export default function Settings() {
  >
  {profile.isPro && <Sparkles size={12} className="mr-1" />}
  {profile.isPro ? "Ascend PRO" : "Ascend Free"}
- </div></div></div></div><div className="space-y-6">
+ </div></div></div></div><div className="space-y-5">
  {/* PERFIL */}
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><User className="text-[var(--primary)]" /><h2 className="text-2xl font-bold"> Perfil</h2></div><div className="space-y-4"><input
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-4"><User className="text-[var(--primary)]" /><h2 className="text-2xl font-bold"> Perfil</h2></div><div className="grid grid-cols-1 md:grid-cols-[240px_1fr] gap-x-8 gap-y-5"><div className="space-y-3"><div className="flex items-center gap-4"><img
+ src={profile.avatar}
+ className="w-20 h-20 md:w-24 md:h-24 rounded-full object-cover border-4 border-[var(--primary)]"
+ /><label className="cursor-pointer bg-[var(--primary)] hover:bg-[#7C3AED] transition-all px-4 py-2.5 rounded-md font-semibold text-white text-sm">
+ Escolher Foto
+ <input
+ type="file"
+ accept="image/*"
+ className="hidden"
+ onChange={handleImageUpload}
+ /></label></div><p className="text-xs text-[var(--ink-muted)]">PNG, JPG ou WEBP</p></div><div className="space-y-4"><input
  type="text"
  placeholder="Nome"
  value={profile.name}
@@ -380,18 +390,8 @@ export default function Settings() {
  })
  }
  className="w-full rounded-md px-4 py-3 ledger-input-field"
- /><div className="space-y-4"><div className="flex items-center gap-4"><img
- src={profile.avatar}
- className="w-24 h-24 rounded-full object-cover border-4 border-[var(--primary)]"
- /><label className="cursor-pointer bg-[var(--primary)] hover:bg-[#7C3AED] transition-all px-5 py-3 rounded-md font-semibold text-white">
- Escolher Foto
- <input
- type="file"
- accept="image/*"
- className="hidden"
- onChange={handleImageUpload}
- /></label></div><p className="text-sm text-[var(--ink-muted)]">PNG, JPG ou WEBP</p></div><textarea
- rows={4}
+ /><textarea
+ rows={3}
  placeholder="Sua bio"
  value={profile.bio}
  onChange={e =>
@@ -403,13 +403,12 @@ export default function Settings() {
  className="w-full rounded-md px-4 py-3 resize-none ledger-input-field"
  /><button
  onClick={saveProfile}
- className="bg-[var(--primary)] hover:bg-[#7C3AED] text-white font-bold px-5 py-3 rounded-md flex items-center gap-2 transition-all  "
+ className="bg-[var(--primary)] hover:bg-[#7C3AED] text-white font-bold px-5 py-3 rounded-md flex items-center gap-2 transition-all"
  ><Save size={18} />
  Salvar Perfil
- </button></div></motion.div>
-
+ </button></div></div></motion.div>
  {/* APARÊNCIA */}
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Palette className="text-pink-400" /><h2 className="text-2xl font-bold"> Aparência</h2></div><div className="space-y-4"><div className="flex items-center justify-between rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)]"><div><p className="font-medium" style={{ color: "var(--ink)" }}>Tema do caderno</p><p className="text-sm" style={{ color: "var(--ink-muted)" }}>{theme === "dark" ? "Ledger Noturno — papel escuro" : "Day Ledger — papel diurno"}</p></div><button
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-4"><Palette className="text-pink-400" /><h2 className="text-2xl font-bold"> Aparência</h2></div><div className="space-y-4"><div className="flex items-center justify-between rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)]"><div><p className="font-medium" style={{ color: "var(--ink)" }}>Tema do caderno</p><p className="text-sm" style={{ color: "var(--ink-muted)" }}>{theme === "dark" ? "Ledger Noturno — papel escuro" : "Day Ledger — papel diurno"}</p></div><button
  onClick={toggleTheme}
  className="px-4 py-2 rounded-xl font-medium transition-all flex items-center gap-2"
  style={{
@@ -433,7 +432,7 @@ export default function Settings() {
  </button></div></div></motion.div>
 
  {/* NOTIFICAÇÕES */}
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Bell className="text-[var(--primary)]" /><h2 className="text-2xl font-bold"> Notificações</h2></div><div className="space-y-3">
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-4"><Bell className="text-[var(--primary)]" /><h2 className="text-2xl font-bold"> Notificações</h2></div><div className="space-y-3">
  {[
  { key: "habits", label: "Hábitos" },
  { key: "tasks", label: "Tarefas" },
@@ -462,7 +461,7 @@ export default function Settings() {
  </div></motion.div>
 
  {/* PRIVACIDADE E DADOS */}
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Shield className="text-violet-400" /><h2 className="text-2xl font-bold"> Privacidade e Dados</h2></div><div className="space-y-3"><a
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-4"><Shield className="text-violet-400" /><h2 className="text-2xl font-bold"> Privacidade e Dados</h2></div><div className="space-y-3"><a
  href="/privacy"
  target="_blank"
  rel="noopener noreferrer"
@@ -514,7 +513,7 @@ export default function Settings() {
  </button></div></motion.div>
 
  {/* CONTA */}
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Shield className="text-red-400" /><h2 className="text-2xl font-bold"> Conta</h2></div><div className="space-y-4"><button
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-4"><Shield className="text-red-400" /><h2 className="text-2xl font-bold"> Conta</h2></div><div className="space-y-4"><button
  onClick={resetPassword}
  className="w-full flex items-center gap-3 rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)] hover:border-[var(--primary)]/40 transition-all"
  ><Lock />
@@ -530,7 +529,7 @@ export default function Settings() {
  <div className="pt-4 mb-2"><h2 className="text-sm font-bold uppercase tracking-widest ml-1" style={{ color: "var(--ink-muted)" }}>Conta e Suporte</h2></div>
 
  {/* CONTATO */}
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Mail className="text-[var(--primary)]" /><h2 className="text-2xl font-bold"> Contato</h2></div><div className="space-y-4"><p className="text-sm" style={{ color: "var(--ink-muted)" }}>Entre em contato caso tenha dúvidas ou sugestões.</p><button
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-4"><Mail className="text-[var(--primary)]" /><h2 className="text-2xl font-bold"> Contato</h2></div><div className="space-y-4"><p className="text-sm" style={{ color: "var(--ink-muted)" }}>Entre em contato caso tenha dúvidas ou sugestões.</p><button
  onClick={handleSupportContact}
  className="w-full flex items-center justify-between rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)] hover:border-[var(--primary)]/40 transition-all group"
  ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-md bg-[var(--primary-dark, var(--primary-dark, #7c3aed))]/10 border border-[var(--primary-dark, var(--primary-dark, #7c3aed))]/30 flex items-center justify-center"><Mail size={18} className="text-[var(--primary)]" /></div><div className="text-left"><p className="font-medium" style={{ color: "var(--ink)" }}>ascendprod1@gmail.com</p><p className="text-xs" style={{ color: "var(--ink-muted)" }}>Clique para enviar um e-mail</p></div></div><div className="bg-[var(--primary-dark, var(--primary-dark, #7c3aed))] px-4 py-2 rounded-md text-xs font-bold text-white opacity-0 group-hover:opacity-100 transition-all">
@@ -539,12 +538,12 @@ export default function Settings() {
 
  {/* ASSINATURA (Apenas PRO) */}
  {profile.isPro && (
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><CreditCard className="text-emerald-400" /><h2 className="text-2xl font-bold"> Assinatura</h2></div><div className="space-y-3"><div className="flex justify-between items-center rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)]"><span className="text-[var(--ink-muted)]">Plano</span><span className="font-bold text-emerald-400">Ascend PRO</span></div><div className="flex justify-between items-center rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)]"><span className="text-[var(--ink-muted)]">Status</span><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /><span className="font-bold text-emerald-500">Ativo</span></div></div></div></motion.div>
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-4"><CreditCard className="text-emerald-400" /><h2 className="text-2xl font-bold"> Assinatura</h2></div><div className="space-y-3"><div className="flex justify-between items-center rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)]"><span className="text-[var(--ink-muted)]">Plano</span><span className="font-bold text-emerald-400">Ascend PRO</span></div><div className="flex justify-between items-center rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)]"><span className="text-[var(--ink-muted)]">Status</span><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /><span className="font-bold text-emerald-500">Ativo</span></div></div></div></motion.div>
  )}
 
  {/* SOLICITAR CANCELAMENTO (Apenas PRO) */}
  {profile.isPro && (
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><XCircle className="text-red-400" /><h2 className="text-2xl font-bold"> Cancelamento</h2></div><div className="space-y-4">
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-4"><XCircle className="text-red-400" /><h2 className="text-2xl font-bold"> Cancelamento</h2></div><div className="space-y-4">
  {pendingRequest ? (
  <CancellationStatusCard 
  request={pendingRequest} 
@@ -564,7 +563,7 @@ export default function Settings() {
  )}
 
  {/* SOBRE */}
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Info className="text-[var(--ink)]" /><h2 className="text-2xl font-bold"> Sobre</h2></div><div className="space-y-3"><div className="flex justify-between rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)]"><span>Versão do app</span><span className="text-[var(--ink-muted)]">1.0.0</span></div><div className="flex justify-between rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)]"><span>Status</span><span className="font-semibold" style={{ color: "var(--primary)" }}>Online</span></div></div></motion.div></div></div><CancellationModal
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-4"><Info className="text-[var(--ink)]" /><h2 className="text-2xl font-bold"> Sobre</h2></div><div className="space-y-3"><div className="flex justify-between rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)]"><span>Versão do app</span><span className="text-[var(--ink-muted)]">1.0.0</span></div><div className="flex justify-between rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)]"><span>Status</span><span className="font-semibold" style={{ color: "var(--primary)" }}>Online</span></div></div></motion.div></div></div><CancellationModal
  isOpen={isCancellationModalOpen}
  onClose={() => setIsCancellationModalOpen(false)}
  onSuccess={loadPendingCancellation}
