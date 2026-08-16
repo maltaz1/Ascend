@@ -31,9 +31,9 @@ import { getTodayString } from "@/store/utils";
 import { supabase } from "@/lib/supabase";
 
 const MEAL_TYPES = {
- breakfast: { label: "Café da Manhã", emoji: "🍳", color: "#F59E0B" },
+ breakfast: { label: "Café da Manhã", emoji: "🍳", color: "var(--accent)" },
  lunch: { label: "Almoço", emoji: "🍽", color: "#10B981" },
- dinner: { label: "Jantar", emoji: "🌙", color: "#8B5CF6" },
+ dinner: { label: "Jantar", emoji: "🌙", color: "var(--primary)" },
  snack: { label: "Lanche", emoji: "🍎", color: "#EC4899" },
 };
 
@@ -108,7 +108,7 @@ function NutritionCircle({
  style={{
  fontSize: 12,
  fontWeight: 500,
- color: "#9a9aa8",
+ color: "var(--ink-muted)",
  fontFamily: "DM Sans",
  textTransform: "uppercase",
  letterSpacing: "0.06em",
@@ -131,8 +131,8 @@ function MealCard({
  return (
  <div
  style={{
- background: "#18181f",
- border: "1px solid #262630",
+ background: "var(--ledger-paper-bg)",
+ border: "1px solid var(--ledger-paper-border)",
  borderTop: `2px solid ${config.color}`,
  borderRadius: 6,
  padding: "14px 16px",
@@ -164,7 +164,7 @@ function MealCard({
  </div><div
  style={{
  fontSize: 11,
- color: "#6b6b78",
+ color: "var(--ink-muted)",
  fontFamily: "DM Sans",
  }}
  >
@@ -236,11 +236,11 @@ function MealCard({
  display: "flex",
  justifyContent: "space-between",
  paddingTop: 12,
- borderTop: `1px solid #262630`,
+ borderTop: `1px solid var(--ledger-paper-border)`,
  fontSize: 12,
  fontWeight: 600,
  }}
- ><div style={{ color: "#6b6b78", fontFamily: "DM Sans" }}>
+ ><div style={{ color: "var(--ink-muted)", fontFamily: "DM Sans" }}>
  Total:
  </div><div style={{ color: config.color, fontFamily: "Space Grotesk" }}>
  {meal.totalCalories} kcal • P: {meal.totalProtein}g • C:{" "}
@@ -440,7 +440,7 @@ function AddFoodModal({
  className="ledger-btn ledger-btn--ghost"
  style={{
  borderColor: "rgba(139,92,246,0.45)",
- color: "#a78bfa",
+ color: "var(--primary)",
  fontSize: 12,
  padding: "9px 12px",
  cursor:
@@ -457,8 +457,8 @@ function AddFoodModal({
  style={{
  width: "100%",
  marginTop: 4,
- background: "#12121a",
- border: "1px solid #262630",
+ background: "var(--ledger-paper-bg)",
+ border: "1px solid var(--ledger-paper-border)",
  borderRadius: 6,
  maxHeight: 200,
  overflowY: "auto",
@@ -473,20 +473,20 @@ function AddFoodModal({
  padding: "10px 12px",
  border: "none",
  background:
- idx % 2 === 0 ? "#18181f" : "transparent",
- color: "#a78bfa",
+ idx % 2 === 0 ? "var(--ledger-paper-bg)" : "transparent",
+ color: "var(--primary)",
  cursor: "pointer",
  textAlign: "left",
  fontSize: 13,
  fontFamily: "DM Sans",
  borderBottom:
  idx < foodSuggestions.length - 1
- ? "1px solid #262630"
+ ? "1px solid var(--ledger-paper-border)"
  : "none",
  transition: "all 0.2s ease",
  }}
  onMouseEnter={e => {
- e.currentTarget.style.background = "#1f1333";
+ e.currentTarget.style.background = "#ede9fe";
  }}
  onMouseLeave={e => {
  e.currentTarget.style.background =
@@ -553,16 +553,16 @@ function AddFoodModal({
  {foods.length > 0 && (
  <div
  style={{
- background: "#12121a",
+ background: "var(--ledger-paper-bg)",
  borderRadius: 6,
- border: "1px solid #262630",
+ border: "1px solid var(--ledger-paper-border)",
  padding: 12,
  }}
  ><div
  style={{
  fontSize: 12,
  fontWeight: 600,
- color: "#9a9aa8",
+ color: "var(--ink-muted)",
  marginBottom: 8,
  fontFamily: "DM Sans",
  textTransform: "uppercase",
@@ -582,19 +582,19 @@ function AddFoodModal({
  padding: "6px 0",
  borderBottom:
  idx < foods.length - 1
- ? "1px solid #262630"
+ ? "1px solid var(--ledger-paper-border)"
  : "none",
  }}
  ><div
  style={{
- color: "#a0a0ad",
+ color: "var(--ink-muted)",
  fontFamily: "DM Sans",
  }}
  >
  {food.name} ({food.quantity}g)
  </div><div
  style={{
- color: "#A855F7",
+ color: "var(--primary)",
  fontWeight: 600,
  fontFamily: "Space Grotesk",
  }}
@@ -624,8 +624,8 @@ function AddFoodModal({
  style={{
  padding: "12px 16px",
  borderRadius: 6,
- background: foods.length > 0 ? "#8B5CF6" : "#1f1333",
- border: "1px solid #262630",
+ background: foods.length > 0 ? "var(--primary)" : "#1f1333",
+ border: "1px solid var(--ledger-paper-border)",
  color: foods.length > 0 ? "#030013" : "#5b5b6a",
  cursor: foods.length > 0 ? "pointer" : "not-allowed",
  fontFamily: "Space Grotesk",
@@ -678,7 +678,7 @@ function WaterModal({
  {/* Progress Bar */}
  <div
  style={{
- background: "#13171d",
+ background: "var(--ledger-paper-bg)",
  border: "1px solid rgba(56,189,248,0.3)",
  borderTop: "2px solid #38BDF8",
  borderRadius: 6,
@@ -719,7 +719,7 @@ function WaterModal({
  marginTop: 8,
  fontFamily: "DM Sans",
  fontSize: 12,
- color: "#9a9aa8",
+ color: "var(--ink-muted)",
  }}
  >
  {Math.round(percentage)}% da meta diária
@@ -891,7 +891,7 @@ export default function Diet() {
  {/* Header ficha — folha solta de caderno */}
  <div className="ledger-paper notebook-sheet notebook-sheet--margined" style={{
  overflow: "hidden",
- background: "#18181f",
+ background: "var(--ledger-paper-bg)",
  }}><div
  style={{
  display: "flex",
@@ -912,7 +912,7 @@ export default function Diet() {
  style={{
  fontSize: 28,
  fontWeight: 800,
- color: "#ededed",
+ color: "var(--ink)",
  fontFamily: "Space Grotesk",
  margin: 0,
  letterSpacing: "-0.035em",
@@ -923,7 +923,7 @@ export default function Diet() {
  </h1></div><p
  style={{
  fontSize: 13.5,
- color: "#9a9aa8",
+ color: "var(--ink-muted)",
  fontFamily: "DM Sans",
  margin: 0,
  }}
@@ -941,7 +941,7 @@ export default function Diet() {
  borderRadius: 8,
  background: "rgba(168,85,247,0.2)",
  border: "1px solid rgba(168,85,247,0.3)",
- color: "#A855F7",
+ color: "var(--primary)",
  cursor: "pointer",
  display: "flex",
  alignItems: "center",
@@ -960,7 +960,7 @@ export default function Diet() {
  {/* Calorie Goal Progress */}
  <div className="ledger-paper" style={{
  background:
- "#18181f",
+ "var(--ledger-paper-bg)",
  padding: "20px 24px",
  }}
  ><div className="ledger-marginalia" style={{ marginBottom: 14 }}>
@@ -976,7 +976,7 @@ export default function Diet() {
  style={{
  fontSize: 13.5,
  fontWeight: 600,
- color: "#9a9aa8",
+ color: "var(--ink-muted)",
  fontFamily: "DM Sans",
  textTransform: "uppercase",
  letterSpacing: "0.06em",
@@ -987,7 +987,7 @@ export default function Diet() {
  style={{
  fontSize: 16,
  fontWeight: 700,
- color: "#A855F7",
+ color: "var(--primary)",
  fontFamily: "Space Grotesk",
  }}
  >
@@ -1006,7 +1006,7 @@ export default function Diet() {
  background:
  todayNutrition.calories > dietSettings.dailyCalorieGoal
  ? "#EF4444"
- : "#A855F7",
+ : "var(--primary)",
  width: `${Math.min((todayNutrition.calories / dietSettings.dailyCalorieGoal) * 100, 100)}%`,
  transition: "width 0.3s ease",
  }}
@@ -1022,7 +1022,7 @@ export default function Diet() {
  value={todayNutrition.carbs}
  goal={dietSettings.carbsGoal}
  label="Carboidratos"
- color="#8B5CF6"
+ color="var(--primary)"
  /><NutritionCircle
  value={todayNutrition.fat}
  goal={dietSettings.fatGoal}
@@ -1032,7 +1032,7 @@ export default function Diet() {
  value={todayNutrition.calories}
  goal={dietSettings.dailyCalorieGoal}
  label="Calorias"
- color="#F59E0B"
+ color="var(--accent)"
  /></div>
 
  {/* Hydration */}
@@ -1057,7 +1057,7 @@ export default function Diet() {
  </div><div
  style={{
  fontSize: 12,
- color: "#9a9aa8",
+ color: "var(--ink-muted)",
  fontFamily: "DM Sans",
  }}
  >
@@ -1154,9 +1154,9 @@ export default function Diet() {
  style={{
  textAlign: "center",
  padding: "20px",
- background: "#12121a",
+ background: "var(--ledger-paper-bg)",
  borderRadius: 6,
- border: "1px dashed #262630",
+ border: "1px dashed var(--ledger-paper-border)",
  color: "#5b5b6a",
  fontSize: 13,
  fontFamily: "DM Sans",

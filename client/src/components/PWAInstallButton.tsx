@@ -16,7 +16,7 @@ export function PWAInstallButton() {
         alignItems: 'center',
         gap: 8,
         padding: '10px 16px',
-        background: 'linear-gradient(135deg, #A855F7, #C084FC)',
+        background: 'linear-gradient(135deg, var(--primary), #C084FC)',
         border: 'none',
         borderRadius: 8,
         color: '#fff',

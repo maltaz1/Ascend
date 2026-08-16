@@ -185,7 +185,7 @@ export default function Login() {
           z-index: 2;
           animation: fadeUp 0.6s ease both;
           padding-top: 36px;
-          border-left: 2px solid #8b5cf6;
+          border-left: 2px solid var(--primary);
           padding-left: 22px;
         }
 
@@ -201,7 +201,7 @@ export default function Login() {
           font-weight: 700;
           letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: #a78bfa;
+          color: var(--primary);
           margin-bottom: 18px;
         }
 
@@ -218,18 +218,18 @@ export default function Login() {
           font-weight: 800;
           line-height: 1.08;
           letter-spacing: -0.035em;
-          color: #ededed;
+          color: var(--ink);
           margin: 0 0 16px;
           font-family: 'Space Grotesk', sans-serif;
         }
 
         .asc-hero-title span {
-          color: #f59e0b;
+          color: var(--accent);
         }
 
         .asc-hero-sub {
           font-size: 14.5px;
-          color: #9a9aa8;
+          color: var(--ink-muted);
           line-height: 1.65;
           font-weight: 400;
           max-width: 380px;
@@ -250,9 +250,9 @@ export default function Login() {
         .asc-mock-card {
           width: min(42vw, 520px);
           max-width: 520px;
-          background: #18181f;
-          border: 1px solid #262630;
-          border-top: 2px solid #8b5cf6;
+          background: var(--ledger-paper-bg);
+          border: 1px solid var(--ledger-paper-border);
+          border-top: 2px solid var(--primary);
           border-radius: 6px;
           padding: 26px;
           box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.4);
@@ -287,7 +287,7 @@ export default function Login() {
           font-weight: 700;
           letter-spacing: 0.1em;
           text-transform: uppercase;
-          color: #a78bfa;
+          color: var(--primary);
           font-family: 'DM Sans', sans-serif;
         }
 
@@ -298,7 +298,7 @@ export default function Login() {
           margin-bottom: 14px;
           padding: 12px;
           background: #111118;
-          border: 1px solid #262630;
+          border: 1px solid var(--ledger-paper-border);
           border-radius: 4px;
         }
 
@@ -342,7 +342,7 @@ export default function Login() {
 
         .asc-xp-mini-track {
           height: 4px;
-          background: #262630;
+          background: var(--ledger-paper-border);
           border-radius: 2px;
           margin-top: 7px;
           overflow: hidden;
@@ -350,7 +350,7 @@ export default function Login() {
 
         .asc-xp-mini-fill {
           height: 100%;
-          background: #f59e0b;
+          background: var(--accent);
           border-radius: 2px;
           animation: progressFill 1.8s 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
@@ -368,7 +368,7 @@ export default function Login() {
           gap: 8px;
           padding: 7px 10px;
           background: transparent;
-          border-bottom: 1px solid #262630;
+          border-bottom: 1px solid var(--ledger-paper-border);
         }
 
         .asc-habit-row:last-child { border-bottom: none; }
@@ -422,7 +422,7 @@ export default function Login() {
           align-items: center;
           justify-content: space-between;
           padding-top: 12px;
-          border-top: 1px solid #262630;
+          border-top: 1px solid var(--ledger-paper-border);
         }
 
         .asc-streak-pill {
@@ -433,13 +433,13 @@ export default function Login() {
           font-weight: 700;
           letter-spacing: 0.1em;
           text-transform: uppercase;
-          color: #fbbf24;
+          color: var(--accent);
           font-family: 'Space Grotesk', sans-serif;
         }
 
         .asc-xp-gained {
           font-size: 10.5px;
-          color: #a78bfa;
+          color: var(--primary);
           font-weight: 700;
           letter-spacing: 0.1em;
           text-transform: uppercase;
@@ -454,7 +454,7 @@ export default function Login() {
         .asc-badge-streak {
           position: absolute;
           top: 14px; right: 14px;
-          background: #18181f;
+          background: var(--ledger-paper-bg);
           border: 1px solid rgba(245,158,11,0.55);
           border-radius: 3px;
           padding: 6px 11px;
@@ -465,7 +465,7 @@ export default function Login() {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: #fbbf24;
+          color: var(--accent);
           font-family: 'DM Sans', sans-serif;
           box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
           transform: rotate(1.5deg);
@@ -475,7 +475,7 @@ export default function Login() {
         .asc-badge-xp {
           position: absolute;
           bottom: 14px; left: 14px;
-          background: #18181f;
+          background: var(--ledger-paper-bg);
           border: 1px solid rgba(139,92,246,0.55);
           border-radius: 3px;
           padding: 6px 11px;
@@ -486,7 +486,7 @@ export default function Login() {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: #a78bfa;
+          color: var(--primary);
           font-family: 'DM Sans', sans-serif;
           box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
           transform: rotate(-1.5deg);
@@ -505,7 +505,7 @@ export default function Login() {
           position: relative;
           z-index: 2;
           animation: fadeUp 0.6s 0.2s ease both;
-          border-top: 1px solid #262630;
+          border-top: 1px solid var(--ledger-paper-border);
           padding-top: 22px;
         }
 
@@ -518,13 +518,13 @@ export default function Login() {
         .asc-stat-num {
           font-size: 19px;
           font-weight: 800;
-          color: #ededed;
+          color: var(--ink);
           font-family: 'Space Grotesk', sans-serif;
           letter-spacing: -0.03em;
         }
 
-        .asc-stat-num.orange { color: #f59e0b; }
-        .asc-stat-num.purple { color: #a78bfa; }
+        .asc-stat-num.orange { color: var(--accent); }
+        .asc-stat-num.purple { color: var(--primary); }
 
         .asc-stat-label {
           font-size: 11px;
@@ -551,7 +551,7 @@ export default function Login() {
           padding: 40px 48px;
           overflow-y: auto;
           background: #16161d;
-          border-left: 1px solid #262630;
+          border-left: 1px solid var(--ledger-paper-border);
           position: relative;
         }
 
@@ -601,7 +601,7 @@ export default function Login() {
         .asc-tab {
           flex: 1;
           padding: 10px;
-          border: 1px solid #33333f;
+          border: 1px solid var(--ledger-paper-border);
           background: transparent;
           color: #8a8a98;
           font-family: 'DM Sans', sans-serif;
@@ -617,8 +617,8 @@ export default function Login() {
         .asc-tab:hover { border-color: #46465a; color: #d4d4dc; }
 
         .asc-tab.active {
-          background: #8b5cf6;
-          border-color: #8b5cf6;
+          background: var(--primary);
+          border-color: var(--primary);
           color: #fff;
           box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
         }
@@ -657,7 +657,7 @@ export default function Login() {
           font-weight: 600;
           letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: #6b6b78;
+          color: var(--ink-muted);
           margin-bottom: 7px;
         }
 
@@ -670,7 +670,7 @@ export default function Login() {
           left: 2px;
           top: 50%;
           transform: translateY(-50%);
-          color: #8b5cf6;
+          color: var(--primary);
           pointer-events: none;
           display: flex;
         }
@@ -689,26 +689,26 @@ export default function Login() {
           padding: 11px 40px 9px 2px;
           background: transparent;
           border: none;
-          border-bottom: 1.5px solid #33333f;
+          border-bottom: 1.5px solid var(--ledger-paper-border);
           border-radius: 0;
-          color: #ededed;
+          color: var(--ink);
           font-family: 'DM Sans', sans-serif;
           font-size: 14px;
           font-weight: 400;
           outline: none;
           transition: border-color 0.15s;
-          -webkit-text-fill-color: #ededed;
+          -webkit-text-fill-color: var(--ink);
         }
 
         .asc-input::placeholder { color: #4a4a57; }
 
-        .asc-input:focus { border-bottom-color: #8b5cf6; }
+        .asc-input:focus { border-bottom-color: var(--primary); }
 
         .asc-input:-webkit-autofill,
         .asc-input:-webkit-autofill:focus {
           -webkit-box-shadow: 0 0 0 1000px #16161d inset;
-          -webkit-text-fill-color: #ededed;
-          caret-color: #ededed;
+          -webkit-text-fill-color: var(--ink);
+          caret-color: var(--ink);
         }
 
         .asc-eye-btn {
@@ -726,7 +726,7 @@ export default function Login() {
           transition: color 0.2s;
         }
 
-        .asc-eye-btn:hover { color: #8b5cf6; }
+        .asc-eye-btn:hover { color: var(--primary); }
 
         .asc-eye-btn svg {
           width: 15px; height: 15px;
@@ -744,7 +744,7 @@ export default function Login() {
           text-align: right;
           margin-top: 8px;
           font-size: 11px;
-          color: #8b5cf6;
+          color: var(--primary);
           cursor: pointer;
           text-decoration: none;
           font-weight: 600;
@@ -752,7 +752,7 @@ export default function Login() {
           transition: color 0.2s;
         }
 
-        .asc-forgot:hover { color: #a78bfa; }
+        .asc-forgot:hover { color: var(--primary); }
 
         /* ── CTA button — tinta sólida com sombra dura ── */
         .asc-btn {
@@ -760,7 +760,7 @@ export default function Login() {
           padding: 13px;
           border: none;
           border-radius: 5px;
-          background: #7c3aed;
+          background: var(--primary-dark, #7c3aed);
           color: #fff;
           font-family: 'DM Sans', sans-serif;
           font-size: 13px;
@@ -798,13 +798,13 @@ export default function Login() {
           margin-top: 18px;
           text-align: center;
           font-size: 12px;
-          color: #6b6b78;
+          color: var(--ink-muted);
         }
 
         .asc-switch button {
           background: none;
           border: none;
-          color: #8b5cf6;
+          color: var(--primary);
           font-family: 'DM Sans', sans-serif;
           font-size: 12px;
           font-weight: 700;
@@ -814,13 +814,13 @@ export default function Login() {
           transition: color 0.2s;
         }
 
-        .asc-switch button:hover { color: #a78bfa; }
+        .asc-switch button:hover { color: var(--primary); }
 
         /* ── XP bar decoration ─────────────────────────────────── */
         .asc-xp-bar {
           margin-top: 28px;
           padding-top: 22px;
-          border-top: 1px solid #262630;
+          border-top: 1px solid var(--ledger-paper-border);
         }
 
         .asc-xp-label {
@@ -836,12 +836,12 @@ export default function Login() {
           text-transform: uppercase;
         }
 
-        .asc-xp-label .l { color: #6b6b78; }
-        .asc-xp-label .r { color: #fbbf24; }
+        .asc-xp-label .l { color: var(--ink-muted); }
+        .asc-xp-label .r { color: var(--accent); }
 
         .asc-xp-track {
           height: 5px;
-          background: #262630;
+          background: var(--ledger-paper-border);
           border-radius: 2px;
           overflow: hidden;
         }
@@ -849,7 +849,7 @@ export default function Login() {
         .asc-xp-fill {
           height: 100%;
           width: 0%;
-          background: #8b5cf6;
+          background: var(--primary);
           border-radius: 2px;
           transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
         }
@@ -936,7 +936,7 @@ export default function Login() {
                     width: 7,
                     height: 7,
                     borderRadius: 0,
-                    background: "#a78bfa",
+                    background: "var(--primary)",
                     display: "inline-block",
                   }}
                 />
@@ -958,7 +958,7 @@ export default function Login() {
                       cy="26"
                       r="22"
                       fill="none"
-                      stroke="#262630"
+                      stroke="var(--ledger-paper-border)"
                       strokeWidth="5"
                     />
                     <circle
@@ -966,7 +966,7 @@ export default function Login() {
                       cy="26"
                       r="22"
                       fill="none"
-                      stroke="#f59e0b"
+                      stroke="var(--accent)"
                       strokeWidth="5"
                       strokeLinecap="butt"
                       strokeDasharray="138"
@@ -989,7 +989,7 @@ export default function Login() {
                 <div className="asc-habit-row">
                   <div
                     className="asc-habit-dot"
-                    style={{ background: "#a78bfa" }}
+                    style={{ background: "var(--primary)" }}
                   />
                   <span className="asc-habit-name">Treinar</span>
                   <div className="asc-habit-check done">
@@ -1001,7 +1001,7 @@ export default function Login() {
                 <div className="asc-habit-row">
                   <div
                     className="asc-habit-dot"
-                    style={{ background: "#f59e0b" }}
+                    style={{ background: "var(--accent)" }}
                   />
                   <span className="asc-habit-name">Estudar</span>
                   <div className="asc-habit-check done">
@@ -1292,7 +1292,7 @@ export default function Login() {
                       marginTop: 2,
                       width: 16,
                       height: 16,
-                      accentColor: "#8b5cf6",
+                      accentColor: "var(--primary)",
                       cursor: "pointer",
                       flexShrink: 0,
                     }}
@@ -1312,7 +1312,7 @@ export default function Login() {
                       href="/terms"
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ color: "#a78bfa", textDecoration: "underline" }}
+                      style={{ color: "var(--primary)", textDecoration: "underline" }}
                     >
                       Termos de Uso
                     </a>{" "}
@@ -1321,7 +1321,7 @@ export default function Login() {
                       href="/privacy"
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ color: "#a78bfa", textDecoration: "underline" }}
+                      style={{ color: "var(--primary)", textDecoration: "underline" }}
                     >
                       Política de Privacidade
                     </a>{" "}

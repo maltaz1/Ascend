@@ -14,7 +14,7 @@ export function CircularProgress({
   value,
   size = 80,
   strokeWidth = 6,
-  color = '#F59E0B',
+  color = 'var(--accent)',
   trackColor = 'rgba(255,255,255,0.08)',
   children,
   className = '',

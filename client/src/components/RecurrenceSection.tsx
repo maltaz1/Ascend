@@ -147,7 +147,7 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
 
       {/* Configuração Personalizada */}
       {showCustom && (
-        <div className="flex flex-col gap-3 p-3 bg-[#18181f] rounded-md border border-[#262630]">
+        <div className="flex flex-col gap-3 p-3 bg-[var(--ledger-paper-bg)] rounded-md border border-[var(--ledger-paper-border)]">
           <div className="flex gap-3">
             <div className="flex-1">
               <div className="ledger-marginalia mb-2">Repetir a cada</div>
@@ -175,7 +175,7 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
                   })
                 }
                 className="ledger-input w-full"
-                style={{ background: "transparent", outline: "none", color: "#ededed" }}
+                style={{ background: "transparent", outline: "none", color: "var(--ink)" }}
               >
                 <option value="days">📅 Dias</option>
                 <option value="weeks">🗓️ Semanas</option>
@@ -270,15 +270,15 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
 
       {/* Prévia da Recorrência */}
       {recurrence.type !== 'never' && (
-        <div className="mt-2 p-3 bg-[#18181f] rounded-md border border-[#262630] border-t-2 border-t-[#8b5cf6]">
+        <div className="mt-2 p-3 bg-[var(--ledger-paper-bg)] rounded-md border border-[var(--ledger-paper-border)] border-t-2 border-t-[var(--primary)]">
           <div className="flex items-center gap-2 mb-2">
-            <RotateCw size={14} className="text-[#a78bfa]" />
+            <RotateCw size={14} className="text-[var(--primary)]" />
             <span className="text-[13px] font-semibold text-foreground">Resumo</span>
           </div>
           <p className="text-[12px] text-muted-foreground mb-2 leading-relaxed">
             {recurrencePreview}
           </p>
-          <div className="flex items-center gap-2 pt-2 border-t border-[#262630]">
+          <div className="flex items-center gap-2 pt-2 border-t border-[var(--ledger-paper-border)]">
             <Calendar size={12} className="text-muted-foreground" />
             <span className="text-[11px] text-muted-foreground">Próximas:</span>
             <div className="flex gap-2">

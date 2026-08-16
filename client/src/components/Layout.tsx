@@ -7,6 +7,7 @@ import {
   CheckSquare,
   Calendar,
   Flame,
+  Moon,
   Sun,
   Trophy,
   ChevronLeft,
@@ -23,6 +24,7 @@ import {
   FileText,
   RotateCw,
 } from "lucide-react";
+import { useTheme } from "../contexts/ThemeContext";
 import { FREE_TABS } from "@/config/planLimits";
 import { useStore } from "@/hooks/useStore";
 import { getLevelProgress } from "@/lib/store";
@@ -99,6 +101,7 @@ export function Layout({
   const levelProgress = getLevelProgress();
 
   const isMobile = useIsMobile();
+  const { theme, toggleTheme } = useTheme();
 
   const orderedNavItems = navOrder
     .map(id => navItems.find(item => item.id === id))
@@ -132,8 +135,8 @@ export function Layout({
         style={{
           width: collapsed ? 72 : 240,
           minHeight: "100vh",
-          background: "#15151c",
-          borderRight: "1px solid #262630",
+          background: "var(--sidebar-bg)",
+          borderRight: "1px solid var(--sidebar-border-color)",
           display: "flex",
           flexDirection: "column",
           padding: "20px 12px",
@@ -183,7 +186,7 @@ export function Layout({
                   fontFamily: "Space Grotesk",
                   fontWeight: 800,
                   fontSize: 11,
-                  color: "#F59E0B",
+                  color: "var(--accent)",
                 }}
               >
                 {data.user.level}
@@ -242,21 +245,21 @@ export function Layout({
                   justifyContent: collapsed ? "center" : "flex-start",
                   padding: collapsed ? "10px" : "10px 12px",
                   opacity: draggedItem === item.id ? 0.5 : 1,
-                  background: isActive ? "#1b1b24" : "transparent",
-                  borderLeft: `2px solid ${isActive ? "#f59e0b" : "transparent"}`,
-                  color: isActive ? "#fbbf24" : "#9a9aa8",
+                  background: isActive ? "var(--sidebar-accent)" : "transparent",
+                  borderLeft: `2px solid ${isActive ? "var(--accent)" : "transparent"}`,
+                  color: isActive ? "var(--accent)" : "var(--sidebar-foreground)",
                   cursor: "grab",
                   transition: "all 0.15s ease",
                 }}
                 onMouseEnter={e => {
                   if (!isActive) {
-                    e.currentTarget.style.color = "#ededed";
-                    e.currentTarget.style.background = "#1b1b24";
+                    e.currentTarget.style.color = "var(--sidebar-foreground)";
+                    e.currentTarget.style.background = "var(--sidebar-accent)";
                   }
                 }}
                 onMouseLeave={e => {
                   if (!isActive) {
-                    e.currentTarget.style.color = "#9a9aa8";
+                    e.currentTarget.style.color = "var(--sidebar-foreground)";
                     e.currentTarget.style.background = "transparent";
                   }
                 }}
@@ -307,7 +310,7 @@ export function Layout({
                             borderRadius: 3,
                             background: "transparent",
                             border: "1px solid rgba(139, 92, 246, 0.55)",
-                            color: "#a78bfa",
+                            color: "var(--primary)",
                             fontWeight: 700,
                             letterSpacing: "0.08em",
                             textTransform: "uppercase",
@@ -362,7 +365,7 @@ export function Layout({
                 borderRadius: 5,
                 border: "1px solid rgba(139, 92, 246, 0.55)",
                 background: "transparent",
-                color: "#a78bfa",
+                color: "var(--primary)",
                 cursor: "pointer",
                 fontSize: 12,
                 fontWeight: 700,
@@ -380,8 +383,8 @@ export function Layout({
         {!collapsed && data.user.streak > 0 && (
           <div
             style={{
-              background: "#1b1b24",
-              border: "1px solid #262630",
+              background: "var(--ledger-paper-bg)",
+              border: "1px solid var(--sidebar-border-color)",
               borderLeft: "2px solid #ef4444",
               borderRadius: 0,
               padding: "10px 12px",
@@ -429,7 +432,7 @@ export function Layout({
               borderRadius: 5,
                 background: "transparent",
                 border: "1.5px solid rgba(139, 92, 246, 0.55)",
-                color: "#a78bfa",
+                color: "var(--primary)",
               cursor: "pointer",
               transition: "all 0.3s ease",
               marginTop: !collapsed && data.user.streak > 0 ? 0 : "auto",
@@ -468,20 +471,20 @@ export function Layout({
             padding: "10px 12px",
             borderRadius: 4,
             background: "transparent",
-            border: "1px solid #33333f",
-            color: "#6b6b78",
+            border: "1px solid var(--ledger-paper-border)",
+            color: "var(--ink-muted)",
             cursor: "pointer",
             transition: "all 0.15s ease",
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.background = "#1b1b24";
+            e.currentTarget.style.background = "var(--sidebar-accent)";
             e.currentTarget.style.borderColor = "#46465a";
-            e.currentTarget.style.color = "#fbbf24";
+            e.currentTarget.style.color = "var(--accent)";
           }}
           onMouseLeave={e => {
             e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.borderColor = "#33333f";
-            e.currentTarget.style.color = "#6b6b78";
+            e.currentTarget.style.borderColor = "var(--ledger-paper-border)";
+            e.currentTarget.style.color = "var(--ink-muted)";
           }}
         >
           {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
@@ -502,6 +505,49 @@ export function Layout({
       >
         {/* canto de página virada */}
         <span className="page-curl" aria-hidden="true" />
+
+        {/* Alternância de tema — sol/lua no canto superior direito */}
+        {toggleTheme && (
+          <div
+            style={{
+              position: "absolute",
+              top: 18,
+              right: 24,
+              zIndex: 20,
+            }}
+          >
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 38,
+                height: 38,
+                borderRadius: 999,
+                background: "var(--ledger-paper-bg)",
+                border: "1px solid var(--ledger-paper-border)",
+                boxShadow: "2px 2px 0 var(--ledger-paper-shadow)",
+                color: "var(--ink-muted)",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.color = "var(--accent)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.color = "var(--ink-muted)";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+            >
+              {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
+            </button>
+          </div>
+        )}
+
         {children}
       </main>
 
@@ -534,7 +580,7 @@ export function Layout({
           onMouseEnter={e => {
             e.currentTarget.style.background = "rgba(245,158,11,0.12)";
             e.currentTarget.style.borderColor = "rgba(245,158,11,0.2)";
-            e.currentTarget.style.color = "#F59E0B";
+            e.currentTarget.style.color = "var(--accent)";
           }}
           onMouseLeave={e => {
             e.currentTarget.style.background = "var(--bg-secondary)";
@@ -576,8 +622,8 @@ export function Layout({
               width: "85%",
               maxWidth: 320,
               height: "100vh",
-              background: "#15151c",
-              borderRight: "1px solid #262630",
+              background: "var(--sidebar-bg)",
+              borderRight: "1px solid var(--sidebar-border-color)",
               boxShadow: "4px 0 0 rgba(0,0,0,0.25)",
               zIndex: 95,
               flexDirection: "column",
@@ -637,10 +683,10 @@ export function Layout({
                       padding: "14px 16px",
                       borderRadius: 4,
                       background: isActive
-                        ? "#1b1b24"
+                        ? "var(--ledger-paper-bg)"
                         : "transparent",
-                      borderLeft: isActive ? "2px solid #f59e0b" : "2px solid transparent",
-                      color: isActive ? "#fbbf24" : "rgba(255,255,255,0.65)",
+                      borderLeft: isActive ? "2px solid var(--accent)" : "2px solid transparent",
+                      color: isActive ? "var(--accent)" : "var(--muted-foreground)",
                       cursor: "pointer",
                       transition: "all 0.15s ease",
                       fontFamily: "DM Sans",
@@ -649,7 +695,7 @@ export function Layout({
                       textAlign: "left",
                     }}
                   >
-                    <Icon size={20} style={{ flexShrink: 0, color: isActive ? "#fbbf24" : "#6b6b78" }} />
+                    <Icon size={20} style={{ flexShrink: 0, color: isActive ? "var(--accent)" : "var(--ink-muted)" }} />
                     <div className="flex-1 flex items-center justify-between">
                       <span>{item.label}</span>
 

@@ -364,7 +364,7 @@ export default function Settings() {
  {profile.isPro ? "Ascend PRO" : "Ascend Free"}
  </div></div></div></div><div className="space-y-6">
  {/* PERFIL */}
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><User className="text-[#8B5CF6]" /><h2 className="text-2xl font-bold"> Perfil</h2></div><div className="space-y-4"><input
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><User className="text-[var(--primary)]" /><h2 className="text-2xl font-bold"> Perfil</h2></div><div className="space-y-4"><input
  type="text"
  placeholder="Nome"
  value={profile.name}
@@ -377,8 +377,8 @@ export default function Settings() {
  className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-4 py-3"
  /><div className="space-y-4"><div className="flex items-center gap-4"><img
  src={profile.avatar}
- className="w-24 h-24 rounded-full object-cover border-4 border-[#8B5CF6]"
- /><label className="cursor-pointer bg-[#8B5CF6] hover:bg-[#7C3AED] transition-all px-5 py-3 rounded-md font-semibold text-white">
+ className="w-24 h-24 rounded-full object-cover border-4 border-[var(--primary)]"
+ /><label className="cursor-pointer bg-[var(--primary)] hover:bg-[#7C3AED] transition-all px-5 py-3 rounded-md font-semibold text-white">
  Escolher Foto
  <input
  type="file"
@@ -398,7 +398,7 @@ export default function Settings() {
  className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-4 py-3 resize-none"
  /><button
  onClick={saveProfile}
- className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold px-5 py-3 rounded-md flex items-center gap-2 transition-all  "
+ className="bg-[var(--primary)] hover:bg-[#7C3AED] text-white font-bold px-5 py-3 rounded-md flex items-center gap-2 transition-all  "
  ><Save size={18} />
  Salvar Perfil
  </button></div></motion.div>
@@ -408,7 +408,7 @@ export default function Settings() {
  onClick={toggleAnimations}
  className={`px-4 py-2 rounded-xl font-medium transition-all ${
  animationsEnabled
- ? "bg-[#8B5CF6] text-white "
+ ? "bg-[var(--primary)] text-white "
  : "bg-zinc-700"
  }`}
  >
@@ -416,7 +416,7 @@ export default function Settings() {
  </button></div></div></motion.div>
 
  {/* NOTIFICAÇÕES */}
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Bell className="text-[#a78bfa]" /><h2 className="text-2xl font-bold"> Notificações</h2></div><div className="space-y-3">
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Bell className="text-[var(--primary)]" /><h2 className="text-2xl font-bold"> Notificações</h2></div><div className="space-y-3">
  {[
  { key: "habits", label: "Hábitos" },
  { key: "tasks", label: "Tarefas" },
@@ -431,7 +431,7 @@ export default function Settings() {
  }
  className={`w-14 h-7 rounded-full relative transition-all ${
  notifications[item.key as keyof typeof notifications]
- ? "bg-[#8B5CF6] shadow-lg "
+ ? "bg-[var(--primary)] shadow-lg "
  : "bg-zinc-700"
  }`}
  ><div
@@ -458,10 +458,10 @@ export default function Settings() {
  ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center"><FileText size={18} className="text-violet-400" /></div><div className="text-left"><p className="font-medium text-zinc-200">Termos de Uso</p><p className="text-xs text-zinc-500">Regras para utilização do app</p></div></div><ExternalLink size={16} className="text-zinc-500 group-hover:text-violet-400 transition-all" /></a><button
  onClick={handleExportData}
  disabled={exportingData}
- className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4 hover:border-[#8B5CF6]/40 transition-all group disabled:opacity-50"
- ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-md bg-[#7c3aed]/10 border border-[#7c3aed]/30 flex items-center justify-center"><Download size={18} className="text-[#a78bfa]" /></div><div className="text-left"><p className="font-medium text-zinc-200">Solicitar meus dados</p><p className="text-xs text-zinc-500">
+ className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4 hover:border-[var(--primary)]/40 transition-all group disabled:opacity-50"
+ ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-md bg-[var(--primary-dark, var(--primary-dark, #7c3aed))]/10 border border-[var(--primary-dark, var(--primary-dark, #7c3aed))]/30 flex items-center justify-center"><Download size={18} className="text-[var(--primary)]" /></div><div className="text-left"><p className="font-medium text-zinc-200">Solicitar meus dados</p><p className="text-xs text-zinc-500">
  {exportingData ? "Gerando exportação..." : "Baixar cópia de todos os seus dados"}
- </p></div></div><Download size={16} className="text-zinc-500 group-hover:text-[#a78bfa] transition-all" /></button>
+ </p></div></div><Download size={16} className="text-zinc-500 group-hover:text-[var(--primary)] transition-all" /></button>
  {showReauthDialog && (
  <div className="border border-red-500/30 bg-red-500/5 rounded-md p-4 space-y-3"><p className="text-sm text-red-300">Confirme sua senha antes de excluir.</p><input
  type="password"
@@ -499,7 +499,7 @@ export default function Settings() {
  {/* CONTA */}
  <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Shield className="text-red-400" /><h2 className="text-2xl font-bold"> Conta</h2></div><div className="space-y-4"><button
  onClick={resetPassword}
- className="w-full flex items-center gap-3 bg-zinc-950 border border-zinc-800 rounded-md p-4 hover:border-[#8B5CF6]/40 transition-all"
+ className="w-full flex items-center gap-3 bg-zinc-950 border border-zinc-800 rounded-md p-4 hover:border-[var(--primary)]/40 transition-all"
  ><Lock />
  Alterar senha
  </button><button
@@ -513,10 +513,10 @@ export default function Settings() {
  <div className="pt-4 mb-2"><h2 className="text-sm font-bold text-zinc-500 uppercase tracking-widest ml-1">Conta e Suporte</h2></div>
 
  {/* CONTATO */}
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Mail className="text-[#a78bfa]" /><h2 className="text-2xl font-bold"> Contato</h2></div><div className="space-y-4"><p className="text-zinc-400 text-sm">Entre em contato caso tenha dúvidas ou sugestões.</p><button
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Mail className="text-[var(--primary)]" /><h2 className="text-2xl font-bold"> Contato</h2></div><div className="space-y-4"><p className="text-zinc-400 text-sm">Entre em contato caso tenha dúvidas ou sugestões.</p><button
  onClick={handleSupportContact}
- className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4 hover:border-[#8B5CF6]/40 transition-all group"
- ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-md bg-[#7c3aed]/10 border border-[#7c3aed]/30 flex items-center justify-center"><Mail size={18} className="text-[#a78bfa]" /></div><div className="text-left"><p className="font-medium text-zinc-200">ascendprod1@gmail.com</p><p className="text-xs text-zinc-500">Clique para enviar um e-mail</p></div></div><div className="bg-[#7c3aed] px-4 py-2 rounded-md text-xs font-bold text-white opacity-0 group-hover:opacity-100 transition-all">
+ className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4 hover:border-[var(--primary)]/40 transition-all group"
+ ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-md bg-[var(--primary-dark, var(--primary-dark, #7c3aed))]/10 border border-[var(--primary-dark, var(--primary-dark, #7c3aed))]/30 flex items-center justify-center"><Mail size={18} className="text-[var(--primary)]" /></div><div className="text-left"><p className="font-medium text-zinc-200">ascendprod1@gmail.com</p><p className="text-xs text-zinc-500">Clique para enviar um e-mail</p></div></div><div className="bg-[var(--primary-dark, var(--primary-dark, #7c3aed))] px-4 py-2 rounded-md text-xs font-bold text-white opacity-0 group-hover:opacity-100 transition-all">
  Enviar e-mail
  </div></button></div></motion.div>
 
@@ -547,7 +547,7 @@ export default function Settings() {
  )}
 
  {/* SOBRE */}
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Info className="text-zinc-300" /><h2 className="text-2xl font-bold"> Sobre</h2></div><div className="space-y-3"><div className="flex justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4"><span>Versão do app</span><span className="text-zinc-400">1.0.0</span></div><div className="flex justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4"><span>Status</span><span className="text-[#8B5CF6]">Online</span></div></div></motion.div></div></div><CancellationModal
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Info className="text-zinc-300" /><h2 className="text-2xl font-bold"> Sobre</h2></div><div className="space-y-3"><div className="flex justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4"><span>Versão do app</span><span className="text-zinc-400">1.0.0</span></div><div className="flex justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4"><span>Status</span><span className="text-[var(--primary)]">Online</span></div></div></motion.div></div></div><CancellationModal
  isOpen={isCancellationModalOpen}
  onClose={() => setIsCancellationModalOpen(false)}
  onSuccess={loadPendingCancellation}

@@ -35,12 +35,12 @@ export function Modal({ open, onClose, title, children, maxWidth = '420px' }: Mo
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div 
-        className="bg-[#18181f] border border-[#262630] w-full rounded-md p-6 shadow-[8px_8px_0_rgba(0,0,0,0.35)] animate-in zoom-in-95 duration-200"
+        className="bg-[var(--ledger-paper-bg)] border border-[var(--ledger-paper-border)] w-full rounded-md p-6 shadow-[8px_8px_0_rgba(0,0,0,0.35)] animate-in zoom-in-95 duration-200"
         style={{ maxWidth }}
       >
         {title && (
           <div className="flex items-center justify-between mb-6">
-            <h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: '20px', color: '#ededed', letterSpacing: '-0.02em' }}>
+            <h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: '20px', color: 'var(--ink)', letterSpacing: '-0.02em' }}>
               {title}
             </h2>
             <button

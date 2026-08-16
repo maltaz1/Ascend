@@ -86,10 +86,30 @@
   --sidebar-accent-foreground: #111111;
   --sidebar-border: #e5e7eb;
   --sidebar-ring: #8b5cf6;
-  /* Custom variables */
-  --bg-primary: #fafafa;
+  /* Custom variables — Modo Claro "Caderno Diurno" */
+  --bg-primary: #f4f1ea;
   --bg-secondary: #ffffff;
-  --border-subtle: #e5e7eb;
+  --border-subtle: #e5e0d5;
+  /* Papel da superfície (fundo da tela) */
+  --page-bg: #f4f1ea;
+  --page-surface: #ffffff;
+  /* Luz do sol vinda de cima (canto superior central) */
+  --page-light-top: rgba(245, 158, 11, 0.10);
+  --page-light-top-mid: rgba(245, 158, 11, 0.04);
+  /* Contraluz roxa suave vinda de baixo */
+  --page-light-bottom: rgba(139, 92, 246, 0.05);
+  /* Lombada do caderno (sidebar) */
+  --sidebar-bg: #efece3;
+  --sidebar-border-color: #ded8cc;
+  /* Caderno Ledger: página de anotação */
+  --ledger-paper-bg: #ffffff;
+  --ledger-paper-border: #e0dcd2;
+  --ledger-paper-shadow: rgba(28, 25, 23, 0.18);
+  /* Corridas de tinta (texto) */
+  --ink: #1c1917;
+  --ink-muted: #57534e;
+  --scrollbar-thumb: rgba(28, 25, 23, 0.25);
+  --scrollbar-thumb-hover: rgba(28, 25, 23, 0.4);
   /* Habit cell size — mude aqui para ajustar tudo junto */
   --habit-cell: 32px;
 }
@@ -127,10 +147,24 @@
   --sidebar-accent-foreground: #f5f5f5;
   --sidebar-border: #2a2a32;
   --sidebar-ring: #8b5cf6;
-  /* Custom variables */
+  /* Custom variables — Modo Escuro "Ledger Noturno" */
   --bg-primary: #111118;
   --bg-secondary: #1a1a22;
   --border-subtle: #2a2a32;
+  --page-bg: #12111a;
+  --page-surface: #171621;
+  --page-light-top: rgba(139, 92, 246, 0.13);
+  --page-light-top-mid: rgba(120, 80, 200, 0.05);
+  --page-light-bottom: rgba(245, 158, 11, 0.05);
+  --sidebar-bg: #15151c;
+  --sidebar-border-color: #262630;
+  --ledger-paper-bg: #18181f;
+  --ledger-paper-border: #262630;
+  --ledger-paper-shadow: rgba(0, 0, 0, 0.32);
+  --ink: #f5f5f5;
+  --ink-muted: #9ca3af;
+  --scrollbar-thumb: rgba(255, 255, 255, 0.2);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
   --habit-cell: 32px;
 }
 
@@ -149,19 +183,18 @@
     font-family: 'DM Sans', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* Cartolina noturna: tom escuro com leve aquecimento no centro-superior,
-       como uma página iluminada por um abajur — sem ruído, sem padrão, só luz. */
-    background-color: #12111a;
+    /* Superfície de papel: luz única — sol de manhã (claro) ou abajur (escuro) */
+    background-color: var(--page-bg);
     background-image:
       radial-gradient(
         90% 55% at 50% -18%,
-        rgba(139, 92, 246, 0.13) 0%,
-        rgba(120, 80, 200, 0.05) 45%,
+        var(--page-light-top) 0%,
+        var(--page-light-top-mid) 45%,
         transparent 70%
       ),
       radial-gradient(
         110% 70% at 50% 130%,
-        rgba(245, 158, 11, 0.05) 0%,
+        var(--page-light-bottom) 0%,
         transparent 60%
       );
   }
@@ -302,7 +335,7 @@
 
   .fz-nav-scroll {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
   }
 
   .fz-nav-scroll::-webkit-scrollbar {
@@ -314,12 +347,12 @@
   }
 
   .fz-nav-scroll::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--scrollbar-thumb, rgba(255, 255, 255, 0.2));
     border-radius: 3px;
   }
 
   .fz-nav-scroll::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--scrollbar-thumb-hover, rgba(255, 255, 255, 0.3));
   }
 
   .fz-sidebar-item {
@@ -449,11 +482,11 @@
   ============================================ */
 
   .ledger-paper {
-    background: #18181f;
-    border: 1px solid #262630;
-    border-top: 2px solid #262630;
+    background: var(--ledger-paper-bg);
+    border: 1px solid var(--ledger-paper-border);
+    border-top: 2px solid var(--ledger-paper-border);
     border-radius: 6px;
-    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.32);
+    box-shadow: 3px 3px 0 var(--ledger-paper-shadow);
     transition: border-color 0.15s ease, transform 0.15s ease;
   }
 
@@ -471,7 +504,7 @@
     font-weight: 600;
     text-transform: uppercase;
     letter-spacing: 0.14em;
-    color: #6b6b78;
+    color: var(--ink-muted);
   }
 
   /* Número de ficha editorial: "04 — METAS" */
@@ -480,7 +513,7 @@
     font-size: 11px;
     font-weight: 700;
     letter-spacing: 0.1em;
-    color: #6b6b78;
+    color: var(--ink-muted);
     text-transform: uppercase;
     display: inline-flex;
     align-items: center;
@@ -489,7 +522,7 @@
   .ledger-index::after {
     content: '';
     height: 1px;
-    background: #262630;
+    background: var(--ledger-paper-border);
     flex: 1;
   }
 
@@ -505,15 +538,15 @@
     font-weight: 700;
     text-transform: uppercase;
     letter-spacing: 0.1em;
-    border: 1px solid #33333f;
-    color: #a0a0ad;
+    border: 1px solid var(--ledger-paper-border);
+    color: var(--ink-muted);
     background: transparent;
   }
-  .ledger-stamp--violet { border-color: rgba(139, 92, 246, 0.55); color: #a78bfa; background: rgba(139, 92, 246, 0.08); }
-  .ledger-stamp--amber  { border-color: rgba(245, 158, 11, 0.55); color: #fbbf24; background: rgba(245, 158, 11, 0.08); }
-  .ledger-stamp--green  { border-color: rgba(16, 185, 129, 0.55); color: #34d399; background: rgba(16, 185, 129, 0.08); }
-  .ledger-stamp--red    { border-color: rgba(239, 68, 68, 0.55); color: #f87171; background: rgba(239, 68, 68, 0.08); }
-  .ledger-stamp--ink    { border-color: #3a3a47; color: #d4d4dc; }
+  .ledger-stamp--violet { border-color: rgba(139, 92, 246, 0.55); color: var(--primary); background: rgba(139, 92, 246, 0.08); }
+  .ledger-stamp--amber  { border-color: rgba(245, 158, 11, 0.55); color: var(--accent); background: rgba(245, 158, 11, 0.08); }
+  .ledger-stamp--green  { border-color: rgba(16, 185, 129, 0.55); color: #10b981; background: rgba(16, 185, 129, 0.08); }
+  .ledger-stamp--red    { border-color: rgba(239, 68, 68, 0.55); color: #ef4444; background: rgba(239, 68, 68, 0.08); }
+  .ledger-stamp--ink    { border-color: var(--ledger-paper-border); color: var(--ink-muted); }
 
   /* Botão primário: tinta sólida, sombra dura */
   .ledger-btn {
@@ -538,8 +571,8 @@
   .ledger-btn--violet:hover { background: #6d28d9; transform: translate(0, -2px); box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.4); }
   .ledger-btn--amber { background: #b45309; color: #fff; }
   .ledger-btn--amber:hover { background: #92400e; transform: translate(0, -2px); box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.4); }
-  .ledger-btn--ghost { background: transparent; border: 1px solid #33333f; color: #d4d4dc; box-shadow: none; }
-  .ledger-btn--ghost:hover { background: #22222b; color: #fff; border-color: #3f3f4c; }
+  .ledger-btn--ghost { background: transparent; border: 1px solid var(--border); color: var(--ink-muted); box-shadow: none; }
+  .ledger-btn--ghost:hover { background: var(--muted); color: var(--foreground); border-color: var(--border-subtle); }
   .ledger-btn--ghost--amber:hover { border-color: rgba(245, 158, 11, 0.5); color: #fbbf24; }
   .ledger-btn--red { background: #b91c1c; color: #ffffff; }
   .ledger-btn--red:hover { background: #991b1b; transform: translate(0, -2px); box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.4); }
@@ -552,9 +585,9 @@
 
   /* Blocos de métrica estilo ficha de caderno */
   .ledger-metric {
-    background: #18181f;
-    border: 1px solid #262630;
-    border-top: 2px solid #262630;
+    background: var(--ledger-paper-bg);
+    border: 1px solid var(--ledger-paper-border);
+    border-top: 2px solid var(--ledger-paper-border);
     border-radius: 6px;
     padding: 18px 20px 16px;
     position: relative;
@@ -569,14 +602,14 @@
     font-weight: 800;
     font-variant-numeric: tabular-nums;
     letter-spacing: -0.03em;
-    color: #ededed;
+    color: var(--ink);
     line-height: 1;
   }
 
   /* Linha de pauta (divisória interna de ficha) */
   .ledger-rule {
     height: 1px;
-    background: #262630;
+    background: var(--ledger-paper-border);
     border: none;
   }
 
@@ -585,25 +618,20 @@
     width: 100%;
     background: transparent;
     border: none;
-    border-bottom: 1.5px solid #33333f;
-    color: #ededed;
+    border-bottom: 1.5px solid var(--ledger-paper-border);
+    color: var(--ink);
     font-family: 'DM Sans', sans-serif;
     font-size: 14px;
     padding: 10px 2px 8px;
     outline: none;
     transition: border-color 0.15s ease;
   }
-  .ledger-input::placeholder { color: #4a4a57; }
-  .ledger-input:focus { border-bottom-color: #8b5cf6; }
+  .ledger-input::placeholder { color: var(--ink-muted); opacity: 0.6; }
+  .ledger-input:focus { border-bottom-color: var(--primary); }
 
-  /* Select nativo: dropdown escuro no sistema (evita fundo branco e texto ilegível) */
-  .ledger-input,
-  select {
-    color-scheme: dark;
-  }
   select option {
-    background-color: #1a1a24;
-    color: #e8e8ee;
+    background-color: var(--ledger-paper-bg);
+    color: var(--ink);
     font-family: 'DM Sans', sans-serif;
   }
 
@@ -612,7 +640,7 @@
     -webkit-appearance: none;
     appearance: none;
     height: 4px;
-    background: #262630;
+    background: var(--ledger-paper-border);
     border-radius: 2px;
     outline: none;
     margin: 8px 0;
@@ -622,7 +650,7 @@
     appearance: none;
     width: 16px;
     height: 16px;
-    background: #8b5cf6;
+    background: var(--primary);
     border-radius: 3px;
     border: none;
     cursor: pointer;
@@ -631,7 +659,7 @@
   .ledger-range::-moz-range-thumb {
     width: 16px;
     height: 16px;
-    background: #8b5cf6;
+    background: var(--primary);
     border-radius: 3px;
     border: none;
     cursor: pointer;
@@ -643,7 +671,7 @@
     width: 16px;
     height: 16px;
     border-radius: 2px;
-    border: 1.5px solid #3f3f4c;
+    border: 1.5px solid var(--ink-muted);
     background: transparent;
     flex-shrink: 0;
   }
@@ -669,17 +697,17 @@
      mais claro para a página se destacar da mesa. Sem ruído, sem padrão. */
   .notebook-page {
     position: relative;
-    background-color: #171621;
+    background-color: var(--page-surface);
     background-image:
       radial-gradient(
         90% 55% at 50% -18%,
-        rgba(139, 92, 246, 0.13) 0%,
-        rgba(120, 80, 200, 0.05) 45%,
+        var(--page-light-top) 0%,
+        var(--page-light-top-mid) 45%,
         transparent 70%
       ),
       radial-gradient(
         110% 70% at 50% 130%,
-        rgba(245, 158, 11, 0.05) 0%,
+        var(--page-light-bottom) 0%,
         transparent 60%
       );
     border-radius: 4px;

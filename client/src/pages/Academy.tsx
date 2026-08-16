@@ -407,7 +407,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  style={{ padding: "18px 20px", textAlign: "center" }}
  ><div style={{ fontSize: 24, marginBottom: 8 }}> </div><div
  className="fz-metric-number"
- style={{ fontSize: 28, color: "#A855F7", marginBottom: 4 }}
+ style={{ fontSize: 28, color: "var(--primary)", marginBottom: 4 }}
  ><AnimatedCounter value={stats.totalWorkouts} /></div><div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
  Treinos Completos
  </div></div><div
@@ -415,7 +415,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  style={{ padding: "18px 20px", textAlign: "center" }}
  ><div style={{ fontSize: 24, marginBottom: 8 }}></div><div
  className="fz-metric-number"
- style={{ fontSize: 28, color: "#8B5CF6", marginBottom: 4 }}
+ style={{ fontSize: 28, color: "var(--primary)", marginBottom: 4 }}
  ><AnimatedCounter value={stats.totalWorkoutPlans} /></div><div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
  Fichas de Treino
  </div></div><div
@@ -482,7 +482,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  cursor: "pointer",
  border:
  selectedWorkoutId === workout.id
- ? "2px solid #A855F7"
+ ? "2px solid var(--primary)"
  : "1px solid var(--border)",
  }}
  onClick={() => setSelectedWorkoutId(workout.id)}
@@ -602,9 +602,9 @@ export default function Academy({ onTabChange }: AcademyProps) {
  fontSize: 11,
  fontWeight: 600,
  border: "1px solid",
- borderColor: isSelected ? "#A855F7" : "var(--border)",
+ borderColor: isSelected ? "var(--primary)" : "var(--border)",
  background: isSelected ? "rgba(168,85,247,0.1)" : "transparent",
- color: isSelected ? "#A855F7" : "var(--muted-foreground)",
+ color: isSelected ? "var(--primary)" : "var(--muted-foreground)",
  cursor: "pointer",
  transition: "all 0.2s"
  }}
@@ -667,7 +667,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  padding: "2px 6px", 
  borderRadius: 4, 
  background: "rgba(168,85,247,0.1)", 
- color: "#A855F7",
+ color: "var(--primary)",
  fontWeight: 600
  }}>
  {exerciseCatalog.find(c => c.id === exercise.catalogExerciseId)?.targetMuscleGroup}
@@ -813,7 +813,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  value={historyFilter}
  onChange={e => setHistoryFilter(e.target.value)}
  className="ledger-input"
- style={{ width: "140px", fontSize: 12, background: "transparent", outline: "none", color: "#ededed" }}
+ style={{ width: "140px", fontSize: 12, background: "transparent", outline: "none", color: "var(--ink)" }}
  ><option value="7">Últimos 7 dias</option><option value="30">Últimos 30 dias</option><option value="90">Últimos 90 dias</option></select></div>
 
  {filteredSessions.length === 0 ? (
@@ -878,7 +878,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  }}
  >
  Volume Total
- </div><div style={{ color: "#A855F7", fontWeight: 600 }}>
+ </div><div style={{ color: "var(--primary)", fontWeight: 600 }}>
  {(session.totalVolume || 0).toFixed(0)} kg
  </div></div><div><div
  style={{
@@ -887,7 +887,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  }}
  >
  Exercícios
- </div><div style={{ color: "#8B5CF6", fontWeight: 600 }}>
+ </div><div style={{ color: "var(--primary)", fontWeight: 600 }}>
  {session.exercises.length}
  </div></div><div><div
  style={{
@@ -917,7 +917,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}
  ><Plus size={14} />
  Novo Exercício
- </button></div><div className="ledger-paper ledger-paper--violet" style={{ padding: "14px 16px", marginBottom: 20, borderLeft: "3px solid #A855F7" }}><p style={{ margin: 0, fontSize: 13, color: "var(--muted-foreground)", lineHeight: 1.5 }}>
+ </button></div><div className="ledger-paper ledger-paper--violet" style={{ padding: "14px 16px", marginBottom: 20, borderLeft: "3px solid var(--primary)" }}><p style={{ margin: 0, fontSize: 13, color: "var(--muted-foreground)", lineHeight: 1.5 }}>
  Os exercícios mais comuns já estão disponíveis. Crie um novo exercício apenas quando ele não estiver na lista padrão.
  </p></div><section><div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 12 }}><h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "var(--foreground)" }}>
  Exercícios padrão
@@ -931,7 +931,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  {ex.targetMuscleGroup}
  </div>
  )}
- </div><span style={{ color: "#A855F7", background: "rgba(168,85,247,0.12)", fontSize: 10, fontWeight: 700, padding: "4px 7px", borderRadius: 6 }}>
+ </div><span style={{ color: "var(--primary)", background: "rgba(168,85,247,0.12)", fontSize: 10, fontWeight: 700, padding: "4px 7px", borderRadius: 6 }}>
  PADRÃO
  </span></div>
  ))}
@@ -1053,7 +1053,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  marginBottom: 4,
  background: "transparent",
  outline: "none",
- color: "#ededed"
+ color: "var(--ink)"
  }}
 ><option value="">-- Selecione um exercício --</option>
  {filteredDefaultExercises.length > 0 && (
@@ -1234,13 +1234,13 @@ export default function Academy({ onTabChange }: AcademyProps) {
  width: 7,
  height: 7,
  borderRadius: "50%",
- background: "#A855F7",
- boxShadow: "0 0 10px #A855F7",
+ background: "var(--primary)",
+ boxShadow: "0 0 10px var(--primary)",
  }}
  /><span
  style={{
  fontSize: 11,
- color: "#A855F7",
+ color: "var(--primary)",
  fontWeight: 700,
  }}
  >
@@ -1304,8 +1304,8 @@ export default function Academy({ onTabChange }: AcademyProps) {
  borderRadius: 6,
  overflow: "visible",
  background:
- "#18181f",
- border: "1px solid #262630",
+ "var(--ledger-paper-bg)",
+ border: "1px solid var(--ledger-paper-border)",
  }}
  >
  {/* HEADER EXERCÍCIO */}
@@ -1345,7 +1345,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  Volume:
  <span
  style={{
- color: "#A855F7",
+ color: "var(--primary)",
  marginLeft: 4,
  fontWeight: 700,
  }}
@@ -1360,7 +1360,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  Séries:
  <span
  style={{
- color: "#8B5CF6",
+ color: "var(--primary)",
  marginLeft: 4,
  fontWeight: 700,
  }}
@@ -1377,7 +1377,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  border: "1px solid rgba(168,85,247,0.2)",
  fontSize: 11,
  fontWeight: 700,
- color: "#A855F7",
+ color: "var(--primary)",
  whiteSpace: "nowrap",
  }}
  >
@@ -1455,7 +1455,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  height: 36,
  borderRadius: 6,
  background:
- "linear-gradient(135deg,#8B5CF6,#7C3AED)",
+ "linear-gradient(135deg,var(--primary),#7C3AED)",
  display: "flex",
  alignItems: "center",
  justifyContent: "center",
@@ -1502,7 +1502,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  boxSizing: "border-box",
  background: "transparent",
  outline: "none",
- color: "#ededed",
+ color: "var(--ink)",
  }}
  ><option value="warmup">🔥 Aquecimento</option><option value="normal">💪 Normal</option><option value="failed">❌ Falhada</option><option value="drop">⬇️ Drop</option></select>
 
@@ -1616,7 +1616,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  height: 58,
  borderRadius: 6,
  border: "none",
- background: "#8B5CF6",
+ background: "var(--primary)",
  color: "white",
  fontSize: 18,
  fontWeight: 800,

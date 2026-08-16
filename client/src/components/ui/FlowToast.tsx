@@ -43,8 +43,8 @@ export function FlowToastContainer() {
 
   const colors: Record<Toast['type'], string> = {
     success: '#10B981',
-    xp: '#F59E0B',
-    achievement: '#A855F7',
+    xp: 'var(--accent)',
+    achievement: 'var(--primary)',
     info: '#60A5FA',
     error: '#EF4444',
   };

@@ -116,8 +116,8 @@ function normalizeWeeklyGoals(goals: Goal[]): { normalized: Goal[]; changed: boo
 
 
 const COLORS = [
- "#8B5CF6", // violet
- "#F59E0B", // amber
+ "var(--primary)", // violet
+ "var(--accent)", // amber
  "#10B981", // emerald
  "#EF4444", // red
  "#EC4899", // pink
@@ -128,8 +128,8 @@ const COLORS = [
 
 // Tintas sólidas — sem gradientes nem glow (registro de caderno, não sticker)
 const COLOR_TINT: Record<string, { light: string; dark: string }> = {
- "#F59E0B": { light: "rgba(245,158,11,0.08)", dark: "rgba(245,158,11,0.15)" },
- "#A855F7": { light: "rgba(168,85,247,0.08)", dark: "rgba(168,85,247,0.15)" },
+ "var(--accent)": { light: "rgba(245,158,11,0.08)", dark: "rgba(245,158,11,0.15)" },
+ "var(--primary)": { light: "rgba(168,85,247,0.08)", dark: "rgba(168,85,247,0.15)" },
  "#10B981": { light: "rgba(16,185,129,0.08)", dark: "rgba(16,185,129,0.15)" },
  "#8B5CF6": { light: "rgba(139,92,246,0.08)", dark: "rgba(139,92,246,0.15)" },
  "#EF4444": { light: "rgba(239,68,68,0.08)", dark: "rgba(239,68,68,0.15)" },
@@ -201,7 +201,7 @@ function WeeklyGoalCard({
  const { showXP } = useXPAnimation();
  const colorInfo = getGoalColors(goal.color);
  const hit = isWeeklyGoalHit(goalToWeekly(goal));
- const paperVariant = hit ? "ledger-paper--green" : goal.color === "#8B5CF6" || goal.color === "#A855F7" ? "ledger-paper--violet" : goal.color === "#F59E0B" ? "ledger-paper--amber" : goal.color === "#EF4444" ? "ledger-paper--red" : "";
+ const paperVariant = hit ? "ledger-paper--green" : goal.color === "var(--primary)" || goal.color === "var(--primary)" ? "ledger-paper--violet" : goal.color === "var(--accent)" ? "ledger-paper--amber" : goal.color === "#EF4444" ? "ledger-paper--red" : "";
 
  const norm = useMemo(
  () =>
@@ -314,12 +314,12 @@ function WeeklyGoalCard({
  onMouseLeave={e => (e.currentTarget.style.opacity = "0.55")}
  ><Trash2 size={13} color="#EF4444" /></button></div><div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5, flexWrap: "wrap" }}><span className={`ledger-stamp ${hit ? "ledger-stamp--green" : "ledger-stamp--violet"}`}>
  {hit ? "Atingida" : `${completedCount}/${target} sem.`}
- </span><span className={`ledger-stamp ${streak >= 7 ? "ledger-stamp--amber" : "ledger-stamp--ink"}`}><Flame size={10} fill={streak >= 7 ? "#F59E0B" : "#6b6b78"} color={streak >= 7 ? "#F59E0B" : "#6b6b78"} /> {streak} seg.</span>
+ </span><span className={`ledger-stamp ${streak >= 7 ? "ledger-stamp--amber" : "ledger-stamp--ink"}`}><Flame size={10} fill={streak >= 7 ? "var(--accent)" : "var(--ink-muted)"} color={streak >= 7 ? "var(--accent)" : "var(--ink-muted)"} /> {streak} seg.</span>
  {habit && (
  <span style={{ fontSize: 10, color: "var(--muted-foreground)", display: "flex", alignItems: "center", gap: 4 }}><CalendarDays size={10} /> {habit.title}
  </span>
  )}
- </div></div></div><div style={{ height: 5, borderRadius: 0, background: "#262630", marginBottom: 14, overflow: "hidden" }}><div style={{ width: `${Math.min(100, (completedCount / target) * 100)}%`, height: "100%", background: hit ? "#10B981" : goal.color, transition: "width 0.4s ease" }} /></div><div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: isMobile ? 3 : 4, marginBottom: 12 }}>
+ </div></div></div><div style={{ height: 5, borderRadius: 0, background: "var(--ledger-paper-border)", marginBottom: 14, overflow: "hidden" }}><div style={{ width: `${Math.min(100, (completedCount / target) * 100)}%`, height: "100%", background: hit ? "#10B981" : goal.color, transition: "width 0.4s ease" }} /></div><div style={{ display: "grid", gridTemplateColumns: "repeat(7, 1fr)", gap: isMobile ? 3 : 4, marginBottom: 12 }}>
  {days.map((completed, i) => {
  const isToday = i === todayIdx;
  const monday = new Date(`${getMondayOfDate(new Date())}T12:00:00`);
@@ -349,7 +349,7 @@ function WeeklyGoalCard({
  </div></div><span style={{ fontSize: 8, fontWeight: isToday ? 800 : 500, color: isToday ? goal.color : "var(--muted-foreground)" }}>{WEEKDAY_LABELS[i].slice(0, 2)}</span></button>
  );
  })}
- </div><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 10, borderTop: "1px solid #262630" }}><span style={{ fontSize: 10, color: "var(--muted-foreground)", display: "flex", alignItems: "center", gap: 4 }}>
+ </div><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 10, borderTop: "1px solid var(--ledger-paper-border)" }}><span style={{ fontSize: 10, color: "var(--muted-foreground)", display: "flex", alignItems: "center", gap: 4 }}>
  {norm.goal.recordStreak > 0 && <><Trophy size={10} color="#FCD34D" /> Recorde: {norm.goal.recordStreak}</>}
  </span><WeeklySparkline data={sparklineData} color={hit ? "#10B981" : goal.color} /></div></div>
  );
@@ -421,7 +421,7 @@ function GoalCard({
  })();
  };
 
- const paperVariant = isCompleted ? "ledger-paper--green" : goal.color === "#8B5CF6" || goal.color === "#A855F7" ? "ledger-paper--violet" : goal.color === "#F59E0B" ? "ledger-paper--amber" : goal.color === "#EF4444" ? "ledger-paper--red" : "";
+ const paperVariant = isCompleted ? "ledger-paper--green" : goal.color === "var(--primary)" || goal.color === "var(--primary)" ? "ledger-paper--violet" : goal.color === "var(--accent)" ? "ledger-paper--amber" : goal.color === "#EF4444" ? "ledger-paper--red" : "";
 
  return (
  <div
@@ -435,7 +435,7 @@ function GoalCard({
  {expanded ? <ChevronUp size={14} /> : <ChevronDown size={14} />}
  </button></div><div style={{ display: "flex", alignItems: "center", gap: 8, marginTop: 5, flexWrap: "wrap" }}><span className={`ledger-stamp ${isCompleted ? "ledger-stamp--green" : "ledger-stamp--violet"}`}>
  {isCompleted ? "Concluída" : "Em curso"}
- </span><span style={{ fontSize: 10, color: "var(--muted-foreground)" }}>{goal.steps.filter(s => s.completed).length}/{goal.steps.length} etapas</span></div><p style={{ fontSize: isMobile ? 11 : 12, color: "var(--muted-foreground)", marginTop: 6, lineHeight: 1.4, margin: 0, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{goal.description}</p></div></div><div style={{ height: 5, borderRadius: 0, background: "#262630", marginBottom: 14, overflow: "hidden" }}><div style={{ width: `${progress}%`, height: "100%", background: isCompleted ? "#10B981" : goal.color, borderRadius: 0, transition: "width 0.4s ease" }} /></div>
+ </span><span style={{ fontSize: 10, color: "var(--muted-foreground)" }}>{goal.steps.filter(s => s.completed).length}/{goal.steps.length} etapas</span></div><p style={{ fontSize: isMobile ? 11 : 12, color: "var(--muted-foreground)", marginTop: 6, lineHeight: 1.4, margin: 0, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{goal.description}</p></div></div><div style={{ height: 5, borderRadius: 0, background: "var(--ledger-paper-border)", marginBottom: 14, overflow: "hidden" }}><div style={{ width: `${progress}%`, height: "100%", background: isCompleted ? "#10B981" : goal.color, borderRadius: 0, transition: "width 0.4s ease" }} /></div>
 
  {expanded && (
  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10 }}>
@@ -443,7 +443,7 @@ function GoalCard({
  <button
  key={step.id}
  onClick={() => handleToggleStep(step.id)}
- style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 3, border: `1px solid ${step.completed ? "rgba(16,185,129,0.4)" : "#262630"}`, background: step.completed ? "rgba(16,185,129,0.06)" : "transparent", cursor: "pointer", textAlign: "left" }}
+ style={{ display: "flex", alignItems: "center", gap: 10, padding: "10px 12px", borderRadius: 3, border: `1px solid ${step.completed ? "rgba(16,185,129,0.4)" : "var(--ledger-paper-border)"}`, background: step.completed ? "rgba(16,185,129,0.06)" : "transparent", cursor: "pointer", textAlign: "left" }}
  ><div className={`ledger-check ${step.completed ? "ledger-check--done" : ""}`} style={step.completed ? { background: "#10B981", borderColor: "#10B981" } : { borderColor: goal.color }}><div style={{ display: "flex", alignItems: "center", justifyContent: "center", height: "100%" }}>
  {step.completed && <Check size={9} color="white" />}
  </div></div><span style={{ textDecoration: step.completed ? "line-through" : "none", color: step.completed ? "var(--muted-foreground)" : "var(--foreground)", fontSize: 13, overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>{step.title}</span></button>
@@ -461,7 +461,7 @@ function GoalCard({
 
 function EmptySection({ icon, title, subtitle, onAction, actionLabel, isMobile }: { icon: React.ReactNode; title: string; subtitle: string; onAction?: () => void; actionLabel?: string; isMobile: boolean }) {
  return (
- <div style={{ padding: isMobile ? "30px 20px" : "44px 20px", textAlign: "center", background: "#18181f", borderRadius: 6, border: "2px dashed #2a2a35", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}><div style={{ width: isMobile ? 52 : 64, height: isMobile ? 52 : 64, borderRadius: 4, background: "#22222b", border: "1px solid #33333f", display: "flex", alignItems: "center", justifyContent: "center", color: "#6b6b78" }}>{icon}</div><h4 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", margin: 0 }}>{title}</h4><p style={{ fontSize: isMobile ? 12 : 14, color: "var(--muted-foreground)", maxWidth: 300, lineHeight: 1.5, margin: 0 }}>{subtitle}</p>
+ <div style={{ padding: isMobile ? "30px 20px" : "44px 20px", textAlign: "center", background: "var(--ledger-paper-bg)", borderRadius: 6, border: "2px dashed var(--ledger-paper-border)", display: "flex", flexDirection: "column", alignItems: "center", gap: 12 }}><div style={{ width: isMobile ? 52 : 64, height: isMobile ? 52 : 64, borderRadius: 4, background: "var(--ledger-paper-border)", border: "1px solid var(--ledger-paper-border)", display: "flex", alignItems: "center", justifyContent: "center", color: "var(--primary)" }}>{icon}</div><h4 style={{ fontSize: isMobile ? 16 : 18, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", margin: 0 }}>{title}</h4><p style={{ fontSize: isMobile ? 12 : 14, color: "var(--muted-foreground)", maxWidth: 300, lineHeight: 1.5, margin: 0 }}>{subtitle}</p>
  {onAction && (
  <button onClick={onAction} className="ledger-btn ledger-btn--violet" style={{ marginTop: 8, fontSize: isMobile ? 12 : 13 }}><Plus size={isMobile ? 14 : 16} /> {actionLabel}
  </button>
@@ -523,7 +523,7 @@ function NewGoalModal({
  const [title, setTitle] = useState("");
  const [description, setDescription] = useState("");
  const [emoji, setEmoji] = useState(" ");
- const [color, setColor] = useState("#8B5CF6");
+ const [color, setColor] = useState("var(--primary)");
  const [deadline, setDeadline] = useState("");
  const [steps, setSteps] = useState<string[]>([""]);
  const [goalType, setGoalType] = useState<GoalType>("longo_prazo");
@@ -595,7 +595,7 @@ function NewGoalModal({
  style={{
  padding: "12px",
  borderRadius: 4,
- border: goalType === value ? `1.5px solid ${color}` : "1px solid #33333f",
+ border: goalType === value ? `1.5px solid ${color}` : "1px solid var(--ledger-paper-border)",
  background: goalType === value ? `${color}15` : "transparent",
  cursor: "pointer",
  display: "flex",
@@ -604,22 +604,22 @@ function NewGoalModal({
  gap: 6,
  transition: "all 0.2s ease",
  }}
- ><Icon size={16} color={goalType === value ? color : "#6b6b78"} /><span style={{ fontWeight: 700, fontSize: 13, color: goalType === value ? color : "var(--foreground)" }}>{label}</span></button>
+ ><Icon size={16} color={goalType === value ? color : "var(--ink-muted)"} /><span style={{ fontWeight: 700, fontSize: 13, color: goalType === value ? color : "var(--foreground)" }}>{label}</span></button>
  ))}
  </div></div><div><div className="ledger-marginalia mb-2">Ícone</div><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
  {["📚", "🏃", "💼", "💰", "🎯", "💪", "🧘", "✈", "🎨", "💧", "📷", "🎓"].map(em => (
- <button key={em} type="button" onClick={() => setEmoji(em)} style={{ fontSize: 15, padding: "6px 8px", borderRadius: 3, border: emoji === em ? "2px solid #F59E0B" : "1px solid #33333f", background: emoji === em ? "rgba(245,158,11,0.15)" : "transparent", cursor: "pointer", transition: "all 0.15s ease" }}>{em}</button>
+ <button key={em} type="button" onClick={() => setEmoji(em)} style={{ fontSize: 15, padding: "6px 8px", borderRadius: 3, border: emoji === em ? "2px solid var(--accent)" : "1px solid var(--ledger-paper-border)", background: emoji === em ? "rgba(245,158,11,0.15)" : "transparent", cursor: "pointer", transition: "all 0.15s ease" }}>{em}</button>
  ))}
  </div></div><div><div className="ledger-marginalia mb-2">Cor da tinta</div><div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
  {COLORS.map(c => (
- <button key={c} type="button" onClick={() => setColor(c)} style={{ width: 26, height: 26, borderRadius: 3, border: color === c ? "2px solid #ededed" : "1px solid #33333f", background: c, cursor: "pointer", transform: color === c ? "scale(1.1)" : "scale(1)", transition: "all 0.2s ease" }} />
+ <button key={c} type="button" onClick={() => setColor(c)} style={{ width: 26, height: 26, borderRadius: 3, border: color === c ? "2px solid var(--ink)" : "1px solid var(--ledger-paper-border)", background: c, cursor: "pointer", transform: color === c ? "scale(1.1)" : "scale(1)", transition: "all 0.2s ease" }} />
  ))}
  </div><div className="ledger-marginalia mb-2" style={{ marginTop: 14 }}>Título</div><input className="ledger-input" placeholder="Ex: Aprender React" value={title} onChange={e => setTitle(e.target.value)} /></div>
 
  {goalType === "semanal" ? (
  <><div><div className="ledger-marginalia mb-2">Frequência (vezes por semana)</div><div style={{ display: "flex", gap: 6, flexWrap: "wrap" }}>
  {COMMON_FREQUENCIES.map(f => (
- <button key={f.value} type="button" onClick={() => setTargetFrequency(f.value)} style={{ padding: "8px 12px", borderRadius: 4, border: targetFrequency === f.value ? `1.5px solid ${color}` : "1px solid #33333f", background: targetFrequency === f.value ? `${color}15` : "transparent", color: "var(--foreground)", cursor: "pointer", fontSize: 12 }}>{f.label}</button>
+ <button key={f.value} type="button" onClick={() => setTargetFrequency(f.value)} style={{ padding: "8px 12px", borderRadius: 4, border: targetFrequency === f.value ? `1.5px solid ${color}` : "1px solid var(--ledger-paper-border)", background: targetFrequency === f.value ? `${color}15` : "transparent", color: "var(--foreground)", cursor: "pointer", fontSize: 12 }}>{f.label}</button>
  ))}
  </div></div>
  {habits.length > 0 && (
@@ -629,7 +629,7 @@ function NewGoalModal({
  style={{
  padding: "8px 12px",
  borderRadius: 4,
- border: selectedHabitId === null ? `1.5px solid ${color}` : "1px solid #33333f",
+ border: selectedHabitId === null ? `1.5px solid ${color}` : "1px solid var(--ledger-paper-border)",
  background: selectedHabitId === null ? `${color}15` : "transparent",
  color: "var(--foreground)",
  cursor: "pointer",
@@ -649,7 +649,7 @@ function NewGoalModal({
  style={{
  padding: "8px 12px",
  borderRadius: 4,
- border: selectedHabitId === h.id ? `1.5px solid ${color}` : "1px solid #33333f",
+ border: selectedHabitId === h.id ? `1.5px solid ${color}` : "1px solid var(--ledger-paper-border)",
  background: selectedHabitId === h.id ? `${color}15` : "transparent",
  color: "var(--foreground)",
  cursor: "pointer",
@@ -665,7 +665,7 @@ function NewGoalModal({
  {steps.map((step, i) => (
  <input key={i} className="ledger-input" placeholder={`Etapa ${i + 1}`} value={step} onChange={e => setSteps(prev => { const u = [...prev]; u[i] = e.target.value; return u; })} />
  ))}
- <button onClick={() => setSteps([...steps, ""])} style={{ padding: "8px", borderRadius: 3, border: "1px dashed #3a3a47", background: "transparent", color: "var(--muted-foreground)", cursor: "pointer", fontSize: 12 }}>+ Adicionar Etapa</button></div></div>
+ <button onClick={() => setSteps([...steps, ""])} style={{ padding: "8px", borderRadius: 3, border: "1px dashed var(--ledger-paper-border)", background: "transparent", color: "var(--muted-foreground)", cursor: "pointer", fontSize: 12 }}>+ Adicionar Etapa</button></div></div>
  )}
 
  <button onClick={handleSubmit} className="ledger-btn ledger-btn--violet" style={{ marginTop: 6, width: "100%" }}>Criar Meta</button></div></Modal>
@@ -763,12 +763,12 @@ export default function Goals({
  return (
  <div style={{ paddingBottom: 40, width: "100%" }}>
  {/* Header — folha solta de caderno */}
- <div className="notebook-sheet notebook-sheet--margined"><div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: isMobile ? 24 : 34, flexWrap: "wrap", gap: 12 }}><div style={{ flex: 1 }}><div className="ledger-index" style={{ marginBottom: 10 }}>Metas · Livro de objetivos</div><h2 style={{ fontSize: isMobile ? 26 : 34, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", margin: 0, letterSpacing: "-0.02em" }}>O que você quer conquistar.</h2><p style={{ color: "#6b6b78", fontSize: isMobile ? 12 : 14, margin: "8px 0 0", maxWidth: 420 }}>Metas anotadas a tinta: semanal, de longo prazo e tudo que fica pelo caminho.</p></div><button onClick={() => setShowModal(true)} className="ledger-btn ledger-btn--violet"><Plus size={isMobile ? 15 : 17} /> Nova Meta
+ <div className="notebook-sheet notebook-sheet--margined"><div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-end", marginBottom: isMobile ? 24 : 34, flexWrap: "wrap", gap: 12 }}><div style={{ flex: 1 }}><div className="ledger-index" style={{ marginBottom: 10 }}>Metas · Livro de objetivos</div><h2 style={{ fontSize: isMobile ? 26 : 34, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", margin: 0, letterSpacing: "-0.02em" }}>O que você quer conquistar.</h2><p style={{ color: "var(--ink-muted)", fontSize: isMobile ? 12 : 14, margin: "8px 0 0", maxWidth: 420 }}>Metas anotadas a tinta: semanal, de longo prazo e tudo que fica pelo caminho.</p></div><button onClick={() => setShowModal(true)} className="ledger-btn ledger-btn--violet"><Plus size={isMobile ? 15 : 17} /> Nova Meta
  </button></div>
  </div>
 
  {/* ==================== WEEKLY SECTION ==================== */}
- <section style={{ marginBottom: isMobile ? 30 : 40 }}><div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 14 }}><div><div className="ledger-index" style={{ marginBottom: 8 }}>01 — Semanais</div><h3 style={{ fontSize: isMobile ? 17 : 20, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", margin: 0 }}>Metas Semanais</h3></div><p style={{ fontSize: 11, color: "#6b6b78", margin: 0, paddingBottom: 2 }}>Resets a cada segunda-feira</p></div>
+ <section style={{ marginBottom: isMobile ? 30 : 40 }}><div style={{ display: "flex", alignItems: "flex-end", justifyContent: "space-between", marginBottom: 14 }}><div><div className="ledger-index" style={{ marginBottom: 8 }}>01 — Semanais</div><h3 style={{ fontSize: isMobile ? 17 : 20, fontWeight: 700, fontFamily: "'Space Grotesk', sans-serif", margin: 0 }}>Metas Semanais</h3></div><p style={{ fontSize: 11, color: "var(--ink-muted)", margin: 0, paddingBottom: 2 }}>Resets a cada segunda-feira</p></div>
 
  {weeklyGoals.length > 0 && <WeeklySummaryBar weeklyGoals={weeklyGoals} isMobile={isMobile} />}
 

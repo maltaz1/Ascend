@@ -131,11 +131,11 @@ export default function Evolution({ onTabChange, hideHeader }: EvolutionProps) {
  }}
  ><div className="ledger-paper ledger-paper--violet" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 8, fontFamily: 'DM Sans' }}>
  Volume Total
- </div><div style={{ fontSize: 24, fontWeight: 700, color: '#F59E0B', marginBottom: 4 }}>
+ </div><div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>
  {stats.totalVolume}
  </div><div style={{ fontSize: 10, color: 'var(--muted-foreground)' }}>kg</div></div><div className="ledger-paper ledger-paper--violet" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 8, fontFamily: 'DM Sans' }}>
  Treinos
- </div><div style={{ fontSize: 24, fontWeight: 700, color: '#A855F7', marginBottom: 4 }}>
+ </div><div style={{ fontSize: 24, fontWeight: 700, color: 'var(--primary)', marginBottom: 4 }}>
  {stats.totalWorkouts}
  </div><div style={{ fontSize: 10, color: 'var(--muted-foreground)' }}>realizados</div></div><div className="ledger-paper ledger-paper--violet" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 8, fontFamily: 'DM Sans' }}>
  Peso Máx
@@ -167,8 +167,8 @@ export default function Evolution({ onTabChange, hideHeader }: EvolutionProps) {
  /><Line
  type="monotone"
  dataKey="weight"
- stroke="#F59E0B"
- dot={{ fill: '#F59E0B', r: 4 }}
+ stroke="var(--accent)"
+ dot={{ fill: 'var(--accent)', r: 4 }}
  activeDot={{ r: 6 }}
  strokeWidth={2}
  /></LineChart></ResponsiveContainer>
@@ -187,7 +187,7 @@ export default function Evolution({ onTabChange, hideHeader }: EvolutionProps) {
  value={selectedExercise || ''}
  onChange={e => setSelectedExercise(e.target.value)}
  className="ledger-input"
- style={{ background: "transparent", outline: "none", color: "#ededed" }}
+ style={{ background: "transparent", outline: "none", color: "var(--ink)" }}
  >
  {allExercises.map(ex => (
  <option key={ex} value={ex}>
@@ -208,11 +208,11 @@ export default function Evolution({ onTabChange, hideHeader }: EvolutionProps) {
  }}
  ><div className="ledger-paper ledger-paper--violet" style={{ padding: '14px', textAlign: 'center' }}><div style={{ fontSize: 11, color: 'var(--muted-foreground)', marginBottom: 6, fontFamily: 'DM Sans' }}>
  Volume
- </div><div style={{ fontSize: 20, fontWeight: 700, color: '#F59E0B' }}>
+ </div><div style={{ fontSize: 20, fontWeight: 700, color: 'var(--accent)' }}>
  {exerciseStats.totalVolume}
  </div><div style={{ fontSize: 9, color: 'var(--muted-foreground)' }}>kg</div></div><div className="ledger-paper ledger-paper--violet" style={{ padding: '14px', textAlign: 'center' }}><div style={{ fontSize: 11, color: 'var(--muted-foreground)', marginBottom: 6, fontFamily: 'DM Sans' }}>
  Peso Máx
- </div><div style={{ fontSize: 20, fontWeight: 700, color: '#A855F7' }}>
+ </div><div style={{ fontSize: 20, fontWeight: 700, color: 'var(--primary)' }}>
  {exerciseStats.maxWeight}
  </div><div style={{ fontSize: 9, color: 'var(--muted-foreground)' }}>kg</div></div><div className="ledger-paper ledger-paper--violet" style={{ padding: '14px', textAlign: 'center' }}><div style={{ fontSize: 11, color: 'var(--muted-foreground)', marginBottom: 6, fontFamily: 'DM Sans' }}>
  Séries
@@ -248,8 +248,8 @@ export default function Evolution({ onTabChange, hideHeader }: EvolutionProps) {
  /><Legend /><Line
  type="monotone"
  dataKey="weight"
- stroke="#A855F7"
- dot={{ fill: '#A855F7', r: 4 }}
+ stroke="var(--primary)"
+ dot={{ fill: 'var(--primary)', r: 4 }}
  activeDot={{ r: 6 }}
  strokeWidth={2}
  name="Peso Médio"

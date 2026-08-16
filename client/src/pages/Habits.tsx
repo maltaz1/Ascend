@@ -91,10 +91,10 @@ const EMOJIS = [
 ];
 
 const COLORS = [
- "#F59E0B",
- "#A855F7",
+ "var(--accent)",
+ "var(--primary)",
  "#10B981",
- "#8B5CF6",
+ "var(--primary)",
  "#EF4444",
  "#EC4899",
  "#06B6D4",
@@ -130,7 +130,7 @@ const CustomTooltip = ({ active, payload, label }: any) => {
  <p
  key={i}
  style={{
- color: p.color || "#F59E0B",
+ color: p.color || "var(--accent)",
  fontSize: 13,
  fontWeight: 600,
  }}
@@ -442,7 +442,7 @@ function HabitCard({
  style={{ background: `${habit.color}1A`, color: habit.color }}
  >
  {habit.emoji}
- </span><div className="habit-card-title-text"><span className="habit-card-name">{habit.title}</span><span className="habit-card-meta"><Flame size={12} style={{ color: "#F59E0B" }} /><span style={{ color: "#F59E0B", fontWeight: 700 }}>{streak}d</span><span className="habit-card-dot">•</span><span style={{ color: habit.color, fontWeight: 700 }}>{rateLabel}</span><span className="habit-card-dot">•</span><span>{rate}% no mês</span></span></div><button
+ </span><div className="habit-card-title-text"><span className="habit-card-name">{habit.title}</span><span className="habit-card-meta"><Flame size={12} style={{ color: "var(--accent)" }} /><span style={{ color: "var(--accent)", fontWeight: 700 }}>{streak}d</span><span className="habit-card-dot">•</span><span style={{ color: habit.color, fontWeight: 700 }}>{rateLabel}</span><span className="habit-card-dot">•</span><span>{rate}% no mês</span></span></div><button
  onClick={handleDelete}
  className="habit-card-delete"
  aria-label={`Remover hábito ${habit.title}`}
@@ -505,7 +505,7 @@ function NewHabitModal({
 
  const [emoji, setEmoji] = useState("🏃");
 
- const [customColor, setCustomColor] = useState("#F59E0B");
+ const [customColor, setCustomColor] = useState("var(--accent)");
 
  const [targetDays, setTargetDays] = useState(30);
 
@@ -550,7 +550,7 @@ function NewHabitModal({
 
  setTitle("");
  setEmoji("🏃");
- setCustomColor("#F59E0B");
+ setCustomColor("var(--accent)");
  setTargetDays(30);
 
  reloadHabits();
@@ -573,12 +573,12 @@ function NewHabitModal({
  fontSize: 16,
  padding: "7px 9px",
  borderRadius: 3,
- border: emoji === e ? "2px solid #F59E0B" : "1px solid #33333f",
+ border: emoji === e ? "2px solid var(--accent)" : "1px solid var(--ledger-paper-border)",
  background: emoji === e ? "rgba(245,158,11,0.15)" : "transparent",
  cursor: "pointer",
  fontFamily: "'Space Grotesk', sans-serif",
  fontWeight: 700,
- color: "#ededed",
+ color: "var(--ink)",
  }}
  >
  {e}
@@ -597,7 +597,7 @@ function NewHabitModal({
  height: 26,
  borderRadius: 3,
  background: c,
- border: customColor === c ? "2px solid #ededed" : "1px solid #33333f",
+ border: customColor === c ? "2px solid var(--ink)" : "1px solid var(--ledger-paper-border)",
  cursor: "pointer",
  transform: customColor === c ? "scale(1.1)" : "scale(1)",
  transition: "all 0.2s ease",
@@ -829,7 +829,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
  justifyContent: "center",
  flexShrink: 0,
  }}
- ><Flame size={15} style={{ color: "#A855F7" }} /></span>
+ ><Flame size={15} style={{ color: "var(--primary)" }} /></span>
  )}
  Hábitos
  </h1><p
@@ -962,7 +962,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
  Semanal
  </button></div></div><ResponsiveContainer width="100%" height={isMobile ? 255 : 310}>
  {chartType === "daily" ? (
- <AreaChart data={dailyData} margin={{ top: 14, right: 8, left: -18, bottom: 0 }}><defs><linearGradient id="habitChartGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#A855F7" stopOpacity={0.42} /><stop offset="100%" stopColor="#A855F7" stopOpacity={0.02} /></linearGradient></defs><CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 6" /><XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} tickMargin={12} minTickGap={isMobile ? 18 : 10} /><YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} /><Tooltip content={<CustomTooltip />} cursor={{ stroke: "rgba(168, 85, 247, 0.35)", strokeWidth: 1 }} /><Area type="monotone" dataKey="count" name="Hábitos concluídos" stroke="#C084FC" strokeWidth={3} fill="url(#habitChartGradient)" activeDot={{ r: 5, strokeWidth: 0, fill: "#F5F3FF" }} /></AreaChart>
+ <AreaChart data={dailyData} margin={{ top: 14, right: 8, left: -18, bottom: 0 }}><defs><linearGradient id="habitChartGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="var(--primary)" stopOpacity={0.42} /><stop offset="100%" stopColor="var(--primary)" stopOpacity={0.02} /></linearGradient></defs><CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 6" /><XAxis dataKey="day" tickLine={false} axisLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} tickMargin={12} minTickGap={isMobile ? 18 : 10} /><YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} /><Tooltip content={<CustomTooltip />} cursor={{ stroke: "rgba(168, 85, 247, 0.35)", strokeWidth: 1 }} /><Area type="monotone" dataKey="count" name="Hábitos concluídos" stroke="#C084FC" strokeWidth={3} fill="url(#habitChartGradient)" activeDot={{ r: 5, strokeWidth: 0, fill: "#F5F3FF" }} /></AreaChart>
  ) : (
  <BarChart data={weeklyData} margin={{ top: 14, right: 8, left: -18, bottom: 0 }} barCategoryGap="28%"><defs><linearGradient id="habitBarGradient" x1="0" y1="0" x2="0" y2="1"><stop offset="0%" stopColor="#C084FC" /><stop offset="100%" stopColor="#7C3AED" /></linearGradient></defs><CartesianGrid vertical={false} stroke="var(--border)" strokeDasharray="3 6" /><XAxis dataKey="week" tickLine={false} axisLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} tickMargin={12} /><YAxis allowDecimals={false} tickLine={false} axisLine={false} tick={{ fill: "var(--muted-foreground)", fontSize: 11 }} /><Tooltip content={<CustomTooltip />} cursor={{ fill: "rgba(168, 85, 247, 0.08)" }} /><Bar dataKey="count" name="Hábitos concluídos" fill="url(#habitBarGradient)" radius={[8, 8, 3, 3]} maxBarSize={52} /></BarChart>
  )}
@@ -971,9 +971,9 @@ export default function Habits({ isPro }: { isPro: boolean }) {
  {/* HABITS */}
 
  {filteredHabits.length === 0 ? (
- <div className="ledger-paper ledger-paper--violet flex flex-col items-center justify-center text-center py-16 px-6 mb-5"><div className="w-20 h-20 bg-[#261d14] border border-amber-500/30 rounded-md flex items-center justify-center mb-6"><Flame size={36} className="text-amber-500/50" /></div><h3 className="text-white text-lg font-bold mb-2">
+ <div className="ledger-paper ledger-paper--violet flex flex-col items-center justify-center text-center py-16 px-6 mb-5"><div className="w-20 h-20 bg-[var(--ledger-paper-border)] border border-amber-500/30 rounded-md flex items-center justify-center mb-6"><Flame size={36} className="text-amber-600" /></div><h3 className="text-[var(--ink)] text-lg font-bold mb-2">
  {searchTerm ? "Nenhum hábito encontrado" : "Nenhum hábito criado"}
- </h3><p className="text-zinc-400 text-sm mb-6 max-w-sm">
+ </h3><p className="text-[var(--ink-muted)] text-sm mb-6 max-w-sm">
  {searchTerm
  ? "Tente buscar por outro termo."
  : "Hábitos são o alicerce da sua evolução. Comece criando seu primeiro hábito e construa sua streak!"
@@ -982,7 +982,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
  {!searchTerm && (
  <button
  onClick={() => setShowModal(true)}
- className="px-6 py-3 bg-[#7c3aed] hover:bg-[#6d28d9] text-white rounded-md text-sm font-bold transition-all shadow-[4px_4px_0_rgba(0,0,0,0.3)]"
+ className="px-6 py-3 bg-[var(--primary)] hover:opacity-90 text-white rounded-md text-sm font-bold transition-all shadow-[4px_4px_0_rgba(0,0,0,0.3)]"
  >
  + Criar primeiro hábito
  </button>
@@ -1058,7 +1058,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
  style={{
  fontSize: 18,
  fontWeight: 700,
- color: "#F59E0B",
+ color: "var(--accent)",
  }}
  >
  {habitsToday}
@@ -1100,7 +1100,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
  style={{
  fontSize: 18,
  fontWeight: 700,
- color: "#A855F7",
+ color: "var(--primary)",
  }}
  >
  {filteredHabits.length}

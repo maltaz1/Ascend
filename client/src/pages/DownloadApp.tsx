@@ -97,27 +97,27 @@ export default function DownloadApp() {
  <div style={{ fontFamily: "'Sora', sans-serif", maxWidth: 860, margin: "0 auto" }}><style>{`
  .da-topbar {
  display: flex; align-items: center; justify-content: space-between;
- padding: 18px 20px; border-bottom: 1px solid #262630;
+ padding: 18px 20px; border-bottom: 1px solid var(--ledger-paper-border);
  }
  .da-topbar-left { display: flex; align-items: center; gap: 10px; }
  .da-topbar-icon {
- width: 30px; height: 30px; border-radius: 3px; background: #1f1f2a;
+ width: 30px; height: 30px; border-radius: 3px; background: var(--ledger-paper-border);
  display: flex; align-items: center; justify-content: center;
  }
- .da-topbar h1 { font-size: 16px; font-weight: 700; letter-spacing: -.02em; color: #ededed; margin: 0; font-family: 'Space Grotesk', sans-serif; }
- .da-topbar p { font-size: 11px; color: #9a9aa8; margin: 1px 0 0; font-family: 'DM Sans', sans-serif; }
+ .da-topbar h1 { font-size: 16px; font-weight: 700; letter-spacing: -.02em; color: var(--ink); margin: 0; font-family: 'Space Grotesk', sans-serif; }
+ .da-topbar p { font-size: 11px; color: var(--ink-muted); margin: 1px 0 0; font-family: 'DM Sans', sans-serif; }
  .da-share-btn {
  display: flex; align-items: center; gap: 6px;
  font-family: 'DM Sans', sans-serif; font-size: 12px; font-weight: 600;
- color: #9a9aa8; background: transparent; border: 1px solid #262630;
+ color: var(--ink-muted); background: transparent; border: 1px solid var(--ledger-paper-border);
  border-radius: 4px; padding: 7px 12px; cursor: pointer;
  transition: border-color .18s, color .18s;
  }
- .da-share-btn:hover { border-color: #7c3aed; color: #c4b5fd; }
+ .da-share-btn:hover { border-color: var(--primary-dark, #7c3aed); color: #c4b5fd; }
 
  .da-hero {
- border: 1px solid #262630; border-radius: 6px; padding: 24px;
- background: #18181f; margin: 16px; border-top: 2px solid #8B5CF6;
+ border: 1px solid var(--ledger-paper-border); border-radius: 6px; padding: 24px;
+ background: var(--ledger-paper-bg); margin: 16px; border-top: 2px solid var(--primary);
  box-shadow: 5px 5px 0 rgba(0,0,0,.3);
  }
  .da-hero-tag {
@@ -127,14 +127,14 @@ export default function DownloadApp() {
  }
  .da-hero h2 {
  font-size: 22px; font-weight: 800; letter-spacing: -.04em;
- color: #ededed; line-height: 1.1; margin: 0 0 10px; font-family: 'Space Grotesk', sans-serif;
+ color: var(--ink); line-height: 1.1; margin: 0 0 10px; font-family: 'Space Grotesk', sans-serif;
  }
- .da-hero > p { font-size: 13px; color: #9a9aa8; line-height: 1.6; max-width: 360px; margin: 0; font-family: 'DM Sans', sans-serif; }
+ .da-hero > p { font-size: 13px; color: var(--ink-muted); line-height: 1.6; max-width: 360px; margin: 0; font-family: 'DM Sans', sans-serif; }
  .da-hero-actions { display: flex; align-items: center; gap: 10px; margin-top: 18px; flex-wrap: wrap; }
 
  .da-btn-main {
  display: flex; align-items: center; gap: 7px;
- background: #7c3aed; color: #f3e8ff; border: none; border-radius: 5px;
+ background: var(--primary-dark, #7c3aed); color: #f3e8ff; border: none; border-radius: 5px;
  font-family: 'Space Grotesk', sans-serif; font-weight: 700; font-size: 13px;
  padding: 10px 18px; cursor: pointer; transition: transform .15s;
  box-shadow: 4px 4px 0 rgba(0,0,0,.3);
@@ -142,12 +142,12 @@ export default function DownloadApp() {
  .da-btn-main:hover { transform: translateY(-2px); box-shadow: 6px 6px 0 rgba(0,0,0,.35); }
  .da-btn-sec {
  display: flex; align-items: center; gap: 7px;
- background: transparent; color: #9a9aa8; border: 1px solid #262630;
+ background: transparent; color: var(--ink-muted); border: 1px solid var(--ledger-paper-border);
  border-radius: 5px; font-family: 'Space Grotesk', sans-serif; font-weight: 600;
  font-size: 13px; padding: 10px 16px; cursor: pointer;
  transition: border-color .15s, color .15s;
  }
- .da-btn-sec:hover { border-color: #7c3aed; color: #c4b5fd; }
+ .da-btn-sec:hover { border-color: var(--primary-dark, #7c3aed); color: #c4b5fd; }
 
  .da-label {
  font-size: 10px; font-family: 'JetBrains Mono', monospace;
@@ -157,92 +157,92 @@ export default function DownloadApp() {
 
  .da-plat-row { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin: 0 16px 12px; }
  .da-plat-card {
- border: 1px solid #262630; border-radius: 6px; background: #18181f;
+ border: 1px solid var(--ledger-paper-border); border-radius: 6px; background: var(--ledger-paper-bg);
  overflow: hidden; cursor: pointer; transition: border-color .2s;
  box-shadow: 4px 4px 0 rgba(0,0,0,.25);
  }
- .da-plat-card:hover, .da-plat-card.open { border-color: #7c3aed; }
+ .da-plat-card:hover, .da-plat-card.open { border-color: var(--primary-dark, #7c3aed); }
  .da-plat-header { display: flex; align-items: center; justify-content: space-between; padding: 13px 14px; }
  .da-plat-header-left { display: flex; align-items: center; gap: 9px; }
  .da-plat-icon {
- width: 28px; height: 28px; border-radius: 3px; background: #1f1f2a;
+ width: 28px; height: 28px; border-radius: 3px; background: var(--ledger-paper-border);
  display: flex; align-items: center; justify-content: center; flex-shrink: 0;
  }
- .da-plat-name { font-size: 13px; font-weight: 700; color: #ededed; letter-spacing: -.01em; font-family: 'Space Grotesk', sans-serif; }
- .da-plat-desc { font-size: 11px; color: #9a9aa8; margin-top: 2px; font-family: 'DM Sans', sans-serif; }
- .da-plat-arrow { color: #9a9aa8; font-size: 14px; transition: transform .2s; flex-shrink: 0; }
+ .da-plat-name { font-size: 13px; font-weight: 700; color: var(--ink); letter-spacing: -.01em; font-family: 'Space Grotesk', sans-serif; }
+ .da-plat-desc { font-size: 11px; color: var(--ink-muted); margin-top: 2px; font-family: 'DM Sans', sans-serif; }
+ .da-plat-arrow { color: var(--ink-muted); font-size: 14px; transition: transform .2s; flex-shrink: 0; }
  .da-plat-arrow.open { transform: rotate(180deg); }
- .da-plat-body { border-top: 1px solid #262630; padding: 14px; }
+ .da-plat-body { border-top: 1px solid var(--ledger-paper-border); padding: 14px; }
 
  .da-step {
  display: flex; gap: 10px; align-items: flex-start;
- padding: 9px 11px; border-radius: 4px; background: #12121a;
- border: 1px solid #262630; margin-bottom: 7px; transition: border-color .18s;
+ padding: 9px 11px; border-radius: 4px; background: var(--ledger-paper-bg);
+ border: 1px solid var(--ledger-paper-border); margin-bottom: 7px; transition: border-color .18s;
  }
  .da-step:last-of-type { margin-bottom: 0; }
- .da-step:hover { border-color: #7c3aed; }
+ .da-step:hover { border-color: var(--primary-dark, #7c3aed); }
  .da-step-n {
  font-family: 'JetBrains Mono', monospace; font-size: 10px; font-weight: 600;
  color: #8b8b98; flex-shrink: 0; margin-top: 1px; letter-spacing: .04em;
  }
- .da-step-title { font-size: 12px; font-weight: 700; color: #ededed; line-height: 1.2; }
- .da-step-sub { font-size: 11px; color: #9a9aa8; margin-top: 2px; line-height: 1.4; }
+ .da-step-title { font-size: 12px; font-weight: 700; color: var(--ink); line-height: 1.2; }
+ .da-step-sub { font-size: 11px; color: var(--ink-muted); margin-top: 2px; line-height: 1.4; }
  .da-note {
  border: 1px solid rgba(245,158,11,.3); border-radius: 4px; padding: 10px 12px;
- background: #241a0e; color: #d97706; font-size: 11px; line-height: 1.5; margin-top: 10px;
+ background: #fef3c7; color: #92400e; font-size: 11px; line-height: 1.5; margin-top: 10px;
  }
 
  .da-collapse {
- border: 1px solid #262630; border-radius: 6px;
- margin: 0 16px 12px; overflow: hidden; background: #18181f;
+ border: 1px solid var(--ledger-paper-border); border-radius: 6px;
+ margin: 0 16px 12px; overflow: hidden; background: var(--ledger-paper-bg);
  box-shadow: 4px 4px 0 rgba(0,0,0,.25);
  }
  .da-collapse-header {
  display: flex; align-items: center; justify-content: space-between;
  padding: 14px 18px; cursor: pointer; user-select: none;
  }
- .da-collapse-left { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: #ededed; font-family: 'Space Grotesk', sans-serif; }
- .da-collapse-dot { width: 7px; height: 7px; border-radius: 50%; background: #f59e0b; flex-shrink: 0; }
- .da-collapse-arrow { color: #9a9aa8; transition: transform .2s; }
+ .da-collapse-left { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 700; color: var(--ink); font-family: 'Space Grotesk', sans-serif; }
+ .da-collapse-dot { width: 7px; height: 7px; border-radius: 50%; background: var(--accent); flex-shrink: 0; }
+ .da-collapse-arrow { color: var(--ink-muted); transition: transform .2s; }
  .da-collapse-arrow.open { transform: rotate(180deg); }
- .da-collapse-body { border-top: 1px solid #262630; padding: 18px; }
+ .da-collapse-body { border-top: 1px solid var(--ledger-paper-border); padding: 18px; }
  .da-debug-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
- .da-debug-item { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #9a9aa8; }
+ .da-debug-item { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--ink-muted); }
  .da-debug-item b { color: #c4b5fd; font-weight: 400; }
  .da-v-true { color: #4ade80 !important; }
  .da-v-false { color: #f87171 !important; }
 
- .da-qr-card { border: 1px solid #262630; border-radius: 6px; margin: 0 16px 12px; background: #18181f; padding: 20px; box-shadow: 4px 4px 0 rgba(0,0,0,.25); }
+ .da-qr-card { border: 1px solid var(--ledger-paper-border); border-radius: 6px; margin: 0 16px 12px; background: var(--ledger-paper-bg); padding: 20px; box-shadow: 4px 4px 0 rgba(0,0,0,.25); }
  .da-qr-block { display: flex; gap: 18px; align-items: flex-start; flex-wrap: wrap; }
- .da-qr-frame { border: 1px solid #262630; border-radius: 4px; padding: 9px; background: #111118; flex-shrink: 0; }
+ .da-qr-frame { border: 1px solid var(--ledger-paper-border); border-radius: 4px; padding: 9px; background: var(--ledger-paper-bg); flex-shrink: 0; }
  .da-qr-frame img { width: 88px; height: 88px; display: block; border-radius: 3px; }
- .da-qr-info h3 { font-size: 13px; font-weight: 700; color: #ededed; margin: 0 0 4px; }
- .da-qr-info p { font-size: 12px; color: #9a9aa8; line-height: 1.5; margin: 0 0 12px; }
+ .da-qr-info h3 { font-size: 13px; font-weight: 700; color: var(--ink); margin: 0 0 4px; }
+ .da-qr-info p { font-size: 12px; color: var(--ink-muted); line-height: 1.5; margin: 0 0 12px; }
  .da-url-row {
- display: flex; align-items: center; gap: 8px; background: #111118;
- border: 1px solid #262630; border-radius: 4px; padding: 7px 11px; margin-bottom: 10px;
+ display: flex; align-items: center; gap: 8px; background: var(--ledger-paper-bg);
+ border: 1px solid var(--ledger-paper-border); border-radius: 4px; padding: 7px 11px; margin-bottom: 10px;
  }
  .da-url-row code { flex: 1; font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #c4b5fd; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
- .da-copy-btn { background: transparent; border: none; color: #9a9aa8; cursor: pointer; display: flex; padding: 2px; transition: color .15s; }
+ .da-copy-btn { background: transparent; border: none; color: var(--ink-muted); cursor: pointer; display: flex; padding: 2px; transition: color .15s; }
  .da-copy-btn:hover { color: #c4b5fd; }
  .da-check-list { display: flex; flex-direction: column; gap: 4px; }
- .da-check-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: #9a9aa8; }
- .da-check-item::before { content: '✓'; color: #7c3aed; font-size: 10px; font-weight: 700; }
+ .da-check-item { display: flex; align-items: center; gap: 6px; font-size: 11px; color: var(--ink-muted); }
+ .da-check-item::before { content: '✓'; color: var(--primary-dark, #7c3aed); font-size: 10px; font-weight: 700; }
 
  .da-benefits { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 0 16px 14px; }
- .da-ben { border: 1px solid #262630; border-radius: 6px; padding: 14px; background: #18181f; }
- .da-ben-icon { width: 28px; height: 28px; border-radius: 3px; background: #1f1f2a; display: flex; align-items: center; justify-content: center; margin-bottom: 9px; }
- .da-ben-title { font-size: 12px; font-weight: 700; color: #ededed; margin-bottom: 2px; font-family: 'Space Grotesk', sans-serif; }
- .da-ben-sub { font-size: 11px; color: #9a9aa8; line-height: 1.4; }
+ .da-ben { border: 1px solid var(--ledger-paper-border); border-radius: 6px; padding: 14px; background: var(--ledger-paper-bg); }
+ .da-ben-icon { width: 28px; height: 28px; border-radius: 3px; background: var(--ledger-paper-border); display: flex; align-items: center; justify-content: center; margin-bottom: 9px; }
+ .da-ben-title { font-size: 12px; font-weight: 700; color: var(--ink); margin-bottom: 2px; font-family: 'Space Grotesk', sans-serif; }
+ .da-ben-sub { font-size: 11px; color: var(--ink-muted); line-height: 1.4; }
 
  .da-footer {
  display: flex; align-items: center; justify-content: space-between; gap: 12px;
- border: 1px solid #262630; border-radius: 6px; margin: 0 16px 16px;
- padding: 14px 18px; background: #18181f; flex-wrap: wrap; border-top: 2px solid #F59E0B;
+ border: 1px solid var(--ledger-paper-border); border-radius: 6px; margin: 0 16px 16px;
+ padding: 14px 18px; background: var(--ledger-paper-bg); flex-wrap: wrap; border-top: 2px solid var(--accent);
  box-shadow: 5px 5px 0 rgba(0,0,0,.3);
  }
- .da-footer p { font-size: 13px; font-weight: 700; color: #ededed; margin: 0; }
- .da-footer code { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: #9a9aa8; margin-top: 2px; display: block; }
+ .da-footer p { font-size: 13px; font-weight: 700; color: var(--ink); margin: 0; }
+ .da-footer code { font-size: 11px; font-family: 'JetBrains Mono', monospace; color: var(--ink-muted); margin-top: 2px; display: block; }
 
  @media (max-width: 520px) {
  .da-plat-row { grid-template-columns: 1fr; }
@@ -254,7 +254,7 @@ export default function DownloadApp() {
  `}</style>
 
  {/* ── TOPBAR ── */}
- <div className="da-topbar"><div className="da-topbar-left"><div className="da-topbar-icon"><Download size={16} color="#a78bfa" /></div><div><h1>Baixar App</h1><p>Instale em qualquer dispositivo</p></div></div><button className="da-share-btn" onClick={shareLink}><Share2 size={12} />
+ <div className="da-topbar"><div className="da-topbar-left"><div className="da-topbar-icon"><Download size={16} color="var(--primary)" /></div><div><h1>Baixar App</h1><p>Instale em qualquer dispositivo</p></div></div><button className="da-share-btn" onClick={shareLink}><Share2 size={12} />
  Compartilhar
  </button></div>
 
@@ -276,7 +276,7 @@ export default function DownloadApp() {
  <div
  className={`da-plat-card${openPlat === "android" ? " open" : ""}`}
  onClick={() => togglePlat("android")}
- ><div className="da-plat-header"><div className="da-plat-header-left"><div className="da-plat-icon"><Smartphone size={14} color="#a78bfa" /></div><div><div className="da-plat-name">Android</div><div className="da-plat-desc">Chrome · instala 1 toque</div></div></div><ChevronDown
+ ><div className="da-plat-header"><div className="da-plat-header-left"><div className="da-plat-icon"><Smartphone size={14} color="var(--primary)" /></div><div><div className="da-plat-name">Android</div><div className="da-plat-desc">Chrome · instala 1 toque</div></div></div><ChevronDown
  size={14}
  className={`da-plat-arrow${openPlat === "android" ? " open" : ""}`}
  style={{ color: "#3d3560", transition: "transform .2s", transform: openPlat === "android" ? "rotate(180deg)" : "none" }}
@@ -308,7 +308,7 @@ export default function DownloadApp() {
  <div
  className={`da-plat-card${openPlat === "ios" ? " open" : ""}`}
  onClick={() => togglePlat("ios")}
- ><div className="da-plat-header"><div className="da-plat-header-left"><div className="da-plat-icon"><QrCode size={14} color="#a78bfa" /></div><div><div className="da-plat-name">iPhone / iPad</div><div className="da-plat-desc">Safari · menu compartilhar</div></div></div><ChevronDown
+ ><div className="da-plat-header"><div className="da-plat-header-left"><div className="da-plat-icon"><QrCode size={14} color="var(--primary)" /></div><div><div className="da-plat-name">iPhone / iPad</div><div className="da-plat-desc">Safari · menu compartilhar</div></div></div><ChevronDown
  size={14}
  style={{ color: "#3d3560", transition: "transform .2s", transform: openPlat === "ios" ? "rotate(180deg)" : "none" }}
  /></div>
@@ -348,7 +348,7 @@ export default function DownloadApp() {
  {benefits.map((b, i) => {
  const Icon = b.icon;
  return (
- <div className="da-ben" key={i}><div className="da-ben-icon"><Icon size={13} color="#a78bfa" /></div><div className="da-ben-title">{b.label}</div><div className="da-ben-sub">{b.desc}</div></div>
+ <div className="da-ben" key={i}><div className="da-ben-icon"><Icon size={13} color="var(--primary)" /></div><div className="da-ben-title">{b.label}</div><div className="da-ben-sub">{b.desc}</div></div>
  );
  })}
  </div>

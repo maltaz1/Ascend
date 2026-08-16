@@ -47,7 +47,7 @@ export default function Achievements() {
  width: 80,
  height: 80,
  borderRadius: '50%',
- background: 'linear-gradient(135deg, #F59E0B, #A855F7)',
+ background: 'linear-gradient(135deg, var(--accent), var(--primary))',
  display: 'flex',
  alignItems: 'center',
  justifyContent: 'center',
@@ -73,10 +73,10 @@ export default function Achievements() {
  {data.user.name}
  </h2><div style={{ display: 'flex', gap: 20, marginBottom: 14 }}>
  {[
- { label: 'XP Total', value: totalXP, color: '#F59E0B', icon: ' ' },
+ { label: 'XP Total', value: totalXP, color: 'var(--accent)', icon: ' ' },
  { label: 'Streak', value: `${data.user.streak}d`, color: '#EF4444', icon: ' ' },
  { label: 'Tarefas', value: data.user.totalTasksCompleted, color: '#10B981', icon: ' ' },
- { label: 'Metas', value: data.user.totalGoalsCompleted, color: '#A855F7', icon: ' ' },
+ { label: 'Metas', value: data.user.totalGoalsCompleted, color: 'var(--primary)', icon: ' ' },
  ].map(stat => (
  <div key={stat.label}><div style={{ fontFamily: 'Space Grotesk', fontWeight: 800, fontSize: 20, color: stat.color }}>
  {stat.icon} {typeof stat.value === 'number' ? <AnimatedCounter value={stat.value} /> : stat.value}
@@ -84,7 +84,7 @@ export default function Achievements() {
  ))}
  </div><div><div style={{ display: 'flex', justifyContent: 'space-between', marginBottom: 4 }}><span style={{ fontFamily: 'DM Sans', fontSize: 12, color: 'var(--muted-foreground)' }}>
  Progresso para Nível {data.user.level + 1}
- </span><span style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 12, color: '#F59E0B' }}>
+ </span><span style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 12, color: 'var(--accent)' }}>
  {levelProgress.current}/{levelProgress.max} XP
  </span></div><div className="fz-progress-bar" style={{ height: 8 }}><div className="fz-progress-fill" style={{ width: `${levelProgress.percent}%` }} /></div></div></div>
 
@@ -93,7 +93,7 @@ export default function Achievements() {
 
  {/* Unlocked Achievements */}
  {unlocked.length > 0 && (
- <div style={{ marginBottom: 28 }}><div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}><Trophy size={16} color="#F59E0B" /><h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 17, color: 'var(--foreground)' }}>
+ <div style={{ marginBottom: 28 }}><div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 16 }}><Trophy size={16} color="var(--accent)" /><h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 17, color: 'var(--foreground)' }}>
  Desbloqueadas
  </h2><span className="fz-badge fz-badge-amber">{unlocked.length}</span></div><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(260px, 1fr))', gap: 12 }}>
  {unlocked.map(achievement => (
@@ -127,7 +127,7 @@ export default function Achievements() {
  {achievement.description}
  </div>
  {achievement.unlockedAt && (
- <div style={{ fontSize: 10, color: '#F59E0B', fontFamily: 'DM Sans', marginTop: 4 }}>
+ <div style={{ fontSize: 10, color: 'var(--accent)', fontFamily: 'DM Sans', marginTop: 4 }}>
  {new Date(achievement.unlockedAt).toLocaleDateString('pt-BR')}
  </div>
  )}

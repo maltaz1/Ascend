@@ -25,7 +25,7 @@ function CheckIcon() {
       height="9"
       viewBox="0 0 12 12"
       fill="none"
-      stroke="#a78bfa"
+      stroke="var(--primary)"
       strokeWidth="2.2"
     >
       <polyline points="2,6 5,9 10,3" />
@@ -63,7 +63,7 @@ export default function UpgradeModal({
             transition={{ type: "spring", stiffness: 220, damping: 22 }}
             onClick={e => e.stopPropagation()}
             style={{ fontFamily: "'DM Sans', sans-serif" }}
-            className="relative w-full max-w-sm overflow-hidden rounded-md border border-[#262630] border-t-2 border-t-[#A855F7] bg-[#18181f] shadow-[8px_8px_0_rgba(0,0,0,0.35)]"
+            className="relative w-full max-w-sm overflow-hidden rounded-md border border-[var(--ledger-paper-border)] border-t-2 border-t-[var(--primary)] bg-[var(--ledger-paper-bg)] shadow-[8px_8px_0_rgba(0,0,0,0.35)]"
           >
             {/* Close */}
             <button
@@ -88,7 +88,7 @@ export default function UpgradeModal({
               </p>
 
               {/* Divider */}
-              <div className="mb-[18px] h-px bg-[#262630]" />
+              <div className="mb-[18px] h-px bg-[var(--ledger-paper-border)]" />
 
               {/* Benefits */}
               <ul className="mb-[22px] flex flex-col gap-2">
@@ -100,7 +100,7 @@ export default function UpgradeModal({
                     transition={{ delay: index * 0.04 }}
                     className="flex items-center gap-2.5 text-[13px] font-light text-white/45"
                   >
-                    <span className="flex h-[15px] w-[15px] flex-shrink-0 items-center justify-center rounded-[2px] border border-violet-500/25 bg-[#111118]">
+                    <span className="flex h-[15px] w-[15px] flex-shrink-0 items-center justify-center rounded-[2px] border border-violet-500/25 bg-[var(--ledger-paper-bg)]">
                       <CheckIcon />
                     </span>
                     {benefit}
@@ -145,7 +145,7 @@ export default function UpgradeModal({
 
               <button
                 onClick={onClose}
-                className="w-full ledger-btn ledger-btn--ghost py-[11px] text-[12px] text-white/[0.22] transition hover:bg-white/[0.03] hover:text-white/40"
+                className="w-full ledger-btn ledger-btn--ghost py-[11px] text-[12px] text-[var(--ink-muted)] transition hover:bg-[var(--muted)] hover:text-[var(--ink)]"
               >
                 Agora não
               </button>

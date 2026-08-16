@@ -120,7 +120,7 @@ export default function Today() {
  gap: 10,
  marginBottom: 4,
  }}
- ><Sun size={24} color="#A855F7" /><h1
+ ><Sun size={24} color="var(--primary)" /><h1
  style={{
  fontFamily: "Space Grotesk",
  fontWeight: 800,
@@ -149,8 +149,8 @@ export default function Today() {
  <div
  className="ledger-paper ledger-paper--violet flex lg:flex-row flex-col gap-4 lg:gap-6 p-6 mb-5"
  style={{
- background: "#18181f",
- border: "1px solid #262630",
+ background: "var(--ledger-paper-bg)",
+ border: "1px solid var(--ledger-paper-border)",
  display: "flex",
  alignItems: "center",
  gap: 24,
@@ -159,13 +159,13 @@ export default function Today() {
  value={overallProgress}
  size={100}
  strokeWidth={7}
- color="#A855F7"
+ color="var(--primary)"
  ><div style={{ textAlign: "center" }}><div
  style={{
  fontFamily: "Space Grotesk",
  fontWeight: 800,
  fontSize: 20,
- color: "#A855F7",
+ color: "var(--primary)",
  }}
  >
  {overallProgress}%
@@ -206,13 +206,13 @@ export default function Today() {
  icon: " ",
  label: "Hábitos",
  value: `${todayStats.habitsCompleted}/${todayStats.habitsTotal}`,
- color: "#F59E0B",
+ color: "var(--accent)",
  },
  {
  icon: " ",
  label: "Streak",
  value: `${profile?.streak || 0}d`,
- color: "#A855F7",
+ color: "var(--primary)",
  },
  ].map(stat => (
  <div
@@ -249,13 +249,13 @@ export default function Today() {
  value={levelProgress.percent}
  size={72}
  strokeWidth={5}
- color="#A855F7"
+ color="var(--primary)"
  ><div><div
  style={{
  fontFamily: "Space Grotesk",
  fontWeight: 800,
  fontSize: 16,
- color: "#A855F7",
+ color: "var(--primary)",
  }}
  >
  {profile?.level || 1}
@@ -304,7 +304,7 @@ export default function Today() {
  todayStats.tasksCompleted === todayStats.tasksTotal &&
  todayStats.tasksTotal > 0
  ? "#10B981"
- : "#A855F7",
+ : "var(--primary)",
  }}
  >
  {todayStats.tasksCompleted}/{todayStats.tasksTotal}
@@ -386,7 +386,7 @@ export default function Today() {
  gap: 8,
  marginBottom: 16,
  }}
- ><Flame size={16} color="#A855F7" /><h3
+ ><Flame size={16} color="var(--primary)" /><h3
  style={{
  fontFamily: "Space Grotesk",
  fontWeight: 700,
@@ -401,7 +401,7 @@ export default function Today() {
  fontFamily: "Space Grotesk",
  fontWeight: 700,
  fontSize: 12,
- color: "#A855F7",
+ color: "var(--primary)",
  }}
  >
  {todayStats.habitsCompleted}/{todayStats.habitsTotal}
@@ -497,7 +497,7 @@ export default function Today() {
  gap: 8,
  marginBottom: 16,
  }}
- ><Target size={16} color="#A855F7" /><h3
+ ><Target size={16} color="var(--primary)" /><h3
  style={{
  fontFamily: "Space Grotesk",
  fontWeight: 700,

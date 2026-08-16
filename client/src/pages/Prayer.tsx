@@ -213,7 +213,7 @@ const loadFavorites = async () => {
  <div className="ledger-paper notebook-sheet notebook-sheet--margined" style={{
  marginBottom: 16,
  overflow: 'hidden',
- background: '#18181f',
+ background: 'var(--ledger-paper-bg)',
  }}><div style={{ display: 'flex',
  alignItems: 'center',
  justifyContent: 'space-between',
@@ -226,7 +226,7 @@ const loadFavorites = async () => {
  fontFamily: 'Space Grotesk',
  fontWeight: 800,
  fontSize: 28,
- color: '#ededed',
+ color: 'var(--ink)',
  letterSpacing: '-0.035em',
  marginBottom: 5,
  lineHeight: 1.1,
@@ -235,7 +235,7 @@ const loadFavorites = async () => {
  </h1><p style={{
  fontFamily: 'DM Sans',
  fontSize: 13.5,
- color: '#9a9aa8',
+ color: 'var(--ink-muted)',
  }}>
  Onde você escreve o que carrega no peito.
  </p></div><div style={{ display: 'flex', gap: 8 }}><span className="ledger-stamp ledger-stamp--amber" style={{ marginRight: 4, fontSize: 10 }}>
@@ -245,9 +245,9 @@ const loadFavorites = async () => {
  style={{
  padding: '9px 14px',
  borderRadius: 6,
- border: viewMode === 'chat' ? '1px solid rgba(245,158,11,0.6)' : '1px solid #262630',
- background: viewMode === 'chat' ? '#241a0e' : 'transparent',
- color: viewMode === 'chat' ? '#fbbf24' : '#a0a0ad',
+ border: viewMode === 'chat' ? '1px solid rgba(245,158,11,0.6)' : '1px solid var(--ledger-paper-border)',
+ background: viewMode === 'chat' ? '#fef3c7' : 'transparent',
+ color: viewMode === 'chat' ? '#92400e' : 'var(--ink-muted)',
  cursor: 'pointer',
  fontFamily: 'DM Sans',
  fontSize: 12.5,
@@ -273,9 +273,9 @@ const loadFavorites = async () => {
  style={{
  padding: '9px 14px',
  borderRadius: 6,
- border: viewMode === 'favorites' ? '1px solid rgba(245,158,11,0.6)' : '1px solid #262630',
- background: viewMode === 'favorites' ? '#241a0e' : 'transparent',
- color: viewMode === 'favorites' ? '#fbbf24' : '#a0a0ad',
+ border: viewMode === 'favorites' ? '1px solid rgba(245,158,11,0.6)' : '1px solid var(--ledger-paper-border)',
+ background: viewMode === 'favorites' ? '#fef3c7' : 'transparent',
+ color: viewMode === 'favorites' ? '#92400e' : 'var(--ink-muted)',
  cursor: 'pointer',
  fontFamily: 'DM Sans',
  fontSize: 12.5,
@@ -312,9 +312,9 @@ const loadFavorites = async () => {
  flexDirection: 'column',
  gap: 12,
  padding: '20px 24px',
- background: '#18181f',
+ background: 'var(--ledger-paper-bg)',
  borderRadius: 6,
- border: '1px solid #262630',
+ border: '1px solid var(--ledger-paper-border)',
  }}>
  {messages.length === 0 ? (
  <div style={{
@@ -331,7 +331,7 @@ const loadFavorites = async () => {
  fontFamily: 'Space Grotesk',
  fontWeight: 700,
  fontSize: 18,
- color: '#ededed',
+ color: 'var(--ink)',
  marginBottom: 8,
  letterSpacing: '-0.02em',
  }}>
@@ -339,7 +339,7 @@ const loadFavorites = async () => {
  </h2><p style={{
  fontFamily: 'DM Sans',
  fontSize: 13,
- color: '#9a9aa8',
+ color: 'var(--ink-muted)',
  marginBottom: 18,
  }}>
  Escreva uma intenção ou escolha uma sugestão abaixo.
@@ -351,10 +351,10 @@ const loadFavorites = async () => {
  style={{
  padding: '12px 10px',
  borderRadius: 6,
- border: '1px solid #262630',
- borderTop: `2px solid ${['#F59E0B', '#8B5CF6', '#10B981', '#06B6D4', '#A855F7', '#F59E0B'][idx % 6]}`,
- background: '#12121a',
- color: '#ededed',
+ border: '1px solid var(--ledger-paper-border)',
+ borderTop: `2px solid ${['var(--accent)', 'var(--primary)', '#10B981', '#06B6D4', 'var(--primary)', 'var(--accent)'][idx % 6]}`,
+ background: 'var(--ledger-paper-bg)',
+ color: 'var(--ink)',
  cursor: 'pointer',
  transition: 'all 0.15s',
  display: 'flex',
@@ -365,14 +365,14 @@ const loadFavorites = async () => {
  boxShadow: '3px 3px 0 rgba(0,0,0,0.3)',
  }}
  onMouseEnter={(e) => {
- e.currentTarget.style.background = '#18181f';
+ e.currentTarget.style.background = 'var(--muted)';
  e.currentTarget.style.transform = 'translateY(-2px)';
  }}
  onMouseLeave={(e) => {
- e.currentTarget.style.background = '#12121a';
+ e.currentTarget.style.background = 'var(--ledger-paper-bg)';
  e.currentTarget.style.transform = 'translateY(0)';
  }}
- ><span style={{ width: 22, height: 2, background: `${['#F59E0B', '#8B5CF6', '#10B981', '#06B6D4', '#A855F7', '#F59E0B'][idx % 6]}`, opacity: 0.75, display: 'block' }}></span><span style={{ fontSize: 17 }}>{suggestion.emoji}</span><span style={{ fontWeight: 600, fontSize: 12.5, letterSpacing: '0.04em' }}>{suggestion.title}</span></button>
+ ><span style={{ width: 22, height: 2, background: `${['var(--accent)', 'var(--primary)', '#10B981', '#06B6D4', 'var(--primary)', 'var(--accent)'][idx % 6]}`, opacity: 0.75, display: 'block' }}></span><span style={{ fontSize: 17 }}>{suggestion.emoji}</span><span style={{ fontWeight: 600, fontSize: 12.5, letterSpacing: '0.04em' }}>{suggestion.title}</span></button>
  ))}
  </div></div>
  ) : (
@@ -389,12 +389,12 @@ const loadFavorites = async () => {
  padding: '12px 16px',
  borderRadius: 6,
  background: msg.role === 'user'
- ? '#241a0e'
- : '#16141e',
+ ? '#fef3c7'
+ : '#ede9fe',
  border: msg.role === 'user'
  ? '1px solid rgba(245,158,11,0.45)'
  : '1px solid rgba(139,92,246,0.35)',
- color: '#ededed',
+ color: 'var(--ink)',
  fontFamily: 'DM Sans',
  fontSize: 13,
  lineHeight: 1.6,
@@ -417,7 +417,7 @@ const loadFavorites = async () => {
  style={{
  background: 'transparent',
  border: 'none',
- color: favoritePrayers.some(p => p.content === msg.content) ? '#8B5CF6' : 'var(--muted-foreground)',
+ color: favoritePrayers.some(p => p.content === msg.content) ? 'var(--primary)' : 'var(--muted-foreground)',
  cursor: 'pointer',
  padding: '4px',
  display: 'flex',
@@ -426,10 +426,10 @@ const loadFavorites = async () => {
  transition: 'color 0.2s',
  }}
  onMouseEnter={(e) => {
- e.currentTarget.style.color = '#8B5CF6';
+ e.currentTarget.style.color = 'var(--primary)';
  }}
  onMouseLeave={(e) => {
- e.currentTarget.style.color = favoritePrayers.some(p => p.content === msg.content) ? '#8B5CF6' : 'var(--muted-foreground)';
+ e.currentTarget.style.color = favoritePrayers.some(p => p.content === msg.content) ? 'var(--primary)' : 'var(--muted-foreground)';
  }}
  title={favoritePrayers.some(p => p.content === msg.content) ? 'Remover dos favoritos' : 'Adicionar aos favoritos'}
  ><Heart size={16} fill={favoritePrayers.some(p => p.content === msg.content) ? 'currentColor' : 'none'} /></button></div>
@@ -446,9 +446,9 @@ const loadFavorites = async () => {
  }}><div style={{
  padding: '12px 16px',
  borderRadius: 6,
- background: '#16141e',
+ background: '#ede9fe',
  border: '1px solid rgba(139,92,246,0.35)',
- color: '#9a9aa8',
+ color: 'var(--ink-muted)',
  fontFamily: 'DM Sans',
  fontSize: 13,
  }}><div style={{ display: 'flex', gap: 4, alignItems: 'center' }}><span style={{ display: 'inline-block', animation: 'pulse 1.5s infinite' }}>●</span><span style={{ display: 'inline-block', animation: 'pulse 1.5s infinite 0.2s' }}>●</span><span style={{ display: 'inline-block', animation: 'pulse 1.5s infinite 0.4s' }}>●</span></div></div></div>
@@ -507,8 +507,8 @@ const loadFavorites = async () => {
  flexDirection: 'column',
  gap: 12,
  padding: '20px 24px',
- background: '#18181f',
- border: '1px solid #262630',
+ background: 'var(--ledger-paper-bg)',
+ border: '1px solid var(--ledger-paper-border)',
  borderRadius: 6,
  }}>
  {favoritePrayers.length === 0 ? (
@@ -526,7 +526,7 @@ const loadFavorites = async () => {
  fontFamily: 'Space Grotesk',
  fontWeight: 700,
  fontSize: 18,
- color: '#ededed',
+ color: 'var(--ink)',
  marginBottom: 8,
  letterSpacing: '-0.02em',
  }}>
@@ -534,7 +534,7 @@ const loadFavorites = async () => {
  </h2><p style={{
  fontFamily: 'DM Sans',
  fontSize: 13,
- color: '#9a9aa8',
+ color: 'var(--ink-muted)',
  }}>
  Volte ao chat e clique no coração para guardar orações aqui.
  </p></div>
@@ -545,9 +545,9 @@ const loadFavorites = async () => {
  style={{
  padding: '16px 18px',
  borderRadius: 6,
- border: '1px solid #262630',
- borderTop: '2px solid #F59E0B',
- background: '#18181f',
+ border: '1px solid var(--ledger-paper-border)',
+ borderTop: '2px solid var(--accent)',
+ background: 'var(--ledger-paper-bg)',
  display: 'flex',
  flexDirection: 'column',
  gap: 12,
@@ -572,7 +572,7 @@ const loadFavorites = async () => {
  style={{
  background: 'transparent',
  border: 'none',
- color: '#F59E0B',
+ color: 'var(--accent)',
  cursor: 'pointer',
  padding: '4px',
  display: 'flex',

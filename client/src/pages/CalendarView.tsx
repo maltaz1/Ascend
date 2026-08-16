@@ -97,7 +97,7 @@ function DayCell({
  fontFamily: 'Space Grotesk',
  fontWeight: isToday ? 800 : 600,
  fontSize: isMobile ? 13 : 14,
- color: isToday ? '#F59E0B' : 'var(--muted-foreground)',
+ color: isToday ? 'var(--accent)' : 'var(--muted-foreground)',
  marginBottom: isMobile ? 3 : 4,
  display: 'flex',
  alignItems: 'center',
@@ -108,7 +108,7 @@ function DayCell({
  <span style={{
  marginLeft: 4,
  fontSize: 9,
- background: '#F59E0B',
+ background: 'var(--accent)',
  color: '#0D0D14',
  padding: '1px 5px',
  borderRadius: 10,
@@ -132,7 +132,7 @@ function DayCell({
  <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#10B981', display: 'inline-block' }} />
  )}
  {pendingTasks > 0 && (
- <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#F59E0B', display: 'inline-block' }} />
+ <span style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--accent)', display: 'inline-block' }} />
  )}
  {overdueTasks > 0 && (
  <span style={{ width: 5, height: 5, borderRadius: '50%', background: '#EF4444', display: 'inline-block' }} />
@@ -168,7 +168,7 @@ function DayCell({
  display: 'flex',
  alignItems: 'center',
  gap: 3,
- }}><div style={{ width: 5, height: 5, borderRadius: '50%', background: '#F59E0B', flexShrink: 0 }} />
+ }}><div style={{ width: 5, height: 5, borderRadius: '50%', background: 'var(--accent)', flexShrink: 0 }} />
  {pendingTasks} pendente{pendingTasks > 1 ? 's' : ''}
  </div>
  )}
@@ -429,7 +429,7 @@ export default function CalendarView() {
  style={{
  flex: 1,
  padding: '10px 14px',
- background: '#8b5cf6',
+ background: 'var(--primary)',
  color: '#ffffff',
  border: 'none',
  borderRadius: 8,
@@ -445,11 +445,11 @@ export default function CalendarView() {
  boxShadow: '0 2px 8px rgba(139, 92, 246, 0.25)',
  }}
  onMouseEnter={(e) => {
- e.currentTarget.style.background = '#7c3aed';
+ e.currentTarget.style.background = 'var(--primary-dark, var(--primary-dark, #7c3aed))';
  e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
  }}
  onMouseLeave={(e) => {
- e.currentTarget.style.background = '#8b5cf6';
+ e.currentTarget.style.background = 'var(--primary)';
  e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
  }}
  ><Plus size={14} />
@@ -497,7 +497,7 @@ export default function CalendarView() {
  <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
  {selectedTasks.map(task => {
  const status = getTaskStatus(task);
- const statusColor = status === 'completed' ? '#10B981' : status === 'overdue' ? '#EF4444' : '#F59E0B';
+ const statusColor = status === 'completed' ? '#10B981' : status === 'overdue' ? '#EF4444' : 'var(--accent)';
  return (
  <div key={task.id} style={{
  display: 'flex',
@@ -551,7 +551,7 @@ export default function CalendarView() {
  </div>
 
  {/* Appointments for selected day */}
- <div className="ledger-paper ledger-paper--violet" style={{ padding: '18px 20px', background: '#18181f', border: '1px solid #262630' }}><h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: '#a855f7', marginBottom: 12, letterSpacing: '0.05em' }}>
+ <div className="ledger-paper ledger-paper--violet" style={{ padding: '18px 20px', background: 'var(--ledger-paper-bg)', border: '1px solid var(--ledger-paper-border)' }}><h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: 'var(--primary)', marginBottom: 12, letterSpacing: '0.05em' }}>
  COMPROMISSOS
  </h4>
  {selectedAppointments.length === 0 ? (
@@ -622,7 +622,7 @@ export default function CalendarView() {
  </div>
 
  {/* Calendar Note for selected day */}
- <div className="ledger-paper ledger-paper--violet" style={{ padding: '18px 20px', background: '#18181f', border: '1px solid #262630' }}><h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 12, letterSpacing: '0.05em' }}>
+ <div className="ledger-paper ledger-paper--violet" style={{ padding: '18px 20px', background: 'var(--ledger-paper-bg)', border: '1px solid var(--ledger-paper-border)' }}><h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 12, letterSpacing: '0.05em' }}>
   ANOTAÇÃO
  </h4>
  {selectedNote ? (

@@ -25,7 +25,7 @@ export function AppointmentModal({
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
   const [category, setCategory] = useState<string>("");
-  const [color, setColor] = useState("#F59E0B");
+  const [color, setColor] = useState("var(--accent)");
   const [isLoading, setIsLoading] = useState(false);
   const [timeError, setTimeError] = useState("");
 
@@ -43,7 +43,7 @@ export function AppointmentModal({
       setStartTime("09:00");
       setEndTime("10:00");
       setCategory("");
-      setColor("#F59E0B");
+      setColor("var(--accent)");
     }
     setTimeError("");
   }, [appointment, open]);
@@ -176,7 +176,7 @@ export function AppointmentModal({
 
         {/* Erro de horário */}
         {timeError && (
-          <div className="flex items-center gap-2 p-2.5 bg-[#18181f] border border-red-500/30 rounded-sm">
+          <div className="flex items-center gap-2 p-2.5 bg-[var(--ledger-paper-bg)] border border-red-500/30 rounded-sm">
             <AlertCircle size={14} className="text-red-400 flex-shrink-0" />
             <span className="text-[12px] text-red-400">{timeError}</span>
           </div>
@@ -190,7 +190,7 @@ export function AppointmentModal({
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             disabled={isLoading}
-            style={{ background: "transparent", outline: "none", color: "#ededed" }}
+            style={{ background: "transparent", outline: "none", color: "var(--ink)" }}
           >
             <option value="">Selecione uma categoria</option>
             {APPOINTMENT_CATEGORIES.map((cat) => (
@@ -212,7 +212,7 @@ export function AppointmentModal({
                 className="w-full h-8 rounded-[3px] transition-all"
                 style={{
                   backgroundColor: colorOption.value,
-                  border: color === colorOption.value ? "2px solid #ededed" : "1px solid #33333f",
+                  border: color === colorOption.value ? "2px solid var(--ink)" : "1px solid var(--ledger-paper-border)",
                   transform: color === colorOption.value ? "scale(1.06)" : "scale(1)",
                 }}
                 title={colorOption.name}

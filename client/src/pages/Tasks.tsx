@@ -46,7 +46,7 @@ const MONTHS = [
 ];
 const PRIORITIES = [
  { value: "low", label: "Baixa", color: "#10B981" },
- { value: "medium", label: "Média", color: "#F59E0B" },
+ { value: "medium", label: "Média", color: "var(--accent)" },
  { value: "high", label: "Alta", color: "#EF4444" },
 ] as const;
 
@@ -227,12 +227,12 @@ function TaskItem({
  ? "#EF4444"
  : task.priority === "low"
  ? "#10B981"
- : "#F59E0B";
+ : "var(--accent)";
 
  return (
  <div
  onClick={onEdit}
- className="flex items-start gap-3 p-3.5 bg-[#18181f] rounded-md border border-[#262630] border-l-[3px] mb-2 transition-all hover:border-[#3b2a66] cursor-pointer"
+ className="flex items-start gap-3 p-3.5 bg-[var(--ledger-paper-bg)] rounded-md border border-[var(--ledger-paper-border)] border-l-[3px] mb-2 transition-all hover:border-[#3b2a66] cursor-pointer"
  style={{ borderLeftColor: priorityColor }}
  ><button
  onClick={(e) => {
@@ -442,7 +442,7 @@ function TaskModal({
  )}
  </>
  ) : (
- <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-right-2 duration-300"><RecurrenceSection recurrence={recurrence} onChange={setRecurrence} /><div className="p-4 bg-[#18181f] rounded-md border border-[#262630]"><div className="flex items-center gap-2 mb-4"><History size={16} className="text-[#8b5cf6]" /><span className="text-[14px] font-bold text-foreground font-space">Histórico Recente</span></div><div className="flex flex-col gap-2"><div className="flex items-center justify-between p-2.5 bg-[#18181f] border border-[#262630] rounded-md"><div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /><span className="text-[12px] text-foreground font-medium">15 Jul 2026</span></div><span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Concluída</span></div><div className="flex items-center justify-between p-2.5 bg-[#18181f] border border-[#262630] rounded-md opacity-60"><div className="flex items-center gap-2"><AlertCircle size={14} className="text-amber-500" /><span className="text-[12px] text-foreground font-medium">14 Jul 2026</span></div><span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Atrasada</span></div></div></div></div>
+ <div className="flex flex-col gap-6 animate-in fade-in slide-in-from-right-2 duration-300"><RecurrenceSection recurrence={recurrence} onChange={setRecurrence} /><div className="p-4 bg-[var(--ledger-paper-bg)] rounded-md border border-[var(--ledger-paper-border)]"><div className="flex items-center gap-2 mb-4"><History size={16} className="text-[var(--primary)]" /><span className="text-[14px] font-bold text-foreground font-space">Histórico Recente</span></div><div className="flex flex-col gap-2"><div className="flex items-center justify-between p-2.5 bg-[var(--ledger-paper-bg)] border border-[var(--ledger-paper-border)] rounded-md"><div className="flex items-center gap-2"><CheckCircle2 size={14} className="text-emerald-500" /><span className="text-[12px] text-foreground font-medium">15 Jul 2026</span></div><span className="text-[10px] font-bold text-emerald-500 uppercase tracking-wider">Concluída</span></div><div className="flex items-center justify-between p-2.5 bg-[var(--ledger-paper-bg)] border border-[var(--ledger-paper-border)] rounded-md opacity-60"><div className="flex items-center gap-2"><AlertCircle size={14} className="text-amber-500" /><span className="text-[12px] text-foreground font-medium">14 Jul 2026</span></div><span className="text-[10px] font-bold text-amber-500 uppercase tracking-wider">Atrasada</span></div></div></div></div>
  )}
 
  <button
@@ -747,9 +747,9 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
  </div>
  )}
  {selectedTasks.length === 0 && !generating ? (
- <div className="text-center py-14 bg-[#18181f] rounded-md border-2 border-dashed border-[#262630]"><div className="w-16 h-16 bg-emerald-500/10 rounded-md flex items-center justify-center mx-auto mb-4"><CheckCircle2 size={32} className="text-emerald-500/40" /></div><p className="text-white/80 text-[15px] font-semibold mb-1">
+ <div className="text-center py-14 bg-[var(--ledger-paper-bg)] rounded-md border-2 border-dashed border-[var(--ledger-paper-border)]"><div className="w-16 h-16 bg-emerald-500/10 rounded-md flex items-center justify-center mx-auto mb-4"><CheckCircle2 size={32} className="text-emerald-500/40" /></div><p className="text-[var(--ink)] text-[15px] font-semibold mb-1">
  {search ? "Nenhuma tarefa encontrada" : "Nenhuma tarefa para este dia"}
- </p><p className="text-zinc-500 text-xs mb-4">
+ </p><p className="text-[var(--ink-muted)] text-xs mb-4">
  {search
  ? "Tente buscar por outro termo."
  : "Adicione uma tarefa para começar a evoluir. Cada tarefa concluída te dá XP!"
@@ -758,7 +758,7 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
  {!search && (
  <button
  onClick={() => { setShowModal(true); setEditingTask(null); }}
- className="px-5 py-2.5 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-violet-900/20"
+ className="px-5 py-2.5 bg-[var(--primary)] hover:opacity-90 text-white rounded-xl text-xs font-bold transition-all"
  >
  + Adicionar tarefa
  </button>
@@ -804,14 +804,14 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
  </p>
 
  {/* Container unificado estilo Raycast/Linear */}
- <div className="rounded-md border border-[#262630] overflow-hidden">
+ <div className="rounded-md border border-[var(--ledger-paper-border)] overflow-hidden">
  {/* Opção: Excluir de todos os dias */}
  <button
  onClick={() => {
  handleDeleteAllOccurrences();
  }}
  disabled={deletingAll}
- className="w-full flex items-center gap-3 py-3.5 px-4 hover:bg-[#1f1f29] transition-colors text-left disabled:opacity-60"
+ className="w-full flex items-center gap-3 py-3.5 px-4 hover:bg-[var(--muted)] transition-colors text-left disabled:opacity-60"
  ><Trash2 size={16} className="flex-shrink-0" style={{ color: '#ef4444' }} /><div className="flex-1 min-w-0"><div className="text-[13px] font-semibold" style={{ color: '#ef4444' }}>
  {deletingAll ? "Excluindo..." : "Excluir de todos os dias"}
  </div><div className="text-[12px] mt-0.5" style={{ color: 'var(--muted-foreground)', opacity: 0.7 }}>
@@ -827,7 +827,7 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
  handleDeleteThisOccurrence();
  }}
  disabled={deletingAll}
- className="w-full flex items-center gap-3 py-3.5 px-4 hover:bg-[#1f1f29] transition-colors text-left disabled:opacity-60"
+ className="w-full flex items-center gap-3 py-3.5 px-4 hover:bg-[var(--muted)] transition-colors text-left disabled:opacity-60"
  ><CalendarDays size={16} className="flex-shrink-0" style={{ color: 'var(--muted-foreground)' }} /><div className="flex-1 min-w-0"><div className="text-[13px] font-semibold" style={{ color: 'var(--foreground)' }}>
  {deletingAll ? "Excluindo..." : "Excluir apenas esta ocorrência"}
  </div><div className="text-[12px] mt-0.5" style={{ color: 'var(--muted-foreground)', opacity: 0.7 }}>

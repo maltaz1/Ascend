@@ -71,7 +71,7 @@ function ExpandableSection({
  style={{
  marginBottom: 16,
  overflow: "hidden",
- background: "#18181f",
+ background: "var(--ledger-paper-bg)",
  }}
  ><button
  onClick={() => setOpen(!open)}
@@ -97,12 +97,12 @@ function ExpandableSection({
  justifyContent: "center",
  flexShrink: 0,
  }}
- ><Icon size={14} color="#a78bfa" /></div><div style={{ flex: 1, textAlign: "left" }}><div style={{ fontWeight: 700, fontSize: 14, fontFamily: "Space Grotesk", letterSpacing: "-0.01em" }}>{title}</div>
+ ><Icon size={14} color="var(--primary)" /></div><div style={{ flex: 1, textAlign: "left" }}><div style={{ fontWeight: 700, fontSize: 14, fontFamily: "Space Grotesk", letterSpacing: "-0.01em" }}>{title}</div>
  {subtitle && (
  <div
  style={{
  fontSize: 11,
- color: "#6b6b78",
+ color: "var(--ink-muted)",
  marginTop: 3,
  textTransform: "uppercase",
  letterSpacing: "0.1em",
@@ -114,9 +114,9 @@ function ExpandableSection({
  )}
  </div>
  {open ? (
- <ChevronUp size={16} color="#6b6b78" />
+ <ChevronUp size={16} color="var(--ink-muted)" />
  ) : (
- <ChevronDown size={16} color="#6b6b78" />
+ <ChevronDown size={16} color="var(--ink-muted)" />
  )}
  </button><div
  style={{
@@ -193,7 +193,7 @@ function MetricCard({
  </div><div
  style={{
  fontSize: 12.5,
- color: "#9a9aa8",
+ color: "var(--ink-muted)",
  }}
  >
  {label}
@@ -221,8 +221,8 @@ function MetricCard({
 // =========================
 function StreakBadge({ streak }: { streak: number }) {
  const milestones = [
- { at: 100, label: "Centurião", color: "#F59E0B" },
- { at: 30, label: "Mensal", color: "#A855F7" },
+ { at: 100, label: "Centurião", color: "var(--accent)" },
+ { at: 30, label: "Mensal", color: "var(--primary)" },
  { at: 7, label: "Semana", color: "#10B981" },
  { at: 3, label: "Trio", color: "#06B6D4" },
  ];
@@ -237,13 +237,13 @@ function StreakBadge({ streak }: { streak: number }) {
  alignItems: "center",
  gap: 12,
  padding: "13px 18px",
- background: "#18181f",
+ background: "var(--ledger-paper-bg)",
  }}
  ><span className="ledger-stamp ledger-stamp--amber" style={{ fontSize: 10 }}>
  SEQ
- </span><div style={{ display: "flex", alignItems: "baseline", gap: 6 }}><div style={{ fontSize: 22, fontWeight: 800, color: "#fbbf24", fontFamily: "Space Grotesk", letterSpacing: "-0.03em" }}>
+ </span><div style={{ display: "flex", alignItems: "baseline", gap: 6 }}><div style={{ fontSize: 22, fontWeight: 800, color: "var(--accent)", fontFamily: "Space Grotesk", letterSpacing: "-0.03em" }}>
  {streak}
- </div><div style={{ fontSize: 12, color: "#9a9aa8", fontWeight: 500 }}>
+ </div><div style={{ fontSize: 12, color: "var(--ink-muted)", fontWeight: 500 }}>
  dias seguidos
  {currentMilestone && (
  <span style={{ color: currentMilestone.color, fontWeight: 700, textTransform: "uppercase", letterSpacing: "0.08em", fontSize: 10, marginLeft: 6 }}>
@@ -676,9 +676,9 @@ export default function Dashboard() {
  borderRadius: 6,
  overflow: "hidden",
  marginBottom: 24,
- background: "#18181f",
- border: "1px solid #262630",
- borderTop: "2px solid #8b5cf6",
+ background: "var(--ledger-paper-bg)",
+ border: "1px solid var(--ledger-paper-border)",
+ borderTop: "2px solid var(--primary)",
  boxShadow: "5px 5px 0 rgba(0,0,0,0.35)",
  padding: "30px 34px",
  }}
@@ -696,7 +696,7 @@ export default function Dashboard() {
  style={{
  fontSize: 30,
  fontWeight: 800,
- color: "#ededed",
+ color: "var(--ink)",
  fontFamily: "Space Grotesk",
  letterSpacing: "-0.035em",
  marginBottom: 6,
@@ -704,14 +704,14 @@ export default function Dashboard() {
  }}
  >
  Seu dia, anotado.
- </h1><p style={{ color: "#9a9aa8", fontSize: 14 }}>
+ </h1><p style={{ color: "var(--ink-muted)", fontSize: 14 }}>
  {profile?.name || "Usuário"} — nível {profile?.level || 1}
  </p></div><div style={{ width: "min(260px, 100%)" }}><div
  style={{
  display: "flex",
  justifyContent: "space-between",
  fontSize: 11,
- color: "#6b6b78",
+ color: "var(--ink-muted)",
  fontWeight: 700,
  letterSpacing: "0.1em",
  textTransform: "uppercase",
@@ -719,12 +719,12 @@ export default function Dashboard() {
  }}
  ><span>
  Nv {profile?.level || 1}
- </span><span style={{ color: "#a78bfa" }}>
+ </span><span style={{ color: "var(--primary)" }}>
  {profile?.xp || 0} / {levelXP} XP
  </span></div><div
  style={{
  height: 6,
- background: "#262630",
+ background: "var(--ledger-paper-border)",
  borderRadius: 3,
  overflow: "hidden",
  }}
@@ -732,7 +732,7 @@ export default function Dashboard() {
  style={{
  width: `${xpPercent}%`,
  height: "100%",
- background: "#8b5cf6",
+ background: "var(--primary)",
  borderRadius: 3,
  }}
  /></div></div></div></div>
@@ -751,7 +751,7 @@ export default function Dashboard() {
  label="Experiência total"
  value={totalXP}
  sub={`Nível ${profile?.level || 1}`}
- color="#8B5CF6"
+ color="var(--primary)"
  trend="up"
  variant="violet"
  /><MetricCard
@@ -778,7 +778,7 @@ export default function Dashboard() {
  label="Tarefas atrasadas"
  value={overdueTasks}
  sub="pendentes de anotação"
- color="#A855F7"
+ color="var(--primary)"
  trend={overdueTasks > 0 ? "down" : "up"}
  variant="red"
  /></div>
@@ -795,10 +795,10 @@ export default function Dashboard() {
  defaultOpen={true}
  >
  <div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
- <div className="ledger-paper" style={{ padding: "18px 22px", background: "#18181f", minWidth: 0 }}><div style={{ fontSize: 11, fontWeight: 700, color: "#a78bfa", letterSpacing: "0.12em", marginBottom: 12, textTransform: "uppercase" }}>
+ <div className="ledger-paper" style={{ padding: "18px 22px", background: "var(--ledger-paper-bg)", minWidth: 0 }}><div style={{ fontSize: 11, fontWeight: 700, color: "var(--primary)", letterSpacing: "0.12em", marginBottom: 12, textTransform: "uppercase" }}>
  06a — Heatmap diário
  </div><StreakHeatmap tasks={tasks} habits={habits} /></div>
- <div className="ledger-paper" style={{ padding: "18px 22px", background: "#18181f", minWidth: 0 }}><div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}><div className="ledger-marginalia">06b — Evolução · 12 meses</div></div><ResponsiveContainer width="100%" height={232}>
+ <div className="ledger-paper" style={{ padding: "18px 22px", background: "var(--ledger-paper-bg)", minWidth: 0 }}><div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}><div className="ledger-marginalia">06b — Evolução · 12 meses</div></div><ResponsiveContainer width="100%" height={232}>
  <AreaChart data={monthlyTrend}>
  <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
  <XAxis
@@ -813,18 +813,18 @@ export default function Dashboard() {
  type="monotone"
  dataKey="tasks"
  name="Tarefas"
- stroke="#8B5CF6"
+ stroke="var(--primary)"
  strokeWidth={2}
- fill="#8b5cf6"
+ fill="var(--primary)"
  fillOpacity={0.12}
  />
  <Area
  type="monotone"
  dataKey="habits"
  name="Hábitos"
- stroke="#A855F7"
+ stroke="var(--primary)"
  strokeWidth={2}
- fill="#a855f7"
+ fill="var(--primary)"
  fillOpacity={0.08}
  />
  </AreaChart>
@@ -833,31 +833,31 @@ export default function Dashboard() {
  </ExpandableSection>
 
  {/* ===== MAIN CHARTS ===== */}
- <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-4"><div className="ledger-paper" style={{ minWidth: 0, padding: "22px 24px", background: "#18181f" }}><div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}><div className="ledger-marginalia">07 — Linha do mês</div></div><ResponsiveContainer width="100%" height={220}><AreaChart data={activityData}><CartesianGrid strokeDasharray="3 3" stroke="var(--border)" /><XAxis dataKey="day" /><YAxis /><Tooltip content={<CustomTooltip />} /><Legend /><Area
+ <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-4"><div className="ledger-paper" style={{ minWidth: 0, padding: "22px 24px", background: "var(--ledger-paper-bg)" }}><div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}><div className="ledger-marginalia">07 — Linha do mês</div></div><ResponsiveContainer width="100%" height={220}><AreaChart data={activityData}><CartesianGrid strokeDasharray="3 3" stroke="var(--border)" /><XAxis dataKey="day" /><YAxis /><Tooltip content={<CustomTooltip />} /><Legend /><Area
  type="monotone"
  dataKey="tasks"
  name="Tarefas"
- stroke="#8B5CF6"
+ stroke="var(--primary)"
  strokeWidth={2}
- fill="#8b5cf6"
+ fill="var(--primary)"
  fillOpacity={0.12}
  /><Area
  type="monotone"
  dataKey="habits"
  name="Hábitos"
- stroke="#A855F7"
+ stroke="var(--primary)"
  strokeWidth={2}
- fill="#a855f7"
+ fill="var(--primary)"
  fillOpacity={0.08}
- /></AreaChart></ResponsiveContainer></div><div className="ledger-paper" style={{ minWidth: 0, padding: "22px 24px", background: "#18181f" }}><div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}><div className="ledger-marginalia">08 — Semana</div></div><ResponsiveContainer width="100%" height={220}><BarChart data={weeklyData}><CartesianGrid strokeDasharray="3 3" stroke="var(--border)" /><XAxis dataKey="day" /><YAxis /><Tooltip content={<CustomTooltip />} /><Legend /><Bar
+ /></AreaChart></ResponsiveContainer></div><div className="ledger-paper" style={{ minWidth: 0, padding: "22px 24px", background: "var(--ledger-paper-bg)" }}><div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 20 }}><div className="ledger-marginalia">08 — Semana</div></div><ResponsiveContainer width="100%" height={220}><BarChart data={weeklyData}><CartesianGrid strokeDasharray="3 3" stroke="var(--border)" /><XAxis dataKey="day" /><YAxis /><Tooltip content={<CustomTooltip />} /><Legend /><Bar
  dataKey="tasks"
  name="Tarefas"
- fill="#8B5CF6"
+ fill="var(--primary)"
  radius={[4, 4, 0, 0]}
  /><Bar
  dataKey="habits"
  name="Hábitos"
- fill="#A855F7"
+ fill="var(--primary)"
  radius={[4, 4, 0, 0]}
  /></BarChart></ResponsiveContainer></div></div>
 
@@ -865,6 +865,7 @@ export default function Dashboard() {
       {/* ===== INSIGHTS ===== */}
       <ExpandableSection
         icon={Zap}
+        indexNum="— Insights"
         title="Insights"
         subtitle="Análises automáticas do seu desempenho"
         defaultOpen={true}
@@ -878,7 +879,7 @@ export default function Dashboard() {
                 alignItems: "flex-start",
                 gap: 16,
                 padding: "14px 4px",
-                borderBottom: "1px solid #262630",
+                borderBottom: "1px solid var(--ledger-paper-border)",
               }}
             >
               <span style={{ fontSize: 10, fontWeight: 700, color: "#71717a", letterSpacing: "0.18em", minWidth: 26, paddingTop: 3, textTransform: "uppercase" }}>
@@ -900,7 +901,7 @@ export default function Dashboard() {
 
       {/* ===== TENDÊNCIA E DIA DA SEMANA (ANALYTICS) ===== */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-4">
-        <div className="ledger-paper" style={{ padding: "22px 24px", background: "#18181f", minWidth: 0 }}>
+        <div className="ledger-paper" style={{ padding: "22px 24px", background: "var(--ledger-paper-bg)", minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
             <div className="ledger-marginalia">11 — Tendência</div>
           </div>
@@ -914,7 +915,7 @@ export default function Dashboard() {
                   ? "#10B981"
                   : completionTrend.direction === "down"
                   ? "#EF4444"
-                  : "#8B5CF6"
+                  : "var(--primary)"
               }
             >
               <span
@@ -926,7 +927,7 @@ export default function Dashboard() {
                       ? "#10B981"
                       : completionTrend.direction === "down"
                       ? "#EF4444"
-                      : "#a78bfa",
+                      : "var(--primary)",
                 }}
               >
                 {completionTrend.currentRate}%
@@ -945,7 +946,7 @@ export default function Dashboard() {
                       ? "#10B981"
                       : completionTrend.direction === "down"
                       ? "#EF4444"
-                      : "#a78bfa",
+                      : "var(--primary)",
                 }}
               >
                 {completionTrend.direction === "up" && "▲"}
@@ -960,7 +961,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        <div className="ledger-paper" style={{ padding: "22px 24px", background: "#18181f", minWidth: 0 }}>
+        <div className="ledger-paper" style={{ padding: "22px 24px", background: "var(--ledger-paper-bg)", minWidth: 0 }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
             <div className="ledger-marginalia">12 — Dia da semana</div>
           </div>
@@ -977,7 +978,7 @@ export default function Dashboard() {
               <Bar
                 dataKey="completed"
                 name="Concluídas"
-                fill="#8B5CF6"
+                fill="var(--primary)"
               />
               <Bar
                 dataKey="total"
@@ -991,7 +992,7 @@ export default function Dashboard() {
 
       {/* ===== ADERÊNCIA DE HÁBITOS + PRIORIDADES (ANALYTICS) ===== */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-4">
-        <div className="ledger-paper" style={{ padding: "22px 24px", background: "#18181f" }}>
+        <div className="ledger-paper" style={{ padding: "22px 24px", background: "var(--ledger-paper-bg)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
             <div className="ledger-marginalia">13 — Aderência · 30 dias</div>
           </div>
@@ -1030,7 +1031,7 @@ export default function Dashboard() {
                       style={{
                         width: `${h.rate}%`,
                         height: "100%",
-                        background: h.rate >= 75 ? "#10B981" : h.rate >= 40 ? "#F59E0B" : "#8B5CF6",
+                        background: h.rate >= 75 ? "#10B981" : h.rate >= 40 ? "var(--accent)" : "var(--primary)",
                       }}
                     />
                   </div>
@@ -1044,7 +1045,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        <div className="ledger-paper" style={{ padding: "22px 24px", background: "#18181f" }}>
+        <div className="ledger-paper" style={{ padding: "22px 24px", background: "var(--ledger-paper-bg)" }}>
           <div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}>
             <div className="ledger-marginalia">14 — Prioridades · 30 dias</div>
           </div>
@@ -1095,7 +1096,7 @@ export default function Dashboard() {
       </div>
 
       {/* ===== CONSISTÊNCIA (manter da versão ledger) ===== */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-4"><div className="ledger-paper" style={{ padding: "22px 24px", background: "#18181f" }}><div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}><div className="ledger-marginalia">09 — Consistência</div></div><div style={{ display: "flex", alignItems: "center", gap: 20 }}><CircularProgress value={monthlyCompletionRate} size={90} strokeWidth={6} color="#10B981"><span style={{ fontSize: 18, fontWeight: 800, color: "#10B981" }}>
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-5 mb-4"><div className="ledger-paper" style={{ padding: "22px 24px", background: "var(--ledger-paper-bg)" }}><div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}><div className="ledger-marginalia">09 — Consistência</div></div><div style={{ display: "flex", alignItems: "center", gap: 20 }}><CircularProgress value={monthlyCompletionRate} size={90} strokeWidth={6} color="#10B981"><span style={{ fontSize: 18, fontWeight: 800, color: "#10B981" }}>
  {monthlyCompletionRate}%
  </span></CircularProgress><div><div style={{ fontSize: 13, color: "var(--muted-foreground)" }}>
  Tarefas do mês
@@ -1105,7 +1106,7 @@ export default function Dashboard() {
  : monthlyCompletionRate >= 50
  ? "Bom ritmo"
  : "Pode melhorar"}
- </div></div></div></div><div className="ledger-paper" style={{ padding: "22px 24px", background: "#18181f" }}><div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}><div className="ledger-marginalia">10 — Melhor registro</div></div><div style={{ display: "flex", alignItems: "center", gap: 16 }}><span className="ledger-stamp ledger-stamp--amber">Seq</span><div><div style={{ fontSize: 15, fontWeight: 700 }}>{bestHabitStreak.name}</div><div style={{ fontSize: 12, color: "#fbbf24", fontWeight: 700, letterSpacing: "0.04em" }}>
+ </div></div></div></div><div className="ledger-paper" style={{ padding: "22px 24px", background: "var(--ledger-paper-bg)" }}><div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}><div className="ledger-marginalia">10 — Melhor registro</div></div><div style={{ display: "flex", alignItems: "center", gap: 16 }}><span className="ledger-stamp ledger-stamp--amber">Seq</span><div><div style={{ fontSize: 15, fontWeight: 700 }}>{bestHabitStreak.name}</div><div style={{ fontSize: 12, color: "var(--accent)", fontWeight: 700, letterSpacing: "0.04em" }}>
  {bestHabitStreak.streak} dias seguidos
  </div></div></div></div></div>
 

@@ -28,50 +28,50 @@ export function DietSettingsModal({
  value={dietSettings.dailyCalorieGoal}
  onChange={(e) => onSettingsChange({ ...dietSettings, dailyCalorieGoal: parseInt(e.target.value) })}
  style={{ width: '100%' }}
- /><div style={{ fontSize: 11, color: '#6b6b78', fontFamily: 'DM Sans', marginTop: 8 }}>
+ /><div style={{ fontSize: 11, color: 'var(--ink-muted)', fontFamily: 'DM Sans', marginTop: 8 }}>
  Recomendação: 1800-2500 kcal/dia
  </div></div>
 
  {/* Macronutrients Section */}
  <div><div className="ledger-marginalia mb-2">Macronutrientes</div><div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(120px, 1fr))', gap: 12 }}>
  {/* Protein */}
- <div style={{ background: '#18181f', border: '1px solid #262630', borderRadius: 6, padding: '12px' }}>
+ <div style={{ background: 'var(--ledger-paper-bg)', border: '1px solid var(--ledger-paper-border)', borderRadius: 6, padding: '12px' }}>
  <div className="ledger-marginalia mb-2">Proteína</div><input
  className="ledger-input"
  type="number"
  value={dietSettings.proteinGoal}
  onChange={(e) => onSettingsChange({ ...dietSettings, proteinGoal: parseInt(e.target.value) })}
  style={{ width: '100%' }}
- /><div style={{ fontSize: 10, color: '#6b6b78', fontFamily: 'DM Sans', marginTop: 6 }}>
+ /><div style={{ fontSize: 10, color: 'var(--ink-muted)', fontFamily: 'DM Sans', marginTop: 6 }}>
  gramas
  </div></div>
 
  {/* Carbs */}
- <div style={{ background: '#18181f', border: '1px solid #262630', borderRadius: 6, padding: '12px' }}>
+ <div style={{ background: 'var(--ledger-paper-bg)', border: '1px solid var(--ledger-paper-border)', borderRadius: 6, padding: '12px' }}>
  <div className="ledger-marginalia mb-2">Carboidratos</div><input
  className="ledger-input"
  type="number"
  value={dietSettings.carbsGoal}
  onChange={(e) => onSettingsChange({ ...dietSettings, carbsGoal: parseInt(e.target.value) })}
  style={{ width: '100%' }}
- /><div style={{ fontSize: 10, color: '#6b6b78', fontFamily: 'DM Sans', marginTop: 6 }}>
+ /><div style={{ fontSize: 10, color: 'var(--ink-muted)', fontFamily: 'DM Sans', marginTop: 6 }}>
  gramas
  </div></div>
 
  {/* Fat */}
- <div style={{ background: '#18181f', border: '1px solid #262630', borderRadius: 6, padding: '12px' }}>
+ <div style={{ background: 'var(--ledger-paper-bg)', border: '1px solid var(--ledger-paper-border)', borderRadius: 6, padding: '12px' }}>
  <div className="ledger-marginalia mb-2">Gordura</div><input
  className="ledger-input"
  type="number"
  value={dietSettings.fatGoal}
  onChange={(e) => onSettingsChange({ ...dietSettings, fatGoal: parseInt(e.target.value) })}
  style={{ width: '100%' }}
- /><div style={{ fontSize: 10, color: '#6b6b78', fontFamily: 'DM Sans', marginTop: 6 }}>
+ /><div style={{ fontSize: 10, color: 'var(--ink-muted)', fontFamily: 'DM Sans', marginTop: 6 }}>
  gramas
  </div></div></div></div>
 
  {/* Hydration Section */}
- <div className="ledger-paper" style={{ padding: '16px', borderTopColor: '#8b5cf6' }}>
+ <div className="ledger-paper" style={{ padding: '16px', borderTopColor: 'var(--primary)' }}>
  <div className="ledger-marginalia mb-2">Meta de Hidratação</div><input
  className="ledger-input"
  type="number"
@@ -79,7 +79,7 @@ export function DietSettingsModal({
  value={dietSettings.waterGoal}
  onChange={(e) => onSettingsChange({ ...dietSettings, waterGoal: parseInt(e.target.value) })}
  style={{ width: '100%' }}
- /><div style={{ fontSize: 11, color: '#6b6b78', fontFamily: 'DM Sans', marginTop: 8 }}>
+ /><div style={{ fontSize: 11, color: 'var(--ink-muted)', fontFamily: 'DM Sans', marginTop: 8 }}>
  Recomendação: 2000-3000 mL/dia (2-3 litros)
  </div></div>
 

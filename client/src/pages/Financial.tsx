@@ -53,12 +53,12 @@ const INCOME_CATEGORIES = [
 ];
 
 const CHART_COLORS = [
- "#A855F7",
+ "var(--primary)",
  "#EC4899",
- "#F59E0B",
+ "var(--accent)",
  "#10B981",
  "#06B6D4",
- "#8B5CF6",
+ "var(--primary)",
  "#EF4444",
  "#6366F1",
 ];
@@ -76,8 +76,8 @@ const labelStyle: React.CSSProperties = {
 };
 
 const cardBase: React.CSSProperties = {
- background: "#18181f",
- border: "1px solid #262630",
+ background: "var(--ledger-paper-bg)",
+ border: "1px solid var(--ledger-paper-border)",
  borderRadius: "6px",
  padding: "22px 24px",
 };
@@ -356,22 +356,22 @@ export default function Financial() {
  marginBottom: "8px",
  background:
  change < 0
- ? "#0e2118"
+ ? "#dcfce7"
  : change > 0
- ? "#261414"
- : "#18181f",
+ ? "#fee2e2"
+ : "var(--ledger-paper-bg)",
  border:
  change < 0
  ? "1px solid rgba(34,197,94,0.35)"
  : change > 0
  ? "1px solid rgba(239,68,68,0.35)"
- : "1px solid #262630",
+ : "1px solid var(--ledger-paper-border)",
  color:
  change < 0
  ? "#4ade80"
  : change > 0
  ? "#f87171"
- : "#9a9aa8",
+ : "var(--ink-muted)",
  });
 
  const toggleBtnStyle = (active: boolean): React.CSSProperties => ({
@@ -379,13 +379,12 @@ export default function Financial() {
  fontWeight: 600,
  padding: "5px 12px",
  borderRadius: "6px",
- border: "none",
  cursor: "pointer",
  fontFamily: "'Sora', sans-serif",
  transition: "all 0.15s",
- background: active ? "#7c3aed" : "transparent",
- border: active ? "1px solid #7c3aed" : "1px solid #262630",
- color: active ? "#f3e8ff" : "#9a9aa8",
+ background: active ? "var(--primary-dark, #7c3aed)" : "transparent",
+ border: active ? "1px solid var(--primary-dark, #7c3aed)" : "1px solid var(--ledger-paper-border)",
+ color: active ? "#f3e8ff" : "var(--ink-muted)",
  });
 
  // ─── render ──────────────────────────────────────────────────────────────────
@@ -402,8 +401,8 @@ export default function Financial() {
  >
  {/* ── Header ficha — folha solta de caderno ── */}
  <div className="notebook-sheet notebook-sheet--margined" style={{
- background: "#18181f",
- border: "1px solid #262630",
+ background: "var(--ledger-paper-bg)",
+ border: "1px solid var(--ledger-paper-border)",
  borderRadius: 6,
  padding: "22px 24px 18px",
  }}><div className="ledger-marginalia" style={{ marginBottom: 10 }}>
@@ -411,7 +410,7 @@ export default function Financial() {
  </div><h1 style={{
  fontSize: 28,
  fontWeight: 800,
- color: "#ededed",
+ color: "var(--ink)",
  fontFamily: "Space Grotesk",
  margin: 0,
  letterSpacing: "-0.035em",
@@ -420,7 +419,7 @@ export default function Financial() {
  Finanças
  </h1><p style={{
  fontSize: 13.5,
- color: "#9a9aa8",
+ color: "var(--ink-muted)",
  fontFamily: "DM Sans",
  margin: "8px 0 0",
  }}>
@@ -432,8 +431,8 @@ export default function Financial() {
  style={{
  display: "grid",
  gridTemplateColumns: "repeat(3, 1fr)",
- background: "#262630",
- border: "1px solid #262630",
+ background: "var(--ledger-paper-border)",
+ border: "1px solid var(--ledger-paper-border)",
  borderRadius: "6px",
  overflow: "hidden",
  gap: "1px",
@@ -445,18 +444,18 @@ export default function Financial() {
  {
  label: "Saldo",
  value: summary.balance,
- color: summary.balance >= 0 ? "#A855F7" : "#EF4444",
+ color: summary.balance >= 0 ? "var(--primary)" : "#EF4444",
  },
  ].map(({ label, value, color }, i) => (
  <div
  key={label}
  style={{
- background: "#18181f",
+ background: "var(--ledger-paper-bg)",
  padding: isMobile ? "16px 10px 14px" : "22px 20px 18px",
  display: "flex",
  flexDirection: "column",
  gap: "6px",
- borderLeft: i > 0 ? "1px solid #262630" : undefined,
+ borderLeft: i > 0 ? "1px solid var(--ledger-paper-border)" : undefined,
  }}
  ><span
  style={{
@@ -570,7 +569,7 @@ export default function Financial() {
  style={{
  background: "none",
  border: "none",
- color: "#A855F7",
+ color: "var(--primary)",
  cursor: "pointer",
  padding: "4px",
  display: "flex",
@@ -596,7 +595,7 @@ export default function Financial() {
  style={{
  background: "none",
  border: "none",
- color: "#A855F7",
+ color: "var(--primary)",
  cursor: "pointer",
  padding: "4px",
  display: "flex",
@@ -657,7 +656,7 @@ export default function Financial() {
  borderRadius: "6px",
  cursor: day ? "pointer" : "default",
  position: "relative",
- background: isToday ? "#A855F7" : "transparent",
+ background: isToday ? "var(--primary)" : "transparent",
  color: isToday
  ? "#fff"
  : day
@@ -675,7 +674,7 @@ export default function Financial() {
  transform: "translateX(-50%)",
  width: "3px",
  height: "3px",
- background: "#A855F7",
+ background: "var(--primary)",
  borderRadius: "50%",
  }}
  />
@@ -696,7 +695,7 @@ export default function Financial() {
  onClick={() => setShowAddTransaction(true)}
  style={{
  width: "100%",
- background: "#A855F7",
+ background: "var(--primary)",
  border: "none",
  borderRadius: "8px",
  padding: "11px",
@@ -741,18 +740,18 @@ export default function Financial() {
  style={{
  fontSize: "13px",
  fontWeight: 600,
- color: "#ededed",
+ color: "var(--ink)",
  }}
  >
  Distribuição por categoria
  </span></div><div
  style={{
  display: "flex",
- background: "#111118",
+ background: "var(--ledger-paper-bg)",
  borderRadius: "4px",
  padding: "3px",
  gap: "3px",
- border: "1px solid #262630",
+ border: "1px solid var(--ledger-paper-border)",
  }}
  ><button
  style={toggleBtnStyle(chartType === "bars")}
@@ -816,7 +815,7 @@ export default function Financial() {
  border: `1px solid ${color}55`,
  borderRadius: 3,
  padding: "1px 3px",
- background: "#12121a",
+ background: "var(--ledger-paper-bg)",
  }}>
  {CATEGORY_ICONS[item.name] || ""}
  </span></span><div style={{ flex: 1, minWidth: 0 }}><div
@@ -886,8 +885,8 @@ export default function Financial() {
  "Gasto",
  ]}
  contentStyle={{
- background: "#18181f",
- border: "1px solid #262630",
+ background: "var(--ledger-paper-bg)",
+ border: "1px solid var(--ledger-paper-border)",
  borderRadius: "4px",
  fontSize: "12px",
  fontFamily: "'JetBrains Mono', monospace",
@@ -902,7 +901,7 @@ export default function Financial() {
  gap: "8px",
  marginTop: "12px",
  paddingTop: "14px",
- borderTop: "1px solid #262630",
+ borderTop: "1px solid var(--ledger-paper-border)",
  }}
  >
  {chartData.map((item, index) => {
@@ -986,7 +985,7 @@ export default function Financial() {
  padding: "10px 0",
  borderBottom:
  i < recentTransactions.length - 1
- ? "1px solid #262630"
+ ? "1px solid var(--ledger-paper-border)"
  : "none",
  }}
  >
@@ -996,8 +995,8 @@ export default function Financial() {
  width: "32px",
  height: "32px",
  borderRadius: "4px",
- background: "#12121a",
- border: "1px solid #262630",
+ background: "var(--ledger-paper-bg)",
+ border: "1px solid var(--ledger-paper-border)",
  display: "flex",
  alignItems: "center",
  justifyContent: "center",
@@ -1075,14 +1074,14 @@ export default function Financial() {
  ><button
  onClick={() => handleDeleteTransaction(txnId)}
  style={{
- background: "#261414",
+ background: "#fee2e2",
  border: "1px solid rgba(239,68,68,0.45)",
+ color: "#b91c1c",
  borderRadius: "4px",
  padding: "4px 10px",
  fontSize: "11px",
  fontWeight: 600,
  fontFamily: "'Sora', sans-serif",
- color: "#f87171",
  cursor: "pointer",
  whiteSpace: "nowrap",
  }}
@@ -1153,8 +1152,8 @@ export default function Financial() {
  }}
  ><div
  style={{
- background: "#18181f",
- border: "1px solid #262630",
+ background: "var(--ledger-paper-bg)",
+ border: "1px solid var(--ledger-paper-border)",
  borderRadius: "6px",
  padding: isMobile ? "20px" : "28px",
  maxWidth: "380px",
@@ -1176,7 +1175,7 @@ export default function Financial() {
  fontFamily: "'Space Grotesk', sans-serif",
  fontSize: "17px",
  fontWeight: 700,
- color: "#ededed",
+ color: "var(--ink)",
  letterSpacing: "-0.02em",
  }}
  >
@@ -1215,11 +1214,11 @@ export default function Financial() {
  style={{
  padding: "9px",
  borderRadius: "4px",
- border: `1px solid ${formData.type === "expense" ? "rgba(239,68,68,0.45)" : "#262630"}`,
+ border: `1px solid ${formData.type === "expense" ? "rgba(239,68,68,0.45)" : "var(--ledger-paper-border)"}`,
  background:
  formData.type === "expense"
- ? "#261414"
- : "#111118",
+ ? "#fee2e2"
+ : "#ede9fe",
  fontSize: "12px",
  fontWeight: 600,
  fontFamily: "'Sora', sans-serif",
@@ -1227,7 +1226,7 @@ export default function Financial() {
  color:
  formData.type === "expense"
  ? "#f87171"
- : "#9a9aa8",
+ : "var(--ink-muted)",
  transition: "all 0.15s",
  }}
  >
@@ -1243,11 +1242,11 @@ export default function Financial() {
  style={{
  padding: "9px",
  borderRadius: "4px",
- border: `1px solid ${formData.type === "income" ? "rgba(34,197,94,0.45)" : "#262630"}`,
+ border: `1px solid ${formData.type === "income" ? "rgba(34,197,94,0.45)" : "var(--ledger-paper-border)"}`,
  background:
  formData.type === "income"
- ? "#0e2118"
- : "#111118",
+ ? "#dcfce7"
+ : "var(--ledger-paper-bg)",
  fontSize: "12px",
  fontWeight: 600,
  fontFamily: "'Sora', sans-serif",
@@ -1255,7 +1254,7 @@ export default function Financial() {
  color:
  formData.type === "income"
  ? "#4ade80"
- : "#9a9aa8",
+ : "var(--ink-muted)",
  transition: "all 0.15s",
  }}
  >
@@ -1291,7 +1290,7 @@ export default function Financial() {
  setFormData({ ...formData, category: e.target.value })
  }
  className="ledger-input"
- style={{ background: "transparent", outline: "none", color: "#ededed" }}
+ style={{ background: "transparent", outline: "none", color: "var(--ink)" }}
  >
  {activeCategories.map(cat => (
  <option key={cat.name} value={cat.name}>
