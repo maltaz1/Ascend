@@ -1504,7 +1504,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  outline: "none",
  color: "#ededed",
  }}
- ><option value="warmup"> Aquecimento</option><option value="normal"> Normal</option><option value="failed"> Falhada</option><option value="drop">⬇ Drop</option></select>
+ ><option value="warmup">🔥 Aquecimento</option><option value="normal">💪 Normal</option><option value="failed">❌ Falhada</option><option value="drop">⬇️ Drop</option></select>
 
  {/* INPUTS */}
  <div

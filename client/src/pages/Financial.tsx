@@ -21,35 +21,35 @@ import { getTodayString } from "@/store/utils";
 // ─── constants ───────────────────────────────────────────────────────────────
 
 const CATEGORY_ICONS: Record<string, string> = {
- Alimentação: "A",
- Transporte: "T",
- Moradia: "M",
- "Lazer & Estilo de Vida": "L",
- "Saúde & Bem-Estar": "S",
- "Compras & Pessoal": "C",
- Educação: "E",
- "Outros / Imprevistos": "O",
- Salário: "S",
- Freelance: "F",
- Investimentos: "I",
+ Alimentação: "🍔",
+ Transporte: "🚌",
+ Moradia: "🏠",
+ "Lazer & Estilo de Vida": "🎮",
+ "Saúde & Bem-Estar": "💪",
+ "Compras & Pessoal": "🛍️",
+ Educação: "🎓",
+ "Outros / Imprevistos": "🧾",
+ Salário: "💰",
+ Freelance: "💻",
+ Investimentos: "📈",
 };
 
 const PREDEFINED_CATEGORIES = [
- { name: "Alimentação", icon: "A" },
- { name: "Transporte", icon: "T" },
- { name: "Moradia", icon: "M" },
- { name: "Lazer & Estilo de Vida", icon: "L" },
- { name: "Saúde & Bem-Estar", icon: "S" },
- { name: "Compras & Pessoal", icon: "C" },
- { name: "Educação", icon: "E" },
- { name: "Outros / Imprevistos", icon: "O" },
+ { name: "Alimentação", icon: "🍔" },
+ { name: "Transporte", icon: "🚌" },
+ { name: "Moradia", icon: "🏠" },
+ { name: "Lazer & Estilo de Vida", icon: "🎮" },
+ { name: "Saúde & Bem-Estar", icon: "💪" },
+ { name: "Compras & Pessoal", icon: "🛍️" },
+ { name: "Educação", icon: "🎓" },
+ { name: "Outros / Imprevistos", icon: "🧾" },
 ];
 
 const INCOME_CATEGORIES = [
- { name: "Salário", icon: "S" },
- { name: "Freelance", icon: "F" },
- { name: "Investimentos", icon: "I" },
- { name: "Outros", icon: "O" },
+ { name: "Salário", icon: "💰" },
+ { name: "Freelance", icon: "💻" },
+ { name: "Investimentos", icon: "📈" },
+ { name: "Outros", icon: "🧩" },
 ];
 
 const CHART_COLORS = [
@@ -939,7 +939,7 @@ export default function Financial() {
  minWidth: 0,
  }}
  >
- [{CATEGORY_ICONS[item.name] ?? ""}] {item.name}
+ {CATEGORY_ICONS[item.name] ?? ""} {item.name}
  </span><span
  style={{
  fontFamily: "'JetBrains Mono', monospace",

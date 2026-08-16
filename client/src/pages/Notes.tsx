@@ -561,9 +561,9 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  setNotes(prev => prev.map(n => n.id === selectedNote.id ? { ...n, folder_id: folderId, folder: folderName } : n));
  }}
  className="bg-[#18181f] border border-[#262630] rounded-md px-3 py-2 text-xs font-bold text-zinc-300 hover:text-white hover:border-[#7c3aed] focus:border-[#7c3aed] outline-none transition-all cursor-pointer"
- > <option value="">[ 📁 ] Sem pasta</option>
+ > <option value="">📁 Sem pasta</option>
  {userFolders.map(folder => (
- <option key={folder.id} value={folder.id}>[ 📁 ] {folder.name}</option>
+ <option key={folder.id} value={folder.id}>📁 {folder.name}</option>
  ))}
  </select></div></header>
 
@@ -665,6 +665,16 @@ const NoteItem = React.memo(function NoteItem({ note, isSelected, onClick }: { n
  };
  return colors[folder] || colors["Sem pasta"];
  }, []);
+ const folderEmoji = useCallback((folder: string) => {
+ const emojis: Record<string, string> = {
+ "Trabalho": "💼 ",
+ "Estudos": "📚 ",
+ "Pessoal": "👤 ",
+ "Ideias": "💡 ",
+ "Sem pasta": "📁 "
+ };
+ return emojis[folder] || "📁 ";
+ }, []);
 
  const preview = useMemo(() => generatePreview(note.content) || "Escreva algo incrível...", [note.content]);
 
@@ -687,7 +697,7 @@ const NoteItem = React.memo(function NoteItem({ note, isSelected, onClick }: { n
  </div><p className="text-sm text-zinc-500 line-clamp-1 mb-4 leading-relaxed font-medium">
  {preview}
  </p><div className="flex items-center justify-between"><span className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest">{formatDate(note.updated_at)}</span><span className={`text-[9px] font-black px-2.5 py-1 rounded-lg border uppercase tracking-tight ${getTagStyle(note.folder)}`}>
- {note.folder}
+ {folderEmoji(note.folder)}{note.folder}
  </span></div></motion.button>
  );
 });

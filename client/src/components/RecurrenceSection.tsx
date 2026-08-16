@@ -177,10 +177,10 @@ export function RecurrenceSection({ recurrence, onChange }: RecurrenceSectionPro
                 className="ledger-input w-full"
                 style={{ background: "transparent", outline: "none", color: "#ededed" }}
               >
-                <option value="days">Dias</option>
-                <option value="weeks">Semanas</option>
-                <option value="months">Meses</option>
-                <option value="years">Anos</option>
+                <option value="days">📅 Dias</option>
+                <option value="weeks">🗓️ Semanas</option>
+                <option value="months">🗓️ Meses</option>
+                <option value="years">🎂 Anos</option>
               </select>
             </div>
           </div>

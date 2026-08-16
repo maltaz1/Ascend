@@ -52,10 +52,10 @@ export const APPOINTMENT_COLORS = [
 ] as const;
 
 export const APPOINTMENT_CATEGORIES = [
-  "Trabalho",
-  "Pessoal",
-  "Saúde",
-  "Educação",
-  "Lazer",
-  "Outro",
+  "💼 Trabalho",
+  "👤 Pessoal",
+  "🩺 Saúde",
+  "📚 Educação",
+  "🎈 Lazer",
+  "📌 Outro",
 ] as const;
