@@ -224,7 +224,7 @@ export default function Login() {
         }
 
         .asc-hero-title span {
-          color: var(--accent);
+          color: var(--primary);
         }
 
         .asc-hero-sub {
@@ -350,7 +350,7 @@ export default function Login() {
 
         .asc-xp-mini-fill {
           height: 100%;
-          background: var(--accent);
+          background: var(--primary);
           border-radius: 2px;
           animation: progressFill 1.8s 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
@@ -433,7 +433,7 @@ export default function Login() {
           font-weight: 700;
           letter-spacing: 0.1em;
           text-transform: uppercase;
-          color: var(--accent);
+          color: var(--primary);
           font-family: 'Space Grotesk', sans-serif;
         }
 
@@ -465,7 +465,7 @@ export default function Login() {
           font-weight: 700;
           letter-spacing: 0.08em;
           text-transform: uppercase;
-          color: var(--accent);
+          color: var(--primary);
           font-family: 'DM Sans', sans-serif;
           box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
           transform: rotate(1.5deg);
@@ -523,7 +523,7 @@ export default function Login() {
           letter-spacing: -0.03em;
         }
 
-        .asc-stat-num.orange { color: var(--accent); }
+        .asc-stat-num.orange { color: var(--primary); }
         .asc-stat-num.purple { color: var(--primary); }
 
         .asc-stat-label {
@@ -686,7 +686,7 @@ export default function Login() {
 
         .asc-input {
           width: 100%;
-          padding: 11px 40px 9px 2px;
+          padding: 11px 40px 9px 26px;
           background: transparent;
           border: none;
           border-bottom: 1.5px solid var(--ledger-paper-border);
@@ -837,7 +837,7 @@ export default function Login() {
         }
 
         .asc-xp-label .l { color: var(--ink-muted); }
-        .asc-xp-label .r { color: var(--accent); }
+        .asc-xp-label .r { color: var(--primary); }
 
         .asc-xp-track {
           height: 5px;
@@ -966,7 +966,7 @@ export default function Login() {
                       cy="26"
                       r="22"
                       fill="none"
-                      stroke="var(--accent)"
+                      stroke="var(--primary)"
                       strokeWidth="5"
                       strokeLinecap="butt"
                       strokeDasharray="138"
@@ -1001,7 +1001,7 @@ export default function Login() {
                 <div className="asc-habit-row">
                   <div
                     className="asc-habit-dot"
-                    style={{ background: "var(--accent)" }}
+                    style={{ background: "var(--primary)" }}
                   />
                   <span className="asc-habit-name">Estudar</span>
                   <div className="asc-habit-check done">
