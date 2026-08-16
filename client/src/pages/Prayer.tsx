@@ -209,40 +209,52 @@ const loadFavorites = async () => {
 
  return (
  <div className="animate-fade-in" style={{ display: 'flex', flexDirection: 'column', height: 'calc(100vh - 120px)', gap: 16 }}>
- {/* Header with tabs */}
- <div style={{
- display: 'flex',
+ {/* Header ficha */}
+ <div className="ledger-paper" style={{
+ marginBottom: 16,
+ overflow: 'hidden',
+ background: '#18181f',
+ }}><div style={{ display: 'flex',
  alignItems: 'center',
  justifyContent: 'space-between',
- paddingBottom: 16,
- borderBottom: '1px solid var(--border)',
- }}><div style={{ display: 'flex', gap: 16, alignItems: 'center' }}><div><h1 style={{
+ padding: '22px 24px 18px',
+ flexWrap: 'wrap',
+ gap: 14,
+ }}><div><div className="ledger-marginalia" style={{ marginBottom: 10 }}>
+ 06 — Intenções
+ </div><h1 style={{
  fontFamily: 'Space Grotesk',
  fontWeight: 800,
  fontSize: 28,
- color: 'var(--foreground)',
- marginBottom: 4,
+ color: '#ededed',
+ letterSpacing: '-0.035em',
+ marginBottom: 5,
+ lineHeight: 1.1,
  }}>
  Espaço de Oração
  </h1><p style={{
  fontFamily: 'DM Sans',
- fontSize: 14,
- color: 'var(--muted-foreground)',
+ fontSize: 13.5,
+ color: '#9a9aa8',
  }}>
- Compartilhe suas intenções e receba orientação espiritual
- </p></div></div><div style={{ display: 'flex', gap: 8 }}><button
+ Onde você escreve o que carrega no peito.
+ </p></div><div style={{ display: 'flex', gap: 8 }}><span className="ledger-stamp ledger-stamp--amber" style={{ marginRight: 4, fontSize: 10 }}>
+ CHAT
+ </span><button
  onClick={() => setViewMode('chat')}
  style={{
- padding: '10px 16px',
- borderRadius: 8,
- border: viewMode === 'chat' ? '1px solid rgba(245,158,11,0.4)' : '1px solid var(--border)',
- background: viewMode === 'chat' ? 'rgba(245,158,11,0.1)' : 'transparent',
- color: 'var(--foreground)',
+ padding: '9px 14px',
+ borderRadius: 6,
+ border: viewMode === 'chat' ? '1px solid rgba(245,158,11,0.6)' : '1px solid #262630',
+ background: viewMode === 'chat' ? '#241a0e' : 'transparent',
+ color: viewMode === 'chat' ? '#fbbf24' : '#a0a0ad',
  cursor: 'pointer',
  fontFamily: 'DM Sans',
- fontSize: 13,
+ fontSize: 12.5,
  fontWeight: 600,
- transition: 'all 0.2s',
+ transition: 'all 0.15s',
+ textTransform: 'uppercase',
+ letterSpacing: '0.08em',
  }}
  onMouseEnter={(e) => {
  if (viewMode !== 'chat') {
@@ -259,19 +271,21 @@ const loadFavorites = async () => {
  </button><button
  onClick={() => setViewMode('favorites')}
  style={{
- padding: '10px 16px',
- borderRadius: 8,
- border: viewMode === 'favorites' ? '1px solid rgba(245,158,11,0.4)' : '1px solid var(--border)',
- background: viewMode === 'favorites' ? 'rgba(245,158,11,0.1)' : 'transparent',
- color: 'var(--foreground)',
+ padding: '9px 14px',
+ borderRadius: 6,
+ border: viewMode === 'favorites' ? '1px solid rgba(245,158,11,0.6)' : '1px solid #262630',
+ background: viewMode === 'favorites' ? '#241a0e' : 'transparent',
+ color: viewMode === 'favorites' ? '#fbbf24' : '#a0a0ad',
  cursor: 'pointer',
  fontFamily: 'DM Sans',
- fontSize: 13,
+ fontSize: 12.5,
  fontWeight: 600,
- transition: 'all 0.2s',
+ transition: 'all 0.15s',
  display: 'flex',
  alignItems: 'center',
  gap: 6,
+ textTransform: 'uppercase',
+ letterSpacing: '0.08em',
  }}
  onMouseEnter={(e) => {
  if (viewMode !== 'favorites') {
@@ -285,7 +299,7 @@ const loadFavorites = async () => {
  }}
  ><Heart size={14} fill={viewMode === 'favorites' ? 'currentColor' : 'none'} />
  Favoritos ({favoritePrayers.length})
- </button></div></div>
+ </button></div></div></div>
 
  {/* Chat View */}
  {viewMode === 'chat' && (
@@ -297,10 +311,10 @@ const loadFavorites = async () => {
  display: 'flex',
  flexDirection: 'column',
  gap: 12,
- padding: '16px',
- background: 'var(--bg-secondary)',
+ padding: '20px 24px',
+ background: '#18181f',
  borderRadius: 6,
- border: '1px solid var(--border)',
+ border: '1px solid #262630',
  }}>
  {messages.length === 0 ? (
  <div style={{
@@ -311,48 +325,54 @@ const loadFavorites = async () => {
  height: '100%',
  gap: 24,
  textAlign: 'center',
- }}><div><div style={{ fontSize: 48, marginBottom: 12 }}> </div><h2 style={{
+ }}><div><div className="ledger-marginalia" style={{ marginBottom: 12, textAlign: 'center' }}>
+ REGISTRO DE INTENÇÕES
+ </div><h2 style={{
  fontFamily: 'Space Grotesk',
  fontWeight: 700,
  fontSize: 18,
- color: 'var(--foreground)',
+ color: '#ededed',
  marginBottom: 8,
+ letterSpacing: '-0.02em',
  }}>
  Bem-vindo ao Espaço de Oração
  </h2><p style={{
  fontFamily: 'DM Sans',
  fontSize: 13,
- color: 'var(--muted-foreground)',
+ color: '#9a9aa8',
+ marginBottom: 18,
  }}>
- Comece digitando uma intenção ou escolha uma sugestão abaixo
+ Escreva uma intenção ou escolha uma sugestão abaixo.
  </p></div><div className="grid grid-cols-[repeat(auto-fit,minmax(120px,1fr))] gap-2.5 w-full max-w-[500px]">
  {PRAYER_SUGGESTIONS.map((suggestion, idx) => (
  <button
  key={idx}
  onClick={() => handleSuggestion(suggestion)}
  style={{
- padding: '12px',
- borderRadius: 10,
- border: '1px solid rgba(245,158,11,0.2)',
- background: 'rgba(245,158,11,0.06)',
- color: 'var(--foreground)',
+ padding: '12px 10px',
+ borderRadius: 6,
+ border: '1px solid #262630',
+ borderTop: `2px solid ${['#F59E0B', '#8B5CF6', '#10B981', '#06B6D4', '#A855F7', '#F59E0B'][idx % 6]}`,
+ background: '#12121a',
+ color: '#ededed',
  cursor: 'pointer',
- transition: 'all 0.2s',
+ transition: 'all 0.15s',
  display: 'flex',
  flexDirection: 'column',
  alignItems: 'center',
- gap: 6,
- fontFamily: 'DM Sans',
+ gap: 8,
+ fontFamily: 'Space Grotesk',
+ boxShadow: '3px 3px 0 rgba(0,0,0,0.3)',
  }}
  onMouseEnter={(e) => {
- e.currentTarget.style.background = 'rgba(245,158,11,0.12)';
- e.currentTarget.style.borderColor = 'rgba(245,158,11,0.4)';
+ e.currentTarget.style.background = '#18181f';
+ e.currentTarget.style.transform = 'translateY(-2px)';
  }}
  onMouseLeave={(e) => {
- e.currentTarget.style.background = 'rgba(245,158,11,0.06)';
- e.currentTarget.style.borderColor = 'rgba(245,158,11,0.2)';
+ e.currentTarget.style.background = '#12121a';
+ e.currentTarget.style.transform = 'translateY(0)';
  }}
- ><span style={{ fontSize: 20 }}>{suggestion.emoji}</span><span style={{ fontWeight: 600, fontSize: 12 }}>{suggestion.title}</span></button>
+ ><span style={{ width: 22, height: 2, background: `${['#F59E0B', '#8B5CF6', '#10B981', '#06B6D4', '#A855F7', '#F59E0B'][idx % 6]}`, opacity: 0.75, display: 'block' }}></span><span style={{ fontWeight: 600, fontSize: 12.5, letterSpacing: '0.04em' }}>{suggestion.title}</span></button>
  ))}
  </div></div>
  ) : (
@@ -369,12 +389,12 @@ const loadFavorites = async () => {
  padding: '12px 16px',
  borderRadius: 6,
  background: msg.role === 'user'
- ? 'linear-gradient(135deg, rgba(245,158,11,0.2), rgba(245,158,11,0.1))'
- : 'rgba(168,85,247,0.08)',
+ ? '#241a0e'
+ : '#16141e',
  border: msg.role === 'user'
- ? '1px solid rgba(245,158,11,0.2)'
- : '1px solid rgba(168,85,247,0.2)',
- color: 'var(--foreground)',
+ ? '1px solid rgba(245,158,11,0.45)'
+ : '1px solid rgba(139,92,246,0.35)',
+ color: '#ededed',
  fontFamily: 'DM Sans',
  fontSize: 13,
  lineHeight: 1.6,
@@ -389,17 +409,10 @@ const loadFavorites = async () => {
  justifyContent: 'space-between',
  marginBottom: 8,
  paddingBottom: 8,
- borderBottom: '1px solid rgba(168,85,247,0.2)',
- }}><div style={{
- display: 'flex',
- alignItems: 'center',
- gap: 6,
- color: '#A855F7',
- fontSize: 12,
- fontWeight: 600,
- }}><Sparkles size={14} />
- Orientação Espiritual
- </div><button
+ borderBottom: '1px solid rgba(139,92,246,0.3)',
+ }}><span className="ledger-stamp ledger-stamp--violet" style={{ fontSize: 9, marginBottom: 2 }}>
+ ORIENTAÇÃO
+ </span><button
  onClick={() => handleToggleFavorite(msg.content)}
  style={{
  background: 'transparent',
@@ -433,9 +446,9 @@ const loadFavorites = async () => {
  }}><div style={{
  padding: '12px 16px',
  borderRadius: 6,
- background: 'rgba(168,85,247,0.08)',
- border: '1px solid rgba(168,85,247,0.2)',
- color: 'var(--muted-foreground)',
+ background: '#16141e',
+ border: '1px solid rgba(139,92,246,0.35)',
+ color: '#9a9aa8',
  fontFamily: 'DM Sans',
  fontSize: 13,
  }}><div style={{ display: 'flex', gap: 4, alignItems: 'center' }}><span style={{ display: 'inline-block', animation: 'pulse 1.5s infinite' }}>●</span><span style={{ display: 'inline-block', animation: 'pulse 1.5s infinite 0.2s' }}>●</span><span style={{ display: 'inline-block', animation: 'pulse 1.5s infinite 0.4s' }}>●</span></div></div></div>
@@ -477,14 +490,15 @@ const loadFavorites = async () => {
  onClick={handleClearChat}
  className="fz-btn-ghost"
  style={{
- padding: '12px 16px',
+  padding: '12px 16px',
  display: 'flex',
  alignItems: 'center',
  justifyContent: 'center',
  gap: 6,
  }}
  title="Limpar chat"
- ><RotateCcw size={14} /></button></div></>
+ ><RotateCcw size={14} /></button></div>
+ </>
  )}
 
  {/* Favorites View */}
@@ -495,10 +509,10 @@ const loadFavorites = async () => {
  display: 'flex',
  flexDirection: 'column',
  gap: 12,
- padding: '16px',
- background: 'var(--bg-secondary)',
+ padding: '20px 24px',
+ background: '#18181f',
+ border: '1px solid #262630',
  borderRadius: 6,
- border: '1px solid var(--border)',
  }}>
  {favoritePrayers.length === 0 ? (
  <div style={{
@@ -509,30 +523,34 @@ const loadFavorites = async () => {
  height: '100%',
  gap: 16,
  textAlign: 'center',
- }}><div style={{ fontSize: 48 }}> </div><h2 style={{
+ }}><div className="ledger-marginalia" style={{ marginBottom: 12, textAlign: 'center' }}>
+ ARQUIVO VAZIO
+ </div><h2 style={{
  fontFamily: 'Space Grotesk',
  fontWeight: 700,
  fontSize: 18,
- color: 'var(--foreground)',
+ color: '#ededed',
  marginBottom: 8,
+ letterSpacing: '-0.02em',
  }}>
  Nenhuma Oração Favoritada
  </h2><p style={{
  fontFamily: 'DM Sans',
  fontSize: 13,
- color: 'var(--muted-foreground)',
+ color: '#9a9aa8',
  }}>
- Volte ao chat e clique no ícone de coração para adicionar orações aos favoritos
+ Volte ao chat e clique no coração para guardar orações aqui.
  </p></div>
  ) : (
  favoritePrayers.map((prayer, idx) => (
  <div
  key={prayer.id}
  style={{
- padding: '16px',
+ padding: '16px 18px',
  borderRadius: 6,
- border: '1px solid rgba(245,158,11,0.2)',
- background: 'rgba(245,158,11,0.06)',
+ border: '1px solid #262630',
+ borderTop: '2px solid #F59E0B',
+ background: '#18181f',
  display: 'flex',
  flexDirection: 'column',
  gap: 12,
@@ -583,8 +601,6 @@ const loadFavorites = async () => {
  )}
  </div>
  )}
-
-
  </div>
  );
 }

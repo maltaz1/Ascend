@@ -108,8 +108,10 @@ function NutritionCircle({
  style={{
  fontSize: 12,
  fontWeight: 500,
- color: "rgba(255,255,255,0.7)",
+ color: "#9a9aa8",
  fontFamily: "DM Sans",
+ textTransform: "uppercase",
+ letterSpacing: "0.06em",
  }}
  >
  {label}
@@ -129,11 +131,13 @@ function MealCard({
  return (
  <div
  style={{
- background: "rgba(255,255,255,0.03)",
- border: `1px solid ${config.color}33`,
+ background: "#18181f",
+ border: "1px solid #262630",
+ borderTop: `2px solid ${config.color}`,
  borderRadius: 6,
- padding: "14px",
+ padding: "14px 16px",
  marginBottom: 12,
+ boxShadow: "4px 4px 0 rgba(0,0,0,0.28)",
  }}
  ><div
  style={{
@@ -142,7 +146,13 @@ function MealCard({
  alignItems: "center",
  marginBottom: 12,
  }}
- ><div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 20 }}>{config.emoji}</span><div><div
+ ><div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{
+ width: 18,
+ height: 2,
+ background: config.color,
+ display: "inline-block",
+ opacity: 0.8,
+ }}></span><div><div
  style={{
  fontSize: 13,
  fontWeight: 600,
@@ -154,7 +164,7 @@ function MealCard({
  </div><div
  style={{
  fontSize: 11,
- color: "rgba(255,255,255,0.4)",
+ color: "#6b6b78",
  fontFamily: "DM Sans",
  }}
  >
@@ -226,11 +236,11 @@ function MealCard({
  display: "flex",
  justifyContent: "space-between",
  paddingTop: 12,
- borderTop: `1px solid ${config.color}22`,
+ borderTop: `1px solid #262630`,
  fontSize: 12,
  fontWeight: 600,
  }}
- ><div style={{ color: "rgba(255,255,255,0.5)", fontFamily: "DM Sans" }}>
+ ><div style={{ color: "#6b6b78", fontFamily: "DM Sans" }}>
  Total:
  </div><div style={{ color: config.color, fontFamily: "Space Grotesk" }}>
  {meal.totalCalories} kcal • P: {meal.totalProtein}g • C:{" "}
@@ -441,10 +451,10 @@ function AddFoodModal({
  padding: "8px 12px",
  borderRadius: 6,
  background: calculatingMacros
- ? "rgba(168,85,247,0.3)"
- : "rgba(168,85,247,0.2)",
- border: "1px solid rgba(168,85,247,0.4)",
- color: "#A855F7",
+ ? "#1f1333"
+ : "#16141e",
+ border: "1px solid rgba(139,92,246,0.45)",
+ color: "#a78bfa",
  cursor:
  calculatingMacros || !foodName ? "not-allowed" : "pointer",
  fontFamily: "DM Sans",
@@ -457,12 +467,12 @@ function AddFoodModal({
  }}
  onMouseEnter={e => {
  if (!calculatingMacros && foodName) {
- e.currentTarget.style.background = "rgba(168,85,247,0.3)";
+ e.currentTarget.style.background = "#1f1333";
  }
  }}
  onMouseLeave={e => {
  if (!calculatingMacros && foodName) {
- e.currentTarget.style.background = "rgba(168,85,247,0.2)";
+ e.currentTarget.style.background = "#16141e";
  }
  }}
  >
@@ -475,9 +485,9 @@ function AddFoodModal({
  style={{
  width: "100%",
  marginTop: 4,
- background: "rgba(15,23,42,0.95)",
- border: "1px solid rgba(168,85,247,0.3)",
- borderRadius: 8,
+ background: "#12121a",
+ border: "1px solid #262630",
+ borderRadius: 6,
  maxHeight: 200,
  overflowY: "auto",
  }}
@@ -491,20 +501,20 @@ function AddFoodModal({
  padding: "10px 12px",
  border: "none",
  background:
- idx % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent",
- color: "#A855F7",
+ idx % 2 === 0 ? "#18181f" : "transparent",
+ color: "#a78bfa",
  cursor: "pointer",
  textAlign: "left",
  fontSize: 13,
  fontFamily: "DM Sans",
  borderBottom:
  idx < foodSuggestions.length - 1
- ? "1px solid rgba(255,255,255,0.05)"
+ ? "1px solid #262630"
  : "none",
  transition: "all 0.2s ease",
  }}
  onMouseEnter={e => {
- e.currentTarget.style.background = "rgba(168,85,247,0.2)";
+ e.currentTarget.style.background = "#1f1333";
  }}
  onMouseLeave={e => {
  e.currentTarget.style.background =
@@ -614,10 +624,10 @@ function AddFoodModal({
  onClick={handleAddFood}
  style={{
  padding: "10px 16px",
- borderRadius: 8,
- background: "rgba(245,158,11,0.2)",
- border: "1px solid rgba(245,158,11,0.3)",
- color: "#A855F7",
+ borderRadius: 6,
+ background: "#241a0e",
+ border: "1px solid rgba(245,158,11,0.4)",
+ color: "#fbbf24",
  cursor: "pointer",
  fontFamily: "DM Sans",
  fontWeight: 600,
@@ -625,10 +635,10 @@ function AddFoodModal({
  transition: "all 0.2s ease",
  }}
  onMouseEnter={e => {
- e.currentTarget.style.background = "rgba(245,158,11,0.3)";
+ e.currentTarget.style.background = "#2a1e10";
  }}
  onMouseLeave={e => {
- e.currentTarget.style.background = "rgba(245,158,11,0.2)";
+ e.currentTarget.style.background = "#241a0e";
  }}
  >
  + Adicionar Alimento
@@ -638,17 +648,20 @@ function AddFoodModal({
  {foods.length > 0 && (
  <div
  style={{
- background: "rgba(255,255,255,0.02)",
- borderRadius: 8,
+ background: "#12121a",
+ borderRadius: 6,
+ border: "1px solid #262630",
  padding: 12,
  }}
  ><div
  style={{
  fontSize: 12,
  fontWeight: 600,
- color: "rgba(255,255,255,0.7)",
+ color: "#9a9aa8",
  marginBottom: 8,
  fontFamily: "DM Sans",
+ textTransform: "uppercase",
+ letterSpacing: "0.06em",
  }}
  >
  Alimentos adicionados ({foods.length}):
@@ -664,12 +677,12 @@ function AddFoodModal({
  padding: "6px 0",
  borderBottom:
  idx < foods.length - 1
- ? "1px solid rgba(255,255,255,0.05)"
+ ? "1px solid #262630"
  : "none",
  }}
  ><div
  style={{
- color: "rgba(255,255,255,0.7)",
+ color: "#a0a0ad",
  fontFamily: "DM Sans",
  }}
  >
@@ -691,23 +704,30 @@ function AddFoodModal({
  <button
  onClick={handleSubmit}
  disabled={foods.length === 0}
+ onMouseEnter={e => {
+ if (foods.length > 0) {
+ e.currentTarget.style.transform = "translateY(-2px)";
+ e.currentTarget.style.boxShadow = "6px 6px 0 rgba(0,0,0,0.35)";
+ }
+ }}
+ onMouseLeave={e => {
+ if (foods.length > 0) {
+ e.currentTarget.style.transform = "translateY(0)";
+ e.currentTarget.style.boxShadow = "4px 4px 0 rgba(0,0,0,0.3)";
+ }
+ }}
  style={{
  padding: "12px 16px",
- borderRadius: 8,
- background: foods.length > 0 ? "#A855F7" : "rgba(168,85,247,0.3)",
- border: "none",
- color: foods.length > 0 ? "#000" : "rgba(255,255,255,0.3)",
+ borderRadius: 6,
+ background: foods.length > 0 ? "#8B5CF6" : "#1f1333",
+ border: "1px solid #262630",
+ color: foods.length > 0 ? "#030013" : "#5b5b6a",
  cursor: foods.length > 0 ? "pointer" : "not-allowed",
  fontFamily: "Space Grotesk",
  fontWeight: 600,
  fontSize: 14,
- transition: "all 0.2s ease",
- }}
- onMouseEnter={e => {
- if (foods.length > 0) e.currentTarget.style.opacity = "0.9";
- }}
- onMouseLeave={e => {
- if (foods.length > 0) e.currentTarget.style.opacity = "1";
+ transition: "all 0.15s ease",
+ boxShadow: foods.length > 0 ? "4px 4px 0 rgba(0,0,0,0.3)" : "none",
  }}
  >
  Salvar Refeição
@@ -753,8 +773,9 @@ function WaterModal({
  {/* Progress Bar */}
  <div
  style={{
- background: "rgba(56,189,248,0.1)",
- border: "1px solid rgba(56,189,248,0.2)",
+ background: "#13171d",
+ border: "1px solid rgba(56,189,248,0.3)",
+ borderTop: "2px solid #38BDF8",
  borderRadius: 6,
  padding: "16px",
  }}
@@ -793,7 +814,7 @@ function WaterModal({
  marginTop: 8,
  fontFamily: "DM Sans",
  fontSize: 12,
- color: "rgba(255,255,255,0.5)",
+ color: "#9a9aa8",
  }}
  >
  {Math.round(percentage)}% da meta diária
@@ -823,16 +844,16 @@ function WaterModal({
  onClick={() => setMlAmount(ml.toString())}
  style={{
  padding: "8px 14px",
- borderRadius: 8,
+ borderRadius: 6,
  background:
  mlAmount === ml.toString()
- ? "rgba(56,189,248,0.3)"
- : "rgba(56,189,248,0.1)",
+ ? "#0f2430"
+ : "transparent",
  border:
  mlAmount === ml.toString()
- ? "1px solid rgba(56,189,248,0.5)"
- : "1px solid rgba(56,189,248,0.2)",
- color: mlAmount === ml.toString() ? "#38BDF8" : "rgba(255,255,255,0.7)",
+ ? "1px solid rgba(56,189,248,0.55)"
+ : "1px solid rgba(56,189,248,0.25)",
+ color: mlAmount === ml.toString() ? "#38BDF8" : "#a0a0ad",
  cursor: "pointer",
  fontFamily: "Space Grotesk",
  fontWeight: 600,
@@ -871,16 +892,16 @@ function WaterModal({
  disabled={isAdding || !parseFloat(mlAmount) || parseFloat(mlAmount) <= 0}
  style={{
  padding: "14px 16px",
- borderRadius: 10,
+ borderRadius: 6,
  background:
  isAdding || !parseFloat(mlAmount) || parseFloat(mlAmount) <= 0
- ? "rgba(56,189,248,0.3)"
+ ? "#13171d"
  : "#0EA5E9",
- border: "none",
+ border: "1px solid #262630",
  color:
  isAdding || !parseFloat(mlAmount) || parseFloat(mlAmount) <= 0
- ? "rgba(255,255,255,0.4)"
- : "#000",
+ ? "#5b5b6a"
+ : "#031219",
  cursor:
  isAdding || !parseFloat(mlAmount) || parseFloat(mlAmount) <= 0
  ? "not-allowed"
@@ -892,7 +913,7 @@ function WaterModal({
  boxShadow:
  isAdding || !parseFloat(mlAmount) || parseFloat(mlAmount) <= 0
  ? "none"
- : "0 4px 12px rgba(56,189,248,0.3)",
+ : "4px 4px 0 rgba(0,0,0,0.3)",
  }}
  onMouseEnter={e => {
  if (
@@ -901,7 +922,7 @@ function WaterModal({
  parseFloat(mlAmount) > 0
  ) {
  e.currentTarget.style.transform = "translateY(-2px)";
- e.currentTarget.style.boxShadow = "0 6px 16px rgba(56,189,248,0.4)";
+ e.currentTarget.style.boxShadow = "6px 6px 0 rgba(0,0,0,0.35)";
  }
  }}
  onMouseLeave={e => {
@@ -1048,34 +1069,42 @@ export default function Diet() {
 
  return (
  <div style={{ display: "flex", flexDirection: "column", gap: 24 }}>
- {/* Header */}
- <div
+ {/* Header ficha */}
+ <div className="ledger-paper" style={{
+ overflow: "hidden",
+ background: "#18181f",
+ }}><div
  style={{
  display: "flex",
  justifyContent: "space-between",
  alignItems: "flex-start",
+ padding: "22px 24px 18px",
  }}
- ><div><div
+ ><div><div className="ledger-marginalia" style={{ marginBottom: 10 }}>
+ 10 — Registro alimentar
+ </div><div
  style={{
  display: "flex",
  alignItems: "center",
- gap: 8,
- marginBottom: 8,
+ gap: 10,
+ marginBottom: 6,
  }}
- ><ChefHat size={28} color="#A855F7" /><h1
+ ><h1
  style={{
  fontSize: 28,
- fontWeight: 700,
- color: "white",
+ fontWeight: 800,
+ color: "#ededed",
  fontFamily: "Space Grotesk",
  margin: 0,
+ letterSpacing: "-0.035em",
+ lineHeight: 1.1,
  }}
  >
  {greeting}, {profile?.name || "Usuário"}
  </h1></div><p
  style={{
- fontSize: 14,
- color: "rgba(255,255,255,0.5)",
+ fontSize: 13.5,
+ color: "#9a9aa8",
  fontFamily: "DM Sans",
  margin: 0,
  }}
@@ -1107,18 +1136,17 @@ export default function Diet() {
  e.currentTarget.style.background = "rgba(168,85,247,0.2)";
  }}
  title="Ajustar metas de dieta"
- ><Settings size={20} /></button></div>
+ ><Settings size={18} /></button></div></div>
 
  {/* Calorie Goal Progress */}
- <div
- style={{
+ <div className="ledger-paper" style={{
  background:
  "#18181f",
- border: "1px solid #262630",
- borderRadius: 6,
- padding: "20px",
+ padding: "20px 24px",
  }}
- ><div
+ ><div className="ledger-marginalia" style={{ marginBottom: 14 }}>
+ 11 — Meta calórica
+ </div><div
  style={{
  display: "flex",
  justifyContent: "space-between",
@@ -1127,10 +1155,12 @@ export default function Diet() {
  }}
  ><div
  style={{
- fontSize: 14,
+ fontSize: 13.5,
  fontWeight: 600,
- color: "rgba(255,255,255,0.7)",
+ color: "#9a9aa8",
  fontFamily: "DM Sans",
+ textTransform: "uppercase",
+ letterSpacing: "0.06em",
  }}
  >
  Meta Calórica Diária
@@ -1187,29 +1217,28 @@ export default function Diet() {
  /></div>
 
  {/* Hydration */}
- <div
- style={{
- background: "rgba(56,189,248,0.1)",
- border: "1px solid rgba(56,189,248,0.18)",
+ <div className="ledger-paper ledger-paper--cyan" style={{
  borderRadius: 6,
- padding: "16px",
+ padding: "16px 20px",
  display: "flex",
  justifyContent: "space-between",
  alignItems: "center",
  }}
- ><div style={{ display: "flex", alignItems: "center", gap: 12 }}><Droplet size={24} color="#38BDF8" /><div><div
+ ><div style={{ display: "flex", alignItems: "center", gap: 12 }}><Droplet size={20} color="#38BDF8" /><div><div
  style={{
  fontSize: 13,
  fontWeight: 600,
  color: "#38BDF8",
  fontFamily: "Space Grotesk",
+ textTransform: "uppercase",
+ letterSpacing: "0.06em",
  }}
  >
  Hidratação
  </div><div
  style={{
  fontSize: 12,
- color: "rgba(255,255,255,0.5)",
+ color: "#9a9aa8",
  fontFamily: "DM Sans",
  }}
  >
@@ -1238,17 +1267,9 @@ export default function Diet() {
  ><Plus size={20} /></button></div></div>
 
  {/* Meals */}
- <div><h2
- style={{
- fontSize: 18,
- fontWeight: 700,
- color: "white",
- fontFamily: "Space Grotesk",
- margin: "0 0 16px 0",
- }}
- >
- Refeições do Dia
- </h2>
+ <div><div className="ledger-marginalia" style={{ marginBottom: 14 }}>
+ 12 — Refeições
+ </div>
 
  {(Object.keys(MEAL_TYPES) as Array<keyof typeof MEAL_TYPES>).map(
  type => (
@@ -1259,7 +1280,17 @@ export default function Diet() {
  alignItems: "center",
  marginBottom: 12,
  }}
- ><div style={{ display: "flex", alignItems: "center", gap: 8 }}><span style={{ fontSize: 20 }}>{MEAL_TYPES[type].emoji}</span><div
+ ><div style={{ display: "flex", alignItems: "center", gap: 10 }}><div
+ style={{
+ width: 24,
+ height: 24,
+ borderRadius: 4,
+ border: `1px solid ${MEAL_TYPES[type].color}66`,
+ display: "flex",
+ alignItems: "center",
+ justifyContent: "center",
+ }}
+ ><span style={{ fontSize: 12, color: MEAL_TYPES[type].color }}>{String(type).charAt(0).toUpperCase()}</span></div><div
  style={{
  fontSize: 14,
  fontWeight: 600,
@@ -1271,11 +1302,11 @@ export default function Diet() {
  </div></div><button
  onClick={() => handleAddMeal(type)}
  style={{
- width: 36,
- height: 36,
- borderRadius: 8,
- background: `${MEAL_TYPES[type].color}22`,
- border: `1px solid ${MEAL_TYPES[type].color}44`,
+ width: 34,
+ height: 34,
+ borderRadius: 6,
+ background: "transparent",
+ border: `1px solid ${MEAL_TYPES[type].color}55`,
  color: MEAL_TYPES[type].color,
  cursor: "pointer",
  display: "flex",
@@ -1304,10 +1335,10 @@ export default function Diet() {
  style={{
  textAlign: "center",
  padding: "20px",
- background: "rgba(255,255,255,0.02)",
+ background: "#12121a",
  borderRadius: 6,
- border: "1px dashed rgba(255,255,255,0.1)",
- color: "rgba(255,255,255,0.3)",
+ border: "1px dashed #262630",
+ color: "#5b5b6a",
  fontSize: 13,
  fontFamily: "DM Sans",
  }}

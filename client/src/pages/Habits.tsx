@@ -1003,7 +1003,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
  {/* HABITS */}
 
  {filteredHabits.length === 0 ? (
- <div className="ledger-paper ledger-paper--violet flex flex-col items-center justify-center text-center py-16 px-6 mb-5"><div className="w-20 h-20 bg-amber-500/10 rounded-3xl flex items-center justify-center mb-6"><Flame size={36} className="text-amber-500/50" /></div><h3 className="text-white text-lg font-bold mb-2">
+ <div className="ledger-paper ledger-paper--violet flex flex-col items-center justify-center text-center py-16 px-6 mb-5"><div className="w-20 h-20 bg-[#261d14] border border-amber-500/30 rounded-md flex items-center justify-center mb-6"><Flame size={36} className="text-amber-500/50" /></div><h3 className="text-white text-lg font-bold mb-2">
  {searchTerm ? "Nenhum hábito encontrado" : "Nenhum hábito criado"}
  </h3><p className="text-zinc-400 text-sm mb-6 max-w-sm">
  {searchTerm
@@ -1014,7 +1014,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
  {!searchTerm && (
  <button
  onClick={() => setShowModal(true)}
- className="px-6 py-3 bg-violet-600 hover:bg-violet-500 text-white rounded-xl text-sm font-bold transition-all shadow-lg shadow-violet-900/20"
+ className="px-6 py-3 bg-[#7c3aed] hover:bg-[#6d28d9] text-white rounded-md text-sm font-bold transition-all shadow-[4px_4px_0_rgba(0,0,0,0.3)]"
  >
  + Criar primeiro hábito
  </button>

@@ -393,12 +393,12 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
 
  if (!isPro) {
  return (
- <div className="flex h-[calc(100vh-40px)] bg-[#0d0d12] lg:rounded-[32px] lg:border lg:border-white/5 overflow-hidden shadow-2xl items-center justify-center p-6 text-center"><div className="max-w-md space-y-6"><div className="w-20 h-20 bg-blue-500/10 rounded-full flex items-center justify-center mx-auto"><FileText className="text-blue-500" size={40} /></div><div className="space-y-2"><h2 className="text-2xl font-bold text-white">Notas é um recurso Pro</h2><p className="text-zinc-400">
+ <div className="flex h-[calc(100vh-40px)] bg-[#111118] lg:rounded-[8px] lg:border lg:border-[#262630] overflow-hidden items-center justify-center p-6 text-center"><div className="max-w-md space-y-6"><div className="w-20 h-20 bg-[#1f1333] rounded-md border border-[#3b2a66] flex items-center justify-center mx-auto"><FileText className="text-[#a78bfa]" size={40} /></div><div className="space-y-2"><h2 className="text-2xl font-bold text-white">Notas é um recurso Pro</h2><p className="text-zinc-400">
  Organize seus pensamentos, ideias e projetos com nosso sistema de notas completo. 
  Faça o upgrade para o Pro para desbloquear este recurso.
  </p></div><button
  onClick={onOpenUpgrade}
- className="px-8 py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-xl font-semibold transition-all shadow-lg shadow-blue-500/20"
+ className="px-8 py-3 bg-[#7c3aed] hover:bg-[#6d28d9] text-white rounded-md font-semibold transition-all shadow-[4px_4px_0_rgba(0,0,0,0.3)]"
  >
  Assinar Pro Agora
  </button></div></div>
@@ -406,7 +406,7 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  }
 
  return (
- <div className="flex h-[calc(100vh-40px)] bg-[#0d0d12] lg:rounded-[32px] lg:border lg:border-white/5 overflow-hidden shadow-2xl notes-page-container relative"><style>{`
+ <div className="flex h-[calc(100vh-40px)] bg-[#111118] lg:rounded-[8px] lg:border lg:border-[#262630] overflow-hidden notes-page-container relative"><style>{`
  .quill { height: 100%; display: flex; flex-direction: column; }
  .ql-container.ql-snow { border: none !important; flex: 1; font-family: inherit; }
  .ql-editor { font-size: 1.125rem; line-height: 1.8; color: #d1d5db; padding: 0 !important; }
@@ -427,19 +427,19 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  {/* SIDEBAR (LISTA NO MOBILE) */}
  <aside className={`
  ${isMobile ? (viewMode === 'list' ? 'flex w-full' : 'hidden') : 'flex w-80'} 
- flex-col border-r border-white/5 bg-[#16161e]/40 backdrop-blur-xl
- `}><div className="p-6 space-y-6"><div className="relative group"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-blue-500 transition-colors" size={14} /><input 
+ flex-col border-r border-[#262630] bg-[#15151c]
+ `}><div className="p-6 space-y-6"><div className="relative group"><Search className="absolute left-4 top-1/2 -translate-y-1/2 text-zinc-600 group-focus-within:text-[#a78bfa] transition-colors" size={14} /><input 
  type="text" 
  placeholder="Pesquisar notas..." 
  value={search}
  onChange={(e) => setSearch(e.target.value)}
- className="w-full bg-black/40 border border-white/5 rounded-2xl pl-10 pr-4 py-3 text-sm text-white focus:border-blue-500/30 focus:bg-black/60 outline-none transition-all placeholder:text-zinc-700"
+ className="w-full bg-[#111118] border border-[#262630] rounded-md pl-10 pr-4 py-3 text-sm text-white focus:border-[#7c3aed] focus:bg-[#0d0d14] outline-none transition-all placeholder:text-zinc-700"
  /></div>
  
  {!isMobile && (
  <button 
  onClick={handleCreateNote}
- className="w-full flex items-center justify-center gap-2 py-3.5 bg-blue-600 hover:bg-blue-500 text-white rounded-2xl text-sm font-bold shadow-lg shadow-blue-900/20 transition-all active:scale-[0.98]"
+ className="w-full flex items-center justify-center gap-2 py-3.5 bg-[#7c3aed] hover:bg-[#6d28d9] text-white rounded-md text-sm font-bold shadow-[4px_4px_0_rgba(0,0,0,0.3)] transition-all active:scale-[0.98]"
  ><Plus size={18} />
  Nova nota
  </button>
@@ -447,7 +447,7 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  </div><div className="flex-1 overflow-y-auto px-4 pb-24 space-y-8 custom-scrollbar">
  {/* FIXADAS */}
  {filteredNotes.some(n => n.fixed) && (
- <div><div className="px-4 mb-4 text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] flex items-center gap-2"><Pin size={10} className="text-blue-500/50" />
+ <div><div className="px-4 mb-4 text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] flex items-center gap-2"><Pin size={10} className="text-[#f59e0b]/70" />
  Fixadas
  </div><div className="space-y-2">
  {filteredNotes.filter(n => n.fixed).map(note => (
@@ -474,7 +474,7 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  animate={{ opacity: 1, scale: 1 }}
  exit={{ opacity: 0, scale: 0.95 }}
  onSubmit={handleCreateFolder} 
- className="px-4 py-3 mb-3 bg-black/40 rounded-2xl border border-blue-500/20 flex items-center gap-2"
+ className="px-4 py-3 mb-3 bg-[#1f1333] rounded-md border border-[#3b2a66] flex items-center gap-2"
  ><input 
  autoFocus
  type="text"
@@ -489,10 +489,10 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  {userFolders.map(folder => (
  <div key={folder.id} className="group flex items-center gap-1"><button 
  onClick={() => setActiveFolder(activeFolder === folder.name ? null : folder.name)}
- className={`flex-1 flex items-center justify-between px-4 py-3 rounded-2xl text-sm font-bold transition-all ${activeFolder === folder.name ? 'bg-blue-600/10 text-blue-400 border border-blue-500/20' : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300 border border-transparent'}`}
- ><div className="flex items-center gap-3"><Folder size={16} className={activeFolder === folder.name ? 'text-blue-400' : 'text-zinc-600'} />
+ className={`flex-1 flex items-center justify-between px-4 py-3 rounded-md text-sm font-bold transition-all ${activeFolder === folder.name ? 'bg-[#1f1333] text-[#c4b5fd] border border-[#3b2a66]' : 'text-zinc-500 hover:bg-white/5 hover:text-zinc-300 border border-transparent'}`}
+ ><div className="flex items-center gap-3"><Folder size={16} className={activeFolder === folder.name ? 'text-[#a78bfa]' : 'text-zinc-600'} />
  {folder.name}
- </div><ChevronRight size={14} className={`transition-transform duration-300 ${activeFolder === folder.name ? 'rotate-90 text-blue-400' : 'opacity-40'}`} /></button><FolderMenu onDelete={() => handleDeleteFolder(folder.id)} /></div>
+ </div><ChevronRight size={14} className={`transition-transform duration-300 ${activeFolder === folder.name ? 'rotate-90 text-[#a78bfa]' : 'opacity-40'}`} /></button><FolderMenu onDelete={() => handleDeleteFolder(folder.id)} /></div>
  ))}
  </div></div>
 
@@ -501,9 +501,9 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  Notas
  </div>
  {!isMobile && userFolders.length === 0 && filteredNotes.length === 0 && (
- <div className="text-center py-16 px-4"><div className="w-16 h-16 bg-white/5 rounded-2xl flex items-center justify-center mx-auto mb-4"><FileText size={28} className="text-zinc-600" /></div><p className="text-zinc-400 text-sm font-medium mb-2">Nenhuma nota ainda</p><p className="text-zinc-600 text-xs mb-4">Comece criando sua primeira nota para organizar seus pensamentos.</p><button 
+ <div className="text-center py-16 px-4"><div className="w-16 h-16 bg-[#18181f] rounded-md border border-[#262630] flex items-center justify-center mx-auto mb-4"><FileText size={28} className="text-zinc-600" /></div><p className="text-zinc-400 text-sm font-medium mb-2">Nenhuma nota ainda</p><p className="text-zinc-600 text-xs mb-4">Comece criando sua primeira nota para organizar seus pensamentos.</p><button 
  onClick={handleCreateNote}
- className="px-5 py-2.5 bg-blue-600 hover:bg-blue-500 text-white rounded-xl text-xs font-bold transition-all shadow-lg shadow-blue-900/20"
+ className="px-5 py-2.5 bg-[#7c3aed] hover:bg-[#6d28d9] text-white rounded-md text-xs font-bold transition-all shadow-[4px_4px_0_rgba(0,0,0,0.3)]"
  >
  + Criar primeira nota
  </button></div>
@@ -525,7 +525,7 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  {/* EDITOR */}
  <main className={`
  ${isMobile ? (viewMode === 'editor' ? 'flex w-full' : 'hidden') : 'flex w-full'} 
- flex-1 flex flex-col bg-[#0d0d12]/60 relative
+ flex-1 flex flex-col bg-[#111118] relative
  `}>
  {selectedNote ? (
  <><header className="px-6 lg:px-12 py-6 lg:py-8 flex flex-col gap-4 lg:gap-5"><div className="flex items-start justify-between gap-4"><div className="flex-1 min-w-0">
@@ -538,7 +538,7 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  placeholder="Título da nota"
  /></div></div><div className="flex items-center gap-1 flex-shrink-0">
  {!isMobile && (
- <div className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest px-3 py-2 rounded-xl bg-white/5">
+ <div className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest px-3 py-2 rounded-md bg-[#18181f] border border-[#262630]">
  {selectedNote.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length} palavras
  </div>
  )}
@@ -546,7 +546,7 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  icon={<MoreVertical size={isMobile ? 18 : 20} />} 
  menuItems={[
  { label: 'Favoritar', icon: <Star size={14} className={selectedNote.favorite ? "fill-yellow-500 text-yellow-500" : ""} />, onClick: () => handleUpdateNote(selectedNote.id, "favorite", !selectedNote.favorite) },
- { label: 'Fixar', icon: <Pin size={14} className={selectedNote.fixed ? "fill-blue-500 text-blue-500" : ""} />, onClick: () => handleUpdateNote(selectedNote.id, "fixed", !selectedNote.fixed) },
+ { label: 'Fixar', icon: <Pin size={14} className={selectedNote.fixed ? "fill-[#f59e0b] text-[#f59e0b]" : ""} />, onClick: () => handleUpdateNote(selectedNote.id, "fixed", !selectedNote.fixed) },
  { label: 'Excluir Nota', icon: <Trash2 size={14} />, onClick: () => handleDeleteNote(selectedNote.id), danger: true }
  ]}
  /></div></div>
@@ -560,10 +560,10 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  handleUpdateNote(selectedNote.id, "folder_id", folderId);
  setNotes(prev => prev.map(n => n.id === selectedNote.id ? { ...n, folder_id: folderId, folder: folderName } : n));
  }}
- className="bg-white/5 border border-white/10 rounded-xl px-3 py-2 text-xs font-bold text-zinc-300 hover:text-white hover:border-white/20 focus:border-blue-500/50 outline-none transition-all cursor-pointer"
- ><option value="">📁 Sem pasta</option>
+ className="bg-[#18181f] border border-[#262630] rounded-md px-3 py-2 text-xs font-bold text-zinc-300 hover:text-white hover:border-[#7c3aed] focus:border-[#7c3aed] outline-none transition-all cursor-pointer"
+ > <option value="">[ 📁 ] Sem pasta</option>
  {userFolders.map(folder => (
- <option key={folder.id} value={folder.id}>📁 {folder.name}</option>
+ <option key={folder.id} value={folder.id}>[ 📁 ] {folder.name}</option>
  ))}
  </select></div></header>
 
@@ -578,7 +578,7 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  /></React.Suspense></div>
 
  {/* TOOLBAR DE FORMATAÇÃO */}
- <div className="px-6 lg:px-12 py-6 border-t border-white/5 flex items-center gap-2 bg-black/40 flex-wrap"><FormatButton icon={<Bold size={18} />} tooltip="Negrito" onClick={() => executeCommand('bold')} active={activeFormats.bold} /><FormatButton icon={<Italic size={18} />} tooltip="Itálico" onClick={() => executeCommand('italic')} active={activeFormats.italic} /><FormatButton icon={<Underline size={18} />} tooltip="Sublinhado" onClick={() => executeCommand('underline')} active={activeFormats.underline} /><div className="w-px h-6 bg-white/10 mx-2" /><FormatButton icon={<Heading1 size={18} />} tooltip="Título" onClick={() => executeCommand('header', 1)} active={activeFormats.header === 1} /><FormatButton icon={<List size={18} />} tooltip="Lista" onClick={() => executeCommand('list', 'ordered')} active={activeFormats.list === 'ordered'} /><FormatButton icon={<CheckSquare size={18} />} tooltip="Checklist" onClick={() => executeCommand('list', 'bullet')} active={activeFormats.list === 'bullet'} /><FormatButton icon={<Quote size={18} />} tooltip="Citação" onClick={() => executeCommand('blockquote')} active={activeFormats.blockquote} /><FormatButton icon={<Code size={18} />} tooltip="Código" onClick={() => executeCommand('code-block')} active={activeFormats['code-block']} /></div>
+ <div className="px-6 lg:px-12 py-6 border-t border-[#262630] flex items-center gap-2 bg-[#15151c] flex-wrap"><FormatButton icon={<Bold size={18} />} tooltip="Negrito" onClick={() => executeCommand('bold')} active={activeFormats.bold} /><FormatButton icon={<Italic size={18} />} tooltip="Itálico" onClick={() => executeCommand('italic')} active={activeFormats.italic} /><FormatButton icon={<Underline size={18} />} tooltip="Sublinhado" onClick={() => executeCommand('underline')} active={activeFormats.underline} /><div className="w-px h-6 bg-white/10 mx-2" /><FormatButton icon={<Heading1 size={18} />} tooltip="Título" onClick={() => executeCommand('header', 1)} active={activeFormats.header === 1} /><FormatButton icon={<List size={18} />} tooltip="Lista" onClick={() => executeCommand('list', 'ordered')} active={activeFormats.list === 'ordered'} /><FormatButton icon={<CheckSquare size={18} />} tooltip="Checklist" onClick={() => executeCommand('list', 'bullet')} active={activeFormats.list === 'bullet'} /><FormatButton icon={<Quote size={18} />} tooltip="Citação" onClick={() => executeCommand('blockquote')} active={activeFormats.blockquote} /><FormatButton icon={<Code size={18} />} tooltip="Código" onClick={() => executeCommand('code-block')} active={activeFormats['code-block']} /></div>
 
  {/* RODAPÉ E NAVEGAÇÃO MOBILE */}
  <AnimatePresence>
@@ -587,10 +587,10 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  initial={{ y: 100 }}
  animate={{ y: 0 }}
  exit={{ y: 100 }}
- className="fixed bottom-0 left-0 right-0 z-50 p-6 bg-gradient-to-t from-black to-transparent pointer-events-none"
+ className="fixed bottom-0 left-0 right-0 z-50 p-6 bg-[#111118] pointer-events-none"
  ><button 
  onClick={() => setViewMode('list')}
- className="w-full flex items-center justify-center gap-3 bg-blue-600 text-white py-4 rounded-2xl font-black text-sm shadow-2xl shadow-blue-900/40 active:scale-95 transition-all pointer-events-auto"
+ className="w-full flex items-center justify-center gap-3 bg-[#7c3aed] text-white py-4 rounded-md font-black text-sm shadow-[4px_4px_0_rgba(0,0,0,0.4)] active:scale-95 transition-all pointer-events-auto"
  ><ChevronLeft size={20} />
  VOLTAR PARA LISTA
  </button></motion.div>
@@ -598,17 +598,17 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  </AnimatePresence>
  
  {!isMobile && (
- <footer className="px-12 py-5 border-t border-white/5 flex items-center justify-between text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] bg-black/40"><div className="flex items-center gap-6"><span className={`flex items-center gap-2 transition-colors ${
+ <footer className="px-12 py-5 border-t border-[#262630] flex items-center justify-between text-[10px] font-bold text-zinc-600 uppercase tracking-[0.2em] bg-[#15151c]"><div className="flex items-center gap-6"><span className={`flex items-center gap-2 transition-colors ${
  syncState.status === 'synced' ? 'text-emerald-500/60' :
  syncState.status === 'saving' ? 'text-yellow-500/60' :
- syncState.status === 'typing' ? 'text-blue-500/60' :
+ syncState.status === 'typing' ? 'text-[#a78bfa]/60' :
  'text-zinc-600'
- }`}><div className={`w-1.5 h-1.5 rounded-full shadow-[0_0_8px] transition-colors ${
- syncState.status === 'synced' ? 'bg-emerald-500 shadow-emerald-500' :
- syncState.status === 'saving' ? 'bg-yellow-500 shadow-yellow-500' :
- syncState.status === 'typing' ? 'bg-blue-500 shadow-blue-500' :
+ }`}> <div className={`w-1.5 h-1.5 rounded-full transition-colors ${
+ syncState.status === 'synced' ? 'bg-emerald-500' :
+ syncState.status === 'saving' ? 'bg-yellow-500' :
+ syncState.status === 'typing' ? 'bg-[#8B5CF6]' :
  'bg-zinc-600'
- }`} /> 
+ }`} />  
  {syncState.status === 'synced' ? 'Sincronizado' :
  syncState.status === 'saving' ? 'Salvando...' :
  syncState.status === 'typing' ? 'Digitando...' :
@@ -628,7 +628,7 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  animate={{ scale: 1 }}
  whileTap={{ scale: 0.9 }}
  onClick={handleCreateNote}
- className="fixed bottom-24 right-6 w-16 h-16 bg-blue-600 text-white rounded-full shadow-2xl shadow-blue-900/40 flex items-center justify-center z-50 border-4 border-[#0d0d12]"
+ className="fixed bottom-24 right-6 w-16 h-16 bg-[#7c3aed] text-white rounded-md shadow-[4px_4px_0_rgba(0,0,0,0.4)] flex items-center justify-center z-50 border border-[#262630]"
  ><Plus size={32} /></motion.button>
  )}
 
@@ -657,11 +657,11 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
 const NoteItem = React.memo(function NoteItem({ note, isSelected, onClick }: { note: NoteUI, isSelected: boolean, onClick: () => void }) {
  const getTagStyle = useCallback((folder: string) => {
  const colors: Record<string, string> = {
- "Trabalho": "bg-red-500/10 text-red-400/80 border-red-500/10",
- "Estudos": "bg-purple-500/10 text-purple-400/80 border-purple-500/10",
- "Pessoal": "bg-emerald-500/10 text-emerald-400/80 border-emerald-500/10",
- "Ideias": "bg-blue-500/10 text-blue-400/80 border-blue-500/10",
- "Sem pasta": "bg-zinc-500/10 text-zinc-500/80 border-zinc-500/10"
+ "Trabalho": "bg-[#261414] text-[#f87171] border-red-500/30",
+ "Estudos": "bg-[#1f1333] text-[#c4b5fd] border-purple-500/30",
+ "Pessoal": "bg-[#0e2118] text-[#4ade80] border-emerald-500/30",
+ "Ideias": "bg-[#261d14] text-[#fbbf24] border-amber-500/30",
+ "Sem pasta": "bg-[#18181f] text-zinc-500 border-zinc-500/30"
  };
  return colors[folder] || colors["Sem pasta"];
  }, []);
@@ -673,17 +673,17 @@ const NoteItem = React.memo(function NoteItem({ note, isSelected, onClick }: { n
  whileHover={{ x: 4 }}
  whileTap={{ scale: 0.98 }}
  onClick={onClick}
- className={`w-full text-left p-5 rounded-2xl transition-all group relative border ${isSelected ? 'bg-[#1a1a24] border-white/5 shadow-2xl' : 'bg-[#12121a] border-white/5 hover:bg-[#16161e] hover:border-white/10'}`}
+ className={`w-full text-left p-5 rounded-md transition-all group relative border ${isSelected ? 'bg-[#1a1a24] border-[#3b2a66] shadow-[3px_3px_0_rgba(0,0,0,0.3)]' : 'bg-[#12121a] border-[#262630] hover:bg-[#16161e] hover:border-zinc-600'}`}
  >
  {/* Barra lateral de seleção curva e fosca */}
  {isSelected && (
- <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-blue-500 rounded-l-2xl" />
+ <div className="absolute left-0 top-0 bottom-0 w-1.5 bg-[#7c3aed]" />
  )}
 
  <div className="flex items-start justify-between mb-2"><div className="flex items-center gap-3 truncate"><h3 className={`font-black text-[16px] truncate tracking-tight ${isSelected ? 'text-white' : 'text-zinc-300 group-hover:text-white'}`}>
  {note.title}
  </h3></div>
- {note.fixed && <Pin size={12} className="text-blue-500 fill-blue-500/20 mt-1 flex-shrink-0" />}
+ {note.fixed && <Pin size={12} className="text-[#f59e0b] fill-[#f59e0b]/20 mt-1 flex-shrink-0" />}
  </div><p className="text-sm text-zinc-500 line-clamp-1 mb-4 leading-relaxed font-medium">
  {preview}
  </p><div className="flex items-center justify-between"><span className="text-[9px] font-bold text-zinc-700 uppercase tracking-widest">{formatDate(note.updated_at)}</span><span className={`text-[9px] font-black px-2.5 py-1 rounded-lg border uppercase tracking-tight ${getTagStyle(note.folder)}`}>
@@ -698,13 +698,13 @@ const ToolbarButton = React.memo(function ToolbarButton({ icon, tooltip, onClick
  return (
  <div className="relative"><button 
  onClick={() => menuItems ? setShowMenu(!showMenu) : onClick?.()}
- className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-2xl text-zinc-600 hover:text-white hover:bg-white/5 transition-all active:scale-90" 
+ className="min-w-[44px] min-h-[44px] flex items-center justify-center rounded-md text-zinc-600 hover:text-white hover:bg-white/5 transition-all active:scale-90" 
  title={tooltip}
  >
  {icon}
  </button>
  {showMenu && menuItems && (
- <div className="absolute right-0 top-full mt-2 w-48 bg-[#1a1a24] border border-white/10 rounded-2xl shadow-2xl py-2 z-50">
+ <div className="absolute right-0 top-full mt-2 w-48 bg-[#18181f] border border-[#262630] rounded-md shadow-[3px_3px_0_rgba(0,0,0,0.3)] py-2 z-50">
  {menuItems.map((item, idx) => (
  <button
  key={idx}
@@ -725,7 +725,7 @@ const FormatButton = React.memo(function FormatButton({ icon, tooltip, onClick, 
  return (
  <button 
  onClick={onClick}
- className={`min-w-[44px] min-h-[44px] flex items-center justify-center rounded-xl transition-all active:scale-90 ${active ? 'text-blue-500 bg-blue-500/10' : 'text-zinc-600 hover:text-zinc-200 hover:bg-white/5'}`} 
+ className={`min-w-[44px] min-h-[44px] flex items-center justify-center rounded-md transition-all active:scale-90 ${active ? 'text-[#c4b5fd] bg-[#1f1333] border border-[#3b2a66]' : 'text-zinc-600 hover:text-zinc-200 hover:bg-white/5'}`} 
  title={tooltip}
  >
  {icon}
@@ -742,7 +742,7 @@ const FolderMenu = React.memo(function FolderMenu({ onDelete }: { onDelete: () =
  className="min-w-[44px] min-h-[44px] flex items-center justify-center text-zinc-700 hover:text-white transition-all"
  ><MoreVertical size={14} /></button>
  {showMenu && (
- <div className="absolute left-full ml-2 top-0 w-40 bg-[#1a1a24] border border-white/10 rounded-2xl shadow-2xl py-2 z-50"><button
+ <div className="absolute left-full ml-2 top-0 w-40 bg-[#18181f] border border-[#262630] rounded-md shadow-[3px_3px_0_rgba(0,0,0,0.3)] py-2 z-50"><button
  onClick={() => { onDelete(); setShowMenu(false); }}
  className="w-full flex items-center gap-3 px-4 py-3 text-xs font-bold text-rose-500 hover:bg-rose-500/10 transition-colors"
  ><Trash2 size={14} />

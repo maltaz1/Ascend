@@ -124,7 +124,7 @@ export default function Settings() {
  }
 
  const cardClass =
- "bg-zinc-900/80 border border-zinc-800 rounded-3xl p-6 hover:border-[#8B5CF6]/40 hover:bg-zinc-800/60 transition-all";
+ "ledger-paper !rounded-md";
 
  async function resetPassword() {
  const {
@@ -335,17 +335,17 @@ export default function Settings() {
  return (
  <div className="min-h-screen bg-background text-white"><div className="max-w-4xl mx-auto px-4 py-8">
  {/* HEADER */}
- <div className="mb-8"><h1 className="text-4xl font-bold mb-2"> Configurações</h1><p className="text-zinc-400">
- Personalize sua experiência no Ascend, gerencie sua conta e aproveite ao máximo nossos recursos!
+ <div className="mb-8"><div className="ledger-marginalia mb-2">14 — Ajustes</div><h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "Space Grotesk", letterSpacing: "-0.03em" }}> Configurações</h1><p className="text-zinc-400" style={{ fontFamily: "DM Sans", fontSize: 13 }}>
+ Ajuste o caderno ao seu jeito.
  </p></div>
 
  {/* PERFIL TOP */}
  <div
- className={`rounded-3xl p-6 mb-8 border ${
+ className={`rounded-md p-6 mb-8 border ${
  profile.isPro
- ? "bg-gradient-to-r from-zinc-900 to-zinc-800 border-zinc-700"
+ ? "bg-zinc-900 border-zinc-700"
  : "bg-zinc-900 border-zinc-800"
- } shadow-xl shadow-black/40`}
+ }`} style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.35)" }}
  ><div className="flex items-center gap-5"><img
  src={profile.avatar}
  className="w-24 h-24 rounded-full border-2 border-zinc-700"
@@ -374,11 +374,11 @@ export default function Settings() {
  name: e.target.value,
  })
  }
- className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-3"
+ className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-4 py-3"
  /><div className="space-y-4"><div className="flex items-center gap-4"><img
  src={profile.avatar}
  className="w-24 h-24 rounded-full object-cover border-4 border-[#8B5CF6]"
- /><label className="cursor-pointer bg-[#8B5CF6] hover:bg-[#7C3AED] transition-all px-5 py-3 rounded-2xl font-semibold text-white">
+ /><label className="cursor-pointer bg-[#8B5CF6] hover:bg-[#7C3AED] transition-all px-5 py-3 rounded-md font-semibold text-white">
  Escolher Foto
  <input
  type="file"
@@ -395,20 +395,20 @@ export default function Settings() {
  bio: e.target.value,
  })
  }
- className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-3 resize-none"
+ className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-4 py-3 resize-none"
  /><button
  onClick={saveProfile}
- className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold px-5 py-3 rounded-2xl flex items-center gap-2 transition-all shadow-lg shadow-[#8B5CF6]/20 hover:shadow-[#8B5CF6]/30"
+ className="bg-[#8B5CF6] hover:bg-[#7C3AED] text-white font-bold px-5 py-3 rounded-md flex items-center gap-2 transition-all  "
  ><Save size={18} />
  Salvar Perfil
  </button></div></motion.div>
 
  {/* APARÊNCIA */}
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Palette className="text-pink-400" /><h2 className="text-2xl font-bold"> Aparência</h2></div><div className="space-y-4"><div className="flex items-center justify-between bg-zinc-950 rounded-2xl p-4 border border-zinc-800"><div><p className="font-medium">Animações</p><p className="text-sm text-zinc-400">Ativar efeitos visuais</p></div><button
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Palette className="text-pink-400" /><h2 className="text-2xl font-bold"> Aparência</h2></div><div className="space-y-4"><div className="flex items-center justify-between bg-zinc-950 rounded-md p-4 border border-zinc-800"><div><p className="font-medium">Animações</p><p className="text-sm text-zinc-400">Ativar efeitos visuais</p></div><button
  onClick={toggleAnimations}
  className={`px-4 py-2 rounded-xl font-medium transition-all ${
  animationsEnabled
- ? "bg-[#8B5CF6] text-white shadow-lg shadow-[#8B5CF6]/20"
+ ? "bg-[#8B5CF6] text-white "
  : "bg-zinc-700"
  }`}
  >
@@ -416,7 +416,7 @@ export default function Settings() {
  </button></div></div></motion.div>
 
  {/* NOTIFICAÇÕES */}
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Bell className="text-blue-400" /><h2 className="text-2xl font-bold"> Notificações</h2></div><div className="space-y-3">
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Bell className="text-[#a78bfa]" /><h2 className="text-2xl font-bold"> Notificações</h2></div><div className="space-y-3">
  {[
  { key: "habits", label: "Hábitos" },
  { key: "tasks", label: "Tarefas" },
@@ -424,14 +424,14 @@ export default function Settings() {
  ].map(item => (
  <div
  key={item.key}
- className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-4"
+ className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4"
  ><span>{item.label}</span><button
  onClick={() =>
  toggleNotification(item.key as keyof typeof notifications)
  }
  className={`w-14 h-7 rounded-full relative transition-all ${
  notifications[item.key as keyof typeof notifications]
- ? "bg-[#8B5CF6] shadow-lg shadow-[#8B5CF6]/30"
+ ? "bg-[#8B5CF6] shadow-lg "
  : "bg-zinc-700"
  }`}
  ><div
@@ -449,37 +449,37 @@ export default function Settings() {
  href="/privacy"
  target="_blank"
  rel="noopener noreferrer"
- className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-4 hover:border-violet-500/40 transition-all group"
+ className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4 hover:border-violet-500/40 transition-all group"
  ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center"><FileText size={18} className="text-violet-400" /></div><div className="text-left"><p className="font-medium text-zinc-200">Política de Privacidade</p><p className="text-xs text-zinc-500">Como protegemos seus dados</p></div></div><ExternalLink size={16} className="text-zinc-500 group-hover:text-violet-400 transition-all" /></a><a
  href="/terms"
  target="_blank"
  rel="noopener noreferrer"
- className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-4 hover:border-violet-500/40 transition-all group"
+ className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4 hover:border-violet-500/40 transition-all group"
  ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center"><FileText size={18} className="text-violet-400" /></div><div className="text-left"><p className="font-medium text-zinc-200">Termos de Uso</p><p className="text-xs text-zinc-500">Regras para utilização do app</p></div></div><ExternalLink size={16} className="text-zinc-500 group-hover:text-violet-400 transition-all" /></a><button
  onClick={handleExportData}
  disabled={exportingData}
- className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-4 hover:border-blue-500/40 transition-all group disabled:opacity-50"
- ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center"><Download size={18} className="text-blue-400" /></div><div className="text-left"><p className="font-medium text-zinc-200">Solicitar meus dados</p><p className="text-xs text-zinc-500">
+ className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4 hover:border-[#8B5CF6]/40 transition-all group disabled:opacity-50"
+ ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-md bg-[#7c3aed]/10 border border-[#7c3aed]/30 flex items-center justify-center"><Download size={18} className="text-[#a78bfa]" /></div><div className="text-left"><p className="font-medium text-zinc-200">Solicitar meus dados</p><p className="text-xs text-zinc-500">
  {exportingData ? "Gerando exportação..." : "Baixar cópia de todos os seus dados"}
- </p></div></div><Download size={16} className="text-zinc-500 group-hover:text-blue-400 transition-all" /></button>
+ </p></div></div><Download size={16} className="text-zinc-500 group-hover:text-[#a78bfa] transition-all" /></button>
  {showReauthDialog && (
- <div className="border border-red-500/30 bg-red-500/5 rounded-2xl p-4 space-y-3"><p className="text-sm text-red-300">Confirme sua senha antes de excluir.</p><input
+ <div className="border border-red-500/30 bg-red-500/5 rounded-md p-4 space-y-3"><p className="text-sm text-red-300">Confirme sua senha antes de excluir.</p><input
  type="password"
  autoFocus
  placeholder="Sua senha"
  value={reauthPassword}
  onChange={e => setReauthPassword(e.target.value)}
  onKeyDown={e => e.key === "Enter" && handleDeleteAccount()}
- className="w-full bg-zinc-950 border border-zinc-800 rounded-2xl px-4 py-3 text-white"
+ className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-4 py-3 text-white"
  /><div className="flex gap-2"><button
  onClick={handleDeleteAccount}
  disabled={deletingAccount || !reauthPassword.trim()}
- className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold rounded-2xl px-4 py-3 disabled:opacity-50 transition-all"
+ className="flex-1 bg-red-500 hover:bg-red-600 text-white font-bold rounded-md px-4 py-3 disabled:opacity-50 transition-all"
  >
  Confirmar exclusão
  </button><button
  onClick={() => { setShowReauthDialog(false); setReauthPassword(""); }}
- className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-2xl px-4 py-3 transition-all"
+ className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-md px-4 py-3 transition-all"
  >
  Cancelar
  </button></div></div>
@@ -491,7 +491,7 @@ export default function Settings() {
  }
  }}
  disabled={deletingAccount}
- className="w-full flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl p-4 hover:bg-red-500/20 transition-all font-bold disabled:opacity-50"
+ className="w-full flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-md p-4 hover:bg-red-500/20 transition-all font-bold disabled:opacity-50"
  ><Trash2 size={18} />
  {deletingAccount ? "Excluindo conta..." : "Excluir Conta"}
  </button></div></motion.div>
@@ -499,12 +499,12 @@ export default function Settings() {
  {/* CONTA */}
  <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Shield className="text-red-400" /><h2 className="text-2xl font-bold"> Conta</h2></div><div className="space-y-4"><button
  onClick={resetPassword}
- className="w-full flex items-center gap-3 bg-zinc-950 border border-zinc-800 rounded-2xl p-4 hover:border-[#8B5CF6]/40 transition-all"
+ className="w-full flex items-center gap-3 bg-zinc-950 border border-zinc-800 rounded-md p-4 hover:border-[#8B5CF6]/40 transition-all"
  ><Lock />
  Alterar senha
  </button><button
  onClick={logout}
- className="w-full flex items-center gap-3 bg-red-500/20 border border-red-500/20 text-red-400 rounded-2xl p-4"
+ className="w-full flex items-center gap-3 bg-red-500/20 border border-red-500/20 text-red-400 rounded-md p-4"
  ><LogOut />
  Sair da conta
  </button></div></motion.div>
@@ -513,16 +513,16 @@ export default function Settings() {
  <div className="pt-4 mb-2"><h2 className="text-sm font-bold text-zinc-500 uppercase tracking-widest ml-1">Conta e Suporte</h2></div>
 
  {/* CONTATO */}
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Mail className="text-blue-400" /><h2 className="text-2xl font-bold"> Contato</h2></div><div className="space-y-4"><p className="text-zinc-400 text-sm">Entre em contato caso tenha dúvidas ou sugestões.</p><button
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Mail className="text-[#a78bfa]" /><h2 className="text-2xl font-bold"> Contato</h2></div><div className="space-y-4"><p className="text-zinc-400 text-sm">Entre em contato caso tenha dúvidas ou sugestões.</p><button
  onClick={handleSupportContact}
- className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-4 hover:border-blue-500/40 transition-all group"
- ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-blue-500/10 flex items-center justify-center"><Mail size={18} className="text-blue-500" /></div><div className="text-left"><p className="font-medium text-zinc-200">ascendprod1@gmail.com</p><p className="text-xs text-zinc-500">Clique para enviar um e-mail</p></div></div><div className="bg-blue-600 px-4 py-2 rounded-xl text-xs font-bold text-white opacity-0 group-hover:opacity-100 transition-all">
+ className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4 hover:border-[#8B5CF6]/40 transition-all group"
+ ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-md bg-[#7c3aed]/10 border border-[#7c3aed]/30 flex items-center justify-center"><Mail size={18} className="text-[#a78bfa]" /></div><div className="text-left"><p className="font-medium text-zinc-200">ascendprod1@gmail.com</p><p className="text-xs text-zinc-500">Clique para enviar um e-mail</p></div></div><div className="bg-[#7c3aed] px-4 py-2 rounded-md text-xs font-bold text-white opacity-0 group-hover:opacity-100 transition-all">
  Enviar e-mail
  </div></button></div></motion.div>
 
  {/* ASSINATURA (Apenas PRO) */}
  {profile.isPro && (
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><CreditCard className="text-emerald-400" /><h2 className="text-2xl font-bold"> Assinatura</h2></div><div className="space-y-3"><div className="flex justify-between items-center bg-zinc-950 border border-zinc-800 rounded-2xl p-4"><span className="text-zinc-400">Plano</span><span className="font-bold text-emerald-400">Ascend PRO</span></div><div className="flex justify-between items-center bg-zinc-950 border border-zinc-800 rounded-2xl p-4"><span className="text-zinc-400">Status</span><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /><span className="font-bold text-emerald-500">Ativo</span></div></div></div></motion.div>
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><CreditCard className="text-emerald-400" /><h2 className="text-2xl font-bold"> Assinatura</h2></div><div className="space-y-3"><div className="flex justify-between items-center bg-zinc-950 border border-zinc-800 rounded-md p-4"><span className="text-zinc-400">Plano</span><span className="font-bold text-emerald-400">Ascend PRO</span></div><div className="flex justify-between items-center bg-zinc-950 border border-zinc-800 rounded-md p-4"><span className="text-zinc-400">Status</span><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /><span className="font-bold text-emerald-500">Ativo</span></div></div></div></motion.div>
  )}
 
  {/* SOLICITAR CANCELAMENTO (Apenas PRO) */}
@@ -538,7 +538,7 @@ export default function Settings() {
  Seu acesso ao Ascend PRO continuará disponível até o final do período já pago.
  </p><button
  onClick={handleCancellationRequest}
- className="w-full flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-2xl p-4 hover:bg-red-500/20 transition-all font-bold justify-center"
+ className="w-full flex items-center gap-3 bg-red-500/10 border border-red-500/20 text-red-400 rounded-md p-4 hover:bg-red-500/20 transition-all font-bold justify-center"
  ><XCircle size={18} />
  Solicitar cancelamento
  </button></>
@@ -547,7 +547,7 @@ export default function Settings() {
  )}
 
  {/* SOBRE */}
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Info className="text-zinc-300" /><h2 className="text-2xl font-bold"> Sobre</h2></div><div className="space-y-3"><div className="flex justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-4"><span>Versão do app</span><span className="text-zinc-400">1.0.0</span></div><div className="flex justify-between bg-zinc-950 border border-zinc-800 rounded-2xl p-4"><span>Status</span><span className="text-[#8B5CF6]">Online</span></div></div></motion.div></div></div><CancellationModal
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Info className="text-zinc-300" /><h2 className="text-2xl font-bold"> Sobre</h2></div><div className="space-y-3"><div className="flex justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4"><span>Versão do app</span><span className="text-zinc-400">1.0.0</span></div><div className="flex justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4"><span>Status</span><span className="text-[#8B5CF6]">Online</span></div></div></motion.div></div></div><CancellationModal
  isOpen={isCancellationModalOpen}
  onClose={() => setIsCancellationModalOpen(false)}
  onSuccess={loadPendingCancellation}
