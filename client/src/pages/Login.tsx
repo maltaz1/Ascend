@@ -125,7 +125,7 @@ export default function Login() {
           font-family: 'DM Sans', sans-serif;
           background: #111118;
           position: relative;
-          overflow: hidden;
+          overflow-x: hidden;
         }
 
         /* ── Left panel ─────────────────────────────────── */
@@ -137,8 +137,12 @@ export default function Login() {
           grid-template-rows: auto auto 1fr auto;
           padding: 48px 56px;
           position: relative;
-          overflow: hidden;
+          overflow-y: auto;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(139, 92, 246, 0.35) transparent;
         }
+        .asc-left::-webkit-scrollbar { width: 6px; }
+        .asc-left::-webkit-scrollbar-thumb { background: rgba(139, 92, 246, 0.35); border-radius: 3px; }
 
         /* Textura de pauta: linhas horizontais finas, como caderno */
         .asc-left::before {
@@ -501,7 +505,8 @@ export default function Login() {
         /* ── Stats strip ─────────────────────────────────── */
         .asc-stats {
           display: flex;
-          gap: 36px;
+          flex-wrap: wrap;
+          gap: 28px 36px;
           position: relative;
           z-index: 2;
           animation: fadeUp 0.6s 0.2s ease both;
@@ -513,6 +518,8 @@ export default function Login() {
           display: flex;
           flex-direction: column;
           gap: 4px;
+          min-width: 120px;
+          flex-shrink: 0;
         }
 
         .asc-stat-num {
@@ -855,6 +862,13 @@ export default function Login() {
         }
 
         /* ── Responsive ─────────────────────────────────── */
+        /* Ajustes para telas de desktop baixas/estreitas */
+        @media (max-width: 1280px) and (max-height: 820px) {
+          .asc-left-logo img { height: 64px; }
+          .asc-left-hero { padding-top: 20px; }
+          .asc-mock-scene { padding-top: 20px; }
+          .asc-stats { padding-top: 16px; }
+        }
         @media (max-width: 920px) {
           .asc-root {
             flex-direction: column;
