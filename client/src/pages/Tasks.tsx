@@ -706,14 +706,14 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
 
  {/* Header — folha solta de caderno */}
  <div className="notebook-sheet notebook-sheet--margined mb-6">
- <div className="flex justify-between items-center mb-4"><h2 className="text-xl font-bold text-foreground font-space capitalize">
+ <div className="flex justify-between items-center gap-3 w-full mb-4"><h2 className="text-xl font-bold text-foreground font-space capitalize whitespace-nowrap">
  {selectedDateFormatted}
  </h2><button
  onClick={() => {
  setEditingTask(null);
  setShowModal(true);
  }}
- className="ledger-btn ledger-btn--violet flex items-center gap-1.5 text-[13px] font-bold"
+ className="ledger-btn ledger-btn--violet flex items-center gap-1.5 text-[13px] font-bold whitespace-nowrap flex-shrink-0"
  ><Plus size={16} /> Nova Tarefa
  </button></div>
 
