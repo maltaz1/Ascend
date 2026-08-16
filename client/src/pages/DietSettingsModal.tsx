@@ -21,7 +21,7 @@ export function DietSettingsModal({
  return (
  <Modal open={open} onClose={onClose} title="Ajustar Metas de Dieta"><div style={{ display: 'flex', flexDirection: 'column', gap: 20, maxWidth: '100%' }}>
  {/* Calorie Goal Section */}
- <div className="ledger-paper ledger-paper--amber" style={{ padding: '16px' }}>
+ <div className="ledger-paper" style={{ padding: '16px' }}>
  <div className="ledger-marginalia mb-2">Meta Calórica Diária</div><input
  className="ledger-input"
  type="number"
@@ -71,7 +71,7 @@ export function DietSettingsModal({
  </div></div></div></div>
 
  {/* Hydration Section */}
- <div className="ledger-paper" style={{ padding: '16px', borderTopColor: 'var(--primary)' }}>
+ <div className="ledger-paper" style={{ padding: '16px' }}>
  <div className="ledger-marginalia mb-2">Meta de Hidratação</div><input
  className="ledger-input"
  type="number"

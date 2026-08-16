@@ -133,7 +133,6 @@ function MealCard({
  style={{
  background: "var(--ledger-paper-bg)",
  border: "1px solid var(--ledger-paper-border)",
- borderTop: `2px solid ${config.color}`,
  borderRadius: 6,
  padding: "14px 16px",
  marginBottom: 12,
@@ -680,7 +679,6 @@ function WaterModal({
  style={{
  background: "var(--ledger-paper-bg)",
  border: "1px solid rgba(56,189,248,0.3)",
- borderTop: "2px solid #38BDF8",
  borderRadius: 6,
  padding: "16px",
  }}
@@ -1036,7 +1034,7 @@ export default function Diet() {
  /></div>
 
  {/* Hydration */}
- <div className="ledger-paper ledger-paper--cyan" style={{
+ <div className="ledger-paper" style={{
  borderRadius: 6,
  padding: "16px 20px",
  display: "flex",

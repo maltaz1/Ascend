@@ -352,7 +352,7 @@ const loadFavorites = async () => {
  padding: '12px 10px',
  borderRadius: 6,
  border: '1px solid var(--ledger-paper-border)',
- borderTop: `2px solid ${['var(--accent)', 'var(--primary)', '#10B981', '#06B6D4', 'var(--primary)', 'var(--accent)'][idx % 6]}`,
+ 
  background: 'var(--ledger-paper-bg)',
  color: 'var(--ink)',
  cursor: 'pointer',
@@ -546,7 +546,6 @@ const loadFavorites = async () => {
  padding: '16px 18px',
  borderRadius: 6,
  border: '1px solid var(--ledger-paper-border)',
- borderTop: '2px solid var(--accent)',
  background: 'var(--ledger-paper-bg)',
  display: 'flex',
  flexDirection: 'column',

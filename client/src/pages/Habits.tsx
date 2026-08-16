@@ -946,7 +946,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
 
  {/* CHART */}
 
- <section className="ledger-paper ledger-paper--violet habit-insight-card"><div className="habit-insight-header"><div className="habit-insight-title"><span className="habit-insight-icon"><TrendingUp size={18} /></span><div><h2>Consistência em foco</h2><p>{chartType === "daily" ? "Seu ritmo dia a dia neste mês" : "Evolução semanal dos seus hábitos"}</p></div></div><div className="habit-chart-switch" aria-label="Período do gráfico"><button
+ <section className="ledger-paper habit-insight-card"><div className="habit-insight-header"><div className="habit-insight-title"><span className="habit-insight-icon"><TrendingUp size={18} /></span><div><h2>Consistência em foco</h2><p>{chartType === "daily" ? "Seu ritmo dia a dia neste mês" : "Evolução semanal dos seus hábitos"}</p></div></div><div className="habit-chart-switch" aria-label="Período do gráfico"><button
  type="button"
  className={chartType === "daily" ? "active" : ""}
  aria-pressed={chartType === "daily"}
@@ -971,7 +971,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
  {/* HABITS */}
 
  {filteredHabits.length === 0 ? (
- <div className="ledger-paper ledger-paper--violet flex flex-col items-center justify-center text-center py-16 px-6 mb-5"><div className="w-20 h-20 bg-[var(--ledger-paper-border)] border border-amber-500/30 rounded-md flex items-center justify-center mb-6"><Flame size={36} className="text-amber-600" /></div><h3 className="text-[var(--ink)] text-lg font-bold mb-2">
+ <div className="ledger-paper flex flex-col items-center justify-center text-center py-16 px-6 mb-5"><div className="w-20 h-20 bg-[var(--ledger-paper-border)] border border-amber-500/30 rounded-md flex items-center justify-center mb-6"><Flame size={36} className="text-amber-600" /></div><h3 className="text-[var(--ink)] text-lg font-bold mb-2">
  {searchTerm ? "Nenhum hábito encontrado" : "Nenhum hábito criado"}
  </h3><p className="text-[var(--ink-muted)] text-sm mb-6 max-w-sm">
  {searchTerm
@@ -1006,7 +1006,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
  </section>
  ) : (
  <section
- className="ledger-paper ledger-paper--violet habit-table-card"
+ className="ledger-paper habit-table-card"
  style={{ padding: 0, marginBottom: 20 }}
  aria-label="Seus hábitos em tabela"
  ><div className="habit-table-scroll"><div className="habit-table-head"><div className="habit-table-head-info">Hábito</div><div className="habit-table-head-days">
@@ -1049,7 +1049,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
  gap: 10,
  }}
  ><div
- className="ledger-paper ledger-paper--violet"
+ className="ledger-paper"
  style={{
  padding: 14,
  textAlign: "center",
@@ -1070,7 +1070,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
  >
  Hoje
  </div></div><div
- className="ledger-paper ledger-paper--violet"
+ className="ledger-paper"
  style={{
  padding: 14,
  textAlign: "center",
@@ -1091,7 +1091,7 @@ export default function Habits({ isPro }: { isPro: boolean }) {
  >
  Taxa
  </div></div><div
- className="ledger-paper ledger-paper--violet"
+ className="ledger-paper"
  style={{
  padding: 14,
  textAlign: "center",

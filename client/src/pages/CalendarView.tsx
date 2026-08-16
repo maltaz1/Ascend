@@ -357,7 +357,7 @@ export default function CalendarView() {
  Hoje
  </button></div><div className="calendar-grid" style={{ display: 'grid', gridTemplateColumns: '1fr 300px', gap: 20 }}>
  {/* Calendar Grid */}
- <div className="ledger-paper ledger-paper--violet calendar-main-card" style={{ padding: '20px 22px' }}>
+ <div className="ledger-paper calendar-main-card" style={{ padding: '20px 22px' }}>
  {/* Month Navigation */}
  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 20 }}><button onClick={prevMonth} className="ledger-btn ledger-btn--ghost" style={{ padding: '6px 10px' }}><ChevronLeft size={16} color="var(--muted-foreground)" /></button><h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 18, color: 'var(--foreground)' }}>
  {MONTHS[viewMonth]} {viewYear}
@@ -417,7 +417,7 @@ export default function CalendarView() {
  </div></div>
 
  {/* Day Detail Panel */}
- <div className="calendar-detail-panel" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}><div className="ledger-paper ledger-paper--violet" style={{ padding: '18px 20px' }}><h3 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--foreground)', marginBottom: 4 }}>
+ <div className="calendar-detail-panel" style={{ display: 'flex', flexDirection: 'column', gap: 14 }}><div className="ledger-paper" style={{ padding: '18px 20px' }}><h3 style={{ fontFamily: 'Space Grotesk', fontWeight: 700, fontSize: 15, color: 'var(--foreground)', marginBottom: 4 }}>
  {new Date(selectedDate + 'T00:00:00').toLocaleDateString('pt-BR', { weekday: 'long', day: 'numeric', month: 'long' })}
  </h3><p style={{ fontFamily: 'DM Sans', fontSize: 12, color: 'var(--muted-foreground)' }}>
  {selectedTasks.length} tarefa{selectedTasks.length !== 1 ? 's' : ''} · {selectedGoals.length} meta{selectedGoals.length !== 1 ? 's' : ''}
@@ -486,7 +486,7 @@ export default function CalendarView() {
  </button></div>
 
  {/* Tasks for selected day */}
- <div className="ledger-paper ledger-paper--violet" style={{ padding: '18px 20px' }}><h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 12, letterSpacing: '0.05em' }}>
+ <div className="ledger-paper" style={{ padding: '18px 20px' }}><h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 12, letterSpacing: '0.05em' }}>
  TAREFAS
  </h4>
  {selectedTasks.length === 0 ? (
@@ -522,7 +522,7 @@ export default function CalendarView() {
  </div>
 
  {/* Goals with deadline on selected day */}
- <div className="ledger-paper ledger-paper--violet" style={{ padding: '18px 20px' }}><h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 12, letterSpacing: '0.05em' }}>
+ <div className="ledger-paper" style={{ padding: '18px 20px' }}><h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 12, letterSpacing: '0.05em' }}>
  METAS (PRAZO)
  </h4>
  {selectedGoals.length === 0 ? (
@@ -551,7 +551,7 @@ export default function CalendarView() {
  </div>
 
  {/* Appointments for selected day */}
- <div className="ledger-paper ledger-paper--violet" style={{ padding: '18px 20px', background: 'var(--ledger-paper-bg)', border: '1px solid var(--ledger-paper-border)' }}><h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: 'var(--primary)', marginBottom: 12, letterSpacing: '0.05em' }}>
+ <div className="ledger-paper" style={{ padding: '18px 20px', background: 'var(--ledger-paper-bg)', border: '1px solid var(--ledger-paper-border)' }}><h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: 'var(--primary)', marginBottom: 12, letterSpacing: '0.05em' }}>
  COMPROMISSOS
  </h4>
  {selectedAppointments.length === 0 ? (
@@ -622,7 +622,7 @@ export default function CalendarView() {
  </div>
 
  {/* Calendar Note for selected day */}
- <div className="ledger-paper ledger-paper--violet" style={{ padding: '18px 20px', background: 'var(--ledger-paper-bg)', border: '1px solid var(--ledger-paper-border)' }}><h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 12, letterSpacing: '0.05em' }}>
+ <div className="ledger-paper" style={{ padding: '18px 20px', background: 'var(--ledger-paper-bg)', border: '1px solid var(--ledger-paper-border)' }}><h4 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 13, color: 'var(--muted-foreground)', marginBottom: 12, letterSpacing: '0.05em' }}>
   ANOTAÇÃO
  </h4>
  {selectedNote ? (

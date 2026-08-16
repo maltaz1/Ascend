@@ -403,7 +403,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  <div className="animate-in fade-in duration-500">
  {/* Summary Cards */}
  <div className="grid gap-4 mb-7 grid-cols-[repeat(auto-fit,minmax(180px,1fr))] md:gap-6 md:mb-8 sm:gap-3"><div
- className="ledger-paper ledger-paper--violet"
+ className="ledger-paper"
  style={{ padding: "18px 20px", textAlign: "center" }}
  ><div style={{ fontSize: 24, marginBottom: 8 }}> </div><div
  className="fz-metric-number"
@@ -411,7 +411,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  ><AnimatedCounter value={stats.totalWorkouts} /></div><div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
  Treinos Completos
  </div></div><div
- className="ledger-paper ledger-paper--violet"
+ className="ledger-paper"
  style={{ padding: "18px 20px", textAlign: "center" }}
  ><div style={{ fontSize: 24, marginBottom: 8 }}></div><div
  className="fz-metric-number"
@@ -419,7 +419,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  ><AnimatedCounter value={stats.totalWorkoutPlans} /></div><div style={{ fontSize: 12, color: "var(--muted-foreground)" }}>
  Fichas de Treino
  </div></div><div
- className="ledger-paper ledger-paper--violet"
+ className="ledger-paper"
  style={{ padding: "18px 20px", textAlign: "center" }}
  ><div style={{ fontSize: 24, marginBottom: 8 }}> </div><div
  className="fz-metric-number"
@@ -462,7 +462,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
 
  {workouts.length === 0 ? (
  <div
- className="ledger-paper ledger-paper--violet"
+ className="ledger-paper"
  style={{ padding: "40px 20px", textAlign: "center" }}
  ><Dumbbell
  size={32}
@@ -475,7 +475,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  {workouts.map(workout => (
  <div
  key={workout.id}
- className="ledger-paper ledger-paper--violet"
+ className="ledger-paper"
  style={{
  padding: 0,
  overflow: "hidden",
@@ -533,7 +533,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  {/* Details Section */}
  <div>
  {selectedWorkout ? (
- <div className="ledger-paper ledger-paper--violet" style={{ padding: "20px" }}><div
+ <div className="ledger-paper" style={{ padding: "20px" }}><div
  style={{
  display: "flex",
  justifyContent: "space-between",
@@ -784,7 +784,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  </button></div></div></div>
  ) : (
  <div
- className="ledger-paper ledger-paper--violet"
+ className="ledger-paper"
  style={{ padding: "40px 20px", textAlign: "center" }}
  ><p style={{ color: "var(--muted-foreground)", fontSize: 14 }}>
  Selecione uma ficha para ver detalhes
@@ -818,7 +818,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
 
  {filteredSessions.length === 0 ? (
  <div
- className="ledger-paper ledger-paper--violet"
+ className="ledger-paper"
  style={{ padding: "40px 20px", textAlign: "center" }}
  ><Calendar
  size={32}
@@ -831,7 +831,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  {filteredSessions.map(session => (
  <div
  key={session.id}
- className="ledger-paper ledger-paper--violet"
+ className="ledger-paper"
  style={{ padding: "16px" }}
  ><div
  style={{
@@ -917,7 +917,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  style={{ fontSize: 12, display: "flex", alignItems: "center", gap: 6 }}
  ><Plus size={14} />
  Novo Exercício
- </button></div><div className="ledger-paper ledger-paper--violet" style={{ padding: "14px 16px", marginBottom: 20, borderLeft: "3px solid var(--primary)" }}><p style={{ margin: 0, fontSize: 13, color: "var(--muted-foreground)", lineHeight: 1.5 }}>
+ </button></div><div className="ledger-paper" style={{ padding: "14px 16px", marginBottom: 20, borderLeft: "3px solid var(--primary)" }}><p style={{ margin: 0, fontSize: 13, color: "var(--muted-foreground)", lineHeight: 1.5 }}>
  Os exercícios mais comuns já estão disponíveis. Crie um novo exercício apenas quando ele não estiver na lista padrão.
  </p></div><section><div style={{ display: "flex", alignItems: "baseline", gap: 8, marginBottom: 12 }}><h3 style={{ margin: 0, fontSize: 15, fontWeight: 700, color: "var(--foreground)" }}>
  Exercícios padrão
@@ -925,7 +925,7 @@ export default function Academy({ onTabChange }: AcademyProps) {
  {defaultExercises.length} exercícios
  </span></div><div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 12 }}>
  {defaultExercises.map(ex => (
- <div key={ex.id} className="ledger-paper ledger-paper--violet" style={{ padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}><div><div style={{ fontWeight: 600, fontSize: 14, color: "var(--foreground)" }}>{ex.name}</div>
+ <div key={ex.id} className="ledger-paper" style={{ padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}><div><div style={{ fontWeight: 600, fontSize: 14, color: "var(--foreground)" }}>{ex.name}</div>
  {ex.targetMuscleGroup && (
  <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 4 }}>
  {ex.targetMuscleGroup}
@@ -941,13 +941,13 @@ export default function Academy({ onTabChange }: AcademyProps) {
  {personalExercises.length} {personalExercises.length === 1 ? "exercício" : "exercícios"}
  </span></div>
  {personalExercises.length === 0 ? (
- <div className="ledger-paper ledger-paper--violet" style={{ padding: "24px 20px", textAlign: "center" }}><p style={{ margin: 0, color: "var(--muted-foreground)", fontSize: 13 }}>
+ <div className="ledger-paper" style={{ padding: "24px 20px", textAlign: "center" }}><p style={{ margin: 0, color: "var(--muted-foreground)", fontSize: 13 }}>
  Seus exercícios personalizados aparecerão aqui.
  </p></div>
  ) : (
  <div style={{ display: "grid", gridTemplateColumns: "repeat(auto-fill, minmax(250px, 1fr))", gap: 12 }}>
  {personalExercises.map(ex => (
- <div key={ex.id} className="ledger-paper ledger-paper--violet" style={{ padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}><div><div style={{ fontWeight: 600, fontSize: 14, color: "var(--foreground)" }}>{ex.name}</div>
+ <div key={ex.id} className="ledger-paper" style={{ padding: "14px 16px", display: "flex", justifyContent: "space-between", alignItems: "center" }}><div><div style={{ fontWeight: 600, fontSize: 14, color: "var(--foreground)" }}>{ex.name}</div>
  {ex.targetMuscleGroup && (
  <div style={{ fontSize: 12, color: "var(--muted-foreground)", marginTop: 4 }}>
  {ex.targetMuscleGroup}

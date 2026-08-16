@@ -155,7 +155,7 @@ function MetricCard({
 }) {
  return (
  <div
- className={`ledger-metric ledger-metric--${variant}`}
+ className="ledger-metric"
  ><div
  style={{
  display: "flex",
@@ -231,7 +231,7 @@ function StreakBadge({ streak }: { streak: number }) {
 
  return (
  <div
- className="ledger-paper ledger-paper--amber"
+ className="ledger-paper"
  style={{
  display: "flex",
  alignItems: "center",
@@ -678,7 +678,7 @@ export default function Dashboard() {
  marginBottom: 24,
  background: "var(--ledger-paper-bg)",
  border: "1px solid var(--ledger-paper-border)",
- borderTop: "2px solid var(--primary)",
+
  boxShadow: "5px 5px 0 rgba(0,0,0,0.35)",
  padding: "30px 34px",
  }}

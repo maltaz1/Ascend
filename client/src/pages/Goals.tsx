@@ -201,7 +201,7 @@ function WeeklyGoalCard({
  const { showXP } = useXPAnimation();
  const colorInfo = getGoalColors(goal.color);
  const hit = isWeeklyGoalHit(goalToWeekly(goal));
- const paperVariant = hit ? "ledger-paper--green" : goal.color === "var(--primary)" || goal.color === "var(--primary)" ? "ledger-paper--violet" : goal.color === "var(--accent)" ? "ledger-paper--amber" : goal.color === "#EF4444" ? "ledger-paper--red" : "";
+ const paperVariant = "";
 
  const norm = useMemo(
  () =>
@@ -421,7 +421,7 @@ function GoalCard({
  })();
  };
 
- const paperVariant = isCompleted ? "ledger-paper--green" : goal.color === "var(--primary)" || goal.color === "var(--primary)" ? "ledger-paper--violet" : goal.color === "var(--accent)" ? "ledger-paper--amber" : goal.color === "#EF4444" ? "ledger-paper--red" : "";
+ const paperVariant = "";
 
  return (
  <div
@@ -481,15 +481,15 @@ function WeeklySummaryBar({ weeklyGoals, isMobile }: { weeklyGoals: Goal[]; isMo
  const totalStreak = weeklyGoals.reduce((acc, g) => acc + (g.streak ?? 0), 0);
 
  const stats = [
- { value: `${avgConsistency}%`, label: "Consistência", variant: "ledger-metric--green" },
- { value: activeCount, label: "Ativas", variant: "ledger-metric--violet" },
- { value: totalStreak, label: "Streak total", variant: "ledger-metric--amber" },
+ { value: `${avgConsistency}%`, label: "Consistência", variant: "" },
+ { value: activeCount, label: "Ativas", variant: "" },
+ { value: totalStreak, label: "Streak total", variant: "" },
  ];
 
  return (
  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1.2fr 1fr 1fr", gap: isMobile ? 12 : 16, marginBottom: 20 }}>
  {stats.map(({ value, label, variant }) => (
- <div key={label} className={`ledger-metric ${variant}`} style={{ padding: isMobile ? "12px 14px" : "16px 18px" }}><div className="ledger-marginalia" style={{ marginBottom: 8 }}>{label}</div><div className="ledger-metric-value" style={{ fontSize: isMobile ? 22 : 28 }}>{value}</div></div>
+ <div key={label} className="ledger-metric" style={{ padding: isMobile ? "12px 14px" : "16px 18px" }}><div className="ledger-marginalia" style={{ marginBottom: 8 }}>{label}</div><div className="ledger-metric-value" style={{ fontSize: isMobile ? 22 : 28 }}>{value}</div></div>
  ))}
  </div>
  );

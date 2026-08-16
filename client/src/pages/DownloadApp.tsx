@@ -117,7 +117,7 @@ export default function DownloadApp() {
 
  .da-hero {
  border: 1px solid var(--ledger-paper-border); border-radius: 6px; padding: 24px;
- background: var(--ledger-paper-bg); margin: 16px; border-top: 2px solid var(--primary);
+ background: var(--ledger-paper-bg); margin: 16px; 
  box-shadow: 5px 5px 0 rgba(0,0,0,.3);
  }
  .da-hero-tag {
@@ -238,7 +238,7 @@ export default function DownloadApp() {
  .da-footer {
  display: flex; align-items: center; justify-content: space-between; gap: 12px;
  border: 1px solid var(--ledger-paper-border); border-radius: 6px; margin: 0 16px 16px;
- padding: 14px 18px; background: var(--ledger-paper-bg); flex-wrap: wrap; border-top: 2px solid var(--accent);
+ padding: 14px 18px; background: var(--ledger-paper-bg); flex-wrap: wrap; 
  box-shadow: 5px 5px 0 rgba(0,0,0,.3);
  }
  .da-footer p { font-size: 13px; font-weight: 700; color: var(--ink); margin: 0; }

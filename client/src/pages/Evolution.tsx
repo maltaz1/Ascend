@@ -129,26 +129,26 @@ export default function Evolution({ onTabChange, hideHeader }: EvolutionProps) {
  gap: 12,
  marginBottom: 28,
  }}
- ><div className="ledger-paper ledger-paper--violet" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 8, fontFamily: 'DM Sans' }}>
+ ><div className="ledger-paper" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 8, fontFamily: 'DM Sans' }}>
  Volume Total
  </div><div style={{ fontSize: 24, fontWeight: 700, color: 'var(--accent)', marginBottom: 4 }}>
  {stats.totalVolume}
- </div><div style={{ fontSize: 10, color: 'var(--muted-foreground)' }}>kg</div></div><div className="ledger-paper ledger-paper--violet" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 8, fontFamily: 'DM Sans' }}>
+ </div><div style={{ fontSize: 10, color: 'var(--muted-foreground)' }}>kg</div></div><div className="ledger-paper" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 8, fontFamily: 'DM Sans' }}>
  Treinos
  </div><div style={{ fontSize: 24, fontWeight: 700, color: 'var(--primary)', marginBottom: 4 }}>
  {stats.totalWorkouts}
- </div><div style={{ fontSize: 10, color: 'var(--muted-foreground)' }}>realizados</div></div><div className="ledger-paper ledger-paper--violet" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 8, fontFamily: 'DM Sans' }}>
+ </div><div style={{ fontSize: 10, color: 'var(--muted-foreground)' }}>realizados</div></div><div className="ledger-paper" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 8, fontFamily: 'DM Sans' }}>
  Peso Máx
  </div><div style={{ fontSize: 24, fontWeight: 700, color: '#10B981', marginBottom: 4 }}>
  {stats.maxWeight}
- </div><div style={{ fontSize: 10, color: 'var(--muted-foreground)' }}>kg</div></div><div className="ledger-paper ledger-paper--violet" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 8, fontFamily: 'DM Sans' }}>
+ </div><div style={{ fontSize: 10, color: 'var(--muted-foreground)' }}>kg</div></div><div className="ledger-paper" style={{ padding: '16px', textAlign: 'center' }}><div style={{ fontSize: 12, color: 'var(--muted-foreground)', marginBottom: 8, fontFamily: 'DM Sans' }}>
  Séries
  </div><div style={{ fontSize: 24, fontWeight: 700, color: '#F97316', marginBottom: 4 }}>
  {stats.totalSets}
  </div><div style={{ fontSize: 10, color: 'var(--muted-foreground)' }}>total</div></div></div>
 
  {/* General Progress Chart */}
- <div className="ledger-paper ledger-paper--violet" style={{ padding: '20px', marginBottom: 28 }}><h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 14, marginBottom: 16, color: 'var(--foreground)' }}>
+ <div className="ledger-paper" style={{ padding: '20px', marginBottom: 28 }}><h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 14, marginBottom: 16, color: 'var(--foreground)' }}>
  Evolução Geral — Peso Médio
  </h2>
  {generalProgress.length > 0 ? (
@@ -206,26 +206,26 @@ export default function Evolution({ onTabChange, hideHeader }: EvolutionProps) {
  gap: 12,
  marginBottom: 28,
  }}
- ><div className="ledger-paper ledger-paper--violet" style={{ padding: '14px', textAlign: 'center' }}><div style={{ fontSize: 11, color: 'var(--muted-foreground)', marginBottom: 6, fontFamily: 'DM Sans' }}>
+ ><div className="ledger-paper" style={{ padding: '14px', textAlign: 'center' }}><div style={{ fontSize: 11, color: 'var(--muted-foreground)', marginBottom: 6, fontFamily: 'DM Sans' }}>
  Volume
  </div><div style={{ fontSize: 20, fontWeight: 700, color: 'var(--accent)' }}>
  {exerciseStats.totalVolume}
- </div><div style={{ fontSize: 9, color: 'var(--muted-foreground)' }}>kg</div></div><div className="ledger-paper ledger-paper--violet" style={{ padding: '14px', textAlign: 'center' }}><div style={{ fontSize: 11, color: 'var(--muted-foreground)', marginBottom: 6, fontFamily: 'DM Sans' }}>
+ </div><div style={{ fontSize: 9, color: 'var(--muted-foreground)' }}>kg</div></div><div className="ledger-paper" style={{ padding: '14px', textAlign: 'center' }}><div style={{ fontSize: 11, color: 'var(--muted-foreground)', marginBottom: 6, fontFamily: 'DM Sans' }}>
  Peso Máx
  </div><div style={{ fontSize: 20, fontWeight: 700, color: 'var(--primary)' }}>
  {exerciseStats.maxWeight}
- </div><div style={{ fontSize: 9, color: 'var(--muted-foreground)' }}>kg</div></div><div className="ledger-paper ledger-paper--violet" style={{ padding: '14px', textAlign: 'center' }}><div style={{ fontSize: 11, color: 'var(--muted-foreground)', marginBottom: 6, fontFamily: 'DM Sans' }}>
+ </div><div style={{ fontSize: 9, color: 'var(--muted-foreground)' }}>kg</div></div><div className="ledger-paper" style={{ padding: '14px', textAlign: 'center' }}><div style={{ fontSize: 11, color: 'var(--muted-foreground)', marginBottom: 6, fontFamily: 'DM Sans' }}>
  Séries
  </div><div style={{ fontSize: 20, fontWeight: 700, color: '#10B981' }}>
  {exerciseStats.totalSets}
- </div><div style={{ fontSize: 9, color: 'var(--muted-foreground)' }}>total</div></div><div className="ledger-paper ledger-paper--violet" style={{ padding: '14px', textAlign: 'center' }}><div style={{ fontSize: 11, color: 'var(--muted-foreground)', marginBottom: 6, fontFamily: 'DM Sans' }}>
+ </div><div style={{ fontSize: 9, color: 'var(--muted-foreground)' }}>total</div></div><div className="ledger-paper" style={{ padding: '14px', textAlign: 'center' }}><div style={{ fontSize: 11, color: 'var(--muted-foreground)', marginBottom: 6, fontFamily: 'DM Sans' }}>
  Sessões
  </div><div style={{ fontSize: 20, fontWeight: 700, color: '#F97316' }}>
  {exerciseStats.sessions}
  </div><div style={{ fontSize: 9, color: 'var(--muted-foreground)' }}>vezes</div></div></div>
 
  {/* Exercise Progress Chart */}
- <div className="ledger-paper ledger-paper--violet" style={{ padding: '20px', marginBottom: 28 }}><h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 14, marginBottom: 16, color: 'var(--foreground)' }}>
+ <div className="ledger-paper" style={{ padding: '20px', marginBottom: 28 }}><h2 style={{ fontFamily: 'Space Grotesk', fontWeight: 600, fontSize: 14, marginBottom: 16, color: 'var(--foreground)' }}>
  {selectedExercise} — Evolução
  </h2>
  {exerciseProgress.length > 0 ? (

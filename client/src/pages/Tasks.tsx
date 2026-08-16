@@ -172,7 +172,7 @@ function MiniCalendar({
  `${viewYear}-${String(viewMonth + 1).padStart(2, "0")}-${String(d).padStart(2, "0")}`;
 
  return (
- <div className="ledger-paper ledger-paper--violet p-5"><div className="flex items-center justify-between mb-4"><button onClick={prevMonth} className="ledger-btn ledger-btn--ghost p-1.5"><ChevronLeft size={16} className="text-muted-foreground" /></button><h3 className="font-bold text-base text-foreground font-space">
+ <div className="ledger-paper p-5"><div className="flex items-center justify-between mb-4"><button onClick={prevMonth} className="ledger-btn ledger-btn--ghost p-1.5"><ChevronLeft size={16} className="text-muted-foreground" /></button><h3 className="font-bold text-base text-foreground font-space">
  {MONTHS[viewMonth]} {viewYear}
  </h3><button onClick={nextMonth} className="ledger-btn ledger-btn--ghost p-1.5"><ChevronRight size={16} className="text-muted-foreground" /></button></div><div className="grid grid-cols-7 gap-1 mb-2">
  {WEEKDAYS.map(d => (

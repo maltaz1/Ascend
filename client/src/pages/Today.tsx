@@ -147,7 +147,7 @@ export default function Today() {
 
  {/* Overall Progress Ring */}
  <div
- className="ledger-paper ledger-paper--violet flex lg:flex-row flex-col gap-4 lg:gap-6 p-6 mb-5"
+ className="ledger-paper flex lg:flex-row flex-col gap-4 lg:gap-6 p-6 mb-5"
  style={{
  background: "var(--ledger-paper-bg)",
  border: "1px solid var(--ledger-paper-border)",
@@ -278,7 +278,7 @@ export default function Today() {
  {levelProgress.current}/{levelProgress.max} XP
  </div></div></div><div className="grid grid-cols-1 lg:grid-cols-2 gap-5">
  {/* Today's Tasks */}
- <div className="ledger-paper ledger-paper--violet" style={{ padding: "20px 22px" }}><div
+ <div className="ledger-paper" style={{ padding: "20px 22px" }}><div
  style={{
  display: "flex",
  alignItems: "center",
@@ -379,7 +379,7 @@ export default function Today() {
  </div>
 
  {/* Habits Today */}
- <div className="ledger-paper ledger-paper--violet" style={{ padding: "20px 22px" }}><div
+ <div className="ledger-paper" style={{ padding: "20px 22px" }}><div
  style={{
  display: "flex",
  alignItems: "center",
@@ -485,7 +485,7 @@ export default function Today() {
  {/* Active Goals */}
  {activeGoals.length > 0 && (
  <div
- className="ledger-paper ledger-paper--violet"
+ className="ledger-paper"
  style={{
  padding: "20px 22px",
  marginTop: 20,
