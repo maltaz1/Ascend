@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Flame } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { notifyError, notifySuccess, notifyWarning } from "@/lib/notifications";
 
@@ -1112,7 +1113,7 @@ export default function Login() {
             </div>
             <div className="asc-divider-v" />
             <div className="asc-stat">
-              <span className="asc-stat-num orange">Seq</span>
+              <Flame size={20} color="var(--accent)" strokeWidth={2.4} style={{ display: "inline-block" }} />
               <span className="asc-stat-label">Sequências diárias</span>
             </div>
             <div className="asc-divider-v" />

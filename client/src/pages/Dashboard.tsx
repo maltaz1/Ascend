@@ -23,6 +23,7 @@ import {
  Target,
  Wallet,
  Calendar,
+ Flame,
 } from "lucide-react";
 
 import { useStore } from "@/hooks/useStore";
@@ -212,9 +213,7 @@ function StreakBadge({ streak }: { streak: number }) {
  padding: "13px 18px",
  background: "var(--ledger-paper-bg)",
  }}
- ><span className="ledger-stamp ledger-stamp--amber" style={{ fontSize: 10 }}>
- SEQ
- </span><div style={{ display: "flex", alignItems: "baseline", gap: 6 }}><div style={{ fontSize: 22, fontWeight: 800, color: "var(--accent)", fontFamily: "Space Grotesk", letterSpacing: "-0.03em" }}>
+ ><Flame size={15} color="var(--accent)" strokeWidth={2.4} /><div style={{ display: "flex", alignItems: "baseline", gap: 6 }}><div style={{ fontSize: 22, fontWeight: 800, color: "var(--accent)", fontFamily: "Space Grotesk", letterSpacing: "-0.03em" }}>
  {streak}
  </div><div style={{ fontSize: 12, color: "var(--ink-muted)", fontWeight: 500 }}>
  dias seguidos
@@ -1067,7 +1066,7 @@ export default function Dashboard() {
  : monthlyCompletionRate >= 50
  ? "Bom ritmo"
  : "Pode melhorar"}
- </div></div></div></div><div className="ledger-paper" style={{ padding: "22px 24px", background: "var(--ledger-paper-bg)" }}><div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}><div className="ledger-marginalia">10 — Melhor registro</div></div><div style={{ display: "flex", alignItems: "center", gap: 16 }}><span className="ledger-stamp ledger-stamp--amber">Seq</span><div><div style={{ fontSize: 15, fontWeight: 700 }}>{bestHabitStreak.name}</div><div style={{ fontSize: 12, color: "var(--accent)", fontWeight: 700, letterSpacing: "0.04em" }}>
+ </div></div></div></div><div className="ledger-paper" style={{ padding: "22px 24px", background: "var(--ledger-paper-bg)" }}><div style={{ display: "flex", alignItems: "center", gap: 8, marginBottom: 16 }}><div className="ledger-marginalia">10 — Melhor registro</div></div><div style={{ display: "flex", alignItems: "center", gap: 16 }}><Flame size={16} color="var(--accent)" strokeWidth={2.4} /><div><div style={{ fontSize: 15, fontWeight: 700 }}>{bestHabitStreak.name}</div><div style={{ fontSize: 12, color: "var(--accent)", fontWeight: 700, letterSpacing: "0.04em" }}>
  {bestHabitStreak.streak} dias seguidos
  </div></div></div></div></div>
 
