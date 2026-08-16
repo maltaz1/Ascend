@@ -66,7 +66,7 @@ function NutritionCircle({
  cy="60"
  r={radius}
  fill="none"
- stroke="rgba(255,255,255,0.1)"
+ stroke="var(--ledger-paper-border)"
  strokeWidth="8"
  /><circle
  cx="60"
@@ -99,7 +99,7 @@ function NutritionCircle({
  </div><div
  style={{
  fontSize: 11,
- color: "rgba(255,255,255,0.5)",
+ color: "var(--ink-muted)",
  fontFamily: "DM Sans",
  }}
  >
@@ -213,7 +213,7 @@ function MealCard({
  fontSize: 12,
  }}
  ><div
- style={{ color: "rgba(255,255,255,0.7)", fontFamily: "DM Sans" }}
+ style={{ color: "var(--ink)", fontFamily: "DM Sans" }}
  >
  {food.name} ({food.quantity}
  {food.unit})
@@ -489,7 +489,7 @@ function AddFoodModal({
  }}
  onMouseLeave={e => {
  e.currentTarget.style.background =
- idx % 2 === 0 ? "rgba(255,255,255,0.02)" : "transparent";
+ idx % 2 === 0 ? "rgba(28,25,23,0.03)" : "transparent";
  }}
  ><div style={{ fontWeight: 600, marginBottom: 2 }}>
  {food.description}
@@ -623,7 +623,7 @@ function AddFoodModal({
  style={{
  padding: "12px 16px",
  borderRadius: 6,
- background: foods.length > 0 ? "var(--primary)" : "#1f1333",
+ background: foods.length > 0 ? "var(--primary)" : "var(--ledger-paper-border)",
  border: "1px solid var(--ledger-paper-border)",
  color: foods.length > 0 ? "#030013" : "#5b5b6a",
  cursor: foods.length > 0 ? "pointer" : "not-allowed",
@@ -693,13 +693,13 @@ function WaterModal({
  }}
  ><span style={{ color: "#38BDF8" }}>
  {currentMl} mL
- </span><span style={{ color: "rgba(255,255,255,0.5)" }}>
+ </span><span style={{ color: "var(--ink-muted)" }}>
  Meta: {goalMl} mL
  </span></div><div
  style={{
  width: "100%",
  height: 10,
- background: "rgba(255,255,255,0.1)",
+ background: "var(--ledger-paper-border)",
  borderRadius: 5,
  overflow: "hidden",
  }}
@@ -994,7 +994,7 @@ export default function Diet() {
  style={{
  width: "100%",
  height: 8,
- background: "rgba(255,255,255,0.1)",
+ background: "var(--ledger-paper-border)",
  borderRadius: 4,
  overflow: "hidden",
  }}
