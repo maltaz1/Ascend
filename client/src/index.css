@@ -108,6 +108,7 @@
   /* Corridas de tinta (texto) */
   --ink: #1c1917;
   --ink-muted: #57534e;
+  --field-bg: #ffffff;
   --scrollbar-thumb: rgba(28, 25, 23, 0.25);
   --scrollbar-thumb-hover: rgba(28, 25, 23, 0.4);
   /* Habit cell size — mude aqui para ajustar tudo junto */
@@ -163,6 +164,7 @@
   --ledger-paper-shadow: rgba(0, 0, 0, 0.32);
   --ink: #f5f5f5;
   --ink-muted: #9ca3af;
+  --field-bg: #2a2a32;
   --scrollbar-thumb: rgba(255, 255, 255, 0.2);
   --scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
   --habit-cell: 32px;
@@ -614,7 +616,18 @@
   }
 
   /* Input sublinhado estilo pauta de caderno */
-  .ledger-input {
+  /* Campo de caderno (input/textarea de formulário) */
+.ledger-input-field {
+  background: var(--field-bg);
+  border: 1px solid var(--ledger-paper-border);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+}
+.ledger-input-field::placeholder { color: var(--ink-muted); opacity: 0.7; }
+.ledger-input-field:focus { outline: none; border-color: var(--primary); }
+
+.ledger-input {
     width: 100%;
     background: transparent;
     border: none;

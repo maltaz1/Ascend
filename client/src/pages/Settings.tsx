@@ -2,6 +2,8 @@ import React, { useEffect, useState } from "react";
 import {
  User,
  Palette,
+ Sun,
+ Moon,
  Bell,
  Cloud,
  Shield,
@@ -20,6 +22,7 @@ import {
  ExternalLink,
 } from "lucide-react";
 import { notifyError, notifySuccess } from "@/lib/notifications";
+import { useTheme } from "@/contexts/ThemeContext";
 
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
@@ -332,10 +335,12 @@ export default function Settings() {
  }
  }
 
+ const { theme, toggleTheme } = useTheme();
+
  return (
- <div className="min-h-screen bg-background text-white"><div className="max-w-4xl mx-auto px-4 py-8">
+ <div className="min-h-screen bg-background text-white"><div className="max-w-4xl mx-auto px-5 sm:px-8 py-10 sm:py-12">
  {/* HEADER — folha solta de caderno */}
- <div className="notebook-sheet notebook-sheet--margined mb-8"><div className="ledger-marginalia mb-2">14 — Ajustes</div><h1 className="text-3xl font-bold mb-2" style={{ fontFamily: "Space Grotesk", letterSpacing: "-0.03em" }}> Configurações</h1><p className="text-zinc-400" style={{ fontFamily: "DM Sans", fontSize: 13 }}>
+ <div className="notebook-sheet notebook-sheet--margined mb-8"><div className="ledger-marginalia mb-2">14 — Ajustes</div><h1 className="text-3xl font-bold mb-2" style={{ color: "var(--ink)", fontFamily: "Space Grotesk", letterSpacing: "-0.03em" }}> Configurações</h1><p style={{ fontFamily: "DM Sans", fontSize: 13 }}>
  Ajuste o caderno ao seu jeito.
  </p></div>
 
@@ -343,21 +348,21 @@ export default function Settings() {
  <div
  className={`rounded-md p-6 mb-8 border ${
  profile.isPro
- ? "bg-zinc-900 border-zinc-700"
- : "bg-zinc-900 border-zinc-800"
- }`} style={{ boxShadow: "4px 4px 0 rgba(0,0,0,0.35)" }}
+ ? "border-[var(--primary)]/50"
+ : "border-[var(--ledger-paper-border)]"
+ }`} style={{ background: "var(--ledger-paper-bg)", boxShadow: "var(--ledger-paper-shadow, 4px 4px 0 rgba(0,0,0,0.35))" }}
  ><div className="flex items-center gap-5"><img
  src={profile.avatar}
- className="w-24 h-24 rounded-full border-2 border-zinc-700"
+ className="w-24 h-24 rounded-full border-2" style={{ borderColor: "var(--ledger-paper-border)" }}
  /><div><h2 className="text-2xl font-bold">
  {profile.name || "Usuário"}
- </h2><p className="text-zinc-400 mt-1">
+ </h2><p className="mt-1" style={{ color: "var(--ink-muted)" }}>
  {profile.bio || "Sem bio definida"}
  </p><div
  className={`mt-3 inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold tracking-wide border uppercase ${
  profile.isPro
- ? "bg-zinc-100 text-zinc-900 border-zinc-100"
- : "bg-zinc-800 text-zinc-400 border-zinc-700"
+ ? "bg-[var(--primary)]/10 border-[var(--primary)]/30 text-[var(--ink)]"
+ : "text-[var(--ink-muted)] border-[var(--ledger-paper-border)]"
  }`}
  >
  {profile.isPro && <Sparkles size={12} className="mr-1" />}
@@ -374,7 +379,7 @@ export default function Settings() {
  name: e.target.value,
  })
  }
- className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-4 py-3"
+ className="w-full rounded-md px-4 py-3 ledger-input-field"
  /><div className="space-y-4"><div className="flex items-center gap-4"><img
  src={profile.avatar}
  className="w-24 h-24 rounded-full object-cover border-4 border-[var(--primary)]"
@@ -385,7 +390,7 @@ export default function Settings() {
  accept="image/*"
  className="hidden"
  onChange={handleImageUpload}
- /></label></div><p className="text-sm text-zinc-400">PNG, JPG ou WEBP</p></div><textarea
+ /></label></div><p className="text-sm text-[var(--ink-muted)]">PNG, JPG ou WEBP</p></div><textarea
  rows={4}
  placeholder="Sua bio"
  value={profile.bio}
@@ -395,7 +400,7 @@ export default function Settings() {
  bio: e.target.value,
  })
  }
- className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-4 py-3 resize-none"
+ className="w-full rounded-md px-4 py-3 resize-none ledger-input-field"
  /><button
  onClick={saveProfile}
  className="bg-[var(--primary)] hover:bg-[#7C3AED] text-white font-bold px-5 py-3 rounded-md flex items-center gap-2 transition-all  "
@@ -404,13 +409,25 @@ export default function Settings() {
  </button></div></motion.div>
 
  {/* APARÊNCIA */}
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Palette className="text-pink-400" /><h2 className="text-2xl font-bold"> Aparência</h2></div><div className="space-y-4"><div className="flex items-center justify-between bg-zinc-950 rounded-md p-4 border border-zinc-800"><div><p className="font-medium">Animações</p><p className="text-sm text-zinc-400">Ativar efeitos visuais</p></div><button
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Palette className="text-pink-400" /><h2 className="text-2xl font-bold"> Aparência</h2></div><div className="space-y-4"><div className="flex items-center justify-between rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)]"><div><p className="font-medium" style={{ color: "var(--ink)" }}>Tema do caderno</p><p className="text-sm" style={{ color: "var(--ink-muted)" }}>{theme === "dark" ? "Ledger Noturno — papel escuro" : "Day Ledger — papel diurno"}</p></div><button
+ onClick={toggleTheme}
+ className="px-4 py-2 rounded-xl font-medium transition-all flex items-center gap-2"
+ style={{
+ background: theme === "dark" ? "var(--primary)" : "var(--muted)",
+ color: theme === "dark" ? "#fff" : "var(--ink)",
+ border: theme === "dark" ? "none" : "1px solid var(--ledger-paper-border)",
+ }}
+ >
+ {theme === "dark" ? <Sun size={16} /> : <Moon size={16} />}
+ {theme === "dark" ? "Day Ledger" : "Ledger Noturno"}
+ </button></div><div className="flex items-center justify-between rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)]"><div><p className="font-medium" style={{ color: "var(--ink)" }}>Animações</p><p className="text-sm" style={{ color: "var(--ink-muted)" }}>Ativar efeitos visuais</p></div><button
  onClick={toggleAnimations}
- className={`px-4 py-2 rounded-xl font-medium transition-all ${
- animationsEnabled
- ? "bg-[var(--primary)] text-white "
- : "bg-zinc-700"
- }`}
+ className="px-4 py-2 rounded-xl font-medium transition-all"
+ style={{
+ background: animationsEnabled ? "var(--primary)" : "var(--muted)",
+ color: animationsEnabled ? "#fff" : "var(--ink)",
+ border: animationsEnabled ? "none" : "1px solid var(--ledger-paper-border)",
+ }}
  >
  {animationsEnabled ? "Ativado" : "Desativado"}
  </button></div></div></motion.div>
@@ -424,7 +441,7 @@ export default function Settings() {
  ].map(item => (
  <div
  key={item.key}
- className="flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4"
+ className="flex items-center justify-between rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)]"
  ><span>{item.label}</span><button
  onClick={() =>
  toggleNotification(item.key as keyof typeof notifications)
@@ -432,7 +449,7 @@ export default function Settings() {
  className={`w-14 h-7 rounded-full relative transition-all ${
  notifications[item.key as keyof typeof notifications]
  ? "bg-[var(--primary)] shadow-lg "
- : "bg-zinc-700"
+ : "bg-[var(--ledger-paper-border)]"
  }`}
  ><div
  className={`absolute top-1 w-5 h-5 bg-white rounded-full ${
@@ -449,28 +466,28 @@ export default function Settings() {
  href="/privacy"
  target="_blank"
  rel="noopener noreferrer"
- className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4 hover:border-violet-500/40 transition-all group"
- ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center"><FileText size={18} className="text-violet-400" /></div><div className="text-left"><p className="font-medium text-zinc-200">Política de Privacidade</p><p className="text-xs text-zinc-500">Como protegemos seus dados</p></div></div><ExternalLink size={16} className="text-zinc-500 group-hover:text-violet-400 transition-all" /></a><a
+ className="w-full flex items-center justify-between rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)] hover:border-[var(--primary)]/40 transition-all group"
+ ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center"><FileText size={18} className="text-violet-400" /></div><div className="text-left"><p className="font-medium" style={{ color: "var(--ink)" }}>Política de Privacidade</p><p className="text-xs text-[var(--ink-muted)]">Como protegemos seus dados</p></div></div><ExternalLink size={16} className="text-[var(--ink-muted)] group-hover:text-[var(--primary)] transition-all" /></a><a
  href="/terms"
  target="_blank"
  rel="noopener noreferrer"
- className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4 hover:border-violet-500/40 transition-all group"
- ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-violet-500/10 flex items-center justify-center"><FileText size={18} className="text-violet-400" /></div><div className="text-left"><p className="font-medium text-zinc-200">Termos de Uso</p><p className="text-xs text-zinc-500">Regras para utilização do app</p></div></div><ExternalLink size={16} className="text-zinc-500 group-hover:text-violet-400 transition-all" /></a><button
+ className="w-full flex items-center justify-between rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)] hover:border-[var(--primary)]/40 transition-all group"
+ ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-xl bg-[var(--primary)]/10 flex items-center justify-center"><FileText size={18} className="text-violet-400" /></div><div className="text-left"><p className="font-medium" style={{ color: "var(--ink)" }}>Termos de Uso</p><p className="text-xs text-[var(--ink-muted)]">Regras para utilização do app</p></div></div><ExternalLink size={16} className="text-[var(--ink-muted)] group-hover:text-[var(--primary)] transition-all" /></a><button
  onClick={handleExportData}
  disabled={exportingData}
- className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4 hover:border-[var(--primary)]/40 transition-all group disabled:opacity-50"
- ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-md bg-[var(--primary-dark, var(--primary-dark, #7c3aed))]/10 border border-[var(--primary-dark, var(--primary-dark, #7c3aed))]/30 flex items-center justify-center"><Download size={18} className="text-[var(--primary)]" /></div><div className="text-left"><p className="font-medium text-zinc-200">Solicitar meus dados</p><p className="text-xs text-zinc-500">
+ className="w-full flex items-center justify-between rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)] hover:border-[var(--primary)]/40 transition-all group disabled:opacity-50"
+ ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-md bg-[var(--primary-dark, var(--primary-dark, #7c3aed))]/10 border border-[var(--primary-dark, var(--primary-dark, #7c3aed))]/30 flex items-center justify-center"><Download size={18} className="text-[var(--primary)]" /></div><div className="text-left"><p className="font-medium" style={{ color: "var(--ink)" }}>Solicitar meus dados</p><p className="text-xs" style={{ color: "var(--ink-muted)" }}>
  {exportingData ? "Gerando exportação..." : "Baixar cópia de todos os seus dados"}
- </p></div></div><Download size={16} className="text-zinc-500 group-hover:text-[var(--primary)] transition-all" /></button>
+ </p></div></div><Download size={16} className="text-[var(--ink-muted)] group-hover:text-[var(--primary)] transition-all" /></button>
  {showReauthDialog && (
- <div className="border border-red-500/30 bg-red-500/5 rounded-md p-4 space-y-3"><p className="text-sm text-red-300">Confirme sua senha antes de excluir.</p><input
+ <div className="border border-red-500/30 bg-red-500/5 rounded-md p-4 space-y-3"><p className="text-sm" style={{ color: "oklch(0.55 0.18 25)" }}>Confirme sua senha antes de excluir.</p><input
  type="password"
  autoFocus
  placeholder="Sua senha"
  value={reauthPassword}
  onChange={e => setReauthPassword(e.target.value)}
  onKeyDown={e => e.key === "Enter" && handleDeleteAccount()}
- className="w-full bg-zinc-950 border border-zinc-800 rounded-md px-4 py-3 text-white"
+ className="w-full rounded-md px-4 py-3 ledger-input-field"
  /><div className="flex gap-2"><button
  onClick={handleDeleteAccount}
  disabled={deletingAccount || !reauthPassword.trim()}
@@ -479,7 +496,7 @@ export default function Settings() {
  Confirmar exclusão
  </button><button
  onClick={() => { setShowReauthDialog(false); setReauthPassword(""); }}
- className="flex-1 bg-zinc-800 hover:bg-zinc-700 text-white font-bold rounded-md px-4 py-3 transition-all"
+ className="flex-1 font-bold rounded-md px-4 py-3 transition-all" style={{ background: "var(--muted)", color: "var(--ink)", border: "1px solid var(--ledger-paper-border)" }}
  >
  Cancelar
  </button></div></div>
@@ -499,30 +516,30 @@ export default function Settings() {
  {/* CONTA */}
  <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Shield className="text-red-400" /><h2 className="text-2xl font-bold"> Conta</h2></div><div className="space-y-4"><button
  onClick={resetPassword}
- className="w-full flex items-center gap-3 bg-zinc-950 border border-zinc-800 rounded-md p-4 hover:border-[var(--primary)]/40 transition-all"
+ className="w-full flex items-center gap-3 rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)] hover:border-[var(--primary)]/40 transition-all"
  ><Lock />
  Alterar senha
  </button><button
  onClick={logout}
- className="w-full flex items-center gap-3 bg-red-500/20 border border-red-500/20 text-red-400 rounded-md p-4"
+ className="w-full flex items-center gap-3 rounded-md p-4" style={{ background: "oklch(0.45 0.15 25 / 0.15)", color: "oklch(0.55 0.18 25)", border: "1px solid oklch(0.55 0.18 25 / 0.25)" }}
  ><LogOut />
  Sair da conta
  </button></div></motion.div>
 
  {/* CONTA E SUPORTE */}
- <div className="pt-4 mb-2"><h2 className="text-sm font-bold text-zinc-500 uppercase tracking-widest ml-1">Conta e Suporte</h2></div>
+ <div className="pt-4 mb-2"><h2 className="text-sm font-bold uppercase tracking-widest ml-1" style={{ color: "var(--ink-muted)" }}>Conta e Suporte</h2></div>
 
  {/* CONTATO */}
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Mail className="text-[var(--primary)]" /><h2 className="text-2xl font-bold"> Contato</h2></div><div className="space-y-4"><p className="text-zinc-400 text-sm">Entre em contato caso tenha dúvidas ou sugestões.</p><button
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Mail className="text-[var(--primary)]" /><h2 className="text-2xl font-bold"> Contato</h2></div><div className="space-y-4"><p className="text-sm" style={{ color: "var(--ink-muted)" }}>Entre em contato caso tenha dúvidas ou sugestões.</p><button
  onClick={handleSupportContact}
- className="w-full flex items-center justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4 hover:border-[var(--primary)]/40 transition-all group"
- ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-md bg-[var(--primary-dark, var(--primary-dark, #7c3aed))]/10 border border-[var(--primary-dark, var(--primary-dark, #7c3aed))]/30 flex items-center justify-center"><Mail size={18} className="text-[var(--primary)]" /></div><div className="text-left"><p className="font-medium text-zinc-200">ascendprod1@gmail.com</p><p className="text-xs text-zinc-500">Clique para enviar um e-mail</p></div></div><div className="bg-[var(--primary-dark, var(--primary-dark, #7c3aed))] px-4 py-2 rounded-md text-xs font-bold text-white opacity-0 group-hover:opacity-100 transition-all">
+ className="w-full flex items-center justify-between rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)] hover:border-[var(--primary)]/40 transition-all group"
+ ><div className="flex items-center gap-3"><div className="w-10 h-10 rounded-md bg-[var(--primary-dark, var(--primary-dark, #7c3aed))]/10 border border-[var(--primary-dark, var(--primary-dark, #7c3aed))]/30 flex items-center justify-center"><Mail size={18} className="text-[var(--primary)]" /></div><div className="text-left"><p className="font-medium" style={{ color: "var(--ink)" }}>ascendprod1@gmail.com</p><p className="text-xs" style={{ color: "var(--ink-muted)" }}>Clique para enviar um e-mail</p></div></div><div className="bg-[var(--primary-dark, var(--primary-dark, #7c3aed))] px-4 py-2 rounded-md text-xs font-bold text-white opacity-0 group-hover:opacity-100 transition-all">
  Enviar e-mail
  </div></button></div></motion.div>
 
  {/* ASSINATURA (Apenas PRO) */}
  {profile.isPro && (
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><CreditCard className="text-emerald-400" /><h2 className="text-2xl font-bold"> Assinatura</h2></div><div className="space-y-3"><div className="flex justify-between items-center bg-zinc-950 border border-zinc-800 rounded-md p-4"><span className="text-zinc-400">Plano</span><span className="font-bold text-emerald-400">Ascend PRO</span></div><div className="flex justify-between items-center bg-zinc-950 border border-zinc-800 rounded-md p-4"><span className="text-zinc-400">Status</span><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /><span className="font-bold text-emerald-500">Ativo</span></div></div></div></motion.div>
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><CreditCard className="text-emerald-400" /><h2 className="text-2xl font-bold"> Assinatura</h2></div><div className="space-y-3"><div className="flex justify-between items-center rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)]"><span className="text-[var(--ink-muted)]">Plano</span><span className="font-bold text-emerald-400">Ascend PRO</span></div><div className="flex justify-between items-center rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)]"><span className="text-[var(--ink-muted)]">Status</span><div className="flex items-center gap-2"><div className="w-2 h-2 rounded-full bg-emerald-500 animate-pulse" /><span className="font-bold text-emerald-500">Ativo</span></div></div></div></motion.div>
  )}
 
  {/* SOLICITAR CANCELAMENTO (Apenas PRO) */}
@@ -534,7 +551,7 @@ export default function Settings() {
  onCancelSuccess={loadPendingCancellation} 
  />
  ) : (
- <><p className="text-zinc-400 text-sm">
+ <><p className="text-sm" style={{ color: "var(--ink-muted)" }}>
  Seu acesso ao Ascend PRO continuará disponível até o final do período já pago.
  </p><button
  onClick={handleCancellationRequest}
@@ -547,7 +564,7 @@ export default function Settings() {
  )}
 
  {/* SOBRE */}
- <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Info className="text-zinc-300" /><h2 className="text-2xl font-bold"> Sobre</h2></div><div className="space-y-3"><div className="flex justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4"><span>Versão do app</span><span className="text-zinc-400">1.0.0</span></div><div className="flex justify-between bg-zinc-950 border border-zinc-800 rounded-md p-4"><span>Status</span><span className="text-[var(--primary)]">Online</span></div></div></motion.div></div></div><CancellationModal
+ <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-5"><Info className="text-[var(--ink)]" /><h2 className="text-2xl font-bold"> Sobre</h2></div><div className="space-y-3"><div className="flex justify-between rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)]"><span>Versão do app</span><span className="text-[var(--ink-muted)]">1.0.0</span></div><div className="flex justify-between rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)]"><span>Status</span><span className="font-semibold" style={{ color: "var(--primary)" }}>Online</span></div></div></motion.div></div></div><CancellationModal
  isOpen={isCancellationModalOpen}
  onClose={() => setIsCancellationModalOpen(false)}
  onSuccess={loadPendingCancellation}
