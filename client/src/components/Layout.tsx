@@ -7,6 +7,7 @@ import {
   CheckSquare,
   Calendar,
   Flame,
+  Moon,
   Sun,
   Trophy,
   ChevronLeft,
@@ -23,6 +24,7 @@ import {
   FileText,
   RotateCw,
 } from "lucide-react";
+import { useTheme } from "../contexts/ThemeContext";
 import { FREE_TABS } from "@/config/planLimits";
 import { useStore } from "@/hooks/useStore";
 import { getLevelProgress } from "@/lib/store";
@@ -99,6 +101,7 @@ export function Layout({
   const levelProgress = getLevelProgress();
 
   const isMobile = useIsMobile();
+  const { theme, toggleTheme } = useTheme();
 
   const orderedNavItems = navOrder
     .map(id => navItems.find(item => item.id === id))
@@ -126,14 +129,14 @@ export function Layout({
         position: "relative",
       }}
     >
-      {/* Desktop Sidebar */}
+      {/* Desktop Sidebar — lombada do caderno */}
       <aside
         className="fz-sidebar"
         style={{
           width: collapsed ? 72 : 240,
           minHeight: "100vh",
-          background: "var(--bg-secondary)",
-          borderRight: "1px solid var(--border-subtle)",
+          background: "var(--sidebar-bg)",
+          borderRight: "1px solid var(--sidebar-border-color)",
           display: "flex",
           flexDirection: "column",
           padding: "20px 12px",
@@ -183,7 +186,7 @@ export function Layout({
                   fontFamily: "Space Grotesk",
                   fontWeight: 800,
                   fontSize: 11,
-                  color: "#F59E0B",
+                  color: "var(--accent)",
                 }}
               >
                 {data.user.level}
@@ -242,16 +245,27 @@ export function Layout({
                   justifyContent: collapsed ? "center" : "flex-start",
                   padding: collapsed ? "10px" : "10px 12px",
                   opacity: draggedItem === item.id ? 0.5 : 1,
-                  background:
-                    draggedItem && draggedItem !== item.id
-                      ? "rgba(245, 158, 11, 0.1)"
-                      : undefined,
+                  background: isActive ? "var(--sidebar-accent)" : "transparent",
+                  borderLeft: `2px solid ${isActive ? "var(--accent)" : "transparent"}`,
+                  color: isActive ? "var(--accent)" : "var(--sidebar-foreground)",
                   cursor: "grab",
-                  transition: "all 0.2s ease",
+                  transition: "all 0.15s ease",
+                }}
+                onMouseEnter={e => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = "var(--sidebar-foreground)";
+                    e.currentTarget.style.background = "var(--sidebar-accent)";
+                  }
+                }}
+                onMouseLeave={e => {
+                  if (!isActive) {
+                    e.currentTarget.style.color = "var(--sidebar-foreground)";
+                    e.currentTarget.style.background = "transparent";
+                  }
                 }}
                 title={collapsed ? item.label : undefined}
               >
-                <Icon size={18} style={{ flexShrink: 0 }} />
+                <Icon size={18} style={{ flexShrink: 0, color: "inherit" }} />
                 {!collapsed && (
                   <div
                     style={{
@@ -260,7 +274,7 @@ export function Layout({
                       gap: 8,
                     }}
                   >
-                    <span className="fz-sidebar-label">{item.label}</span>
+                    <span className="fz-sidebar-label" style={{ color: "inherit", fontSize: 13, fontWeight: isActive ? 700 : 500, letterSpacing: "0.02em" }}>{item.label}</span>
 
                     {item.id === "download" && isInstallable && !isInstalled && (
                       <div
@@ -277,7 +291,7 @@ export function Layout({
                             e.stopPropagation();
                             const success = await handleInstall();
                             if (success) {
-                              showToast("Aplicativo instalado com sucesso! 🎉", "success");
+                              showToast("Aplicativo instalado com sucesso!", "success");
                             }
                           }}
                           onKeyDown={async (e) => {
@@ -286,17 +300,20 @@ export function Layout({
                               e.stopPropagation();
                               const success = await handleInstall();
                               if (success) {
-                                showToast("Aplicativo instalado com sucesso! 🎉", "success");
+                                showToast("Aplicativo instalado com sucesso!", "success");
                               }
                             }
                           }}
                           style={{
-                            fontSize: 11,
-                            padding: "4px 10px",
-                            borderRadius: 999,
-                            background: "rgba(139, 92, 246, 0.12)",
-                            border: "1px solid rgba(139, 92, 246, 0.3)",
-                            color: "#A78BFA",
+                            fontSize: 10,
+                            padding: "3px 8px",
+                            borderRadius: 3,
+                            background: "transparent",
+                            border: "1px solid rgba(139, 92, 246, 0.55)",
+                            color: "var(--primary)",
+                            fontWeight: 700,
+                            letterSpacing: "0.08em",
+                            textTransform: "uppercase",
                             cursor: "pointer",
                             userSelect: "none",
                             whiteSpace: "nowrap",
@@ -309,34 +326,16 @@ export function Layout({
                         </div>
 
                         {isLocked && (
-                          <span
-                            style={{
-                              fontSize: 10,
-                              background: "#7C3AED",
-                              color: "white",
-                              padding: "2px 6px",
-                              borderRadius: 999,
-                              fontWeight: 700,
-                            }}
-                          >
-                            PRO
+                          <span className="ledger-stamp ledger-stamp--violet" style={{ padding: "2px 7px" }}>
+                            Pro
                           </span>
                         )}
                       </div>
                     )}
 
                     {item.id !== "download" && isLocked && (
-                      <span
-                        style={{
-                          fontSize: 10,
-                          background: "#7C3AED",
-                          color: "white",
-                          padding: "2px 6px",
-                          borderRadius: 999,
-                          fontWeight: 700,
-                        }}
-                      >
-                        PRO
+                      <span className="ledger-stamp ledger-stamp--violet" style={{ padding: "2px 7px" }}>
+                        Pro
                       </span>
                     )}
                   </div>
@@ -353,7 +352,7 @@ export function Layout({
               onClick={async () => {
                 const success = await handleInstall();
                 if (success) {
-                  showToast("Aplicativo instalado com sucesso! 🎉", "success");
+                  showToast("Aplicativo instalado com sucesso!", "success");
                 }
               }}
               style={{
@@ -363,53 +362,50 @@ export function Layout({
                 justifyContent: "center",
                 gap: 8,
                 padding: "12px 14px",
-                borderRadius: 12,
-                border: "1px solid rgba(139, 92, 246, 0.3)",
-                background: "rgba(139, 92, 246, 0.15)",
-                color: "#fff",
+                borderRadius: 5,
+                border: "1px solid rgba(139, 92, 246, 0.55)",
+                background: "transparent",
+                color: "var(--primary)",
                 cursor: "pointer",
-                fontSize: 13,
+                fontSize: 12,
                 fontWeight: 700,
+                letterSpacing: "0.08em",
+                textTransform: "uppercase",
               }}
             >
               <Download size={16} />
-              Instalar App
+              Instalar
             </button>
           </div>
         )}
 
-        {/* Streak */}
+        {/* Streak — carimbo na lombada */}
         {!collapsed && data.user.streak > 0 && (
           <div
             style={{
-              background: "rgba(239,68,68,0.08)",
-              border: "1px solid rgba(239,68,68,0.15)",
-              borderRadius: 12,
+              background: "var(--ledger-paper-bg)",
+              border: "1px solid var(--sidebar-border-color)",
+              borderLeft: "2px solid #ef4444",
+              borderRadius: 0,
               padding: "10px 12px",
               display: "flex",
               alignItems: "center",
-              gap: 8,
+              gap: 10,
               marginTop: "auto",
               marginBottom: 12,
             }}
           >
-            <span style={{ fontSize: 20 }}>🔥</span>
             <div>
-              <div
-                style={{
-                  fontSize: 11,
-                  color: "rgba(255,255,255,0.4)",
-                  fontFamily: "DM Sans",
-                }}
-              >
+              <div className="ledger-marginalia" style={{ marginBottom: 3 }}>
                 Sequência ativa
               </div>
               <div
                 style={{
-                  fontSize: 14,
-                  fontWeight: 600,
-                  color: "#EF4444",
+                  fontSize: 15,
+                  fontWeight: 800,
+                  color: "#f87171",
                   fontFamily: "Space Grotesk",
+                  letterSpacing: "-0.02em",
                 }}
               >
                 {data.user.streak} dias
@@ -424,7 +420,7 @@ export function Layout({
             onClick={async () => {
               const success = await handleInstall();
               if (success) {
-                showToast("Aplicativo instalado com sucesso! 🎉", "success");
+                showToast("Aplicativo instalado com sucesso!", "success");
               }
             }}
             style={{
@@ -433,10 +429,10 @@ export function Layout({
               justifyContent: "center",
               width: "100%",
               padding: collapsed ? "10px" : "10px 12px",
-              borderRadius: 10,
-                background: "rgba(139, 92, 246, 0.12)",
-                border: "1.5px solid rgba(139, 92, 246, 0.3)",
-                color: "#A78BFA",
+              borderRadius: 5,
+                background: "transparent",
+                border: "1.5px solid rgba(139, 92, 246, 0.55)",
+                color: "var(--primary)",
               cursor: "pointer",
               transition: "all 0.3s ease",
               marginTop: !collapsed && data.user.streak > 0 ? 0 : "auto",
@@ -473,40 +469,85 @@ export function Layout({
             justifyContent: "center",
             width: "100%",
             padding: "10px 12px",
-            borderRadius: 10,
+            borderRadius: 4,
             background: "transparent",
-            border: "1px solid var(--border-subtle)",
-            color: "rgba(255,255,255,0.5)",
+            border: "1px solid var(--ledger-paper-border)",
+            color: "var(--ink-muted)",
             cursor: "pointer",
-            transition: "all 0.2s ease",
+            transition: "all 0.15s ease",
           }}
           onMouseEnter={e => {
-            e.currentTarget.style.background = "rgba(245,158,11,0.08)";
-            e.currentTarget.style.borderColor = "rgba(245,158,11,0.2)";
-            e.currentTarget.style.color = "#F59E0B";
+            e.currentTarget.style.background = "var(--sidebar-accent)";
+            e.currentTarget.style.borderColor = "#46465a";
+            e.currentTarget.style.color = "var(--accent)";
           }}
           onMouseLeave={e => {
             e.currentTarget.style.background = "transparent";
-            e.currentTarget.style.borderColor = "var(--border-subtle)";
-            e.currentTarget.style.color = "rgba(255,255,255,0.5)";
+            e.currentTarget.style.borderColor = "var(--ledger-paper-border)";
+            e.currentTarget.style.color = "var(--ink-muted)";
           }}
         >
           {collapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
         </button>
       </aside>
 
-      {/* Main Content */}
+      {/* Main Content — página de caderno: pauta, textura e canto virado */}
       <main
-        className="fz-main-content"
+        className="fz-main-content notebook-page"
         style={{
           flex: 1,
           display: "flex",
           flexDirection: "column",
-          background: "var(--bg-primary)",
-          padding: isMobile ? "16px 12px" : "32px 40px",
+          padding: isMobile ? "16px 12px" : "28px 36px",
           overflowX: "hidden",
+          position: "relative",
         }}
       >
+        {/* canto de página virada */}
+        <span className="page-curl" aria-hidden="true" />
+
+        {/* Alternância de tema — sol/lua no canto superior direito */}
+        {toggleTheme && (
+          <div
+            style={{
+              position: "absolute",
+              top: 18,
+              right: 24,
+              zIndex: 20,
+            }}
+          >
+            <button
+              type="button"
+              onClick={toggleTheme}
+              aria-label={theme === "dark" ? "Ativar modo claro" : "Ativar modo escuro"}
+              style={{
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+                width: 38,
+                height: 38,
+                borderRadius: 999,
+                background: "var(--ledger-paper-bg)",
+                border: "1px solid var(--ledger-paper-border)",
+                boxShadow: "2px 2px 0 var(--ledger-paper-shadow)",
+                color: "var(--ink-muted)",
+                cursor: "pointer",
+                transition: "all 0.15s ease",
+              }}
+              onMouseEnter={e => {
+                e.currentTarget.style.color = "var(--accent)";
+                e.currentTarget.style.transform = "translateY(-2px)";
+              }}
+              onMouseLeave={e => {
+                e.currentTarget.style.color = "var(--ink-muted)";
+                e.currentTarget.style.transform = "translateY(0)";
+              }}
+            >
+              {theme === "dark" ? <Sun size={17} /> : <Moon size={17} />}
+            </button>
+          </div>
+        )}
+
         {children}
       </main>
 
@@ -539,7 +580,7 @@ export function Layout({
           onMouseEnter={e => {
             e.currentTarget.style.background = "rgba(245,158,11,0.12)";
             e.currentTarget.style.borderColor = "rgba(245,158,11,0.2)";
-            e.currentTarget.style.color = "#F59E0B";
+            e.currentTarget.style.color = "var(--accent)";
           }}
           onMouseLeave={e => {
             e.currentTarget.style.background = "var(--bg-secondary)";
@@ -564,8 +605,7 @@ export function Layout({
               left: 0,
               right: 0,
               bottom: 0,
-              background: "rgba(0,0,0,0.45)",
-              backdropFilter: "blur(6px)",
+              background: "rgba(0,0,0,0.55)",
               zIndex: 90,
               animation: "fadeIn 0.2s ease",
             }}
@@ -582,9 +622,9 @@ export function Layout({
               width: "85%",
               maxWidth: 320,
               height: "100vh",
-              background: "rgba(13, 14, 28, 0.98)",
-              backdropFilter: "blur(20px)",
-              borderRight: "1px solid rgba(255, 255, 255, 0.08)",
+              background: "var(--sidebar-bg)",
+              borderRight: "1px solid var(--sidebar-border-color)",
+              boxShadow: "4px 0 0 rgba(0,0,0,0.25)",
               zIndex: 95,
               flexDirection: "column",
               padding: "20px 16px",
@@ -641,28 +681,26 @@ export function Layout({
                       alignItems: "center",
                       gap: 14,
                       padding: "14px 16px",
-                      borderRadius: 14,
+                      borderRadius: 4,
                       background: isActive
-                        ? "rgba(139, 92, 246, 0.12)"
+                        ? "var(--ledger-paper-bg)"
                         : "transparent",
-                      border: "1px solid transparent",
-                      color: isActive ? "#8B5CF6" : "rgba(255,255,255,0.65)",
+                      borderLeft: isActive ? "2px solid var(--accent)" : "2px solid transparent",
+                      color: isActive ? "var(--accent)" : "var(--muted-foreground)",
                       cursor: "pointer",
-                      transition: "all 0.2s ease",
+                      transition: "all 0.15s ease",
                       fontFamily: "DM Sans",
                       fontSize: 15,
-                      fontWeight: isActive ? 600 : 400,
+                      fontWeight: isActive ? 700 : 400,
                       textAlign: "left",
                     }}
                   >
-                    <Icon size={20} style={{ flexShrink: 0, color: isActive ? "#8B5CF6" : "inherit" }} />
+                    <Icon size={20} style={{ flexShrink: 0, color: isActive ? "var(--accent)" : "var(--ink-muted)" }} />
                     <div className="flex-1 flex items-center justify-between">
                       <span>{item.label}</span>
 
                       {isLocked && (
-                        <span className="text-[10px] font-bold bg-zinc-100 text-zinc-900 px-2 py-0.5 rounded-full uppercase tracking-wider">
-                          PRO
-                        </span>
+                        <span className="ledger-stamp ledger-stamp--violet">Pro</span>
                       )}
                     </div>
                   </button>

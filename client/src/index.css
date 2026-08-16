@@ -86,10 +86,31 @@
   --sidebar-accent-foreground: #111111;
   --sidebar-border: #e5e7eb;
   --sidebar-ring: #8b5cf6;
-  /* Custom variables */
-  --bg-primary: #fafafa;
+  /* Custom variables — Modo Claro "Caderno Diurno" */
+  --bg-primary: #f4f1ea;
   --bg-secondary: #ffffff;
-  --border-subtle: #e5e7eb;
+  --border-subtle: #e5e0d5;
+  /* Papel da superfície (fundo da tela) */
+  --page-bg: #f4f1ea;
+  --page-surface: #ffffff;
+  /* Luz do sol vinda de cima (canto superior central) */
+  --page-light-top: rgba(245, 158, 11, 0.10);
+  --page-light-top-mid: rgba(245, 158, 11, 0.04);
+  /* Contraluz roxa suave vinda de baixo */
+  --page-light-bottom: rgba(139, 92, 246, 0.05);
+  /* Lombada do caderno (sidebar) */
+  --sidebar-bg: #efece3;
+  --sidebar-border-color: #ded8cc;
+  /* Caderno Ledger: página de anotação */
+  --ledger-paper-bg: #ffffff;
+  --ledger-paper-border: #e0dcd2;
+  --ledger-paper-shadow: rgba(28, 25, 23, 0.18);
+  /* Corridas de tinta (texto) */
+  --ink: #1c1917;
+  --ink-muted: #57534e;
+  --field-bg: #ffffff;
+  --scrollbar-thumb: rgba(28, 25, 23, 0.25);
+  --scrollbar-thumb-hover: rgba(28, 25, 23, 0.4);
   /* Habit cell size — mude aqui para ajustar tudo junto */
   --habit-cell: 32px;
 }
@@ -127,10 +148,25 @@
   --sidebar-accent-foreground: #f5f5f5;
   --sidebar-border: #2a2a32;
   --sidebar-ring: #8b5cf6;
-  /* Custom variables */
+  /* Custom variables — Modo Escuro "Ledger Noturno" */
   --bg-primary: #111118;
   --bg-secondary: #1a1a22;
   --border-subtle: #2a2a32;
+  --page-bg: #12111a;
+  --page-surface: #171621;
+  --page-light-top: rgba(139, 92, 246, 0.13);
+  --page-light-top-mid: rgba(120, 80, 200, 0.05);
+  --page-light-bottom: rgba(245, 158, 11, 0.05);
+  --sidebar-bg: #15151c;
+  --sidebar-border-color: #262630;
+  --ledger-paper-bg: #18181f;
+  --ledger-paper-border: #262630;
+  --ledger-paper-shadow: rgba(0, 0, 0, 0.32);
+  --ink: #f5f5f5;
+  --ink-muted: #9ca3af;
+  --field-bg: #2a2a32;
+  --scrollbar-thumb: rgba(255, 255, 255, 0.2);
+  --scrollbar-thumb-hover: rgba(255, 255, 255, 0.3);
   --habit-cell: 32px;
 }
 
@@ -149,6 +185,20 @@
     font-family: 'DM Sans', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
+    /* Superfície de papel: luz única — sol de manhã (claro) ou abajur (escuro) */
+    background-color: var(--page-bg);
+    background-image:
+      radial-gradient(
+        90% 55% at 50% -18%,
+        var(--page-light-top) 0%,
+        var(--page-light-top-mid) 45%,
+        transparent 70%
+      ),
+      radial-gradient(
+        110% 70% at 50% 130%,
+        var(--page-light-bottom) 0%,
+        transparent 60%
+      );
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -287,7 +337,7 @@
 
   .fz-nav-scroll {
     scrollbar-width: thin;
-    scrollbar-color: rgba(255, 255, 255, 0.2) transparent;
+    scrollbar-color: rgba(255, 255, 255, 0.18) transparent;
   }
 
   .fz-nav-scroll::-webkit-scrollbar {
@@ -299,12 +349,12 @@
   }
 
   .fz-nav-scroll::-webkit-scrollbar-thumb {
-    background: rgba(255, 255, 255, 0.2);
+    background: var(--scrollbar-thumb, rgba(255, 255, 255, 0.2));
     border-radius: 3px;
   }
 
   .fz-nav-scroll::-webkit-scrollbar-thumb:hover {
-    background: rgba(255, 255, 255, 0.3);
+    background: var(--scrollbar-thumb-hover, rgba(255, 255, 255, 0.3));
   }
 
   .fz-sidebar-item {
@@ -424,6 +474,350 @@
   .dark .fz-badge-blue {
     background: #1e3a8a;
     color: #93c5fd;
+  }
+
+  /* ============================================
+     LEDGER DESIGN SYSTEM (v2) — "Ledger Noturno"
+     Tinta sobre papel noturno. Sem glow, sem blur,
+     sem gradientes de fundo. Linhas de pauta,
+     carimbos de status e sombras duras de papel.
+  ============================================ */
+
+  .ledger-paper {
+    background: var(--ledger-paper-bg);
+    border: 1px solid var(--ledger-paper-border);
+    border-top: 2px solid var(--ledger-paper-border);
+    border-radius: 6px;
+    box-shadow: 3px 3px 0 var(--ledger-paper-shadow);
+    transition: border-color 0.15s ease, transform 0.15s ease;
+  }
+
+  .ledger-paper--violet { border-top-color: #8b5cf6; }
+  .ledger-paper--amber  { border-top-color: #f59e0b; }
+  .ledger-paper--green  { border-top-color: #10b981; }
+  .ledger-paper--red    { border-top-color: #ef4444; }
+
+  .mb-2 { margin-bottom: 8px; }
+
+  /* Label marginalia (caixa alta pequena, cinza-ardósia) */
+  .ledger-marginalia {
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10.5px;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.14em;
+    color: var(--ink-muted);
+  }
+
+  /* Número de ficha editorial: "04 — METAS" */
+  .ledger-index {
+    font-family: 'Space Grotesk', sans-serif;
+    font-size: 11px;
+    font-weight: 700;
+    letter-spacing: 0.1em;
+    color: var(--ink-muted);
+    text-transform: uppercase;
+    display: inline-flex;
+    align-items: center;
+    gap: 10px;
+  }
+  .ledger-index::after {
+    content: '';
+    height: 1px;
+    background: var(--ledger-paper-border);
+    flex: 1;
+  }
+
+  /* Carimbo de status — retângulo de canto vivo, borda, caixa alta */
+  .ledger-stamp {
+    display: inline-flex;
+    align-items: center;
+    gap: 5px;
+    padding: 4px 9px;
+    border-radius: 3px;
+    font-family: 'DM Sans', sans-serif;
+    font-size: 10px;
+    font-weight: 700;
+    text-transform: uppercase;
+    letter-spacing: 0.1em;
+    border: 1px solid var(--ledger-paper-border);
+    color: var(--ink-muted);
+    background: transparent;
+  }
+  .ledger-stamp--violet { border-color: rgba(139, 92, 246, 0.55); color: var(--primary); background: rgba(139, 92, 246, 0.08); }
+  .ledger-stamp--amber  { border-color: rgba(245, 158, 11, 0.55); color: var(--accent); background: rgba(245, 158, 11, 0.08); }
+  .ledger-stamp--green  { border-color: rgba(16, 185, 129, 0.55); color: #10b981; background: rgba(16, 185, 129, 0.08); }
+  .ledger-stamp--red    { border-color: rgba(239, 68, 68, 0.55); color: #ef4444; background: rgba(239, 68, 68, 0.08); }
+  .ledger-stamp--ink    { border-color: var(--ledger-paper-border); color: var(--ink-muted); }
+
+  /* Botão primário: tinta sólida, sombra dura */
+  .ledger-btn {
+    font-family: 'DM Sans', sans-serif;
+    font-weight: 600;
+    font-size: 13px;
+    letter-spacing: 0.02em;
+    border-radius: 5px;
+    border: none;
+    padding: 11px 20px;
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+    cursor: pointer;
+    transition: transform 0.15s ease, box-shadow 0.15s ease, background 0.15s ease, color 0.15s ease;
+    box-shadow: 3px 3px 0 rgba(0, 0, 0, 0.4);
+    white-space: nowrap;
+  }
+  .ledger-btn:active { transform: translate(2px, 2px) !important; box-shadow: 1px 1px 0 rgba(0, 0, 0, 0.4) !important; }
+  .ledger-btn--violet { background: #7c3aed; color: #ffffff; }
+  .ledger-btn--violet:hover { background: #6d28d9; transform: translate(0, -2px); box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.4); }
+  .ledger-btn--amber { background: #b45309; color: #fff; }
+  .ledger-btn--amber:hover { background: #92400e; transform: translate(0, -2px); box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.4); }
+  .ledger-btn--ghost { background: transparent; border: 1px solid var(--border); color: var(--ink-muted); box-shadow: none; }
+  .ledger-btn--ghost:hover { background: var(--muted); color: var(--foreground); border-color: var(--border-subtle); }
+  .ledger-btn--ghost--amber:hover { border-color: rgba(245, 158, 11, 0.5); color: #fbbf24; }
+  .ledger-btn--red { background: #b91c1c; color: #ffffff; }
+  .ledger-btn--red:hover { background: #991b1b; transform: translate(0, -2px); box-shadow: 3px 5px 0 rgba(0, 0, 0, 0.4); }
+
+  /* Overlay de modal sem blur (anti-glass) */
+  .ledger-modal-overlay {
+    background: rgba(0, 0, 0, 0.62);
+    backdrop-filter: none;
+  }
+
+  /* Blocos de métrica estilo ficha de caderno */
+  .ledger-metric {
+    background: var(--ledger-paper-bg);
+    border: 1px solid var(--ledger-paper-border);
+    border-top: 2px solid var(--ledger-paper-border);
+    border-radius: 6px;
+    padding: 18px 20px 16px;
+    position: relative;
+  }
+  .ledger-metric--violet { border-top-color: #8b5cf6; }
+  .ledger-metric--amber  { border-top-color: #f59e0b; }
+  .ledger-metric--green  { border-top-color: #10b981; }
+  .ledger-metric--red    { border-top-color: #ef4444; }
+
+  .ledger-metric-value {
+    font-family: 'Space Grotesk', sans-serif;
+    font-weight: 800;
+    font-variant-numeric: tabular-nums;
+    letter-spacing: -0.03em;
+    color: var(--ink);
+    line-height: 1;
+  }
+
+  /* Linha de pauta (divisória interna de ficha) */
+  .ledger-rule {
+    height: 1px;
+    background: var(--ledger-paper-border);
+    border: none;
+  }
+
+  /* Input sublinhado estilo pauta de caderno */
+  /* Campo de caderno (input/textarea de formulário) */
+.ledger-input-field {
+  background: var(--field-bg);
+  border: 1px solid var(--ledger-paper-border);
+  color: var(--ink);
+  font-family: 'DM Sans', sans-serif;
+  font-size: 14px;
+}
+.ledger-input-field::placeholder { color: var(--ink-muted); opacity: 0.7; }
+.ledger-input-field:focus { outline: none; border-color: var(--primary); }
+
+.ledger-input {
+    width: 100%;
+    background: transparent;
+    border: none;
+    border-bottom: 1.5px solid var(--ledger-paper-border);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+    font-size: 14px;
+    padding: 10px 2px 8px;
+    outline: none;
+    transition: border-color 0.15s ease;
+  }
+  .ledger-input::placeholder { color: var(--ink-muted); opacity: 0.6; }
+  .ledger-input:focus { border-bottom-color: var(--primary); }
+
+  select option {
+    background-color: var(--ledger-paper-bg);
+    color: var(--ink);
+    font-family: 'DM Sans', sans-serif;
+  }
+
+  /* Range de pauta — trilho fino, thumb quadrado */
+  .ledger-range {
+    -webkit-appearance: none;
+    appearance: none;
+    height: 4px;
+    background: var(--ledger-paper-border);
+    border-radius: 2px;
+    outline: none;
+    margin: 8px 0;
+  }
+  .ledger-range::-webkit-slider-thumb {
+    -webkit-appearance: none;
+    appearance: none;
+    width: 16px;
+    height: 16px;
+    background: var(--primary);
+    border-radius: 3px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.35);
+  }
+  .ledger-range::-moz-range-thumb {
+    width: 16px;
+    height: 16px;
+    background: var(--primary);
+    border-radius: 3px;
+    border: none;
+    cursor: pointer;
+    box-shadow: 2px 2px 0 rgba(0, 0, 0, 0.35);
+  }
+
+  /* Checkbox de pauta (quadrado vivo, sem arredondamento) */
+  .ledger-check {
+    width: 16px;
+    height: 16px;
+    border-radius: 2px;
+    border: 1.5px solid var(--ink-muted);
+    background: transparent;
+    flex-shrink: 0;
+  }
+  .ledger-check--done {
+    background: #10b981;
+    border-color: #10b981;
+  }
+
+  /* Marcas de contagem para streak (tally) */
+  .ledger-tally {
+    display: inline-flex;
+    gap: 3px;
+    align-items: center;
+  }
+  /* ============================================
+     CADerno Físico — textura de papel, linhas de
+     pauta, margem vermelha e furos de espiral.
+     Substitui a superfície plana por página
+     de caderno real sem perder o tom noturno.
+  ============================================ */
+
+  /* Cartolina noturna: mesma luz de abajur do fundo, tom levemente
+     mais claro para a página se destacar da mesa. Sem ruído, sem padrão. */
+  .notebook-page {
+    position: relative;
+    background-color: var(--page-surface);
+    background-image:
+      radial-gradient(
+        90% 55% at 50% -18%,
+        var(--page-light-top) 0%,
+        var(--page-light-top-mid) 45%,
+        transparent 70%
+      ),
+      radial-gradient(
+        110% 70% at 50% 130%,
+        var(--page-light-bottom) 0%,
+        transparent 60%
+      );
+    border-radius: 4px;
+  }
+
+  /* Folha solta de caderno: margem vermelha + 3 furos */
+  .notebook-sheet {
+    position: relative;
+  }
+  .notebook-sheet--margined {
+    padding-left: 22px;
+  }
+  .notebook-sheet--margined::before {
+    display: none;
+  }
+  /* furos de espiral na margem */
+  .notebook-holes {
+    position: absolute;
+    top: 0;
+    left: 0;
+    bottom: 0;
+    width: 10px;
+    display: flex;
+    flex-direction: column;
+    justify-content: space-evenly;
+    align-items: center;
+    pointer-events: none;
+    z-index: 2;
+  }
+  .notebook-holes span {
+    display: block;
+    width: 10px;
+    height: 10px;
+    border-radius: 50%;
+    background: #0c0c12;
+    box-shadow:
+      inset 0 1px 2px rgba(0, 0, 0, 0.8),
+      0 0 0 2px #24242e;
+  }
+
+  /* Anéis de espiral no topo da página (mesa de trabalho) */
+  .spiral-rings {
+    display: flex;
+    align-items: center;
+    gap: 26px;
+    margin-bottom: -8px;
+    padding-top: 6px;
+  }
+  .spiral-rings span {
+    display: block;
+    width: 16px;
+    height: 7px;
+    border-radius: 3px;
+    background: linear-gradient(to bottom, #4a4a58, #2c2c38);
+    box-shadow:
+      inset 0 1px 0 rgba(255, 255, 255, 0.22),
+      0 2px 3px rgba(0, 0, 0, 0.5);
+  }
+
+  /* Etiqueta de canto de página virada */
+  .page-curl {
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 0 26px 26px;
+    border-color: transparent transparent #2a2a35 transparent;
+    pointer-events: none;
+  }
+  .page-curl::after {
+    content: '';
+    position: absolute;
+    right: 0;
+    bottom: 0;
+    width: 0;
+    height: 0;
+    border-style: solid;
+    border-width: 0 0 24px 24px;
+    border-color: transparent transparent #121217 transparent;
+  }
+
+  .ledger-tally span {
+    display: block;
+    width: 2px;
+    height: 10px;
+    background: #3f3f4c;
+    border-radius: 1px;
+  }
+  .ledger-tally em {
+    display: block;
+    width: 12px;
+    height: 2px;
+    background: #f59e0b;
+    transform: rotate(-45deg);
+    font-style: normal;
   }
 
   /* ============================================

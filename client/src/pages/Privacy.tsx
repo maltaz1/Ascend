@@ -47,7 +47,7 @@ export default function Privacy() {
           Voltar
         </button>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <Shield size={20} style={{ color: "#8b5cf6" }} />
+          <Shield size={20} style={{ color: "var(--primary)" }} />
           <h1
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
@@ -116,44 +116,44 @@ export default function Privacy() {
         <Section title="2. Finalidade de cada dado coletado">
           <table style={{ width: "100%", borderCollapse: "collapse", marginTop: 8 }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid #2a2a32" }}>
+              <tr style={{ borderBottom: "1px solid var(--border)" }}>
                 <th style={thStyle}>Dado</th>
                 <th style={thStyle}>Finalidade</th>
                 <th style={thStyle}>Base legal</th>
               </tr>
             </thead>
             <tbody>
-              <tr style={{ borderBottom: "1px solid #2a2a32" }}>
+              <tr style={{ borderBottom: "1px solid var(--border)" }}>
                 <td style={tdStyle}>E-mail e senha</td>
                 <td style={tdStyle}>Criação de conta e autenticação</td>
                 <td style={tdStyle}>Execução de contrato</td>
               </tr>
-              <tr style={{ borderBottom: "1px solid #2a2a32" }}>
+              <tr style={{ borderBottom: "1px solid var(--border)" }}>
                 <td style={tdStyle}>Nome e avatar</td>
                 <td style={tdStyle}>Personalização do perfil</td>
                 <td style={tdStyle}>Consentimento</td>
               </tr>
-              <tr style={{ borderBottom: "1px solid #2a2a32" }}>
+              <tr style={{ borderBottom: "1px solid var(--border)" }}>
                 <td style={tdStyle}>Tarefas, hábitos, metas</td>
                 <td style={tdStyle}>Funcionalidade principal do app</td>
                 <td style={tdStyle}>Execução de contrato</td>
               </tr>
-              <tr style={{ borderBottom: "1px solid #2a2a32" }}>
+              <tr style={{ borderBottom: "1px solid var(--border)" }}>
                 <td style={tdStyle}>Dados de dieta e treino</td>
                 <td style={tdStyle}>Funcionalidade principal do app</td>
                 <td style={tdStyle}>Execução de contrato</td>
               </tr>
-              <tr style={{ borderBottom: "1px solid #2a2a32" }}>
+              <tr style={{ borderBottom: "1px solid var(--border)" }}>
                 <td style={tdStyle}>Dados financeiros</td>
                 <td style={tdStyle}>Funcionalidade principal do app</td>
                 <td style={tdStyle}>Execução de contrato</td>
               </tr>
-              <tr style={{ borderBottom: "1px solid #2a2a32" }}>
+              <tr style={{ borderBottom: "1px solid var(--border)" }}>
                 <td style={tdStyle}>Notas e orações</td>
                 <td style={tdStyle}>Funcionalidade principal do app</td>
                 <td style={tdStyle}>Consentimento</td>
               </tr>
-              <tr style={{ borderBottom: "1px solid #2a2a32" }}>
+              <tr style={{ borderBottom: "1px solid var(--border)" }}>
                 <td style={tdStyle}>Status PRO (is_pro)</td>
                 <td style={tdStyle}>Controle de acesso ao plano pago</td>
                 <td style={tdStyle}>Execução de contrato</td>
@@ -191,24 +191,24 @@ export default function Privacy() {
           </p>
           <table style={{ width: "100%", borderCollapse: "collapse" }}>
             <thead>
-              <tr style={{ borderBottom: "1px solid #2a2a32" }}>
+              <tr style={{ borderBottom: "1px solid var(--border)" }}>
                 <th style={thStyle}>Terceiro</th>
                 <th style={thStyle}>Dados compartilhados</th>
                 <th style={thStyle}>Finalidade</th>
               </tr>
             </thead>
             <tbody>
-              <tr style={{ borderBottom: "1px solid #2a2a32" }}>
+              <tr style={{ borderBottom: "1px solid var(--border)" }}>
                 <td style={tdStyle}>Supabase</td>
                 <td style={tdStyle}>E-mail, nome, dados do app</td>
                 <td style={tdStyle}>Banco de dados e autenticação</td>
               </tr>
-              <tr style={{ borderBottom: "1px solid #2a2a32" }}>
+              <tr style={{ borderBottom: "1px solid var(--border)" }}>
                 <td style={tdStyle}>Cakto (pagamentos)</td>
                 <td style={tdStyle}>E-mail, status de pagamento</td>
                 <td style={tdStyle}>Processamento de pagamento</td>
               </tr>
-              <tr style={{ borderBottom: "1px solid #2a2a32" }}>
+              <tr style={{ borderBottom: "1px solid var(--border)" }}>
                 <td style={tdStyle}>Vercel Analytics</td>
                 <td style={tdStyle}>Página visitada, tipo de dispositivo</td>
                 <td style={tdStyle}>Análise de uso</td>
@@ -253,7 +253,7 @@ export default function Privacy() {
           </ul>
           <p style={{ color: "#d1d5db", fontSize: 14, lineHeight: 1.7, marginTop: 16 }}>
             Para exercer seus direitos, acesse <strong>Configurações &gt; Privacidade e Dados</strong> dentro do aplicativo ou envie um e-mail para{" "}
-            <a href="mailto:ascendprod1@gmail.com" style={{ color: "#8b5cf6", textDecoration: "none" }}>
+            <a href="mailto:ascendprod1@gmail.com" style={{ color: "var(--primary)", textDecoration: "none" }}>
               ascendprod1@gmail.com
             </a>.
           </p>
@@ -318,7 +318,7 @@ export default function Privacy() {
                 justifyContent: "center",
               }}
             >
-              <Mail size={20} style={{ color: "#8b5cf6" }} />
+              <Mail size={20} style={{ color: "var(--primary)" }} />
             </div>
             <div>
               <p style={{ margin: 0, color: "#f5f5f5", fontSize: 14, fontWeight: 600 }}>
@@ -376,7 +376,7 @@ function DataItem({
 }) {
   return (
     <div style={{ marginBottom: 16 }}>
-      <p style={{ color: "#a78bfa", fontSize: 13, fontWeight: 600, margin: "0 0 6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
+      <p style={{ color: "var(--primary)", fontSize: 13, fontWeight: 600, margin: "0 0 6px", textTransform: "uppercase", letterSpacing: "0.05em" }}>
         {category}
       </p>
       <ul style={{ color: "#d1d5db", fontSize: 14, lineHeight: 1.8, paddingLeft: 20, margin: 0 }}>
@@ -396,7 +396,7 @@ const thStyle: React.CSSProperties = {
   color: "#9ca3af",
   textTransform: "uppercase",
   letterSpacing: "0.05em",
-  borderBottom: "1px solid #2a2a32",
+  borderBottom: "1px solid var(--border)",
 };
 
 const tdStyle: React.CSSProperties = {
@@ -404,5 +404,5 @@ const tdStyle: React.CSSProperties = {
   fontSize: 14,
   color: "#d1d5db",
   lineHeight: 1.6,
-  borderBottom: "1px solid #2a2a32",
+  borderBottom: "1px solid var(--border)",
 };

@@ -25,7 +25,7 @@ export function AppointmentModal({
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
   const [category, setCategory] = useState<string>("");
-  const [color, setColor] = useState("#F59E0B");
+  const [color, setColor] = useState("var(--accent)");
   const [isLoading, setIsLoading] = useState(false);
   const [timeError, setTimeError] = useState("");
 
@@ -43,7 +43,7 @@ export function AppointmentModal({
       setStartTime("09:00");
       setEndTime("10:00");
       setCategory("");
-      setColor("#F59E0B");
+      setColor("var(--accent)");
     }
     setTimeError("");
   }, [appointment, open]);
@@ -113,11 +113,9 @@ export function AppointmentModal({
       <div className="flex flex-col gap-4">
         {/* Título */}
         <div>
-          <label className="text-[12px] font-medium text-muted-foreground mb-1.5 block">
-            Título *
-          </label>
+          <div className="ledger-marginalia mb-2">Título *</div>
           <input
-            className="fz-input w-full"
+            className="ledger-input w-full"
             placeholder="Ex: Reunião com cliente"
             value={title}
             onChange={(e) => setTitle(e.target.value)}
@@ -127,11 +125,9 @@ export function AppointmentModal({
 
         {/* Descrição */}
         <div>
-          <label className="text-[12px] font-medium text-muted-foreground mb-1.5 block">
-            Descrição
-          </label>
+          <div className="ledger-marginalia mb-2">Descrição</div>
           <textarea
-            className="fz-input w-full resize-none"
+            className="ledger-input w-full resize-none"
             placeholder="Adicione detalhes sobre o compromisso..."
             value={description}
             onChange={(e) => setDescription(e.target.value)}
@@ -143,38 +139,36 @@ export function AppointmentModal({
         {/* Horários */}
         <div className="grid grid-cols-2 gap-3">
           <div>
-            <label className="text-[12px] font-medium text-muted-foreground mb-1.5 block">
-              Início *
-            </label>
+            <div className="ledger-marginalia mb-2">Início *</div>
             <div className="relative">
-              <Clock size={14} className="absolute left-3 top-3 text-muted-foreground" />
+              <Clock size={14} className="absolute left-3 top-2.5 text-muted-foreground" />
               <input
                 type="time"
-                className="fz-input w-full pl-8"
+                className="ledger-input w-full pl-8"
                 value={startTime}
                 onChange={(e) => {
                   setStartTime(e.target.value);
                   setTimeError("");
                 }}
                 disabled={isLoading}
+                style={{ colorScheme: "dark" }}
               />
             </div>
           </div>
           <div>
-            <label className="text-[12px] font-medium text-muted-foreground mb-1.5 block">
-              Término *
-            </label>
+            <div className="ledger-marginalia mb-2">Término *</div>
             <div className="relative">
-              <Clock size={14} className="absolute left-3 top-3 text-muted-foreground" />
+              <Clock size={14} className="absolute left-3 top-2.5 text-muted-foreground" />
               <input
                 type="time"
-                className="fz-input w-full pl-8"
+                className="ledger-input w-full pl-8"
                 value={endTime}
                 onChange={(e) => {
                   setEndTime(e.target.value);
                   setTimeError("");
                 }}
                 disabled={isLoading}
+                style={{ colorScheme: "dark" }}
               />
             </div>
           </div>
@@ -182,22 +176,21 @@ export function AppointmentModal({
 
         {/* Erro de horário */}
         {timeError && (
-          <div className="flex items-center gap-2 p-2.5 bg-red-500/10 border border-red-500/20 rounded-lg">
-            <AlertCircle size={14} className="text-red-500 flex-shrink-0" />
-            <span className="text-[12px] text-red-500">{timeError}</span>
+          <div className="flex items-center gap-2 p-2.5 bg-[var(--ledger-paper-bg)] border border-red-500/30 rounded-sm">
+            <AlertCircle size={14} className="text-red-400 flex-shrink-0" />
+            <span className="text-[12px] text-red-400">{timeError}</span>
           </div>
         )}
 
         {/* Categoria */}
         <div>
-          <label className="text-[12px] font-medium text-muted-foreground mb-1.5 block">
-            Categoria
-          </label>
+          <div className="ledger-marginalia mb-2">Categoria</div>
           <select
-            className="fz-input w-full"
+            className="ledger-input w-full"
             value={category}
             onChange={(e) => setCategory(e.target.value)}
             disabled={isLoading}
+            style={{ background: "transparent", outline: "none", color: "var(--ink)" }}
           >
             <option value="">Selecione uma categoria</option>
             {APPOINTMENT_CATEGORIES.map((cat) => (
@@ -210,20 +203,18 @@ export function AppointmentModal({
 
         {/* Cor */}
         <div>
-          <label className="text-[12px] font-medium text-muted-foreground mb-1.5 block">
-            Cor
-          </label>
+          <div className="ledger-marginalia mb-2">Cor da tinta</div>
           <div className="grid grid-cols-4 gap-2">
             {APPOINTMENT_COLORS.map((colorOption) => (
               <button
                 key={colorOption.value}
                 onClick={() => setColor(colorOption.value)}
-                className={`w-full h-10 rounded-lg border-2 transition-all ${
-                  color === colorOption.value
-                    ? "border-foreground"
-                    : "border-transparent"
-                }`}
-                style={{ backgroundColor: colorOption.value }}
+                className="w-full h-8 rounded-[3px] transition-all"
+                style={{
+                  backgroundColor: colorOption.value,
+                  border: color === colorOption.value ? "2px solid var(--ink)" : "1px solid var(--ledger-paper-border)",
+                  transform: color === colorOption.value ? "scale(1.06)" : "scale(1)",
+                }}
                 title={colorOption.name}
                 disabled={isLoading}
               />
@@ -234,65 +225,18 @@ export function AppointmentModal({
         {/* Botões */}
         <div className="flex gap-2 pt-2">
           <button
+            className="ledger-btn ledger-btn--ghost flex-1"
             onClick={onClose}
-            style={{
-              flex: 1,
-              padding: '10px 14px',
-              background: 'transparent',
-              border: '1px solid var(--border)',
-              color: 'var(--muted-foreground)',
-              borderRadius: 8,
-              fontFamily: 'Space Grotesk',
-              fontWeight: 600,
-              fontSize: 13,
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-              opacity: isLoading ? 0.5 : 1,
-            }}
-            onMouseEnter={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.background = 'var(--secondary)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.background = 'transparent';
-              }
-            }}
             disabled={isLoading}
+            style={{ opacity: isLoading ? 0.5 : 1 }}
           >
             Cancelar
           </button>
           <button
+            className="ledger-btn ledger-btn--violet flex-1"
             onClick={handleSubmit}
-            style={{
-              flex: 1,
-              padding: '10px 14px',
-              background: '#8b5cf6',
-              border: 'none',
-              color: '#ffffff',
-              borderRadius: 8,
-              fontFamily: 'Space Grotesk',
-              fontWeight: 600,
-              fontSize: 13,
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-              opacity: isLoading ? 0.5 : 1,
-            }}
-            onMouseEnter={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.background = '#7c3aed';
-                e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.background = '#8b5cf6';
-                e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
-              }
-            }}
             disabled={isLoading}
+            style={{ opacity: isLoading ? 0.5 : 1 }}
           >
             {isLoading ? "Salvando..." : appointment ? "Atualizar" : "Criar"}
           </button>

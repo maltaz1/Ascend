@@ -77,11 +77,9 @@ export function CalendarNoteModal({
       <div className="flex flex-col gap-4">
         {/* Conteúdo */}
         <div>
-          <label className="text-[12px] font-medium text-muted-foreground mb-1.5 block">
-            Anotação *
-          </label>
+          <div className="ledger-marginalia mb-2">Anotação *</div>
           <textarea
-            className="fz-input w-full resize-none"
+            className="ledger-input w-full resize-none"
             placeholder="Escreva sua anotação para este dia..."
             value={content}
             onChange={(e) => setContent(e.target.value)}
@@ -96,65 +94,18 @@ export function CalendarNoteModal({
         {/* Botões */}
         <div className="flex gap-2 pt-2">
           <button
+            className="ledger-btn ledger-btn--ghost flex-1"
             onClick={onClose}
-            style={{
-              flex: 1,
-              padding: '10px 14px',
-              background: 'transparent',
-              border: '1px solid var(--border)',
-              color: 'var(--muted-foreground)',
-              borderRadius: 8,
-              fontFamily: 'Space Grotesk',
-              fontWeight: 600,
-              fontSize: 13,
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-              opacity: isLoading ? 0.5 : 1,
-            }}
-            onMouseEnter={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.background = 'var(--secondary)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.background = 'transparent';
-              }
-            }}
             disabled={isLoading}
+            style={{ opacity: isLoading ? 0.5 : 1 }}
           >
             Cancelar
           </button>
           <button
+            className="ledger-btn ledger-btn--violet flex-1"
             onClick={handleSubmit}
-            style={{
-              flex: 1,
-              padding: '10px 14px',
-              background: '#8b5cf6',
-              border: 'none',
-              color: '#ffffff',
-              borderRadius: 8,
-              fontFamily: 'Space Grotesk',
-              fontWeight: 600,
-              fontSize: 13,
-              cursor: 'pointer',
-              transition: 'all 0.15s ease',
-              boxShadow: '0 1px 2px rgba(0, 0, 0, 0.05)',
-              opacity: isLoading ? 0.5 : 1,
-            }}
-            onMouseEnter={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.background = '#7c3aed';
-                e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
-              }
-            }}
-            onMouseLeave={(e) => {
-              if (!isLoading) {
-                e.currentTarget.style.background = '#8b5cf6';
-                e.currentTarget.style.boxShadow = '0 1px 2px rgba(0, 0, 0, 0.05)';
-              }
-            }}
             disabled={isLoading}
+            style={{ opacity: isLoading ? 0.5 : 1 }}
           >
             {isLoading ? "Salvando..." : note ? "Atualizar" : "Criar"}
           </button>

@@ -47,7 +47,7 @@ export default function Terms() {
           Voltar
         </button>
         <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
-          <FileText size={20} style={{ color: "#8b5cf6" }} />
+          <FileText size={20} style={{ color: "var(--primary)" }} />
           <h1
             style={{
               fontFamily: "'Space Grotesk', sans-serif",
@@ -226,7 +226,7 @@ export default function Terms() {
         <Section title="10. Privacidade">
           <p style={bodyStyle}>
             O tratamento dos seus dados pessoais é regulado pela{" "}
-            <a href="/privacy" style={{ color: "#8b5cf6", textDecoration: "none" }}>
+            <a href="/privacy" style={{ color: "var(--primary)", textDecoration: "none" }}>
               Política de Privacidade
             </a>{" "}
             do Ascend, que é parte integrante destes Termos de Uso.
@@ -278,7 +278,7 @@ export default function Terms() {
                 justifyContent: "center",
               }}
             >
-              <Mail size={20} style={{ color: "#8b5cf6" }} />
+              <Mail size={20} style={{ color: "var(--primary)" }} />
             </div>
             <div>
               <p style={{ margin: 0, color: "#f5f5f5", fontSize: 14, fontWeight: 600 }}>

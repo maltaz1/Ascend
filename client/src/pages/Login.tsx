@@ -1,5 +1,6 @@
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { Flame } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { notifyError, notifySuccess, notifyWarning } from "@/lib/notifications";
 
@@ -117,14 +118,15 @@ export default function Login() {
           to   { width: 72%; }
         }
 
+        /* ── LEDGER — tinta sobre papel, sem glow (respeita light/dark) ── */
         .asc-root {
           height: 100vh;
           min-height: 600px;
           display: flex;
           font-family: 'DM Sans', sans-serif;
-          background: #07080f;
+          background: var(--page-bg, #111118);
           position: relative;
-          overflow: hidden;
+          overflow-x: hidden;
         }
 
         /* ── Left panel ─────────────────────────────────── */
@@ -136,34 +138,36 @@ export default function Login() {
           grid-template-rows: auto auto 1fr auto;
           padding: 48px 56px;
           position: relative;
-          overflow: hidden;
+          overflow-y: auto;
+          scrollbar-width: thin;
+          scrollbar-color: rgba(139, 92, 246, 0.35) transparent;
         }
+        .asc-left::-webkit-scrollbar { width: 6px; }
+        .asc-left::-webkit-scrollbar-thumb { background: var(--scrollbar-thumb, rgba(139, 92, 246, 0.35)); border-radius: 3px; }
 
+        /* Textura de pauta: linhas horizontais finas, como caderno */
         .asc-left::before {
           content: '';
           position: absolute;
           inset: 0;
-          background:
-            radial-gradient(ellipse 60% 55% at 30% 20%, rgba(139, 92, 246, 0.15) 0%, transparent 70%),
-            radial-gradient(ellipse 50% 40% at 80% 80%, rgba(245, 158, 11, 0.04) 0%, transparent 60%);
+          background-image: repeating-linear-gradient(
+            to bottom,
+            transparent,
+            transparent 47px,
+            rgba(139, 92, 246, 0.12) 47px,
+            rgba(139, 92, 246, 0.12) 48px
+          );
           pointer-events: none;
         }
 
-        .asc-orb1 {
+        /* Margem vertical âmbar — a margem vermelha do caderno, aqui em tinta âmbar */
+        .asc-left::after {
+          content: '';
           position: absolute;
-          width: 320px; height: 320px;
-          border-radius: 50%;
-          background: radial-gradient(circle, rgba(139, 92, 246, 0.12) 0%, transparent 70%);
-          top: -60px; left: -60px;
-          pointer-events: none;
-        }
-
-        .asc-orb2 {
-          position: absolute;
-          width: 250px; height: 250px;
-          border-radius: 50%;
-          background: radial-gradient(circle, rgba(245, 158, 11, 0.06) 0%, transparent 70%);
-          bottom: 80px; right: 40px;
+          top: 0; bottom: 0;
+          left: 40px;
+          width: 1px;
+          background: rgba(245, 158, 11, 0.32);
           pointer-events: none;
         }
 
@@ -185,55 +189,56 @@ export default function Login() {
           position: relative;
           z-index: 2;
           animation: fadeUp 0.6s ease both;
-          padding-top: 28px;
+          padding-top: 36px;
+          border-left: 2px solid var(--primary);
+          padding-left: 22px;
         }
 
         .asc-hero-tag {
           display: inline-flex;
           align-items: center;
-          gap: 6px;
-          background: rgba(139, 92, 246, 0.1);
-          border: 1px solid rgba(139, 92, 246, 0.2);
-          border-radius: 20px;
-          padding: 5px 14px;
-          font-size: 11px;
-          font-weight: 600;
-          letter-spacing: 0.1em;
+          gap: 7px;
+          background: transparent;
+          border: 1px solid rgba(139, 92, 246, 0.5);
+          border-radius: 3px;
+          padding: 5px 12px;
+          font-size: 10.5px;
+          font-weight: 700;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: #a78bfa;
-          margin-bottom: 20px;
+          color: var(--primary);
+          margin-bottom: 18px;
+          border-color: var(--primary);
         }
 
         .asc-hero-tag::before {
-          content: '';
-          width: 6px; height: 6px;
-          border-radius: 50%;
-          background: #a78bfa;
-          box-shadow: 0 0 8px rgba(167, 139, 250, 0.8);
+          content: '§';
+          font-family: 'Space Grotesk', sans-serif;
+          font-size: 13px;
+          font-weight: 700;
+          line-height: 1;
         }
 
         .asc-hero-title {
-          font-size: clamp(28px, 3vw, 40px);
-          font-weight: 700;
-          line-height: 1.15;
-          letter-spacing: -0.03em;
-          color: #fff;
-          margin: 0 0 14px;
+          font-size: clamp(30px, 3.2vw, 44px);
+          font-weight: 800;
+          line-height: 1.08;
+          letter-spacing: -0.035em;
+          color: var(--ink);
+          margin: 0 0 16px;
+          font-family: 'Space Grotesk', sans-serif;
         }
 
         .asc-hero-title span {
-          background: linear-gradient(135deg, #8b5cf6 0%, #a78bfa 50%, #f59e0b 100%);
-          -webkit-background-clip: text;
-          -webkit-text-fill-color: transparent;
-          background-clip: text;
+          color: var(--primary);
         }
 
         .asc-hero-sub {
-          font-size: 14px;
-          color: rgba(255,255,255,0.4);
-          line-height: 1.7;
-          font-weight: 300;
-          max-width: 360px;
+          font-size: 14.5px;
+          color: var(--ink-muted);
+          line-height: 1.65;
+          font-weight: 400;
+          max-width: 380px;
           margin: 0;
         }
 
@@ -241,32 +246,25 @@ export default function Login() {
         .asc-mock-scene {
           display: flex;
           align-items: center;
-          justify-content: center;
           position: relative;
           z-index: 2;
           padding: 28px 0;
           width: 100%;
         }
 
+        /* Ficha de caderno: papel opaco, borda superior violeta, sombra dura */
         .asc-mock-card {
-          width: min(40vw, 520px);
+          width: min(42vw, 520px);
+          min-width: 264px;
           max-width: 520px;
-          background: rgba(13, 14, 28, 0.95);
-          border: 1px solid rgba(139, 92, 246, 0.15);
-          border-radius: 16px;
+          background: var(--ledger-paper-bg);
+          border: 1px solid var(--ledger-paper-border);
+          border-top: 2px solid var(--primary);
+          border-radius: 6px;
           padding: 26px;
-          box-shadow:
-            0 16px 40px rgba(0,0,0,0.4),
-            0 0 0 1px rgba(139,92,246,0.06);
+          box-shadow: 5px 5px 0 rgba(0, 0, 0, 0.4);
           position: relative;
-        }
-
-        .asc-mock-card::before {
-          content: '';
-          position: absolute;
-          top: 0; left: 24px; right: 24px;
-          height: 1px;
-          background: linear-gradient(90deg, transparent, rgba(139,92,246,0.4), transparent);
+          margin-left: 26px; /* sangra para além da margem âmbar */
         }
 
         .asc-mock-header {
@@ -279,22 +277,27 @@ export default function Login() {
         .asc-mock-title {
           font-size: 11px;
           font-weight: 600;
-          color: rgba(255,255,255,0.4);
+          color: var(--ink-muted);
           text-transform: uppercase;
           letter-spacing: 0.1em;
+          white-space: nowrap;
+          overflow: hidden;
+          text-overflow: ellipsis;
         }
 
         .asc-mock-level {
           display: flex;
           align-items: center;
           gap: 5px;
-          background: rgba(139, 92, 246, 0.12);
-          border: 1px solid rgba(139, 92, 246, 0.2);
-          border-radius: 20px;
-          padding: 3px 10px;
-          font-size: 11px;
+          background: transparent;
+          border: 1px solid rgba(139, 92, 246, 0.5);
+          border-radius: 3px;
+          padding: 3px 9px;
+          font-size: 10px;
           font-weight: 700;
-          color: #a78bfa;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: var(--primary);
           font-family: 'DM Sans', sans-serif;
         }
 
@@ -302,11 +305,12 @@ export default function Login() {
           display: flex;
           align-items: center;
           gap: 14px;
+          flex-wrap: wrap;
           margin-bottom: 14px;
           padding: 12px;
-          background: rgba(255,255,255,0.025);
-          border-radius: 10px;
-          border: 1px solid rgba(255,255,255,0.05);
+          background: var(--bg-secondary, #1a1a22);
+          border: 1px solid var(--ledger-paper-border);
+          border-radius: 4px;
         }
 
         .asc-ring-wrap {
@@ -328,7 +332,7 @@ export default function Login() {
           justify-content: center;
           font-size: 12px;
           font-weight: 700;
-          color: #fff;
+          color: var(--ink);
           font-family: 'DM Sans', sans-serif;
         }
 
@@ -337,28 +341,28 @@ export default function Login() {
         .asc-progress-info .pi-label {
           font-size: 12px;
           font-weight: 600;
-          color: rgba(255,255,255,0.8);
+          color: var(--ink);
           margin: 0 0 4px;
         }
 
         .asc-progress-info .pi-sub {
           font-size: 11px;
-          color: rgba(255,255,255,0.3);
+          color: var(--ink-muted);
           margin: 0;
         }
 
         .asc-xp-mini-track {
-          height: 3px;
-          background: rgba(255,255,255,0.06);
-          border-radius: 99px;
+          height: 4px;
+          background: var(--ledger-paper-border);
+          border-radius: 2px;
           margin-top: 7px;
           overflow: hidden;
         }
 
         .asc-xp-mini-fill {
           height: 100%;
-          background: linear-gradient(90deg, #8b5cf6, #a78bfa);
-          border-radius: 99px;
+          background: var(--primary);
+          border-radius: 2px;
           animation: progressFill 1.8s 0.4s cubic-bezier(0.22, 1, 0.36, 1) both;
         }
 
@@ -374,21 +378,22 @@ export default function Login() {
           align-items: center;
           gap: 8px;
           padding: 7px 10px;
-          background: rgba(255,255,255,0.025);
-          border-radius: 8px;
-          border: 1px solid rgba(255,255,255,0.04);
+          background: transparent;
+          border-bottom: 1px solid var(--ledger-paper-border);
         }
 
+        .asc-habit-row:last-child { border-bottom: none; }
+
         .asc-habit-dot {
-          width: 7px; height: 7px;
-          border-radius: 50%;
+          width: 7px; height: 14px;
+          border-radius: 1px;
           flex-shrink: 0;
         }
 
         .asc-habit-name {
           flex: 1;
           font-size: 12px;
-          color: rgba(255,255,255,0.6);
+          color: var(--ink);
         }
 
         .asc-habit-check {
@@ -401,8 +406,8 @@ export default function Login() {
         }
 
         .asc-habit-check.done {
-          background: rgba(74,222,128,0.12);
-          border: 1px solid rgba(74,222,128,0.3);
+          background: #10b981;
+          border: 1px solid #10b981;
         }
 
         .asc-habit-check.done svg {
@@ -419,71 +424,86 @@ export default function Login() {
         .asc-habit-row:nth-child(3) .asc-habit-check.done { animation: checkPop3 0.4s 1.2s ease both; }
 
         .asc-habit-check.pending {
-          border: 1px solid rgba(255,255,255,0.1);
+          border: 1.5px solid var(--ledger-paper-border);
+          border-radius: 2px;
         }
 
         .asc-mock-footer {
           display: flex;
           align-items: center;
           justify-content: space-between;
-          padding-top: 10px;
-          border-top: 1px solid rgba(255,255,255,0.05);
+          padding-top: 12px;
+          border-top: 1px solid var(--ledger-paper-border);
         }
 
         .asc-streak-pill {
           display: flex;
           align-items: center;
-          gap: 4px;
-          font-size: 12px;
+          gap: 6px;
+          font-size: 11px;
           font-weight: 700;
-          color: #f59e0b;
-          font-family: 'DM Sans', sans-serif;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
+          color: var(--primary);
+          font-family: 'Space Grotesk', sans-serif;
         }
 
         .asc-xp-gained {
-          font-size: 11px;
-          color: #a78bfa;
-          font-weight: 600;
+          font-size: 10.5px;
+          color: var(--primary);
+          font-weight: 700;
+          letter-spacing: 0.1em;
+          text-transform: uppercase;
           font-family: 'DM Sans', sans-serif;
-          background: rgba(99,70,220,0.1);
-          border: 1px solid rgba(99,70,220,0.2);
-          border-radius: 12px;
+          background: transparent;
+          border: 1px solid rgba(139,92,246,0.5);
+          border-radius: 3px;
           padding: 3px 9px;
         }
 
-        /* floating badges */
+        /* carimbos flutuantes — canto vivo, sem pill */
         .asc-badge-streak {
           position: absolute;
-          top: -18px; right: -20px;
-          background: rgba(15, 14, 22, 0.92);
-          border: 1px solid rgba(245,158,11,0.25);
-          border-radius: 12px;
-          padding: 7px 13px;
+          top: 14px; right: 14px;
+          background: var(--ledger-paper-bg);
+          border: 1px solid rgba(245,158,11,0.55);
+          white-space: nowrap;
+          border-radius: 3px;
+          padding: 6px 11px;
           display: flex;
           align-items: center;
-          gap: 5px;
-          font-size: 12px;
+          gap: 6px;
+          font-size: 11px;
           font-weight: 700;
-          color: #f59e0b;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--primary);
           font-family: 'DM Sans', sans-serif;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+          box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
+          transform: rotate(1.5deg);
+          z-index: 3;
         }
 
         .asc-badge-xp {
           position: absolute;
-          bottom: 0px; left: -36px;
-          background: rgba(15, 14, 22, 0.92);
-          border: 1px solid rgba(139,92,246,0.25);
-          border-radius: 12px;
-          padding: 7px 13px;
+          bottom: 14px; left: 14px;
+          background: var(--ledger-paper-bg);
+          border: 1px solid rgba(139,92,246,0.55);
+          white-space: nowrap;
+          border-radius: 3px;
+          padding: 6px 11px;
           display: flex;
           align-items: center;
-          gap: 5px;
-          font-size: 11px;
-          font-weight: 600;
-          color: #a78bfa;
+          gap: 6px;
+          font-size: 10.5px;
+          font-weight: 700;
+          letter-spacing: 0.08em;
+          text-transform: uppercase;
+          color: var(--primary);
           font-family: 'DM Sans', sans-serif;
-          box-shadow: 0 4px 16px rgba(0,0,0,0.3);
+          box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
+          transform: rotate(-1.5deg);
+          z-index: 3;
         }
 
         .badge-dot {
@@ -494,32 +514,37 @@ export default function Login() {
         /* ── Stats strip ─────────────────────────────────── */
         .asc-stats {
           display: flex;
-          gap: 32px;
+          flex-wrap: wrap;
+          gap: 28px 36px;
           position: relative;
           z-index: 2;
           animation: fadeUp 0.6s 0.2s ease both;
+          border-top: 1px solid var(--ledger-paper-border);
+          padding-top: 22px;
         }
 
         .asc-stat {
           display: flex;
           flex-direction: column;
           gap: 4px;
+          min-width: 120px;
+          flex-shrink: 0;
         }
 
         .asc-stat-num {
-          font-size: 20px;
-          font-weight: 700;
-          color: #fff;
-          font-family: 'DM Sans', sans-serif;
-          letter-spacing: -0.02em;
+          font-size: 19px;
+          font-weight: 800;
+          color: var(--ink);
+          font-family: 'Space Grotesk', sans-serif;
+          letter-spacing: -0.03em;
         }
 
-        .asc-stat-num.orange { color: #f59e0b; }
-        .asc-stat-num.purple { color: #a78bfa; }
+        .asc-stat-num.orange { color: var(--primary); }
+        .asc-stat-num.purple { color: var(--primary); }
 
         .asc-stat-label {
           font-size: 11px;
-          color: rgba(255,255,255,0.35);
+          color: var(--ink-muted);
           text-transform: uppercase;
           letter-spacing: 0.08em;
           font-weight: 500;
@@ -527,11 +552,11 @@ export default function Login() {
 
         .asc-divider-v {
           width: 1px;
-          background: rgba(255,255,255,0.08);
+          background: var(--ledger-paper-border);
           align-self: stretch;
         }
 
-        /* ── Right panel (form — now on left visually via order) ─── */
+        /* ── Right panel (form) ─── */
         .asc-right {
           width: 480px;
           flex-shrink: 0;
@@ -541,24 +566,32 @@ export default function Login() {
           justify-content: center;
           padding: 40px 48px;
           overflow-y: auto;
-          background: rgba(10, 11, 20, 0.9);
-          border-right: none;
-          border-left: 1px solid rgba(139, 92, 246, 0.08);
+          background: var(--ledger-paper-bg, #18181f);
+          border-left: 1px solid var(--ledger-paper-border);
           position: relative;
         }
 
+        /* Pauta fina também no lado do formulário */
         .asc-right::before {
           content: '';
           position: absolute;
-          top: 0; left: 0; right: 0;
-          height: 2px;
-          background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.4), rgba(245, 158, 11, 0.25), transparent);
+          inset: 0;
+          background-image: repeating-linear-gradient(
+            to bottom,
+            transparent,
+            transparent 47px,
+            rgba(139, 92, 246, 0.09) 47px,
+            rgba(139, 92, 246, 0.09) 48px
+          );
+          pointer-events: none;
         }
 
         .asc-form-wrap {
           width: 100%;
           max-width: 360px;
           animation: fadeUp 0.5s 0.1s ease both;
+          position: relative;
+          z-index: 2;
         }
 
         .asc-form-logo {
@@ -574,38 +607,36 @@ export default function Login() {
           filter: brightness(1.1);
         }
 
-        /* ── Tab switcher ─────────────────────────────────── */
+        /* ── Tab switcher — dois selos lado a lado ── */
         .asc-tabs {
           display: flex;
-          gap: 0;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(139, 92, 246, 0.1);
-          border-radius: 10px;
-          padding: 3px;
-          margin-bottom: 36px;
+          gap: 8px;
+          margin-bottom: 34px;
         }
 
         .asc-tab {
           flex: 1;
-          padding: 9px;
-          border: none;
+          padding: 10px;
+          border: 1px solid var(--ledger-paper-border);
           background: transparent;
-          color: rgba(255,255,255,0.4);
+          color: var(--ink-muted);
           font-family: 'DM Sans', sans-serif;
-          font-size: 13px;
-          font-weight: 600;
+          font-size: 11px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
+          text-transform: uppercase;
           cursor: pointer;
-          border-radius: 7px;
-          transition: all 0.2s;
-          letter-spacing: 0.01em;
+          border-radius: 3px;
+          transition: all 0.15s;
         }
 
-        .asc-tab:hover { color: rgba(255,255,255,0.7); }
+        .asc-tab:hover { border-color: var(--ink-muted); color: var(--ink); }
 
         .asc-tab.active {
-          background: linear-gradient(135deg, rgba(139, 92, 246, 0.25) 0%, rgba(139, 92, 246, 0.1) 100%);
-          color: #fff;
-          border: 1px solid rgba(139, 92, 246, 0.2);
+          background: var(--primary);
+          border-color: var(--primary);
+          color: var(--primary-foreground, #fff);
+          box-shadow: 3px 3px 0 var(--ledger-paper-shadow, rgba(0,0,0,0.4));
         }
 
         /* ── Greeting ─────────────────────────────────── */
@@ -616,14 +647,14 @@ export default function Login() {
         .asc-greeting h2 {
           font-size: 22px;
           font-weight: 700;
-          color: #fff;
+          color: var(--ink);
           margin: 0 0 6px;
           letter-spacing: -0.02em;
         }
 
         .asc-greeting p {
           font-size: 13px;
-          color: rgba(255,255,255,0.4);
+          color: var(--ink-muted);
           margin: 0;
           font-weight: 300;
         }
@@ -638,11 +669,11 @@ export default function Login() {
 
         .asc-label {
           display: block;
-          font-size: 11px;
+          font-size: 10.5px;
           font-weight: 600;
-          letter-spacing: 0.1em;
+          letter-spacing: 0.14em;
           text-transform: uppercase;
-          color: rgba(255,255,255,0.45);
+          color: var(--ink-muted);
           margin-bottom: 7px;
         }
 
@@ -652,10 +683,10 @@ export default function Login() {
 
         .asc-field-icon {
           position: absolute;
-          left: 13px;
+          left: 2px;
           top: 50%;
           transform: translateY(-50%);
-          color: rgba(139, 92, 246, 0.4);
+          color: var(--primary);
           pointer-events: none;
           display: flex;
         }
@@ -671,42 +702,39 @@ export default function Login() {
 
         .asc-input {
           width: 100%;
-          padding: 11px 12px 11px 40px;
-          background: rgba(255,255,255,0.04);
-          border: 1px solid rgba(139, 92, 246, 0.15);
-          border-radius: 8px;
-          color: rgba(255,255,255,0.9);
+          padding: 11px 40px 9px 26px;
+          background: transparent;
+          border: none;
+          border-bottom: 1.5px solid var(--ledger-paper-border);
+          border-radius: 0;
+          color: var(--ink);
           font-family: 'DM Sans', sans-serif;
-          font-size: 13px;
+          font-size: 14px;
           font-weight: 400;
           outline: none;
-          transition: all 0.2s;
-          -webkit-text-fill-color: rgba(255,255,255,0.9);
+          transition: border-color 0.15s;
+          -webkit-text-fill-color: var(--ink);
         }
 
-        .asc-input::placeholder { color: rgba(255,255,255,0.2); }
+        .asc-input::placeholder { color: var(--ink-muted); opacity: 0.6; }
 
-        .asc-input:focus {
-          border-color: rgba(139, 92, 246, 0.45);
-          background: rgba(139, 92, 246, 0.06);
-          box-shadow: 0 0 0 3px rgba(139, 92, 246, 0.06);
-        }
+        .asc-input:focus { border-bottom-color: var(--primary); }
 
         .asc-input:-webkit-autofill,
         .asc-input:-webkit-autofill:focus {
-          -webkit-box-shadow: 0 0 0 1000px #0c0d1a inset;
-          -webkit-text-fill-color: rgba(255,255,255,0.9);
-          caret-color: rgba(255,255,255,0.9);
+          -webkit-box-shadow: 0 0 0 1000px var(--field-bg) inset;
+          -webkit-text-fill-color: var(--ink);
+          caret-color: var(--ink);
         }
 
         .asc-eye-btn {
           position: absolute;
-          right: 12px;
+          right: 2px;
           top: 50%;
           transform: translateY(-50%);
           background: none;
           border: none;
-          color: rgba(139, 92, 246, 0.4);
+          color: #4a4a57;
           cursor: pointer;
           padding: 0;
           display: flex;
@@ -714,7 +742,7 @@ export default function Login() {
           transition: color 0.2s;
         }
 
-        .asc-eye-btn:hover { color: rgba(139, 92, 246, 0.7); }
+        .asc-eye-btn:hover { color: var(--primary); }
 
         .asc-eye-btn svg {
           width: 15px; height: 15px;
@@ -725,14 +753,14 @@ export default function Login() {
           stroke-linejoin: round;
         }
 
-        .asc-input.has-eye { padding-right: 40px; }
+        .asc-input.has-eye { padding-right: 32px; }
 
         .asc-forgot {
           display: block;
           text-align: right;
-          margin-top: 7px;
+          margin-top: 8px;
           font-size: 11px;
-          color: rgba(139, 92, 246, 0.7);
+          color: var(--primary);
           cursor: pointer;
           text-decoration: none;
           font-weight: 600;
@@ -740,35 +768,36 @@ export default function Login() {
           transition: color 0.2s;
         }
 
-        .asc-forgot:hover { color: #a78bfa; }
+        .asc-forgot:hover { color: var(--primary); }
 
-        /* ── CTA button ─────────────────────────────────── */
+        /* ── CTA button — tinta sólida com sombra dura ── */
         .asc-btn {
           width: 100%;
           padding: 13px;
           border: none;
-          border-radius: 10px;
-          background: linear-gradient(135deg, #8b5cf6 0%, #7c3aed 100%);
+          border-radius: 5px;
+          background: var(--primary-dark, #7c3aed);
           color: #fff;
           font-family: 'DM Sans', sans-serif;
           font-size: 13px;
           font-weight: 700;
-          letter-spacing: 0.03em;
+          letter-spacing: 0.04em;
           cursor: pointer;
           display: flex;
           align-items: center;
           justify-content: center;
           gap: 8px;
-          transition: all 0.2s;
-          box-shadow: 0 4px 16px rgba(139, 92, 246, 0.3);
+          transition: transform 0.15s, box-shadow 0.15s, background 0.15s;
+          box-shadow: 3px 3px 0 rgba(0,0,0,0.4);
         }
 
         .asc-btn:hover:not(:disabled) {
-          transform: translateY(-1px);
-          box-shadow: 0 6px 24px rgba(139, 92, 246, 0.4);
+          background: #6d28d9;
+          transform: translate(0, -2px);
+          box-shadow: 3px 5px 0 var(--ledger-paper-shadow, rgba(0,0,0,0.4));
         }
 
-        .asc-btn:active:not(:disabled) { transform: translateY(0); }
+        .asc-btn:active:not(:disabled) { transform: translate(2px, 2px); box-shadow: 1px 1px 0 var(--ledger-paper-shadow, rgba(0,0,0,0.4)); }
         .asc-btn:disabled { opacity: 0.45; cursor: not-allowed; }
 
         .asc-btn svg {
@@ -785,13 +814,13 @@ export default function Login() {
           margin-top: 18px;
           text-align: center;
           font-size: 12px;
-          color: rgba(255,255,255,0.4);
+          color: var(--ink-muted);
         }
 
         .asc-switch button {
           background: none;
           border: none;
-          color: #a78bfa;
+          color: var(--primary);
           font-family: 'DM Sans', sans-serif;
           font-size: 12px;
           font-weight: 700;
@@ -801,47 +830,54 @@ export default function Login() {
           transition: color 0.2s;
         }
 
-        .asc-switch button:hover { color: #c4b5fd; }
+        .asc-switch button:hover { color: var(--primary); }
 
         /* ── XP bar decoration ─────────────────────────────────── */
         .asc-xp-bar {
           margin-top: 28px;
-          padding-top: 24px;
-          border-top: 1px solid rgba(255,255,255,0.06);
+          padding-top: 22px;
+          border-top: 1px solid var(--ledger-paper-border);
         }
 
         .asc-xp-label {
           display: flex;
           justify-content: space-between;
-          margin-bottom: 8px;
+          margin-bottom: 9px;
         }
 
         .asc-xp-label span {
-          font-size: 11px;
-          font-weight: 500;
-          letter-spacing: 0.06em;
+          font-size: 10.5px;
+          font-weight: 700;
+          letter-spacing: 0.12em;
           text-transform: uppercase;
         }
 
-        .asc-xp-label .l { color: rgba(255,255,255,0.3); }
-        .asc-xp-label .r { color: #f59e0b; }
+        .asc-xp-label .l { color: var(--ink-muted); }
+        .asc-xp-label .r { color: var(--primary); }
 
         .asc-xp-track {
-          height: 3px;
-          background: rgba(255,255,255,0.06);
-          border-radius: 99px;
+          height: 5px;
+          background: var(--ledger-paper-border);
+          border-radius: 2px;
           overflow: hidden;
         }
 
         .asc-xp-fill {
           height: 100%;
           width: 0%;
-          background: linear-gradient(90deg, #8b5cf6, #f59e0b);
-          border-radius: 99px;
+          background: var(--primary);
+          border-radius: 2px;
           transition: width 1.2s cubic-bezier(0.22, 1, 0.36, 1);
         }
 
         /* ── Responsive ─────────────────────────────────── */
+        /* Ajustes para telas de desktop baixas/estreitas */
+        @media (max-width: 1280px) and (max-height: 820px) {
+          .asc-left-logo img { height: 64px; }
+          .asc-left-hero { padding-top: 20px; }
+          .asc-mock-scene { padding-top: 20px; }
+          .asc-stats { padding-top: 16px; }
+        }
         @media (max-width: 920px) {
           .asc-root {
             flex-direction: column;
@@ -859,7 +895,7 @@ export default function Login() {
             padding: 40px 28px 36px;
             overflow-y: auto;
           }
-          .asc-right::before { top: auto; bottom: 0; background: linear-gradient(90deg, transparent, rgba(139, 92, 246, 0.3), transparent); }
+          .asc-right::before { inset: 0; background-image: repeating-linear-gradient(to bottom, transparent, transparent 47px, rgba(139,92,246,0.09) 47px, rgba(139,92,246,0.09) 48px); }
           .asc-left {
             display: flex;
             flex-direction: column;
@@ -875,6 +911,49 @@ export default function Login() {
             justify-content: center;
             padding: 28px 0 16px;
           }
+          .asc-stats { display: none; }
+        }
+
+        /* ── Largura estreita (mobile / tela dividida) ── */
+        @media (max-width: 768px) {
+          .asc-root {
+            flex-direction: column;
+            height: auto;
+            min-height: 100vh;
+            overflow-y: auto;
+          }
+          .asc-right {
+            width: 100%;
+            height: 90vh;
+            min-height: 90vh;
+            order: -1;
+            border-left: none;
+            border-bottom: 1px solid rgba(139, 92, 246, 0.08);
+            padding: 40px 24px 36px;
+            overflow-y: auto;
+          }
+          .asc-left {
+            display: flex;
+            flex-direction: column;
+            height: auto;
+            width: 100%;
+            padding: 28px 24px 48px;
+            grid-template-rows: none;
+            order: 0;
+            min-width: 0;
+          }
+          .asc-left-logo { display: none; }
+          .asc-left-hero { padding-top: 0; }
+          .asc-mock-scene {
+            justify-content: center;
+            padding: 24px 0 16px;
+          }
+          .asc-mock-card {
+            width: min(86vw, 420px);
+            margin-left: 0;
+          }
+          .asc-badge-streak,
+          .asc-badge-xp { display: none; }
           .asc-stats { display: none; }
         }
 
@@ -898,15 +977,15 @@ export default function Login() {
 
           {/* Hero text */}
           <div className="asc-left-hero">
-            <div className="asc-hero-tag">Produtividade gamificada</div>
+            <div className="asc-hero-tag">O caderno de níveis</div>
             <h1 className="asc-hero-title">
-              Evolua
+              Suba um nível
               <br />
-              <span>todo dia.</span>
+              <span>por dia.</span>
             </h1>
             <p className="asc-hero-sub">
-              Transforme hábitos, tarefas e metas em progresso real — com XP,
-              streaks e conquistas que te mantêm no ritmo.
+              Tarefas, hábitos e metas anotadas a cada dia — e convertidas em
+              XP, sequências e registros que você pode ler de verdade.
             </p>
           </div>
 
@@ -915,17 +994,16 @@ export default function Login() {
             <div className="asc-mock-card">
               {/* Floating badges */}
               <div className="asc-badge-streak">
-                🔥 <span>12 dias</span>
+                Seq · 12 dias
               </div>
               <div className="asc-badge-xp">
                 <span
                   style={{
-                    width: 6,
-                    height: 6,
-                    borderRadius: "50%",
-                    background: "#a78bfa",
+                    width: 7,
+                    height: 7,
+                    borderRadius: 0,
+                    background: "var(--primary)",
                     display: "inline-block",
-                    boxShadow: "0 0 6px #a78bfa",
                   }}
                 />
                 +240 XP hoje
@@ -933,7 +1011,7 @@ export default function Login() {
 
               {/* Card header */}
               <div className="asc-mock-header">
-                <span className="asc-mock-title">Progresso do Dia</span>
+                <span className="asc-mock-title">REGISTRO DO DIA</span>
                 <span className="asc-mock-level">Nv 4</span>
               </div>
 
@@ -941,24 +1019,12 @@ export default function Login() {
               <div className="asc-mock-ring-row">
                 <div className="asc-ring-wrap">
                   <svg width="52" height="52" viewBox="0 0 52 52">
-                    <defs>
-                      <linearGradient
-                        id="ringGrad"
-                        x1="0%"
-                        y1="0%"
-                        x2="100%"
-                        y2="0%"
-                      >
-                        <stop offset="0%" stopColor="#8b5cf6" />
-                        <stop offset="100%" stopColor="#a78bfa" />
-                      </linearGradient>
-                    </defs>
                     <circle
                       cx="26"
                       cy="26"
                       r="22"
                       fill="none"
-                      stroke="rgba(255,255,255,0.06)"
+                      stroke="var(--ledger-paper-border)"
                       strokeWidth="5"
                     />
                     <circle
@@ -966,9 +1032,9 @@ export default function Login() {
                       cy="26"
                       r="22"
                       fill="none"
-                      stroke="url(#ringGrad)"
+                      stroke="var(--primary)"
                       strokeWidth="5"
-                      strokeLinecap="round"
+                      strokeLinecap="butt"
                       strokeDasharray="138"
                       strokeDashoffset="35"
                     />
@@ -976,8 +1042,8 @@ export default function Login() {
                   <div className="asc-ring-label">75%</div>
                 </div>
                 <div className="asc-progress-info">
-                  <p className="pi-label">Dia quase perfeito</p>
-                  <p className="pi-sub">3 hábitos restantes</p>
+                  <p className="pi-label">Faltam 3 anotações</p>
+                  <p className="pi-sub">4 hábitos no caderno</p>
                   <div className="asc-xp-mini-track">
                     <div className="asc-xp-mini-fill" />
                   </div>
@@ -989,7 +1055,7 @@ export default function Login() {
                 <div className="asc-habit-row">
                   <div
                     className="asc-habit-dot"
-                    style={{ background: "#a78bfa" }}
+                    style={{ background: "var(--primary)" }}
                   />
                   <span className="asc-habit-name">Treinar</span>
                   <div className="asc-habit-check done">
@@ -1001,7 +1067,7 @@ export default function Login() {
                 <div className="asc-habit-row">
                   <div
                     className="asc-habit-dot"
-                    style={{ background: "#f59e0b" }}
+                    style={{ background: "var(--primary)" }}
                   />
                   <span className="asc-habit-name">Estudar</span>
                   <div className="asc-habit-check done">
@@ -1025,7 +1091,7 @@ export default function Login() {
                 <div className="asc-habit-row">
                   <div
                     className="asc-habit-dot"
-                    style={{ background: "rgba(255,255,255,0.2)" }}
+                    style={{ background: "var(--ink-muted)" }}
                   />
                   <span className="asc-habit-name">Correr</span>
                   <div className="asc-habit-check pending" />
@@ -1034,7 +1100,7 @@ export default function Login() {
 
               {/* Footer */}
               <div className="asc-mock-footer">
-                <div className="asc-streak-pill">🔥 12 dias</div>
+                <div className="asc-streak-pill">Seq · 12 dias</div>
                 <span className="asc-xp-gained">+240 XP</span>
               </div>
             </div>
@@ -1044,19 +1110,19 @@ export default function Login() {
           <div className="asc-stats">
             <div className="asc-stat">
               <span className="asc-stat-num purple">XP</span>
-              <span className="asc-stat-label">Sistema de níveis</span>
+              <span className="asc-stat-label">Níveis que somam</span>
             </div>
             <div className="asc-divider-v" />
             <div className="asc-stat">
-              <span className="asc-stat-num orange">🔥</span>
-              <span className="asc-stat-label">Streaks diários</span>
+              <Flame size={20} color="var(--accent)" strokeWidth={2.4} style={{ display: "inline-block" }} />
+              <span className="asc-stat-label">Sequências diárias</span>
             </div>
             <div className="asc-divider-v" />
             <div className="asc-stat">
               <span className="asc-stat-num" style={{ color: "#4ade80" }}>
                 ∞
               </span>
-              <span className="asc-stat-label">Hábitos & Metas</span>
+              <span className="asc-stat-label">Hábitos & metas</span>
             </div>
           </div>
         </div>
@@ -1260,7 +1326,7 @@ export default function Login() {
                       style={{
                         marginTop: 8,
                         fontSize: 12,
-                        color: "rgba(255,255,255,0.5)",
+                        color: "var(--ink-muted)",
                         lineHeight: 1.5,
                       }}
                     >
@@ -1292,7 +1358,7 @@ export default function Login() {
                       marginTop: 2,
                       width: 16,
                       height: 16,
-                      accentColor: "#8b5cf6",
+                      accentColor: "var(--primary)",
                       cursor: "pointer",
                       flexShrink: 0,
                     }}
@@ -1301,7 +1367,7 @@ export default function Login() {
                     htmlFor="accept-terms"
                     style={{
                       fontSize: 13,
-                      color: "rgba(255,255,255,0.6)",
+                      color: "var(--ink-muted)",
                       lineHeight: 1.5,
                       cursor: "pointer",
                       userSelect: "none",
@@ -1312,7 +1378,7 @@ export default function Login() {
                       href="/terms"
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ color: "#a78bfa", textDecoration: "underline" }}
+                      style={{ color: "var(--primary)", textDecoration: "underline" }}
                     >
                       Termos de Uso
                     </a>{" "}
@@ -1321,7 +1387,7 @@ export default function Login() {
                       href="/privacy"
                       target="_blank"
                       rel="noopener noreferrer"
-                      style={{ color: "#a78bfa", textDecoration: "underline" }}
+                      style={{ color: "var(--primary)", textDecoration: "underline" }}
                     >
                       Política de Privacidade
                     </a>{" "}
