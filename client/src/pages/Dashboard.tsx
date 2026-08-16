@@ -17,13 +17,7 @@ import {
 } from "recharts";
 
 import {
- Zap,
- CheckSquare,
- Flame,
- TrendingUp,
- TrendingDown,
  Award,
- AlertTriangle,
  ChevronDown,
  ChevronUp,
  Target,
@@ -56,7 +50,7 @@ function ExpandableSection({
  defaultOpen = false,
  children,
 }: {
- icon: React.ElementType;
+ icon?: React.ElementType;
  indexNum: string;
  title: string;
  subtitle?: string;
@@ -86,7 +80,7 @@ function ExpandableSection({
  cursor: "pointer",
  color: "var(--foreground)",
  }}
- ><div
+ >{Icon && <div
  style={{
  width: 32,
  height: 32,
@@ -97,7 +91,7 @@ function ExpandableSection({
  justifyContent: "center",
  flexShrink: 0,
  }}
- ><Icon size={14} color="var(--primary)" /></div><div style={{ flex: 1, textAlign: "left" }}><div style={{ fontWeight: 700, fontSize: 14, fontFamily: "Space Grotesk", letterSpacing: "-0.01em" }}>{title}</div>
+ ><Icon size={14} color="var(--primary)" /></div>}<div style={{ flex: 1, textAlign: "left" }}><div style={{ fontWeight: 700, fontSize: 14, fontFamily: "Space Grotesk", letterSpacing: "-0.01em" }}>{title}</div>
  {subtitle && (
  <div
  style={{
@@ -144,40 +138,19 @@ function MetricCard({
  trend,
  variant,
 }: {
- icon: React.ElementType;
+ icon?: React.ElementType;
  indexNum: string;
  label: string;
  value: number | string;
  sub?: string;
  color: string;
  trend?: "up" | "down";
- variant: "violet" | "amber" | "green" | "red";
+ variant?: "violet" | "amber" | "green" | "red";
 }) {
  return (
  <div
  className="ledger-metric"
  ><div
- style={{
- display: "flex",
- alignItems: "flex-start",
- justifyContent: "space-between",
- marginBottom: 14,
- }}
- ><div
- style={{
- width: 30,
- height: 30,
- borderRadius: 4,
- border: `1px solid ${color}66`,
- display: "flex",
- alignItems: "center",
- justifyContent: "center",
- }}
- ><Icon size={14} color={color} /></div>
-
- {trend === "up" && <TrendingUp size={13} color="#10B981" />}
- {trend === "down" && <TrendingDown size={13} color="#EF4444" />}
- </div><div
  className="ledger-marginalia"
  style={{ marginBottom: 10 }}
  >
@@ -746,42 +719,30 @@ export default function Dashboard() {
  marginBottom: 20,
  }}
  ><MetricCard
- icon={Zap}
  indexNum="02 — XP"
  label="Experiência total"
  value={totalXP}
  sub={`Nível ${profile?.level || 1}`}
  color="var(--primary)"
- trend="up"
- variant="violet"
- /><MetricCard
- icon={CheckSquare}
+  /><MetricCard
  indexNum="03 — TAREFAS"
  label="Concluídas hoje"
  value={completedToday}
  sub={`${todayTasks} no caderno de hoje`}
  color="#10B981"
- trend="up"
- variant="green"
- /><MetricCard
- icon={Flame}
+  /><MetricCard
  indexNum="04 — HÁBITOS"
  label="Marcados hoje"
  value={habitsToday}
  sub="hábitos concluídos"
  color="#F97316"
- trend="up"
- variant="amber"
- /><MetricCard
- icon={AlertTriangle}
+  /><MetricCard
  indexNum="05 — DÍVIDAS"
  label="Tarefas atrasadas"
  value={overdueTasks}
  sub="pendentes de anotação"
  color="var(--primary)"
- trend={overdueTasks > 0 ? "down" : "up"}
- variant="red"
- /></div>
+  /></div>
 
  {/* ===== STREAK BADGE ===== */}
  <div style={{ marginBottom: 20 }}><StreakBadge streak={globalStreak} /></div>
@@ -864,7 +825,7 @@ export default function Dashboard() {
 
       {/* ===== INSIGHTS ===== */}
       <ExpandableSection
-        icon={Zap}
+        icon={Target}
         indexNum="— Insights"
         title="Insights"
         subtitle="Análises automáticas do seu desempenho"
@@ -1112,7 +1073,6 @@ export default function Dashboard() {
 
  {/* ===== FINANÇAS ===== */}
  <ExpandableSection
- icon={Wallet}
  indexNum="15"
  title="Finanças"
  subtitle={`Saldo: R$ ${(monthlyIncome - monthlyExpenses).toFixed(2)} • Gastos: R$ ${monthlyExpenses.toFixed(2)}`}
