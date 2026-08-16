@@ -149,22 +149,21 @@
     font-family: 'DM Sans', sans-serif;
     -webkit-font-smoothing: antialiased;
     -moz-osx-font-smoothing: grayscale;
-    /* papel escuro com grão orgânico em toda a tela (modo noturno) */
-    background-color: #111118;
+    /* Cartolina noturna: tom escuro com leve aquecimento no centro-superior,
+       como uma página iluminada por um abajur — sem ruído, sem padrão, só luz. */
+    background-color: #12111a;
     background-image:
       radial-gradient(
-        ellipse 70% 55% at 88% -6%,
-        rgba(139, 92, 246, 0.10) 0%,
-        rgba(139, 92, 246, 0.035) 38%,
-        transparent 68%
+        90% 55% at 50% -18%,
+        rgba(139, 92, 246, 0.13) 0%,
+        rgba(120, 80, 200, 0.05) 45%,
+        transparent 70%
       ),
       radial-gradient(
-        ellipse 65% 50% at 4% 104%,
-        rgba(245, 158, 11, 0.065) 0%,
-        rgba(245, 158, 11, 0.02) 45%,
-        transparent 72%
-      ),
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E");
+        110% 70% at 50% 130%,
+        rgba(245, 158, 11, 0.05) 0%,
+        transparent 60%
+      );
   }
 
   h1, h2, h3, h4, h5, h6 {
@@ -666,29 +665,23 @@
      de caderno real sem perder o tom noturno.
   ============================================ */
 
-  /* Caderno escuro sem pauta: papel com grão orgânico (ruído sutil),
-     vineta de canto queimado e leve variação de tom — parece papel de
-     verdade fotografado, não um padrão repetitivo. */
+  /* Cartolina noturna: mesma luz de abajur do fundo, tom levemente
+     mais claro para a página se destacar da mesa. Sem ruído, sem padrão. */
   .notebook-page {
     position: relative;
-    background-color: #17171f;
+    background-color: #171621;
     background-image:
-      /* vineta suave no canto superior direito, como papel levemente queimado */
       radial-gradient(
-        ellipse 70% 55% at 88% -6%,
-        rgba(139, 92, 246, 0.10) 0%,
-        rgba(139, 92, 246, 0.035) 38%,
-        transparent 68%
+        90% 55% at 50% -18%,
+        rgba(139, 92, 246, 0.13) 0%,
+        rgba(120, 80, 200, 0.05) 45%,
+        transparent 70%
       ),
-      /* vineta quente no canto inferior esquerdo */
       radial-gradient(
-        ellipse 65% 50% at 4% 104%,
-        rgba(245, 158, 11, 0.065) 0%,
-        rgba(245, 158, 11, 0.02) 45%,
-        transparent 72%
-      ),
-      /* grão de papel: ruído orgânico não repetitivo */
-      url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='220' height='220'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='4' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='220' height='220' filter='url(%23n)' opacity='0.09'/%3E%3C/svg%3E");
+        110% 70% at 50% 130%,
+        rgba(245, 158, 11, 0.05) 0%,
+        transparent 60%
+      );
     border-radius: 4px;
   }
 
