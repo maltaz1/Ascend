@@ -38,6 +38,7 @@ function timeoutPromise<T>(promise: Promise<T>, ms: number): Promise<T> {
 }
 
 import UpgradeModal from "./components/UpgradeModal";
+import { Onboarding, shouldShowOnboarding } from "./components/Onboarding";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
@@ -200,6 +201,7 @@ function AppContent({
 function App() {
   const [user, setUser] = useState<User | null>(null);
   const [loading, setLoading] = useState(true);
+  const [showOnboarding, setShowOnboarding] = useState(false);
   const [startupError, setStartupError] = useState<string | null>(null);
   const [isPro, setIsPro] = useState(false);
   const [showUpgradeModal, setShowUpgradeModal] = useState(false);
@@ -329,6 +331,10 @@ function App() {
             syncProfileState(authResult.user),
             preloadStartupData()
           ]);
+          // Usuário novo sem onboarding concluído → exibir tour de 60 segundos
+          if (shouldShowOnboarding()) {
+            setShowOnboarding(true);
+          }
         }
       } catch (error) {
         console.error("ERRO INIT:", error);
@@ -421,10 +427,15 @@ function App() {
               <Login />
             </>
           ) : (
-            <AppContent
-              isPro={isPro}
-              onOpenUpgrade={() => setShowUpgradeModal(true)}
-            />
+            <>
+              <AppContent
+                isPro={isPro}
+                onOpenUpgrade={() => setShowUpgradeModal(true)}
+              />
+              {showOnboarding && (
+                <Onboarding onDismiss={() => setShowOnboarding(false)} />
+              )}
+            </>
           )}
           <UpgradeModal
             open={showUpgradeModal}
