@@ -101,6 +101,17 @@ if (
   navigator.serviceWorker
     .register('/sw.js', { scope: '/' })
     .then((registration) => {
+      // Bootstrap: se o SW controlador for uma versão antiga (v2/v3) e a
+      // nova versão ainda está instalando, força a ativação imediata
+      // (o skipWaiting do SW já acontece, mas aguardamos aqui para recarregar
+      // a página logo após, garantindo que o SW novo assuma o controle).
+      if (navigator.serviceWorker.controller) {
+        const active = registration.active;
+        if (registration.waiting && !active) {
+          registration.waiting.postMessage('skipWaiting');
+        }
+      }
+
       // Verifica atualizações imediatamente
       registration.update();
 
@@ -133,6 +144,22 @@ if (
 
       navigator.serviceWorker.ready.then(() => {
         console.log('SW pronto');
+      });
+
+      // Após o SW novo ativar, recarrega a página uma única vez para que o
+      // novo service worker passe a interceptar as requisições (evita que o
+      // SW antigo quebrado continue respondendo). Sinalizado pela flag
+      // sessionStorage para não entrar em loop.
+      if (navigator.serviceWorker.controller) {
+        const isOldController = navigator.serviceWorker.controller.scriptURL.endsWith('sw.js');
+        // Verifica se o controller é de uma versão antiga do cache
+        navigator.serviceWorker.controller.postMessage?.('version');
+      }
+      registration.addEventListener('controllerchange', () => {
+        if (!sessionStorage.getItem('sw-just-activated')) {
+          sessionStorage.setItem('sw-just-activated', '1');
+          window.location.reload();
+        }
       });
 
       navigator.serviceWorker.getRegistrations().then((registrations) => {
