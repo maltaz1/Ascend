@@ -17,6 +17,7 @@ import {
  BarChart3,
 } from "lucide-react";
 import { useStore } from "@/hooks/useStore";
+import type { Exercise } from "@/store/types";
 import {
  getGymStats,
  addWorkout,

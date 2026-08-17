@@ -58,10 +58,14 @@ export function goalFromRow(row: GoalDatabaseRow): Goal {
 }
 
 export function workoutFromRow(row: WorkoutDatabaseRow): Workout {
+  const daysOfWeek = Array.isArray(row.days_of_week) && row.days_of_week.length > 0
+    ? row.days_of_week
+    : [row.day_of_week];
   return {
     id: row.id,
     name: row.name,
     dayOfWeek: row.day_of_week,
+    daysOfWeek,
     exercises: Array.isArray(row.exercises) ? (row.exercises as Workout['exercises']) : [],
     createdAt: row.created_at,
   };

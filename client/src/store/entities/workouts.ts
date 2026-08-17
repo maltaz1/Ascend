@@ -3,6 +3,7 @@ import { getData, store } from "../store";
 import { normalizeEntities, entityToArray, upsertEntity, removeEntity, setLoading, setError } from "../core/entity";
 import { generateId } from "../utils";
 import { loadWorkouts, loadWorkoutSessions, createWorkoutRow, createWorkoutSessionRow, deleteWorkoutSessionRow } from "@/lib/database";
+import type { WorkoutDatabaseRow } from "@/lib/database/types";
 import { awardXp, createXpPayload } from "../xp-engine";
 import { evaluateAchievements } from "../achievements";
 import type { Workout, WorkoutSession } from "../types";
@@ -26,6 +27,9 @@ export async function loadGymData(): Promise<void> {
     id: row.id,
     name: row.name,
     dayOfWeek: row.day_of_week,
+    daysOfWeek: Array.isArray(row.days_of_week) && row.days_of_week.length > 0
+      ? row.days_of_week
+      : [row.day_of_week],
     exercises: row.exercises || [],
     createdAt: row.created_at,
   }));
@@ -71,14 +75,18 @@ export async function addWorkout(workout: Omit<Workout, "id" | "createdAt">): Pr
       user_id: userId,
       name: workout.name,
       day_of_week: workout.dayOfWeek,
+      days_of_week: workout.daysOfWeek,
       exercises: workout.exercises,
       created_at: optimisticWorkout.createdAt,
-    });
+    } as Parameters<typeof createWorkoutRow>[0]);
 
     const created = {
       id: row.id,
       name: row.name,
       dayOfWeek: row.day_of_week,
+      daysOfWeek: Array.isArray(row.days_of_week) && row.days_of_week.length > 0
+        ? row.days_of_week
+        : [row.day_of_week],
       exercises: row.exercises || [],
       createdAt: row.created_at,
     };
