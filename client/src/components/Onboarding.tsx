@@ -3,6 +3,7 @@ import { Sparkles, ArrowRight, Rocket, CheckCircle2, Bell } from "lucide-react";
 import { useStore } from "@/hooks/useStore";
 import { addTask, addHabit, getTodayString } from "@/lib/store";
 import { usePWA } from "@/hooks/usePWA";
+import { supabase } from "@/lib/supabase";
 
 const ONBOARDING_STORAGE_KEY = "ascend_onboarding_done_v1";
 
@@ -76,6 +77,19 @@ export function Onboarding({ onDismiss }: OnboardingProps) {
     if (!habitTitle.trim() || saving) return;
     setSaving(true);
     try {
+      const { data: auth } = await supabase.auth.getUser();
+      if (auth.user) {
+        await supabase.from("habits").insert({
+          user_id: auth.user.id,
+          title: habitTitle.trim(),
+          emoji: habitEmoji,
+          color: "#8b5cf6",
+          frequency: "daily",
+          target_days: 7,
+          completed_dates: [],
+        });
+      }
+      // Também adiciona ao estado local para aparecer imediatamente na UI
       addHabit({
         title: habitTitle.trim(),
         emoji: habitEmoji,
@@ -92,11 +106,7 @@ export function Onboarding({ onDismiss }: OnboardingProps) {
     }
   };
 
-  const xp = progress > 0 ? (
-    <span className="font-semibold text-[var(--primary)]">+{progress} XP</span>
-  ) : (
-    <span className="font-semibold text-[var(--primary)]">+25 XP</span>
-  );
+  const xp = progress > 0 ? `+${progress} XP` : "+25 XP";
 
   return (
     <div className="fixed inset-0 z-[200] flex items-center justify-center fz-modal-overlay p-4 ledger-modal-overlay">
