@@ -325,7 +325,7 @@ function TaskModal({
  if (!title.trim() || !date) return;
 
  if (!task && !isPro && countTasksCreatedThisWeek(tasks) >= FREE_LIMITS.tasksPerWeek) {
- showToast("Plano grátis permite apenas 1 tarefa por semana", "info");
+ showToast(`Plano grátis permite apenas ${FREE_LIMITS.tasksPerWeek} tarefas por semana`, "info");
  return;
  }
 
