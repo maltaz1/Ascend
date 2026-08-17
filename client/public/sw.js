@@ -1,100 +1,84 @@
-const CACHE_NAME = "Ascend-v3";
-const RUNTIME_CACHE = "Ascend-runtime-v3";
-const PRECACHE_VERSION = "2026-08-17";
-const URLS_TO_CACHE = [
-  `/`,
-  `/index.html`,
-  `/manifest.json?nocache=${PRECACHE_VERSION}`,
-  `/logo.png`,
-];
+const CACHE_NAME = "Ascend-v4";
+const RUNTIME_CACHE = "Ascend-runtime-v4";
 
-// Install event - cache essential files
+const URLS_TO_CACHE = ["/", "/index.html", "/manifest.json", "/logo.png"];
+
+// Install event - cache essential files and take over immediately.
+// skipWaiting MUST be called before waitUntil completes so that the old
+// broken SW (v2) is replaced without waiting for all client tabs to close.
 self.addEventListener("install", event => {
-  // Skip waiting immediately so the new SW takes over fast
   self.skipWaiting();
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(URLS_TO_CACHE);
-    })
+    caches.open(CACHE_NAME).then(cache => cache.addAll(URLS_TO_CACHE))
   );
 });
 
-// Activate event - clean up ALL old caches (including old SW runtime caches)
-// This invalidates any manifest.json / resources cached while a redirect
-// (e.g. Vercel SSO 302) may have been in flight, preventing CORS errors.
+// Activate event - remove ALL other caches (old SW versions, runtime caches)
+// and claim clients immediately.
 self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
+    caches.keys().then(cacheNames =>
+      Promise.all(
         cacheNames
-          .filter(cacheName => cacheName !== CACHE_NAME)
-          .map(cacheName => {
-            console.log("[SW] Removing old cache:", cacheName);
-            return caches.delete(cacheName);
-          })
-      );
-    })
+          .filter(name => name !== CACHE_NAME)
+          .map(name => caches.delete(name))
+      )
+    )
   );
   self.clients.claim();
 });
 
-function isNavigationalRequest(request) {
-  return request.mode === "navigate";
-}
-
-// Fetch event - network first, fallback to cache; never cache redirects
+// Fetch event - network first with a robust fallback.
+// Every single path MUST return (or resolve to) a Response instance.
 self.addEventListener("fetch", event => {
   const { request } = event;
-  const url = new URL(request.url);
 
   // Skip non-GET requests
   if (request.method !== "GET") {
     return;
   }
 
-  // Skip cross-origin requests (e.g. Supabase, Vercel SSO endpoints)
+  const url = new URL(request.url);
+
+  // Skip cross-origin requests (Supabase, Google Fonts, etc.)
   if (url.origin !== location.origin) {
     return;
   }
 
-  // API requests - network only, no caching, pass through to client
+  // API requests: pass through to the network without caching.
   if (url.pathname.startsWith("/api/")) {
-    event.respondWith(fetch(request));
+    event.respondWith(
+      fetch(request).catch(() => new Response("{}", { status: 503 }))
+    );
     return;
   }
 
-  // Static assets - network first, cache on success, but NEVER cache
-  // responses that redirected (302/301) - they are opaque and can be
-  // SSO redirects like vercel.com/sso-api which cause CORS errors when
-  // cached/replayed.
   event.respondWith(
     fetch(request)
-      .then(response => {
-        // If the response is a redirect (e.g. Vercel SSO 302) or an
-        // error page, do not cache it and let the client handle it.
-        if (response.redirected || response.type === "opaque") {
+      .then(async response => {
+        // Never cache redirects (e.g. Vercel SSO 302 -> vercel.com/sso-api)
+        // or opaque responses - they cause CORS failures when replayed.
+        if (!response.ok || response.redirected || response.type === "opaque") {
           return response;
         }
-        if (response && response.status === 200 && response.type === "basic") {
-          const responseToCache = response.clone();
-
-          caches.open(RUNTIME_CACHE).then(cache => {
-            cache.put(request, responseToCache);
-          });
+        // Cache successful same-origin responses
+        try {
+          const cache = await caches.open(RUNTIME_CACHE);
+          await cache.put(request, response.clone());
+        } catch (_) {
+          // ignore cache errors
         }
-
         return response;
       })
       .catch(async () => {
-        // Serve cached HTML only for navigational requests
-        if (isNavigationalRequest(request)) {
-          const cached = await caches.match(request);
-          if (cached) {
-            return cached;
-          }
-          return caches.match("/index.html");
+        // Network failure: fall back to cache (offline support)
+        const cached =
+          (await caches.match(request)) || (await caches.match("/index.html"));
+        if (cached) {
+          return cached;
         }
-        return undefined;
+        // Last resort: a valid Response instead of undefined
+        return new Response("Offline", { status: 503 });
       })
   );
 });
