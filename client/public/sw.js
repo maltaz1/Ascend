@@ -1,147 +1,166 @@
-const CACHE_NAME = "Ascend-v2";
-const RUNTIME_CACHE = "Ascend-runtime-v2";
-const URLS_TO_CACHE = ["/", "/index.html", "/manifest.json", "/logo.png"];
+/**
+ * Service Worker do Ascend
+ *
+ * Estratégia:
+ * - Shell do app (HTML, manifest, ícones): pre-cache no install + stale-while-revalidate.
+ * - Assets estáticos (JS/CSS com hash): cache-first com cache de longo prazo.
+ * - Navegação (SPA): network-first com fallback para /index.html (offline).
+ * - Supabase API: network-only (nunca cachear dados sensíveis; offline é tratado
+ *   pela camada de persistência local do app em client/src/store).
+ * - Limpeza de caches antigos na ativação.
+ */
 
-// Install event - cache essential files
+const CACHE_VERSION = "ascend-v3";
+const SHELL_CACHE = `${CACHE_VERSION}-shell`;
+const ASSETS_CACHE = `${CACHE_VERSION}-assets`;
+
+// Assets críticos para o shell do app funcionar offline
+const SHELL_URLS = [
+  "/",
+  "/index.html",
+  "/manifest.json",
+  "/icons/icon-any-192.png",
+  "/icons/icon-any-512.png",
+  "/icons/icon-maskable-192.png",
+  "/icons/icon-maskable-512.png",
+];
+
+// ---------------- Install ----------------
 self.addEventListener("install", event => {
   event.waitUntil(
-    caches.open(CACHE_NAME).then(cache => {
-      return cache.addAll(URLS_TO_CACHE);
+    caches.open(SHELL_CACHE).then(cache => cache.addAll(SHELL_URLS)).then(() => {
+      // Pre-cache os assets estáticos com hash (JS/CSS) após o build
+      return fetch("/asset-list.json", { cache: "no-store" })
+        .then(res => (res.ok ? res.json() : []))
+        .then(assets => {
+          if (!Array.isArray(assets) || assets.length === 0) return;
+          return caches.open(ASSETS_CACHE).then(cache =>
+            cache.addAll(assets.filter(url => url.startsWith("/")))
+          );
+        })
+        .catch(() => {
+          // asset-list.json ausente (dev ou não configurado) — ok, não fatal
+        });
     })
   );
   self.skipWaiting();
 });
 
-// Activate event - clean up old caches
+// ---------------- Activate ----------------
 self.addEventListener("activate", event => {
   event.waitUntil(
-    caches.keys().then(cacheNames => {
-      return Promise.all(
-        cacheNames.map(cacheName => {
-          if (cacheName !== CACHE_NAME && cacheName !== RUNTIME_CACHE) {
-            return caches.delete(cacheName);
-          }
-        })
-      );
-    })
+    caches
+      .keys()
+      .then(names =>
+        Promise.all(
+          names
+            .filter(name => name !== SHELL_CACHE && name !== ASSETS_CACHE)
+            .map(name => caches.delete(name))
+        )
+      )
+      .then(() => self.clients.claim())
   );
-  self.clients.claim();
 });
 
-// Fetch event - network first, fallback to cache
+// ---------------- Fetch ----------------
 self.addEventListener("fetch", event => {
   const { request } = event;
+
+  // Apenas GET
+  if (request.method !== "GET") return;
+
   const url = new URL(request.url);
 
-  // Skip non-GET requests
-  if (request.method !== "GET") {
+  // Não interceptar requests de outros origens
+  if (url.origin !== location.origin) return;
+
+  // Dados do Supabase / API: network-only (segurança + frescor)
+  if (url.pathname.startsWith("/api/") || url.hostname.includes("supabase.co")) {
     return;
   }
 
-  // Skip cross-origin requests
-  if (url.origin !== location.origin) {
-    return;
-  }
-
-  // API requests - network first
-  if (url.pathname.startsWith("/api/")) {
+  // Navegação SPA: network-first com fallback offline
+  if (request.mode === "navigate") {
     event.respondWith(
       fetch(request)
         .then(response => {
-          // Clone and cache successful responses
-          if (response.ok) {
-            const cache = caches.open(RUNTIME_CACHE);
-            cache.then(c => c.put(request, response.clone()));
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(SHELL_CACHE).then(cache => cache.put("/", clone));
           }
           return response;
         })
-        .catch(() => {
-          // Fallback to cache on network error
-          return caches.match(request).then(response => {
-            return (
-              response ||
-              new Response(JSON.stringify({ error: "offline" }), {
-                status: 503,
-                statusText: "Service Unavailable",
-                headers: new Headers({ "Content-Type": "application/json" }),
-              })
-            );
-          });
-        })
+        .catch(() => caches.match("/index.html"))
     );
     return;
   }
 
-  // Static assets - network first
-  event.respondWith(
-    fetch(request)
-      .then(response => {
-        if (response && response.status === 200 && response.type === "basic") {
-          const responseToCache = response.clone();
-
-          caches.open(RUNTIME_CACHE).then(cache => {
-            cache.put(request, responseToCache);
-          });
-        }
-
-        return response;
+  // Assets estáticos com hash (/assets/*.js, .css, .png): cache-first
+  if (url.pathname.startsWith("/assets/")) {
+    event.respondWith(
+      caches.match(request).then(cached => {
+        if (cached) return cached;
+        return fetch(request).then(response => {
+          if (response.ok) {
+            const clone = response.clone();
+            caches.open(ASSETS_CACHE).then(cache => cache.put(request, clone));
+          }
+          return response;
+        });
       })
-      .catch(async () => {
-        const cached = await caches.match(request);
+    );
+    return;
+  }
 
-        if (cached) {
-          return cached;
-        }
-
-        return caches.match("/index.html");
+  // Restante do shell (ícones, manifest, fontes): stale-while-revalidate
+  if (SHELL_URLS.some(u => url.pathname === u) || url.pathname.startsWith("/icons/")) {
+    event.respondWith(
+      caches.match(request).then(cached => {
+        const fetched = fetch(request).then(response => {
+          if (response && response.status === 200) {
+            const clone = response.clone();
+            caches.open(SHELL_CACHE).then(cache => cache.put(request, clone));
+          }
+          return response;
+        });
+        return cached || fetched;
       })
+    );
+    return;
+  }
+});
+
+// ---------------- Notifications push (base para futuras notificações) ----------------
+self.addEventListener("push", event => {
+  let payload = { title: "Ascend", body: "Você tem atividades para hoje!" };
+  try {
+    const data = event.data ? event.data.json() : {};
+    if (data.title) payload.title = data.title;
+    if (data.body) payload.body = data.body;
+  } catch (_) {}
+  event.waitUntil(
+    self.registration.showNotification(payload.title, {
+      body: payload.body,
+      icon: "/icons/icon-any-192.png",
+      badge: "/icons/icon-any-192.png",
+      vibrate: [200, 100, 200],
+      tag: "ascend-notification",
+    })
   );
 });
 
-// Background sync for data synchronization
-self.addEventListener("sync", event => {
-  if (event.tag === "sync-data") {
-    event.waitUntil(syncData());
-  }
+self.addEventListener("notificationclick", event => {
+  event.notification.close();
+  event.waitUntil(
+    self.clients.matchAll({ type: "window" }).then(clients => {
+      for (const client of clients) {
+        if (client.url.includes(location.origin) && "focus" in client) {
+          return client.focus();
+        }
+      }
+      if (self.clients.openWindow) {
+        return self.clients.openWindow("/");
+      }
+    })
+  );
 });
-
-async function syncData() {
-  try {
-    // Get pending changes from IndexedDB
-    const db = await openDB();
-    const pendingChanges = await db.getAll("pendingSync");
-
-    // Send to server
-    for (const change of pendingChanges) {
-      const response = await fetch(`/api/sync`, {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(change),
-      });
-
-      if (response.ok) {
-        await db.delete("pendingSync", change.id);
-      }
-    }
-  } catch (error) {
-    console.error("Sync failed:", error);
-    throw error;
-  }
-}
-
-// Helper to open IndexedDB
-function openDB() {
-  return new Promise((resolve, reject) => {
-    const request = indexedDB.open("flowzone", 1);
-
-    request.onerror = () => reject(request.error);
-    request.onsuccess = () => resolve(request.result);
-
-    request.onupgradeneeded = event => {
-      const db = event.target.result;
-      if (!db.objectStoreNames.contains("pendingSync")) {
-        db.createObjectStore("pendingSync", { keyPath: "id" });
-      }
-    };
-  });
-}
