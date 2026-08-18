@@ -157,7 +157,7 @@ function AppContent({
       case "today":
         return <Today />;
       case "tasks":
-        return <Tasks isPro={isPro} />;
+        return <Tasks isPro={isPro} onOpenUpgrade={onOpenUpgrade} />;
       case "goals":
         return <Goals isPro={isPro} onOpenUpgrade={onOpenUpgrade} />;
       case "habits":
