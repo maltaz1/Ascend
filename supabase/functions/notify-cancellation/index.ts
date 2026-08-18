@@ -16,6 +16,18 @@ serve(async (req) => {
     return new Response('ok', { headers: corsHeaders })
   }
 
+  // Autenticação: apenas chamadas autorizadas com a service role key
+  // (ex.: o trigger notify_cancellation_webhook no banco de dados) podem
+  // executar esta função. Sem token válido, a execução é rejeitada.
+  const authHeader = req.headers.get('Authorization') ?? ''
+  const token = authHeader.startsWith('Bearer ') ? authHeader.slice(7) : ''
+  if (!token || !SUPABASE_SERVICE_ROLE_KEY || token !== SUPABASE_SERVICE_ROLE_KEY) {
+    return new Response(JSON.stringify({ error: 'Unauthorized' }), {
+      headers: { ...corsHeaders, 'Content-Type': 'application/json' },
+      status: 401,
+    })
+  }
+
   try {
     const payload = await req.json()
     const { record } = payload

@@ -39,12 +39,37 @@ RETURNS trigger
 LANGUAGE plpgsql
 SECURITY DEFINER
 AS $$
+DECLARE
+  _supabase_url text;
+  _supabase_key text;
 BEGIN
+  -- Chaves de serviço nunca devem ficar hardcoded no código-fonte.
+  -- O trigger usa a service role key injetada em runtime pelo Supabase
+  -- Edge Runtime via Deno.env.get('SUPABASE_SERVICE_ROLE_KEY'),
+  -- configurada no Dashboard > Settings > API (não precisa estar no repo).
+  _supabase_url := current_setting('app.settings.supabase_url', true);
+  _supabase_key := current_setting('app.settings.supabase_key', true);
+
+  IF _supabase_url IS NULL OR _supabase_key IS NULL THEN
+    -- Fallback configurado via GUCs do Postgres (defina no dashboard do
+    -- Supabase: Settings > Config, ou execute manualmente):
+    --   ALTER DATABASE postgres SET app.settings.supabase_url = '...';
+    --   ALTER DATABASE postgres SET app.settings.supabase_key = '...';
+    _supabase_url := COALESCE(_supabase_url, 'https://rwdzcbbneczjefmjzkdr.supabase.co');
+    _supabase_key := COALESCE(_supabase_key, '');
+  END IF;
+
+  IF _supabase_key = '' THEN
+    -- Sem chave configurada: apenas registra o evento e retorna.
+    RAISE LOG 'notify_cancellation_webhook: SUPABASE_KEY não configurado (GUC app.settings.supabase_key)';
+    RETURN NEW;
+  END IF;
+
   PERFORM net.http_post(
-    url := 'https://rwdzcbbneczjefmjzkdr.supabase.co/functions/v1/notify-cancellation',
+    url := _supabase_url || '/functions/v1/notify-cancellation',
     headers := jsonb_build_object(
       'Content-Type', 'application/json',
-      'apikey', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3ZHpjYmJuZWN6amVmbWp6a2RyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0OTE1NjMsImV4cCI6MjA5MzA2NzU2M30.O5PHKNZvSFTWdzGNPnNmWR9-THZBrjwyn3AbD6TWJn0'
+      'Authorization', 'Bearer ' || _supabase_key
     ),
     body := jsonb_build_object('record', row_to_json(NEW)::jsonb)
   );
