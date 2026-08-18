@@ -1,11 +1,6 @@
 {
   "rewrites": [
     {
-      "source": "/api/sync",
-      "destination": "/api/sync.json",
-      "methods": ["GET", "POST", "OPTIONS"]
-    },
-    {
       "source": "/api/oauth/callback",
       "destination": "/index.html"
     },
