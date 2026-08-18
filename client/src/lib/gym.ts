@@ -119,6 +119,9 @@ export async function loadGymData() {
       id: workout.id,
       name: workout.name,
       dayOfWeek: workout.day_of_week,
+      daysOfWeek: Array.isArray(workout.days_of_week) && workout.days_of_week.length > 0
+        ? workout.days_of_week
+        : [workout.day_of_week],
       exercises: workout.exercises || [],
       createdAt: workout.created_at,
     }));

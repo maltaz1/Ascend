@@ -277,6 +277,7 @@ function TaskModal({
  isPro,
  tasks,
  onTaskSaved,
+ onOpenUpgrade,
 }: {
  open: boolean;
  onClose: () => void;

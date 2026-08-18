@@ -11,6 +11,7 @@ const initialState: AppCoreState = {
   goals: createEntityState(),
   habits: createEntityState(),
   workouts: createEntityState(),
+  exerciseCatalog: [],
   workoutSessions: createEntityState(),
   meals: createEntityState(),
   financialTransactions: createEntityState(),
@@ -52,6 +53,7 @@ function buildAppData(): AppData {
     habits: state.habits.allIds.map(id => state.habits.byId[id]),
     achievements: state.achievements,
     workouts: state.workouts.allIds.map(id => state.workouts.byId[id]),
+    exerciseCatalog: state.exerciseCatalog ?? [],
     workoutSessions: state.workoutSessions.allIds.map(id => state.workoutSessions.byId[id]),
     diet: {
       meals: state.meals.allIds.map(id => state.meals.byId[id]),

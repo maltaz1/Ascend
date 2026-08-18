@@ -39,6 +39,7 @@ export interface WorkoutDatabaseRow {
   user_id: string;
   name: string;
   day_of_week: number;
+  days_of_week?: number[];
   exercises?: unknown[];
   created_at: string;
 }

@@ -2,6 +2,7 @@ import type {
   Achievement,
   DietSettings,
   FinancialTransaction,
+  CatalogExercise,
   Goal,
   Habit,
   Meal,
@@ -36,6 +37,7 @@ export type AppCoreState = {
   goals: EntityState<Goal>;
   habits: EntityState<Habit>;
   workouts: EntityState<Workout>;
+  exerciseCatalog: CatalogExercise[];
   workoutSessions: EntityState<WorkoutSession>;
   meals: EntityState<Meal>;
   financialTransactions: EntityState<FinancialTransaction>;
