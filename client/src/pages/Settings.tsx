@@ -16,7 +16,6 @@ import {
  Mail,
  CreditCard,
  XCircle,
- Bug,
  Download,
  Trash2,
  FileText,
@@ -562,38 +561,6 @@ export default function Settings() {
  )}
  </div></motion.div>
  )}
-
- {/* DEBUG — REMOVER ANTES DO MERGE PARA A MAIN */}
- {(() => {
-   const restartOnboarding = () => {
-     try {
-       window.localStorage.removeItem("ascend_onboarding_done_v1");
-       window.location.reload();
-     } catch (_) {
-       window.location.reload();
-     }
-   };
-   return (
-     <motion.div whileHover={{ scale: 1.01 }} className={cardClass}>
-       <div className="flex items-center gap-3 mb-4">
-         <Bug className="text-amber-400" />
-         <h2 className="text-2xl font-bold"> Debug</h2>
-       </div>
-       <div className="space-y-3">
-         <p className="text-sm" style={{ color: "var(--ink-muted)" }}>
-           Remove a trava do onboarding e recarrega a página para exibir o tour de 60 segundos novamente.
-         </p>
-         <button
-           onClick={restartOnboarding}
-           className="w-full flex items-center gap-3 bg-amber-500/10 border border-amber-500/25 text-amber-400 rounded-md p-4 hover:bg-amber-500/20 transition-all font-bold justify-center"
-         >
-           <Bug size={18} />
-           Reiniciar onboarding (teste)
-         </button>
-       </div>
-     </motion.div>
-   );
- })()}
 
  {/* SOBRE */}
  <motion.div whileHover={{ scale: 1.01 }} className={cardClass}><div className="flex items-center gap-3 mb-4"><Info className="text-[var(--ink)]" /><h2 className="text-2xl font-bold"> Sobre</h2></div><div className="space-y-3"><div className="flex justify-between rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)]"><span>Versão do app</span><span className="text-[var(--ink-muted)]">1.0.0</span></div><div className="flex justify-between rounded-md p-4 border border-[var(--ledger-paper-border)] bg-[var(--muted)]"><span>Status</span><span className="font-semibold" style={{ color: "var(--primary)" }}>Online</span></div></div></motion.div></div></div><CancellationModal
