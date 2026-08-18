@@ -1,5 +1,5 @@
 export const FREE_LIMITS = {
-  tasksPerWeek: 1,
+  tasksPerWeek: 5,
   habits: 3,
   goals: 1,
   weeklyGoals: 2,

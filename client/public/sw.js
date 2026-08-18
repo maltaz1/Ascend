@@ -1,16 +1,19 @@
 /**
- * Service Worker do Ascend
+ * Service Worker do Ascend (v5)
  *
- * Estratégia:
- * - Shell do app (HTML, manifest, ícones): pre-cache no install + stale-while-revalidate.
- * - Assets estáticos (JS/CSS com hash): cache-first com cache de longo prazo.
- * - Navegação (SPA): network-first com fallback para /index.html (offline).
- * - Supabase API: network-only (nunca cachear dados sensíveis; offline é tratado
- *   pela camada de persistência local do app em client/src/store).
+ * Base: SW v4 da main (network-first robusto, skip-correções de redirecionamentos
+ * SSO/CORS, fallback offline válido).
+ * Plus deste PR: pre-cache de assets com hash via asset-list.json (plugin Vite)
+ * e handlers base de push/notification click.
+ *
+ * Estratégia de fetch:
+ * - API (/api/ e supabase.co): network-only.
+ * - Assets estáticos com hash (/assets/*): cache-first após o primeiro fetch.
+ * - Restante: network-first com armazenamento em runtime cache e fallback offline.
  * - Limpeza de caches antigos na ativação.
  */
 
-const CACHE_VERSION = "ascend-v3";
+const CACHE_VERSION = "ascend-v5";
 const SHELL_CACHE = `${CACHE_VERSION}-shell`;
 const ASSETS_CACHE = `${CACHE_VERSION}-assets`;
 
@@ -27,23 +30,26 @@ const SHELL_URLS = [
 
 // ---------------- Install ----------------
 self.addEventListener("install", event => {
+  self.skipWaiting();
   event.waitUntil(
-    caches.open(SHELL_CACHE).then(cache => cache.addAll(SHELL_URLS)).then(() => {
+    Promise.all([
+      caches.open(SHELL_CACHE).then(cache => cache.addAll(SHELL_URLS)),
       // Pre-cache os assets estáticos com hash (JS/CSS) após o build
-      return fetch("/asset-list.json", { cache: "no-store" })
+      fetch("/asset-list.json", { cache: "no-store" })
         .then(res => (res.ok ? res.json() : []))
         .then(assets => {
           if (!Array.isArray(assets) || assets.length === 0) return;
-          return caches.open(ASSETS_CACHE).then(cache =>
-            cache.addAll(assets.filter(url => url.startsWith("/")))
-          );
+          return caches
+            .open(ASSETS_CACHE)
+            .then(cache =>
+              cache.addAll(assets.filter(url => url.startsWith("/")))
+            );
         })
         .catch(() => {
           // asset-list.json ausente (dev ou não configurado) — ok, não fatal
-        });
-    })
+        }),
+    ])
   );
-  self.skipWaiting();
 });
 
 // ---------------- Activate ----------------
@@ -71,26 +77,16 @@ self.addEventListener("fetch", event => {
 
   const url = new URL(request.url);
 
-  // Não interceptar requests de outros origens
+  // Não interceptar requests de outras origens
   if (url.origin !== location.origin) return;
 
   // Dados do Supabase / API: network-only (segurança + frescor)
-  if (url.pathname.startsWith("/api/") || url.hostname.includes("supabase.co")) {
-    return;
-  }
-
-  // Navegação SPA: network-first com fallback offline
-  if (request.mode === "navigate") {
+  if (
+    url.pathname.startsWith("/api/") ||
+    url.hostname.includes("supabase.co")
+  ) {
     event.respondWith(
-      fetch(request)
-        .then(response => {
-          if (response && response.status === 200) {
-            const clone = response.clone();
-            caches.open(SHELL_CACHE).then(cache => cache.put("/", clone));
-          }
-          return response;
-        })
-        .catch(() => caches.match("/index.html"))
+      fetch(request).catch(() => new Response("{}", { status: 503 }))
     );
     return;
   }
@@ -112,22 +108,36 @@ self.addEventListener("fetch", event => {
     return;
   }
 
-  // Restante do shell (ícones, manifest, fontes): stale-while-revalidate
-  if (SHELL_URLS.some(u => url.pathname === u) || url.pathname.startsWith("/icons/")) {
-    event.respondWith(
-      caches.match(request).then(cached => {
-        const fetched = fetch(request).then(response => {
-          if (response && response.status === 200) {
-            const clone = response.clone();
-            caches.open(SHELL_CACHE).then(cache => cache.put(request, clone));
-          }
+  // Restante do shell e navegação SPA: network-first com fallback offline.
+  // Nunca cachear redirecionamentos ou respostas opacas (causam falhas CORS).
+  event.respondWith(
+    fetch(request)
+      .then(async response => {
+        // Navegação: atualizar cópia do shell em cache
+        if (request.mode === "navigate" && response && response.status === 200) {
+          const clone = response.clone();
+          caches.open(SHELL_CACHE).then(cache => cache.put("/", clone));
+        }
+        if (!response.ok || response.redirected || response.type === "opaque") {
           return response;
-        });
-        return cached || fetched;
+        }
+        try {
+          const cache = await caches.open(SHELL_CACHE);
+          await cache.put(request, response.clone());
+        } catch (_) {
+          // ignorar erros de cache
+        }
+        return response;
       })
-    );
-    return;
-  }
+      .catch(async () => {
+        // Falha de rede: fallback para cache (offline)
+        const cached =
+          (await caches.match(request)) || (await caches.match("/index.html"));
+        if (cached) return cached;
+        // Último recurso: Response válido em vez de undefined
+        return new Response("Offline", { status: 503 });
+      })
+  );
 });
 
 // ---------------- Notifications push (base para futuras notificações) ----------------
