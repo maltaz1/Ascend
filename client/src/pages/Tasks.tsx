@@ -14,6 +14,7 @@ import {
  History,
  Info,
  CalendarDays,
+ Lock,
 } from "lucide-react";
 
 import { RecurrenceSection } from "@/components/RecurrenceSection";
@@ -276,6 +277,7 @@ function TaskModal({
  isPro,
  tasks,
  onTaskSaved,
+ onOpenUpgrade,
 }: {
  open: boolean;
  onClose: () => void;
@@ -284,6 +286,7 @@ function TaskModal({
  isPro: boolean;
  tasks: Task[];
  onTaskSaved: () => void;
+ onOpenUpgrade?: () => void;
 }) {
  const [title, setTitle] = useState("");
  const [description, setDescription] = useState("");
@@ -321,9 +324,13 @@ function TaskModal({
  setActiveTab("edit");
  }, [task, open, defaultDate]);
 
- const handleSubmit = async () => {
+  const handleSubmit = async () => {
  if (!title.trim() || !date) return;
-
+ if (!task && !isPro && recurrence.type !== "never") {
+ showToast("Tarefas recorrentes são exclusivas do plano Pro", "info");
+ onOpenUpgrade?.();
+ return;
+ }
  if (!task && !isPro && countTasksCreatedThisWeek(tasks) >= FREE_LIMITS.tasksPerWeek) {
  showToast(`Plano grátis permite apenas ${FREE_LIMITS.tasksPerWeek} tarefas por semana`, "info");
  return;
@@ -429,12 +436,25 @@ function TaskModal({
  </div></div></div>
 
  {!task && (
- <div className="mt-1"><button
+ <div className="mt-1">{!isPro ? (
+ <button
+ onClick={() => {
+ showToast("Tarefas recorrentes são exclusivas do plano Pro", "info");
+ onOpenUpgrade?.();
+ }}
+ className="ledger-btn ledger-btn--ghost w-full relative overflow-hidden"
+ ><RotateCw size={14} className="opacity-60" />
+ Adicionar recorrência
+ <Lock size={13} className="absolute right-3 top-1/2 -translate-y-1/2" />
+ </button>
+ ) : (
+ <button
  onClick={() => setShowRecurrenceSection(!showRecurrenceSection)}
  className="ledger-btn ledger-btn--ghost w-full"
  ><RotateCw size={14} />
  {showRecurrenceSection ? "Remover recorrência" : "Adicionar recorrência"}
  </button>
+ )}
  {showRecurrenceSection && (
  <div className="mt-4 animate-in fade-in slide-in-from-top-2 duration-300"><RecurrenceSection recurrence={recurrence} onChange={setRecurrence} /></div>
  )}
@@ -454,7 +474,7 @@ function TaskModal({
  );
 }
 
-export default function Tasks({ isPro }: { isPro: boolean }) {
+export default function Tasks({ isPro, onOpenUpgrade }: { isPro: boolean; onOpenUpgrade?: () => void }) {
  const { showXP } = useXPAnimation();
  const today = getTodayString();
  const [selectedDate, setSelectedDate] = useState(today);
@@ -789,6 +809,7 @@ export default function Tasks({ isPro }: { isPro: boolean }) {
  isPro={isPro}
  tasks={tasks}
  onTaskSaved={fetchTasks}
+ onOpenUpgrade={onOpenUpgrade}
  />
 
  {/* Modal de exclusão de tarefa recorrente */}
