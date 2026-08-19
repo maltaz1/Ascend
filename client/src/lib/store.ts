@@ -10,5 +10,6 @@ export * from "@/store/prayer.store";
 export * from "@/store/utils";
 export * from "@/store/types";
 export * from "@/store/realtime";
+export { markCrossTabMutations, broadcastReloadComplete } from "@/store/cross-tab-sync";
 export * from "@/store/xp-system";
 export * from "@/store/xp-engine";

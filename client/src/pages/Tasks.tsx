@@ -23,8 +23,9 @@ import { RecurrenceTaskMenu } from "@/components/RecurrenceTaskMenu";
 import type { RecurrenceConfig } from "@/types/recurrence";
 
 import { FREE_LIMITS } from "@/config/planLimits";
-import { addXP } from "@/lib/store";
+import { addXP, markCrossTabMutations, broadcastReloadComplete } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
+import { _data, markSelfWrite, notify } from "@/lib/store";
 import { useXPAnimation } from "@/hooks/useStore";
 import { Modal } from "@/components/ui/Modal";
 import { showToast } from "@/components/ui/FlowToast";
@@ -508,7 +509,26 @@ export default function Tasks({ isPro, onOpenUpgrade }: { isPro: boolean; onOpen
  console.log(`[fetchTasks] Query retornou em ${(t2 - t1).toFixed(0)}ms. Total: ${(data || []).length} tarefas. Erro:`, error);
 
  if (!error && data) {
- setTasks(data.map(task => normalizeTask(task as Record<string, unknown>)));
+ const normalized = data.map(task => normalizeTask(task as Record<string, unknown>));
+ setTasks(normalized);
+
+ // Reflect the fresh list into the shared store observed by Today
+ _data.tasks = normalized.map(task => {
+ const shared = _data.tasks.find(t => t.id === task.id);
+ return {
+ id: task.id,
+ title: task.title,
+ description: task.description,
+ date: task.date,
+ completed: task.completed,
+ priority: task.priority,
+ category: task.category,
+ createdAt: task.createdAt,
+ isRecurring: task.isRecurring,
+ recurrence: task.recurrence,
+ };
+ });
+ notify();
  }
 
  console.log(`[fetchTasks] Concluído em ${(performance.now() - t0).toFixed(0)}ms total`);
@@ -585,6 +605,15 @@ export default function Tasks({ isPro, onOpenUpgrade }: { isPro: boolean; onOpen
  item.id === task.id ? { ...item, completed: newCompleted } : item
  )
  );
+
+ // Optimistically update the shared store observed by Today
+ const previousSharedCompleted = _data.tasks.find(t => t.id === task.id)?.completed;
+ _data.tasks = _data.tasks.map(t =>
+ t.id === task.id ? { ...t, completed: newCompleted } : t
+ );
+ markSelfWrite("tasks", task.id);
+ notify();
+
  showToast(newCompleted ? "Tarefa concluída!" : "Tarefa desmarcada", "success");
 
  if (newCompleted) {
@@ -603,6 +632,11 @@ export default function Tasks({ isPro, onOpenUpgrade }: { isPro: boolean; onOpen
  item.id === task.id ? { ...item, completed: task.completed } : item
  )
  );
+ // Rollback the shared store as well
+ _data.tasks = _data.tasks.map(t =>
+ t.id === task.id ? { ...t, completed: previousSharedCompleted ?? task.completed } : t
+ );
+ notify();
  showToast("Não foi possível atualizar a tarefa", "info");
  }
  })();
@@ -625,10 +659,19 @@ export default function Tasks({ isPro, onOpenUpgrade }: { isPro: boolean; onOpen
  if (!task) return;
  setTasks(previous => previous.filter(item => item.id !== id));
 
+ // Remove from the shared store observed by Today
+ const previousSharedTasks = [..._data.tasks];
+ _data.tasks = _data.tasks.filter(t => t.id !== id);
+ markSelfWrite("tasks", id);
+ notify();
+
  void (async () => {
  const { error } = await supabase.from("tasks").delete().eq("id", id);
  if (error) {
  setTasks(previous => [task, ...previous]);
+ // Rollback the shared store as well
+ _data.tasks = previousSharedTasks;
+ notify();
  showToast("Não foi possível remover a tarefa", "info");
  }
  })();
@@ -652,9 +695,11 @@ export default function Tasks({ isPro, onOpenUpgrade }: { isPro: boolean; onOpen
  .from("tasks")
  .update({ recurrence: updatedRecurrence })
  .eq("id", deleteRecurringTask.parentId);
+ markCrossTabMutations(["tasks"]);
  }
  fetchTasks();
  }
+
  setDeleteRecurringTask(null);
  showToast("Ocorrência excluída deste dia", "success");
  return;
@@ -670,7 +715,10 @@ export default function Tasks({ isPro, onOpenUpgrade }: { isPro: boolean; onOpen
  .from("tasks")
  .update({ recurrence: updatedRecurrence })
  .eq("id", deleteRecurringTask.id);
- if (!error) fetchTasks();
+ if (!error) {
+ markCrossTabMutations(["tasks"]);
+ fetchTasks();
+ }
  setDeleteRecurringTask(null);
  showToast("Ocorrência excluída deste dia", "success");
  return;
@@ -683,6 +731,10 @@ export default function Tasks({ isPro, onOpenUpgrade }: { isPro: boolean; onOpen
  showToast("Ocorrência excluída deste dia", "success");
  };
 
+ // Any task deletion/update below also needs the shared store updated.
+ // fetchTasks() already reflects the fresh list into the shared store, so
+ // these paths go through it. The cross-tab BroadcastChannel then lets
+ // Today in OTHER tabs refresh as well.
  const handleDeleteAllOccurrences = async () => {
  if (!deleteRecurringTask) return;
  setDeletingAll(true);
@@ -695,11 +747,24 @@ export default function Tasks({ isPro, onOpenUpgrade }: { isPro: boolean; onOpen
  if (parentTask) {
  // Deletar a tarefa-mãe → cascade deleta todas as ocorrências filhas
  const { error } = await supabase.from("tasks").delete().eq("id", parentTask.id);
- if (!error) fetchTasks();
+ if (!error) {
+ _data.tasks = _data.tasks.filter(t => {
+ const withParent = t as Task & { parentId?: string };
+ return t.id !== parentTask.id && withParent.parentId !== parentTask.id;
+ });
+ markSelfWrite("tasks", parentTask.id);
+ notify();
+ fetchTasks();
+ }
  } else {
  // Fallback: deletar apenas esta tarefa (não recorrente)
  const { error } = await supabase.from("tasks").delete().eq("id", deleteRecurringTask.id);
- if (!error) fetchTasks();
+ if (!error) {
+ _data.tasks = _data.tasks.filter(t => t.id !== deleteRecurringTask.id);
+ markSelfWrite("tasks", deleteRecurringTask.id);
+ notify();
+ fetchTasks();
+ }
  }
  setDeletingAll(false);
  setDeleteRecurringTask(null);

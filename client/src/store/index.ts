@@ -11,3 +11,4 @@ export * from "./entities/diet";
 export * from "./entities/financial";
 export * from "./prayer.store";
 export * from "./realtime";
+export { markCrossTabMutations, broadcastReloadComplete } from "./cross-tab-sync";
