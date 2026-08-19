@@ -17,7 +17,7 @@ import {
  Table2,
 } from "lucide-react";
 
-import { addXP } from "@/lib/store";
+import { addXP, _data, markSelfWrite, notify, markCrossTabMutations } from "@/lib/store";
 import { notifyError } from "@/lib/notifications";
 
 import {
@@ -217,6 +217,8 @@ function HabitRow({
  if (error) {
  onHabitUpdated(habit.id, previousDates);
  showToast("Erro ao atualizar", "info", "❌");
+ } else {
+ markCrossTabMutations(["habits"]);
  }
  })();
  };
@@ -230,6 +232,9 @@ function HabitRow({
  if (error) {
  onHabitRestored(habit);
  showToast("Erro ao remover", "info", "❌");
+ } else {
+ // Notify other tabs (e.g. Today open elsewhere) to refresh habits
+ markCrossTabMutations(["habits"]);
  }
  })();
  };
@@ -337,6 +342,8 @@ function HabitCard({
  if (error) {
  onHabitUpdated(habit.id, previousDates);
  showToast("Erro ao atualizar", "info", "❌");
+ } else {
+ markCrossTabMutations(["habits"]);
  }
  })();
  };
@@ -350,6 +357,9 @@ function HabitCard({
  if (error) {
  onHabitRestored(habit);
  showToast("Erro ao remover", "info", "❌");
+ } else {
+ // Notify other tabs (e.g. Today open elsewhere) to refresh habits
+ markCrossTabMutations(["habits"]);
  }
  })();
  };
@@ -553,6 +563,8 @@ function NewHabitModal({
  setCustomColor("var(--accent)");
  setTargetDays(30);
 
+ // Notify other tabs (e.g. Today open elsewhere) to refresh habits
+ markCrossTabMutations(["habits"]);
  reloadHabits();
 
  onClose();
@@ -681,13 +693,26 @@ export default function Habits({ isPro }: { isPro: boolean }) {
  return;
  }
 
- setHabits(
- (data || []).map((habit: any) => ({
+ const normalized = (data || []).map((habit: any) => ({
  ...habit,
  completedDates: habit.completed_dates || [],
  targetDays: habit.target_days || 30,
- }))
- );
+ }));
+
+ setHabits(normalized);
+
+ // Reflect the fresh list into the shared store observed by Today
+ _data.habits = normalized.map(habit => ({
+ id: String(habit.id),
+ title: habit.title || "",
+ emoji: habit.emoji || "",
+ color: habit.color || "var(--accent)",
+ frequency: habit.frequency === "weekly" ? "weekly" : "daily",
+ completedDates: habit.completedDates || [],
+ createdAt: habit.created_at || new Date().toISOString(),
+ targetDays: habit.targetDays || 30,
+ }));
+ notify();
  };
 
  useEffect(() => {
@@ -700,14 +725,39 @@ export default function Habits({ isPro }: { isPro: boolean }) {
  habit.id === habitId ? { ...habit, completedDates } : habit
  )
  );
+
+ // Update the shared store observed by Today
+ _data.habits = _data.habits.map(habit =>
+ habit.id === habitId ? { ...habit, completedDates } : habit
+ );
+ markSelfWrite("habits", habitId);
+ notify();
  };
 
  const removeHabitLocally = (habitId: string) => {
  setHabits(previous => previous.filter(habit => habit.id !== habitId));
+
+ // Remove from the shared store observed by Today
+ _data.habits = _data.habits.filter(habit => habit.id !== habitId);
+ markSelfWrite("habits", habitId);
+ notify();
  };
 
  const restoreHabitLocally = (habit: any) => {
  setHabits(previous => [...previous, habit]);
+
+ // Restore in the shared store observed by Today
+ _data.habits.push({
+ id: String(habit.id),
+ title: habit.title || "",
+ emoji: habit.emoji || "",
+ color: habit.color || "var(--accent)",
+ frequency: habit.frequency === "weekly" ? "weekly" : "daily",
+ completedDates: habit.completed_dates || [],
+ createdAt: habit.created_at || new Date().toISOString(),
+ targetDays: habit.target_days || 30,
+ });
+ notify();
  };
 
  // =========================

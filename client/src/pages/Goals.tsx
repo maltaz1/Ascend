@@ -22,6 +22,7 @@ import { showToast } from "@/components/ui/FlowToast";
 
 import { supabase } from "@/lib/supabase";
 import { FREE_LIMITS } from "@/config/planLimits";
+import { _data, markSelfWrite, notify, markCrossTabMutations } from "@/lib/store";
 
 import {
  WEEKDAY_LABELS,
@@ -237,6 +238,8 @@ function WeeklyGoalCard({
  const persistWeek = useCallback(async (newDays: boolean[], newStreak: number) => {
  const weekStart = getMondayOfDate(new Date());
  await supabase.from("goals").update({ days_completed_week: newDays, week_start: weekStart, streak: newStreak }).eq("id", goal.id);
+ // Notify other tabs (e.g. Today open elsewhere) to refresh goals
+ markCrossTabMutations(["goals"]);
  reloadGoals();
  }, [goal.id, reloadGoals]);
 
@@ -402,6 +405,8 @@ function GoalCard({
  onGoalUpdated(goal.id, goal.steps, goal.completed_at ?? null);
  showToast("Não foi possível atualizar a meta", "info");
  } else {
+ // Notify other tabs (e.g. Today open elsewhere) to refresh goals
+ markCrossTabMutations(["goals"]);
  // Recarregar para manter metas semanais vinculadas em sincronia
  reloadGoals();
  }
@@ -416,6 +421,8 @@ function GoalCard({
  onGoalRestored(goal);
  showToast("Não foi possível remover a meta", "info");
  } else {
+ // Notify other tabs (e.g. Today open elsewhere) to refresh goals
+ markCrossTabMutations(["goals"]);
  reloadGoals();
  }
  })();
@@ -579,6 +586,8 @@ function NewGoalModal({
  });
  }
 
+ // Notify other tabs (e.g. Today open elsewhere) to refresh goals
+ markCrossTabMutations(["goals"]);
  onClose();
  reloadGoals();
  };
@@ -707,6 +716,31 @@ export default function Goals({
  }
  setGoals(normalized);
 
+ // Reflect the fresh list into the shared store observed by Today
+ _data.goals = normalized.map(goal => ({
+ id: goal.id,
+ title: goal.title,
+ emoji: goal.emoji,
+ description: goal.description,
+ steps: (goal.steps || []).map(step => ({
+ id: step.id,
+ title: step.title,
+ completed: step.completed,
+ })),
+ deadline: goal.deadline,
+ color: goal.color,
+ createdAt: (goal as Goal & { created_at?: string }).created_at ?? new Date().toISOString(),
+ completedAt: goal.completed_at ?? undefined,
+ type: goal.type,
+ targetFrequency: goal.target_frequency,
+ daysCompletedWeek: goal.days_completed_week,
+ streak: goal.streak,
+ recordStreak: goal.record_streak,
+ linkedHabitId: goal.linked_habit_id ?? null,
+ weekStart: goal.week_start ?? null,
+ }));
+ notify();
+
  const { data: habitsData } = await supabase.from("habits").select("id, title, emoji, completed_dates").eq("user_id", user.id);
  setHabits(habitsData || []);
  };
@@ -719,12 +753,54 @@ export default function Goals({
  : goal
  )
  );
+
+ // Update the shared store observed by Today
+ _data.goals = _data.goals.map(goal =>
+ goal.id === goalId
+ ? { ...goal, steps, completedAt: completedAt ?? undefined }
+ : goal
+ );
+ markSelfWrite("goals", goalId);
+ notify();
  };
  const removeGoalLocally = (goalId: string) => {
  setGoals(previous => previous.filter(goal => goal.id !== goalId));
+
+ // Remove from the shared store observed by Today
+ _data.goals = _data.goals.filter(goal => goal.id !== goalId);
+ markSelfWrite("goals", goalId);
+ notify();
  };
  const restoreGoalLocally = (goal: Goal) => {
  setGoals(previous => [goal, ...previous]);
+
+ // Restore in the shared store observed by Today
+ _data.goals = [
+ {
+ id: goal.id,
+ title: goal.title,
+ emoji: goal.emoji,
+ description: goal.description,
+ steps: (goal.steps || []).map(step => ({
+ id: step.id,
+ title: step.title,
+ completed: step.completed,
+ })),
+  deadline: goal.deadline,
+  color: goal.color,
+  createdAt: (goal as Goal & { created_at?: string }).created_at ?? new Date().toISOString(),
+  completedAt: goal.completed_at ?? undefined,
+  type: goal.type,
+  targetFrequency: goal.target_frequency,
+  daysCompletedWeek: goal.days_completed_week,
+  streak: goal.streak,
+  recordStreak: goal.record_streak,
+  linkedHabitId: goal.linked_habit_id ?? null,
+  weekStart: goal.week_start ?? null,
+ },
+ ..._data.goals,
+ ];
+ notify();
  };
  const weeklyGoals = goals.filter(g => g.type === "semanal");
  const longTermGoals = goals.filter(g => !g.type || g.type === "longo_prazo");
@@ -783,6 +859,8 @@ export default function Goals({
  isMobile={isMobile}
  onDelete={async () => {
  await supabase.from("goals").delete().eq("id", goal.id);
+ // Notify other tabs (e.g. Today open elsewhere) to refresh goals
+ markCrossTabMutations(["goals"]);
  loadGoals();
  showToast("Meta excluída", "success");
  }}

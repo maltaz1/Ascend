@@ -22,6 +22,7 @@ import {
   stopRealtimeSync,
   _data,
 } from "./lib/store";
+import "./store/cross-tab-sync";
 
 function timeoutPromise<T>(promise: Promise<T>, ms: number): Promise<T> {
   let timer = 0;
