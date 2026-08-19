@@ -31,12 +31,12 @@ export function Modal({ open, onClose, title, children, maxWidth = '420px' }: Mo
 
   return (
     <div 
-      className="fixed inset-0 z-[100] flex items-center justify-center p-4 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
+      className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto py-8 bg-black/60 backdrop-blur-sm animate-in fade-in duration-200"
       onClick={(e) => { if (e.target === e.currentTarget) onClose(); }}
     >
       <div 
-        className="bg-[var(--ledger-paper-bg)] border border-[var(--ledger-paper-border)] w-full rounded-md p-6 shadow-[8px_8px_0_rgba(0,0,0,0.35)] animate-in zoom-in-95 duration-200"
-        style={{ maxWidth }}
+        className="bg-[var(--ledger-paper-bg)] border border-[var(--ledger-paper-border)] w-full my-auto rounded-md p-6 overflow-y-auto shadow-[8px_8px_0_rgba(0,0,0,0.35)] animate-in zoom-in-95 duration-200"
+        style={{ maxWidth, maxHeight: 'min(100%, calc(100dvh - 4rem))' }}
       >
         {title && (
           <div className="flex items-center justify-between mb-6">
