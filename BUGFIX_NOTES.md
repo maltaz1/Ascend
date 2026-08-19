@@ -39,4 +39,6 @@ A aba `/today` (client/src/pages/Today.tsx) usa `useStore()` → `subscribe/getD
 - Habits.tsx: FEITO (loadHabits reflete no _data; updateHabitLocally/removeHabitLocally/restoreHabitLocally com markSelfWrite+notify; NewHabitModal e deletas com markCrossTabMutations(["habits"]))
 - Nota: Habits.tsx handleToggle (HabitRow/HabitCard) chama onHabitUpdated = updateHabitLocally → já cobre toggle. Falta marcar cross-tab nos toggles dos componentes internos (syncHabitToGoals + supabase update) — os toggles já atualizam o store localmente via updateHabitLocally antes do call Supabase; adicionar markCrossTabMutations após sucesso do update no DB em ambos os handleToggle (HabitRow linha ~211-225, HabitCard ~334-347) para outros tabs verem o toggle imediatamente.
 - Goals.tsx: PENDENTE
-- Falta: rodar `npx tsc --noEmit`, commit, push branch, entregar.
+- COMMIT e PUSH FEITOS: branch `fix/today-tab-sync` (commit e315f06) enviada ao origin. `npx tsc --noEmit` OK (exit 0); `npm run build` OK.
+- ATENÇÃO: o commit incluiu `client/public/asset-list.json` (gerado pelo plugin pwa-assets do vite build) e `BUGFIX_NOTES.md` (notas internas). Verificar se asset-list.json já era rastreado no repo (apareceu como M, então já existia — update esperado do build). Considerar remover BUGFIX_NOTES.md do commit ou manter (é inofensivo, documenta o fix).
+- Repositório: https://github.com/maltaz1/Ascend, branch fix/today-tab-sync, base main = dd7459b.
