@@ -1,9 +1,9 @@
 // FlowZone Today — Supabase Synced (Visual Original Mantido)
 
-import React, { useMemo } from "react";
+import React, { useEffect, useMemo } from "react";
 import { CalendarDays, Check, Sun, Target, Flame, ListTodoIcon } from "lucide-react";
 import { useStore } from "@/hooks/useStore";
-import { toggleHabitDate, updateTask } from "@/lib/store";
+import { loadGoalsData, toggleHabitDate, updateTask } from "@/lib/store";
 import { syncHabitToGoals } from "@/lib/syncHabitGoals";
 
 import { CircularProgress } from "@/components/ui/CircularProgress";
@@ -64,6 +64,35 @@ export default function Today() {
    () => goals.filter(goal => goal.type !== "semanal").sort((a, b) => a.title.localeCompare(b.title)),
    [goals],
  );
+
+ useEffect(() => {
+   let refreshInFlight = false;
+
+   const refreshIfWeekChanged = () => {
+     const expectedWeekStart = getMondayOfDate(new Date());
+     const hasStaleWeeklyGoal = goals.some(
+       goal => goal.type === "semanal" && goal.weekStart && goal.weekStart < expectedWeekStart,
+     );
+
+     if ((expectedWeekStart !== currentWeekStart || hasStaleWeeklyGoal) && !refreshInFlight) {
+       refreshInFlight = true;
+       void loadGoalsData().finally(() => {
+         refreshInFlight = false;
+       });
+     }
+   };
+
+   refreshIfWeekChanged();
+   const intervalId = window.setInterval(refreshIfWeekChanged, 60_000);
+   window.addEventListener("focus", refreshIfWeekChanged);
+   document.addEventListener("visibilitychange", refreshIfWeekChanged);
+
+   return () => {
+     window.clearInterval(intervalId);
+     window.removeEventListener("focus", refreshIfWeekChanged);
+     document.removeEventListener("visibilitychange", refreshIfWeekChanged);
+   };
+ }, [currentWeekStart, goals]);
 
  const todayStats = useMemo(() => {
  const tasksCompleted = todayTasks.filter(t => t.completed).length;

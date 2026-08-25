@@ -4,6 +4,7 @@ import { _data, notify, persistState } from "./state";
 import { generateId } from "./utils";
 import { addXP } from "./xp-system";
 import { evaluateAchievements } from "./achievements";
+import { normalizeWeeklyGoalWeek } from "@/lib/weeklyGoals";
 
 export function addGoal(goal: Omit<Goal, "id" | "createdAt">): Goal {
   const newGoal: Goal = {
@@ -96,7 +97,7 @@ export async function loadGoalsData(): Promise<void> {
     return;
   }
 
-  _data.goals = (data || []).map(item => ({
+  const mappedGoals = (data || []).map(item => ({
     id: item.id,
     title: item.title,
     emoji: item.emoji,
@@ -113,7 +114,61 @@ export async function loadGoalsData(): Promise<void> {
     recordStreak: item.record_streak,
     linkedHabitId: item.linked_habit_id,
     weekStart: item.week_start,
+    weeklyHistory: item.weekly_history || [],
   }));
+
+  const normalizedGoals = mappedGoals.map(goal => {
+    if (goal.type !== "semanal") return { goal, changed: false };
+
+    const normalized = normalizeWeeklyGoalWeek({
+      id: goal.id,
+      title: goal.title,
+      emoji: goal.emoji,
+      color: goal.color,
+      description: goal.description,
+      targetFrequency: goal.targetFrequency ?? 1,
+      daysCompletedWeek: goal.daysCompletedWeek ?? [false, false, false, false, false, false, false],
+      weekStart: goal.weekStart ?? null,
+      streak: goal.streak ?? 0,
+      recordStreak: goal.recordStreak ?? 0,
+      linkedHabitId: goal.linkedHabitId ?? null,
+      weeklyHistory: goal.weeklyHistory ?? [],
+      createdAt: goal.createdAt ?? "",
+    });
+
+    return {
+      goal: {
+        ...goal,
+        daysCompletedWeek: normalized.goal.daysCompletedWeek,
+        weekStart: normalized.goal.weekStart,
+        streak: normalized.goal.streak,
+        recordStreak: normalized.goal.recordStreak,
+        weeklyHistory: normalized.goal.weeklyHistory,
+      },
+      changed: normalized.changed,
+    };
+  });
+
+  const goalsToPersist = normalizedGoals.filter(({ changed }) => changed);
+  if (goalsToPersist.length > 0) {
+    await Promise.all(
+      goalsToPersist.map(({ goal }) =>
+        supabase
+          .from("goals")
+          .update({
+            days_completed_week: goal.daysCompletedWeek,
+            week_start: goal.weekStart,
+            streak: goal.streak,
+            record_streak: goal.recordStreak,
+            weekly_history: goal.weeklyHistory,
+          })
+          .eq("id", goal.id)
+          .eq("user_id", user.id),
+      ),
+    );
+  }
+
+  _data.goals = normalizedGoals.map(({ goal }) => goal);
 
   const t3 = performance.now();
   console.log(`[loadGoalsData] Concluído em ${(t3 - t0).toFixed(0)}ms total. Metas carregadas: ${_data.goals.length}`);
