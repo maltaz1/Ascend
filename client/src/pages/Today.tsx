@@ -1,7 +1,7 @@
 // FlowZone Today — Supabase Synced (Visual Original Mantido)
 
 import React, { useMemo } from "react";
-import { Check, Sun, Target, Flame, ListTodoIcon } from "lucide-react";
+import { CalendarDays, Check, Sun, Target, Flame, ListTodoIcon } from "lucide-react";
 import { useStore } from "@/hooks/useStore";
 import { toggleHabitDate, updateTask } from "@/lib/store";
 import { syncHabitToGoals } from "@/lib/syncHabitGoals";
@@ -9,7 +9,44 @@ import { syncHabitToGoals } from "@/lib/syncHabitGoals";
 import { CircularProgress } from "@/components/ui/CircularProgress";
 import { showToast } from "@/components/ui/FlowToast";
 import { getTodayString } from "@/store/utils";
+import type { Goal as StoreGoal, Habit } from "@/store/types";
+import { getMondayOfDate, getLinkedHabitWeekCheckins } from "@/lib/weeklyGoals";
 import { awardXp, createXpPayload } from "@/store/xp-engine";
+
+const WEEKDAY_SHORT = ["S", "T", "Q", "Q", "S", "S", "D"];
+const EMPTY_WEEK = [false, false, false, false, false, false, false];
+
+function getWeekDateStrings(monday: string): string[] {
+  return EMPTY_WEEK.map((_, index) => {
+    const date = new Date(`${monday}T12:00:00`);
+    date.setDate(date.getDate() + index);
+    return date.toISOString().slice(0, 10);
+  });
+}
+
+function getWeeklyGoalSnapshot(goal: StoreGoal, habits: Habit[], weekStart: string) {
+  const weekBelongsToCurrentPeriod = !goal.weekStart || goal.weekStart === weekStart;
+  const storedDays = weekBelongsToCurrentPeriod
+    ? Array.from({ length: 7 }, (_, index) => Boolean(goal.daysCompletedWeek?.[index]))
+    : [...EMPTY_WEEK];
+  const linkedHabit = goal.linkedHabitId ? habits.find(habit => habit.id === goal.linkedHabitId) : undefined;
+  const linkedDays = linkedHabit
+    ? getLinkedHabitWeekCheckins(
+        { id: linkedHabit.id, completed_dates: linkedHabit.completedDates },
+        weekStart,
+      )
+    : undefined;
+  const days = linkedDays ? storedDays.map((completed, index) => completed || linkedDays[index]) : storedDays;
+  const target = Math.max(1, goal.targetFrequency ?? 1);
+  const completed = days.filter(Boolean).length;
+
+  return {
+    days,
+    target,
+    completed,
+    percent: Math.min(100, Math.round((completed / target) * 100)),
+  };
+}
 
 export default function Today() {
  const today = getTodayString();
@@ -17,7 +54,16 @@ export default function Today() {
  const { user: profile, tasks, habits, goals } = store;
 
  const todayTasks = useMemo(() => tasks.filter(t => t.date === today), [tasks, today]);
- const activeGoals = useMemo(() => goals.filter(g => !g.completedAt).slice(0, 4), [goals]);
+ const currentWeekStart = useMemo(() => getMondayOfDate(new Date(`${today}T12:00:00`)), [today]);
+ const currentWeekDates = useMemo(() => getWeekDateStrings(currentWeekStart), [currentWeekStart]);
+ const weeklyGoals = useMemo(
+   () => goals.filter(goal => goal.type === "semanal").sort((a, b) => a.title.localeCompare(b.title)),
+   [goals],
+ );
+ const longTermGoals = useMemo(
+   () => goals.filter(goal => goal.type !== "semanal").sort((a, b) => a.title.localeCompare(b.title)),
+   [goals],
+ );
 
  const todayStats = useMemo(() => {
  const tasksCompleted = todayTasks.filter(t => t.completed).length;
@@ -87,9 +133,9 @@ export default function Today() {
  );
  };
 
- const getGoalProgress = (goal: any) => {
+ const getGoalProgress = (goal: StoreGoal) => {
  if (!goal.steps || goal.steps.length === 0) return 0;
- const completed = goal.steps.filter((s: any) => s.completed).length;
+ const completed = goal.steps.filter(step => step.completed).length;
  return Math.round((completed / goal.steps.length) * 100);
  };
 
@@ -482,59 +528,119 @@ export default function Today() {
  )}
  </div></div>
 
- {/* Active Goals */}
- {activeGoals.length > 0 && (
+ {/* Goals */}
+ {goals.length > 0 ? (
  <div
  className="ledger-paper"
  style={{
  padding: "20px 22px",
  marginTop: 20,
  }}
- ><div
+ >
+ <div
  style={{
  display: "flex",
  alignItems: "center",
  gap: 8,
- marginBottom: 16,
+ marginBottom: 18,
  }}
- ><Target size={16} color="var(--primary)" /><h3
+ >
+ <Target size={16} color="var(--primary)" />
+ <div style={{ flex: 1 }}>
+ <h3
  style={{
  fontFamily: "Space Grotesk",
  fontWeight: 700,
  fontSize: 15,
  color: "var(--foreground)",
+ margin: 0,
  }}
  >
- Metas em Andamento
- </h3></div><div
+ Metas
+ </h3>
+ <p
+ style={{
+ fontFamily: "DM Sans",
+ fontSize: 11,
+ color: "var(--muted-foreground)",
+ margin: "3px 0 0",
+ }}
+ >
+ Acompanhe o progresso de todos os seus objetivos.
+ </p>
+ </div>
+ <span
+ style={{
+ fontFamily: "Space Grotesk",
+ fontWeight: 700,
+ fontSize: 12,
+ color: "var(--primary)",
+ }}
+ >
+ {goals.length} {goals.length === 1 ? "meta" : "metas"}
+ </span>
+ </div>
+
+ {weeklyGoals.length > 0 && (
+ <section style={{ marginBottom: longTermGoals.length > 0 ? 22 : 0 }}>
+ <div
+ style={{
+ display: "flex",
+ alignItems: "center",
+ gap: 7,
+ marginBottom: 12,
+ }}
+ >
+ <CalendarDays size={15} color="var(--primary)" />
+ <h4
+ style={{
+ fontFamily: "Space Grotesk",
+ fontWeight: 700,
+ fontSize: 13,
+ color: "var(--foreground)",
+ margin: 0,
+ flex: 1,
+ }}
+ >
+ Metas semanais
+ </h4>
+ <span style={{ fontSize: 10, color: "var(--muted-foreground)" }}>
+ Reinicia toda segunda-feira
+ </span>
+ </div>
+ <div
  style={{
  display: "grid",
- gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
- gap: 12,
+ gridTemplateColumns: "repeat(auto-fill, minmax(235px, 1fr))",
+ gap: 10,
  }}
  >
- {activeGoals.map(goal => {
- const progress = getGoalProgress(goal);
+ {weeklyGoals.map(goal => {
+ const weekly = getWeeklyGoalSnapshot(goal, habits, currentWeekStart);
+ const linkedHabit = goal.linkedHabitId ? habits.find(habit => habit.id === goal.linkedHabitId) : undefined;
  return (
  <div
  key={goal.id}
  style={{
  background: "var(--border)",
- border: `1px solid ${goal.color}20`,
- borderRadius: 6,
- padding: "14px 16px",
+ border: `1px solid ${goal.color}30`,
+ borderRadius: 8,
+ padding: "12px 13px",
  }}
- ><div
+ >
+ <div
  style={{
  display: "flex",
  alignItems: "center",
  gap: 8,
- marginBottom: 10,
+ marginBottom: 9,
  }}
- ><span style={{ fontSize: 20 }}>{goal.emoji}</span><span
+ >
+ <span style={{ fontSize: 18 }}>{goal.emoji}</span>
+ <span
  style={{
  fontFamily: "DM Sans",
- fontWeight: 500,
+ fontWeight: 600,
  fontSize: 13,
  color: "var(--foreground)",
  flex: 1,
@@ -542,37 +648,232 @@ export default function Today() {
  textOverflow: "ellipsis",
  whiteSpace: "nowrap",
  }}
+ title={goal.title}
  >
  {goal.title}
- </span><span
+ </span>
+ <span
+ style={{
+ fontFamily: "Space Grotesk",
+ fontWeight: 700,
+ fontSize: 11,
+ color: weekly.completed >= weekly.target ? "#10B981" : goal.color,
+ whiteSpace: "nowrap",
+ }}
+ >
+ {weekly.completed >= weekly.target ? "Atingida" : `${weekly.completed}/${weekly.target}`}
+ </span>
+ </div>
+ <div className="fz-progress-bar" style={{ marginBottom: 10 }}>
+ <div
+ className="fz-progress-fill"
+ style={{
+ width: `${weekly.percent}%`,
+ background: weekly.completed >= weekly.target
+ ? "#10B981"
+ : `linear-gradient(90deg, ${goal.color}, ${goal.color}cc)`,
+ }}
+ />
+ </div>
+ <div
+ style={{
+ display: "grid",
+ gridTemplateColumns: "repeat(7, minmax(0, 1fr))",
+ gap: 4,
+ }}
+ >
+ {weekly.days.map((completed, index) => {
+ const date = currentWeekDates[index];
+ const isToday = date === today;
+ const isFuture = date > today;
+ const dayNumber = new Date(`${date}T12:00:00`).getDate();
+ return (
+ <div
+ key={date}
+ title={`${WEEKDAY_SHORT[index]} ${dayNumber}: ${completed ? "concluída" : isFuture ? "ainda não chegou" : "pendente"}`}
+ style={{
+ display: "flex",
+ flexDirection: "column",
+ alignItems: "center",
+ gap: 3,
+ padding: "5px 2px",
+ borderRadius: 5,
+ border: isToday ? `1px solid ${goal.color}99` : "1px solid transparent",
+ background: isToday ? `${goal.color}10` : "transparent",
+ opacity: isFuture ? 0.45 : 1,
+ }}
+ >
+ <span
+ style={{
+ fontFamily: "Space Grotesk",
+ fontWeight: isToday ? 800 : 600,
+ fontSize: 9,
+ color: isToday ? goal.color : "var(--muted-foreground)",
+ }}
+ >
+ {WEEKDAY_SHORT[index]}
+ </span>
+ <span
+ style={{
+ width: 20,
+ height: 20,
+ borderRadius: "50%",
+ display: "flex",
+ alignItems: "center",
+ justifyContent: "center",
+ background: completed ? goal.color : "transparent",
+ border: completed ? `1px solid ${goal.color}` : "1px solid var(--muted-foreground)",
+ color: "white",
+ }}
+ >
+ {completed ? <Check size={11} strokeWidth={3} /> : <span style={{ fontSize: 9, color: "var(--muted-foreground)" }}>{dayNumber}</span>}
+ </span>
+ </div>
+ );
+ })}
+ </div>
+ <div
+ style={{
+ display: "flex",
+ alignItems: "center",
+ justifyContent: "space-between",
+ gap: 8,
+ marginTop: 9,
+ fontFamily: "DM Sans",
+ fontSize: 10,
+ color: "var(--muted-foreground)",
+ }}
+ >
+ <span>{weekly.completed}/{weekly.target} concluídas na semana</span>
+ {linkedHabit && <span style={{ overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>↔ {linkedHabit.title}</span>}
+ </div>
+ </div>
+ );
+ })}
+ </div>
+ </section>
+ )}
+
+ {longTermGoals.length > 0 && (
+ <section style={{ borderTop: weeklyGoals.length > 0 ? "1px solid var(--ledger-paper-border)" : "none", paddingTop: weeklyGoals.length > 0 ? 18 : 0 }}>
+ <div
+ style={{
+ display: "flex",
+ alignItems: "center",
+ gap: 7,
+ marginBottom: 12,
+ }}
+ >
+ <Target size={15} color="var(--primary)" />
+ <h4
  style={{
  fontFamily: "Space Grotesk",
  fontWeight: 700,
  fontSize: 13,
- color: goal.color,
+ color: "var(--foreground)",
+ margin: 0,
+ flex: 1,
  }}
  >
- {progress}%
- </span></div><div className="fz-progress-bar"><div
+ Metas de longo prazo
+ </h4>
+ <span style={{ fontSize: 10, color: "var(--muted-foreground)" }}>
+ {longTermGoals.length} {longTermGoals.length === 1 ? "objetivo" : "objetivos"}
+ </span>
+ </div>
+ <div
+ style={{
+ display: "grid",
+ gridTemplateColumns: "repeat(auto-fill, minmax(200px, 1fr))",
+ gap: 10,
+ }}
+ >
+ {longTermGoals.map(goal => {
+ const progress = getGoalProgress(goal);
+ const completedSteps = goal.steps.filter(step => step.completed).length;
+ const isCompleted = Boolean(goal.completedAt);
+ return (
+ <div
+ key={goal.id}
+ style={{
+ background: "var(--border)",
+ border: `1px solid ${isCompleted ? "rgba(16,185,129,0.3)" : `${goal.color}20`}`,
+ borderRadius: 8,
+ padding: "12px 13px",
+ }}
+ >
+ <div
+ style={{
+ display: "flex",
+ alignItems: "center",
+ gap: 8,
+ marginBottom: 9,
+ }}
+ >
+ <span style={{ fontSize: 18 }}>{goal.emoji}</span>
+ <span
+ style={{
+ fontFamily: "DM Sans",
+ fontWeight: 600,
+ fontSize: 13,
+ color: isCompleted ? "var(--muted-foreground)" : "var(--foreground)",
+ textDecoration: isCompleted ? "line-through" : "none",
+ flex: 1,
+ overflow: "hidden",
+ textOverflow: "ellipsis",
+ whiteSpace: "nowrap",
+ }}
+ title={goal.title}
+ >
+ {goal.title}
+ </span>
+ <span
+ style={{
+ fontFamily: "Space Grotesk",
+ fontWeight: 700,
+ fontSize: 11,
+ color: isCompleted ? "#10B981" : goal.color,
+ }}
+ >
+ {isCompleted ? "Concluída" : `${progress}%`}
+ </span>
+ </div>
+ <div className="fz-progress-bar">
+ <div
  className="fz-progress-fill"
  style={{
  width: `${progress}%`,
- background: `linear-gradient(90deg, ${goal.color}, ${goal.color}cc)`,
+ background: isCompleted ? "#10B981" : `linear-gradient(90deg, ${goal.color}, ${goal.color}cc)`,
  }}
- /></div><div
+ />
+ </div>
+ <div
  style={{
- fontSize: 11,
+ fontSize: 10,
  color: "var(--muted-foreground)",
  fontFamily: "DM Sans",
  marginTop: 6,
  }}
  >
- {goal.steps.filter((s: any) => s.completed).length}/
- {goal.steps.length} etapas
- </div></div>
+ {goal.steps.length > 0 ? `${completedSteps}/${goal.steps.length} etapas concluídas` : "Sem etapas cadastradas"}
+ </div>
+ </div>
  );
  })}
- </div></div>
+ </div>
+ </section>
+ )}
+ </div>
+ ) : (
+ <div
+ className="ledger-paper"
+ style={{ padding: "20px 22px", marginTop: 20, textAlign: "center" }}
+ >
+ <Target size={28} color="var(--muted-foreground)" style={{ margin: "0 auto 8px" }} />
+ <p style={{ fontFamily: "DM Sans", fontSize: 13, color: "var(--muted-foreground)", margin: 0 }}>
+ Nenhuma meta cadastrada ainda.
+ </p>
+ </div>
  )}
  </div>
  );
