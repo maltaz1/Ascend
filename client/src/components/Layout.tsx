@@ -1,6 +1,6 @@
 // Sidebar vertical com ícones + labels, conteúdo principal com padding generoso
 
-import React, { useState, useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef, useMemo } from "react";
 import {
   LayoutDashboard,
   Target,
@@ -28,6 +28,7 @@ import { useTheme } from "../contexts/ThemeContext";
 import { FREE_TABS } from "@/config/planLimits";
 import { useStore } from "@/hooks/useStore";
 import { getLevelProgress } from "@/lib/store";
+import { getGlobalStreak } from "@/lib/streak";
 import { useIsMobile } from "@/hooks/useMobile";
 import { useInstallPrompt } from "@/hooks/useInstallPrompt";
 import { AnimatedCounter } from "./ui/AnimatedCounter";
@@ -99,6 +100,7 @@ export function Layout({
   });
   const [draggedItem, setDraggedItem] = useState<Tab | null>(null);
   const levelProgress = getLevelProgress();
+  const activeStreak = useMemo(() => getGlobalStreak(data.tasks, data.habits), [data.tasks, data.habits]);
 
   const isMobile = useIsMobile();
   const { theme, toggleTheme } = useTheme();
@@ -380,7 +382,7 @@ export function Layout({
         )}
 
         {/* Streak — carimbo na lombada */}
-        {!collapsed && data.user.streak > 0 && (
+        {!collapsed && activeStreak > 0 && (
           <div
             style={{
               background: "var(--ledger-paper-bg)",
@@ -408,7 +410,7 @@ export function Layout({
                   letterSpacing: "-0.02em",
                 }}
               >
-                {data.user.streak} dias
+                {activeStreak} dias
               </div>
             </div>
           </div>
@@ -435,7 +437,7 @@ export function Layout({
                 color: "var(--primary)",
               cursor: "pointer",
               transition: "all 0.3s ease",
-              marginTop: !collapsed && data.user.streak > 0 ? 0 : "auto",
+              marginTop: !collapsed && activeStreak > 0 ? 0 : "auto",
               marginBottom: 12,
               gap: collapsed ? 0 : 8,
               }}
