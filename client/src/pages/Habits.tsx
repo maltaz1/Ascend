@@ -209,7 +209,6 @@ function HabitRow({
  }
 
  void (async () => {
- await syncHabitToGoals({ id: habit.id, completed_dates: updatedDates });
  const { error } = await supabase
  .from("habits")
  .update({ completed_dates: updatedDates })
@@ -218,7 +217,8 @@ function HabitRow({
  onHabitUpdated(habit.id, previousDates);
  showToast("Erro ao atualizar", "info", "❌");
  } else {
- markCrossTabMutations(["habits"]);
+ await syncHabitToGoals({ id: habit.id, completed_dates: updatedDates });
+ markCrossTabMutations(["habits", "goals"]);
  }
  })();
  };
@@ -334,7 +334,6 @@ function HabitCard({
  window.setTimeout(() => setAnimatingDate(null), 260);
  }
  void (async () => {
- await syncHabitToGoals({ id: habit.id, completed_dates: updatedDates });
  const { error } = await supabase
  .from("habits")
  .update({ completed_dates: updatedDates })
@@ -343,7 +342,8 @@ function HabitCard({
  onHabitUpdated(habit.id, previousDates);
  showToast("Erro ao atualizar", "info", "❌");
  } else {
- markCrossTabMutations(["habits"]);
+ await syncHabitToGoals({ id: habit.id, completed_dates: updatedDates });
+ markCrossTabMutations(["habits", "goals"]);
  }
  })();
  };
