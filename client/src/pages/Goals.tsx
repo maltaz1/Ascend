@@ -168,16 +168,60 @@ function goalToWeekly(g: Goal): import("@/lib/weeklyGoals").WeeklyGoal {
 // =========================
 
 function WeeklySparkline({ data, color }: { data: number[]; color: string }) {
- const width = 64;
- const height = 18;
- const points = data.map((v, i) => {
- const x = (i / Math.max(data.length - 1, 1)) * width;
- const y = height - (v / 100) * height;
- return `${x},${y}`;
- }).join(" ");
+ const values = data.length > 0 ? data.map(value => Math.min(100, Math.max(0, value))) : [0];
+ const width = 126;
+ const height = 34;
+ const current = values[values.length - 1] ?? 0;
+ const chartPoints = values.map((value, index) => {
+ const x = values.length === 1 ? width / 2 : (index / (values.length - 1)) * width;
+ const y = height - 5 - (value / 100) * (height - 10);
+ return { x, y, value };
+ });
+ const points = chartPoints.map(point => `${point.x},${point.y}`).join(" ");
+ const areaPoints = `${points} ${width},${height} 0,${height}`;
 
  return (
- <svg width={width} height={height} viewBox={`0 0 ${width} ${height}`} style={{ display: "block" }}><polyline points={points} fill="none" stroke={color} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" /></svg>
+ <div
+ style={{
+ display: "flex",
+ alignItems: "center",
+ gap: 10,
+ padding: "8px 10px",
+ minWidth: 190,
+ borderRadius: 6,
+ background: "var(--ledger-paper-border)",
+ border: "1px solid var(--ledger-paper-border)",
+ }}
+ title="Evolução da consistência nas últimas semanas"
+ >
+ <div style={{ minWidth: 55 }}>
+ <div style={{ fontSize: 9, color: "var(--muted-foreground)", fontFamily: "DM Sans", lineHeight: 1.1 }}>Consistência</div>
+ <strong style={{ display: "block", marginTop: 3, fontSize: 16, lineHeight: 1, color, fontFamily: "Space Grotesk" }}>{current}%</strong>
+ <span style={{ display: "block", marginTop: 3, fontSize: 9, color: "var(--muted-foreground)", fontFamily: "DM Sans" }}>esta semana</span>
+ </div>
+ <div style={{ flex: 1, minWidth: 0 }}>
+ <svg
+ width={width}
+ height={height}
+ viewBox={`0 0 ${width} ${height}`}
+ role="img"
+ aria-label={`Histórico de consistência: ${values.join("%, ")}%`}
+ style={{ display: "block", overflow: "visible" }}
+ >
+ <line x1="0" y1={height - 5} x2={width} y2={height - 5} stroke="var(--muted-foreground)" strokeOpacity="0.18" strokeWidth="1" />
+ <line x1="0" y1={height / 2} x2={width} y2={height / 2} stroke="var(--muted-foreground)" strokeOpacity="0.12" strokeWidth="1" strokeDasharray="2 3" />
+ <polygon points={areaPoints} fill={color} fillOpacity="0.12" />
+ <polyline points={points} fill="none" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+ {chartPoints.map((point, index) => (
+ <circle key={`${point.x}-${index}`} cx={point.x} cy={point.y} r={index === chartPoints.length - 1 ? 3 : 2.25} fill={color} stroke="var(--ledger-paper-bg)" strokeWidth="1.5"><title>{point.value}% de consistência</title></circle>
+ ))}
+ </svg>
+ <div style={{ display: "flex", justifyContent: "space-between", marginTop: 3, fontSize: 8, color: "var(--muted-foreground)", fontFamily: "DM Sans" }}>
+ <span>{values.length > 1 ? `${values.length - 1} sem. atrás` : "início"}</span>
+ <span>agora</span>
+ </div>
+ </div>
+ </div>
  );
 }
 
@@ -352,8 +396,8 @@ function WeeklyGoalCard({
  </div></div><span style={{ fontSize: 8, fontWeight: isToday ? 800 : 500, color: isToday ? goal.color : "var(--muted-foreground)" }}>{WEEKDAY_LABELS[i].slice(0, 2)}</span></button>
  );
  })}
- </div><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", paddingTop: 10, borderTop: "1px solid var(--ledger-paper-border)" }}><span style={{ fontSize: 10, color: "var(--muted-foreground)", display: "flex", alignItems: "center", gap: 4 }}>
- {norm.goal.recordStreak > 0 && <><Trophy size={10} color="#FCD34D" /> Recorde: {norm.goal.recordStreak}</>}
+ </div><div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, paddingTop: 12, borderTop: "1px solid var(--ledger-paper-border)", flexWrap: "wrap" }}><span style={{ fontSize: 10, color: "var(--muted-foreground)", display: "flex", alignItems: "center", gap: 4, minHeight: 42 }}>
+ {norm.goal.recordStreak > 0 && <><Trophy size={11} color="#FCD34D" /> Recorde: {norm.goal.recordStreak} semanas</>}
  </span><WeeklySparkline data={sparklineData} color={hit ? "#10B981" : goal.color} /></div></div>
  );
 }
