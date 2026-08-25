@@ -36,7 +36,9 @@ function getWeeklyGoalSnapshot(goal: StoreGoal, habits: Habit[], weekStart: stri
         weekStart,
       )
     : undefined;
-  const days = linkedDays ? storedDays.map((completed, index) => completed || linkedDays[index]) : storedDays;
+  // Quando existe hábito vinculado, seus check-ins são a fonte de verdade.
+  // Isso faz o desmarcamento refletir imediatamente na aba Hoje.
+  const days = linkedDays ?? storedDays;
   const target = Math.max(1, goal.targetFrequency ?? 1);
   const completed = days.filter(Boolean).length;
 

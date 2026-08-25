@@ -10,6 +10,7 @@
 
 import { supabase } from "@/lib/supabase";
 import { getMondayOfDate, dateToWeekdayIndex } from "@/lib/weeklyGoals";
+import { _data, notify, persistState } from "@/store/state";
 
 /**
  * Atualiza a meta semanal vinculada quando o hábito é marcado/desmarcado.
@@ -33,23 +34,42 @@ export async function syncHabitToGoals(habit: {
   if (!goals || goals.length === 0) return;
 
   const monday = getMondayOfDate(new Date());
+  const updatedGoals: Array<{ id: string; daysCompletedWeek: boolean[] }> = [];
 
   for (const goal of goals) {
     const daysCompletedWeek = goal.days_completed_week ?? [false, false, false, false, false, false, false];
     const checkins = habit.completed_dates || [];
 
     // Atualizar cada dia da semana atual
-    const updatedDays = daysCompletedWeek.map((completed: boolean, i: number) => {
+    const updatedDays = daysCompletedWeek.map((_completed: boolean, i: number) => {
       const d = new Date(`${monday}T12:00:00`);
       d.setDate(d.getDate() + i);
       const key = d.toISOString().slice(0, 10);
       return checkins.includes(key);
     });
 
-    await supabase
+    const { error } = await supabase
       .from("goals")
-      .update({ days_completed_week: updatedDays })
-      .eq("id", goal.id);
+      .update({ days_completed_week: updatedDays, week_start: monday })
+      .eq("id", goal.id)
+      .eq("user_id", user.id);
+
+    if (!error) {
+      updatedGoals.push({ id: goal.id, daysCompletedWeek: updatedDays });
+    }
+  }
+
+  // Atualização otimista do store: Today re-renderiza assim que o hábito muda,
+  // sem depender de uma nova consulta ou de trocar de página.
+  if (updatedGoals.length > 0) {
+    _data.goals = _data.goals.map(localGoal => {
+      const updated = updatedGoals.find(goal => goal.id === localGoal.id);
+      return updated
+        ? { ...localGoal, daysCompletedWeek: updated.daysCompletedWeek, weekStart: monday }
+        : localGoal;
+    });
+    notify();
+    persistState();
   }
 }
 
