@@ -28,6 +28,7 @@ import {
 
 import { useStore } from "@/hooks/useStore";
 import { getTodayString, toYYYYMMDD } from "@/store/utils";
+import { getGlobalStreak } from "@/lib/streak";
 
 import { getFinancialData } from "@/store/financial.store";
 import {
@@ -479,26 +480,8 @@ export default function Dashboard() {
  const levelXP = (profile?.level || 1) * 100;
  const xpPercent = profile?.xp ? Math.min((profile.xp / levelXP) * 100, 100) : 0;
 
- // --- Calculate global streak from tasks + habits (Supabase data) ---
- const globalStreak = useMemo(() => {
- let streak = 0;
- const todayDate = new Date();
- for (let offset = 0; offset < 365; offset++) {
- const d = new Date(todayDate);
- d.setDate(d.getDate() - offset);
- const ds = toYYYYMMDD(d);
- const completedTask = tasks.some((t) => t.completed && t.date === ds);
- const completedHabit = habits.some(
- (h) => h.completedDates && Array.isArray(h.completedDates) && h.completedDates.includes(ds)
- );
- if (completedTask || completedHabit) {
- streak++;
- } else {
- break;
- }
- }
- return streak;
- }, [tasks, habits]);
+  // --- Calculate global streak from tasks + habits (Supabase data) ---
+  const globalStreak = useMemo(() => getGlobalStreak(tasks, habits), [tasks, habits]);
 
  // --- Habit streaks from Supabase data (normalized) ---
  const habitStreaks = useMemo(() => {
