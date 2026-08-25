@@ -37,6 +37,7 @@ export interface Goal {
   recordStreak?: number;
   linkedHabitId?: string | null;
   weekStart?: string | null;
+  weeklyHistory?: number[];
 }
 
 export interface Habit {
