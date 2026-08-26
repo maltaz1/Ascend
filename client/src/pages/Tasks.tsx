@@ -26,7 +26,7 @@ import { FREE_LIMITS } from "@/config/planLimits";
 import { addXP, markCrossTabMutations, broadcastReloadComplete } from "@/lib/store";
 import { supabase } from "@/lib/supabase";
 import { _data, markSelfWrite, notify } from "@/lib/store";
-import { useXPAnimation } from "@/hooks/useStore";
+import { useStore, useXPAnimation } from "@/hooks/useStore";
 import { Modal } from "@/components/ui/Modal";
 import { showToast } from "@/components/ui/FlowToast";
 import { generateAllRecurringOccurrences, generateOccurrenceForNewTask } from "@/lib/recurrence";
@@ -661,6 +661,7 @@ function TaskModal({
 
 export default function Tasks({ isPro, onOpenUpgrade }: { isPro: boolean; onOpenUpgrade?: () => void }) {
  const { showXP } = useXPAnimation();
+ const sharedTasks = useStore().tasks;
  const today = getTodayString();
  const [selectedDate, setSelectedDate] = useState(today);
  const [showModal, setShowModal] = useState(false);
@@ -823,6 +824,8 @@ export default function Tasks({ isPro, onOpenUpgrade }: { isPro: boolean; onOpen
  );
  notify();
  showToast("Não foi possível atualizar a tarefa", "info");
+ } else {
+ markCrossTabMutations(["tasks"]);
  }
  })();
  };
