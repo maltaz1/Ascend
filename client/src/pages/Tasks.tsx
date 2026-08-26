@@ -297,21 +297,25 @@ function TaskHistoryModal({
  open,
  onClose,
  tasks,
+ today,
  onToggle,
  onSelectDate,
 }: {
  open: boolean;
  onClose: () => void;
  tasks: Task[];
+ today: string;
  onToggle: (task: Task) => void;
  onSelectDate: (date: string) => void;
 }) {
  const [search, setSearch] = useState("");
  const [filter, setFilter] = useState<HistoryFilter>("all");
 
+ const historyTasks = useMemo(() => tasks.filter(task => task.date < today), [tasks, today]);
+
  const groupedTasks = useMemo(() => {
  const normalizedSearch = search.trim().toLowerCase();
- const filteredTasks = tasks
+ const filteredTasks = historyTasks
  .filter(task => {
  if (normalizedSearch && !`${task.title} ${task.description || ""}`.toLowerCase().includes(normalizedSearch)) {
  return false;
@@ -333,10 +337,10 @@ function TaskHistoryModal({
  groups.set(task.date, currentGroup);
  });
  return Array.from(groups.entries());
- }, [tasks, search, filter]);
+ }, [historyTasks, search, filter]);
 
- const completedCount = tasks.filter(task => task.completed).length;
- const pendingCount = tasks.length - completedCount;
+ const completedCount = historyTasks.filter(task => task.completed).length;
+ const pendingCount = historyTasks.length - completedCount;
 
  return (
  <Modal open={open} onClose={onClose} title="Histórico de tarefas" maxWidth="720px">
@@ -448,7 +452,7 @@ function TaskHistoryModal({
  )}
  </div>
 
- <p className="text-[11px] text-muted-foreground">Clique no dia para abrir a lista correspondente. Use o botão ao lado de cada tarefa para marcar ou desmarcar sem sair do histórico.</p>
+ <p className="text-[11px] text-muted-foreground">O histórico mostra somente tarefas de dias anteriores a hoje. Clique no dia para abrir a lista correspondente ou use o botão ao lado da tarefa para marcar e desmarcar sem sair do histórico.</p>
  </div>
  </Modal>
  );
@@ -1074,6 +1078,7 @@ export default function Tasks({ isPro, onOpenUpgrade }: { isPro: boolean; onOpen
  open={showHistory}
  onClose={() => setShowHistory(false)}
  tasks={tasks}
+ today={today}
  onToggle={handleToggle}
  onSelectDate={handleSelectDate}
  />
