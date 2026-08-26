@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo } from "react";
 import { CalendarDays, Check, Sun, Target, Flame, ListTodoIcon } from "lucide-react";
 import { useStore } from "@/hooks/useStore";
-import { loadGoalsData, toggleHabitDate, updateTask } from "@/lib/store";
+import { loadGoalsData, markCrossTabMutations, toggleHabitDate, updateTask } from "@/lib/store";
 import { syncHabitToGoals } from "@/lib/syncHabitGoals";
 
 import { CircularProgress } from "@/components/ui/CircularProgress";
@@ -139,6 +139,7 @@ export default function Today() {
  ) => {
  e.stopPropagation();
  void updateTask(taskId, { completed: !completed });
+ markCrossTabMutations(["tasks"]);
  showToast(completed ? "Tarefa desmarcada" : "Tarefa concluída!", "success");
 
  if (!completed) {
