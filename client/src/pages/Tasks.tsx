@@ -96,6 +96,27 @@ function normalizeTask(task: Record<string, unknown>): Task {
  };
 }
 
+function formatTaskDate(date: string): string {
+ const parsedDate = new Date(`${date}T00:00:00`);
+ if (Number.isNaN(parsedDate.getTime())) return date;
+ return parsedDate.toLocaleDateString("pt-BR", {
+ weekday: "long",
+ day: "2-digit",
+ month: "long",
+ year: "numeric",
+ });
+}
+
+function formatCreatedAt(date: string): string {
+ const parsedDate = new Date(date);
+ if (Number.isNaN(parsedDate.getTime())) return "Data de criação indisponível";
+ return `Criada em ${parsedDate.toLocaleDateString("pt-BR", {
+ day: "2-digit",
+ month: "short",
+ year: "numeric",
+ })}`;
+}
+
 function getWeekStartDate(date: Date): Date {
  const weekStart = new Date(date);
  const day = weekStart.getDay();
@@ -267,6 +288,169 @@ function TaskItem({
  }}
  className="w-8 h-8 rounded-lg flex items-center justify-center text-muted-foreground hover:text-destructive hover:bg-destructive/10 transition-all"
  ><Trash2 size={16} /></button></div></div>
+ );
+}
+
+type HistoryFilter = "all" | "pending" | "completed";
+
+function TaskHistoryModal({
+ open,
+ onClose,
+ tasks,
+ onToggle,
+ onSelectDate,
+}: {
+ open: boolean;
+ onClose: () => void;
+ tasks: Task[];
+ onToggle: (task: Task) => void;
+ onSelectDate: (date: string) => void;
+}) {
+ const [search, setSearch] = useState("");
+ const [filter, setFilter] = useState<HistoryFilter>("all");
+
+ const groupedTasks = useMemo(() => {
+ const normalizedSearch = search.trim().toLowerCase();
+ const filteredTasks = tasks
+ .filter(task => {
+ if (normalizedSearch && !`${task.title} ${task.description || ""}`.toLowerCase().includes(normalizedSearch)) {
+ return false;
+ }
+ if (filter === "pending") return !task.completed;
+ if (filter === "completed") return task.completed;
+ return true;
+ })
+ .sort((a, b) => {
+ const dateComparison = b.date.localeCompare(a.date);
+ if (dateComparison !== 0) return dateComparison;
+ return new Date(b.createdAt).getTime() - new Date(a.createdAt).getTime();
+ });
+
+ const groups = new Map<string, Task[]>();
+ filteredTasks.forEach(task => {
+ const currentGroup = groups.get(task.date) || [];
+ currentGroup.push(task);
+ groups.set(task.date, currentGroup);
+ });
+ return Array.from(groups.entries());
+ }, [tasks, search, filter]);
+
+ const completedCount = tasks.filter(task => task.completed).length;
+ const pendingCount = tasks.length - completedCount;
+
+ return (
+ <Modal open={open} onClose={onClose} title="Histórico de tarefas" maxWidth="720px">
+ <div className="flex flex-col gap-4">
+ <div className="grid grid-cols-3 gap-2">
+ <div className="rounded-md border border-[var(--ledger-paper-border)] bg-emerald-500/10 p-3">
+ <div className="text-[10px] font-bold uppercase tracking-wider text-emerald-500">Concluídas</div>
+ <div className="mt-1 text-xl font-bold text-foreground font-space">{completedCount}</div>
+ </div>
+ <div className="rounded-md border border-[var(--ledger-paper-border)] bg-amber-500/10 p-3">
+ <div className="text-[10px] font-bold uppercase tracking-wider text-amber-500">Pendentes</div>
+ <div className="mt-1 text-xl font-bold text-foreground font-space">{pendingCount}</div>
+ </div>
+ <div className="rounded-md border border-[var(--ledger-paper-border)] bg-[var(--ledger-paper-bg)] p-3">
+ <div className="text-[10px] font-bold uppercase tracking-wider text-muted-foreground">Total</div>
+ <div className="mt-1 text-xl font-bold text-foreground font-space">{tasks.length}</div>
+ </div>
+ </div>
+
+ <div className="relative">
+ <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-muted-foreground" />
+ <input
+ type="text"
+ placeholder="Buscar no histórico..."
+ value={search}
+ onChange={event => setSearch(event.target.value)}
+ className="ledger-input w-full pl-10"
+ />
+ </div>
+
+ <div className="flex gap-2 flex-wrap">
+ {(["all", "pending", "completed"] as const).map(status => (
+ <button
+ key={status}
+ onClick={() => setFilter(status)}
+ className={`ledger-stamp text-[12px] font-bold ${filter === status ? "ledger-stamp--violet" : "ledger-stamp--ink"}`}
+ >
+ {status === "all" ? "Todas" : status === "pending" ? "Pendentes" : "Concluídas"}
+ </button>
+ ))}
+ </div>
+
+ <div className="max-h-[55vh] overflow-y-auto pr-1">
+ {groupedTasks.length === 0 ? (
+ <div className="rounded-md border-2 border-dashed border-[var(--ledger-paper-border)] py-12 text-center">
+ <History size={28} className="mx-auto mb-3 text-muted-foreground/50" />
+ <p className="text-sm font-semibold text-foreground">Nenhum registro encontrado</p>
+ <p className="mt-1 text-xs text-muted-foreground">Tente ajustar a busca ou o filtro para ver outras tarefas.</p>
+ </div>
+ ) : (
+ <div className="flex flex-col gap-4">
+ {groupedTasks.map(([date, dateTasks]) => {
+ const completedOnDate = dateTasks.filter(task => task.completed).length;
+ return (
+ <section key={date} className="overflow-hidden rounded-md border border-[var(--ledger-paper-border)] bg-[var(--ledger-paper-bg)]">
+ <div className="flex items-center justify-between gap-3 border-b border-[var(--ledger-paper-border)] px-4 py-3">
+ <button
+ onClick={() => {
+ onSelectDate(date);
+ onClose();
+ }}
+ className="flex min-w-0 items-center gap-3 text-left transition-opacity hover:opacity-80"
+ title="Abrir este dia na lista de tarefas"
+ >
+ <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-md bg-[var(--primary)]/10">
+ <CalendarDays size={17} className="text-[var(--primary)]" />
+ </div>
+ <div className="min-w-0">
+ <h3 className="truncate text-[13px] font-bold capitalize text-foreground font-space">{formatTaskDate(date)}</h3>
+ <p className="mt-0.5 text-[11px] text-muted-foreground">
+ {dateTasks.length} {dateTasks.length === 1 ? "tarefa" : "tarefas"} · {completedOnDate} concluída{completedOnDate === 1 ? "" : "s"}
+ </p>
+ </div>
+ </button>
+ <span className="hidden flex-shrink-0 text-[10px] font-bold uppercase tracking-wider text-muted-foreground sm:inline">{date}</span>
+ </div>
+
+ <div className="divide-y divide-[var(--ledger-paper-border)]">
+ {dateTasks.map(task => (
+ <div key={task.id} className="flex items-start gap-3 px-4 py-3 transition-colors hover:bg-white/[0.02]">
+ <button
+ onClick={() => onToggle(task)}
+ aria-label={task.completed ? `Desmarcar ${task.title}` : `Marcar ${task.title} como concluída`}
+ className={`mt-0.5 flex h-6 w-6 flex-shrink-0 items-center justify-center rounded-lg border-2 transition-all active:scale-95 ${task.completed ? "border-emerald-500 bg-emerald-500/10" : "border-border bg-transparent hover:border-[var(--primary)]"}`}
+ >
+ {task.completed && <Check size={14} className="text-emerald-500" />}
+ </button>
+ <div className="min-w-0 flex-1">
+ <div className="flex flex-wrap items-center gap-2">
+ <span className={`text-[13px] font-semibold ${task.completed ? "text-muted-foreground line-through" : "text-foreground"}`}>{task.title}</span>
+ {task.isRecurring && task.recurrence && <RecurrenceIndicator type={task.recurrence.type} size="sm" />}
+ <span className={`rounded-full px-2 py-0.5 text-[9px] font-bold uppercase tracking-wider ${task.completed ? "bg-emerald-500/10 text-emerald-500" : "bg-amber-500/10 text-amber-500"}`}>
+ {task.completed ? "Concluída" : "Pendente"}
+ </span>
+ </div>
+ {task.description && <p className="mt-1 text-[12px] leading-relaxed text-muted-foreground">{task.description}</p>}
+ <div className="mt-2 flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-muted-foreground">
+ <span>{formatCreatedAt(task.createdAt)}</span>
+ <span>Prioridade: {PRIORITIES.find(priority => priority.value === task.priority)?.label || "Média"}</span>
+ </div>
+ </div>
+ </div>
+ ))}
+ </div>
+ </section>
+ );
+ })}
+ </div>
+ )}
+ </div>
+
+ <p className="text-[11px] text-muted-foreground">Clique no dia para abrir a lista correspondente. Use o botão ao lado de cada tarefa para marcar ou desmarcar sem sair do histórico.</p>
+ </div>
+ </Modal>
  );
 }
 
@@ -480,6 +664,7 @@ export default function Tasks({ isPro, onOpenUpgrade }: { isPro: boolean; onOpen
  const today = getTodayString();
  const [selectedDate, setSelectedDate] = useState(today);
  const [showModal, setShowModal] = useState(false);
+ const [showHistory, setShowHistory] = useState(false);
  const [editingTask, setEditingTask] = useState<Task | null>(null);
  const [search, setSearch] = useState("");
  const [filterStatus, setFilterStatus] = useState<"all" | "pending" | "completed" | "overdue">("all");
@@ -793,14 +978,19 @@ export default function Tasks({ isPro, onOpenUpgrade }: { isPro: boolean; onOpen
  <div className="notebook-sheet notebook-sheet--margined max-md:pl-4 mb-6">
  <div className="flex justify-between items-center gap-3 w-full min-w-0 mb-4"><h2 className="text-base sm:text-lg lg:text-xl font-bold text-foreground font-space capitalize min-w-0 truncate flex-1">
  {selectedDateFormatted}
- </h2><button
+ </h2><div className="flex items-center gap-2 flex-shrink-0"><button
+ onClick={() => setShowHistory(true)}
+ className="ledger-btn ledger-btn--ghost flex items-center gap-1.5 text-[13px] font-bold whitespace-nowrap"
+ aria-label="Abrir histórico de tarefas"
+ ><History size={16} /><span className="hidden min-[460px]:inline">Histórico</span>
+ </button><button
  onClick={() => {
  setEditingTask(null);
  setShowModal(true);
  }}
- className="ledger-btn ledger-btn--violet flex items-center gap-1.5 text-[13px] font-bold whitespace-nowrap flex-shrink-0"
+ className="ledger-btn ledger-btn--violet flex items-center gap-1.5 text-[13px] font-bold whitespace-nowrap"
  ><Plus size={16} /><span className="hidden min-[400px]:inline">Nova Tarefa</span>
- </button></div>
+ </button></div></div>
 
  {/* Filtros */}
  <div className="flex gap-2 flex-wrap mb-4">
@@ -875,6 +1065,14 @@ export default function Tasks({ isPro, onOpenUpgrade }: { isPro: boolean; onOpen
  tasks={tasks}
  onTaskSaved={fetchTasks}
  onOpenUpgrade={onOpenUpgrade}
+ />
+
+ <TaskHistoryModal
+ open={showHistory}
+ onClose={() => setShowHistory(false)}
+ tasks={tasks}
+ onToggle={handleToggle}
+ onSelectDate={handleSelectDate}
  />
 
  {/* Modal de exclusão de tarefa recorrente */}
