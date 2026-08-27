@@ -38,7 +38,7 @@ export interface Goal {
   linkedHabitId?: string | null;
   weekStart?: string | null;
   weeklyHistory?: number[];
-  // Critérios SMART para metas de longo prazo
+  // Perguntas opcionais de planejamento para metas de longo prazo
   smartSpecific?: string;
   smartMeasurable?: string;
   smartAchievable?: string;

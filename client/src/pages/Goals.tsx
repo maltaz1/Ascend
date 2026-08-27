@@ -156,21 +156,21 @@ function formatSmartDeadline(deadline?: string) {
  return new Intl.DateTimeFormat("pt-BR", { day: "2-digit", month: "2-digit", year: "numeric", timeZone: "UTC" }).format(parsed);
 }
 
-function SmartCriteria({ goal, expanded, isMobile }: { goal: Goal; expanded: boolean; isMobile: boolean }) {
+function GoalPlanningDetails({ goal, expanded, isMobile }: { goal: Goal; expanded: boolean; isMobile: boolean }) {
  const criteria = [
- { letter: "S", label: "Específica", value: goal.smart_specific?.trim() },
- { letter: "M", label: "Mensurável", value: goal.smart_measurable?.trim() },
- { letter: "A", label: "Atingível", value: goal.smart_achievable?.trim() },
- { letter: "R", label: "Relevante", value: goal.smart_relevant?.trim() },
- { letter: "T", label: "Temporal", value: goal.deadline ? `Até ${formatSmartDeadline(goal.deadline)}` : undefined },
+ { letter: "1", label: "O que você quer alcançar?", value: goal.smart_specific?.trim() },
+ { letter: "2", label: "Como você vai medir o progresso?", value: goal.smart_measurable?.trim() },
+ { letter: "3", label: "O que torna essa meta possível?", value: goal.smart_achievable?.trim() },
+ { letter: "4", label: "Por que essa meta importa agora?", value: goal.smart_relevant?.trim() },
+ { letter: "5", label: "Qual é o prazo?", value: goal.deadline ? `Até ${formatSmartDeadline(goal.deadline)}` : undefined },
  ];
  const completed = criteria.filter(item => item.value).length;
 
  return (
  <div style={{ marginTop: 14, padding: isMobile ? "11px 12px" : "12px 14px", border: "1px solid var(--ledger-paper-border)", background: "var(--ledger-paper-bg)", borderRadius: 4 }}>
  <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
- <span className="ledger-marginalia" style={{ margin: 0 }}>Objetivo SMART</span>
- <span className={`ledger-stamp ${completed === 5 ? "ledger-stamp--green" : "ledger-stamp--ink"}`} style={{ fontSize: 9 }}>{completed}/5 critérios</span>
+ <span className="ledger-marginalia" style={{ margin: 0 }}>Reflexão da meta</span>
+ <span className={`ledger-stamp ${completed === 5 ? "ledger-stamp--green" : "ledger-stamp--ink"}`} style={{ fontSize: 9 }}>{completed}/5 perguntas respondidas</span>
  </div>
  {expanded && (
  <div style={{ display: "grid", gridTemplateColumns: isMobile ? "1fr" : "1fr 1fr", gap: 8, marginTop: 10 }}>
@@ -529,7 +529,7 @@ function GoalCard({
  {isCompleted ? "Concluída" : "Em curso"}
  </span><span style={{ fontSize: 10, color: "var(--muted-foreground)" }}>{goal.steps.filter(s => s.completed).length}/{goal.steps.length} etapas</span></div><p style={{ fontSize: isMobile ? 11 : 12, color: "var(--muted-foreground)", marginTop: 6, lineHeight: 1.4, margin: 0, overflow: "hidden", textOverflow: "ellipsis", display: "-webkit-box", WebkitLineClamp: 2, WebkitBoxOrient: "vertical" }}>{goal.description}</p></div></div> <div style={{ height: 5, borderRadius: 0, background: "var(--ledger-paper-border)", marginBottom: 14, overflow: "hidden" }}><div style={{ width: `${progress}%`, height: "100%", background: isCompleted ? "#10B981" : goal.color, borderRadius: 0, transition: "width 0.4s ease" }} /></div>
 
- <SmartCriteria goal={goal} expanded={expanded} isMobile={isMobile} />
+ <GoalPlanningDetails goal={goal} expanded={expanded} isMobile={isMobile} />
 
  {expanded && (
  <div style={{ display: "flex", flexDirection: "column", gap: 6, marginTop: 10 }}>
@@ -634,19 +634,6 @@ function NewGoalModal({
  return;
  }
 
- if (goalType === "longo_prazo") {
- const missing = [
- ["S — Específica", smartSpecific],
- ["M — Mensurável", smartMeasurable],
- ["A — Atingível", smartAchievable],
- ["R — Relevante", smartRelevant],
- ["T — Temporal", deadline],
- ].filter(([, value]) => !value.trim()).map(([label]) => label);
- if (missing.length > 0) {
- showToast(`Preencha os critérios SMART: ${missing.join(", ")}`, "info");
- return;
- }
- }
 
  const { data: { user } } = await supabase.auth.getUser();
  if (!user) return;
@@ -663,8 +650,10 @@ function NewGoalModal({
  return;
  }
 
+ let insertError: { message?: string } | null = null;
+
  if (goalType === "semanal") {
- await supabase.from("goals").insert({
+ const { error } = await supabase.from("goals").insert({
  user_id: user.id,
  title: title.trim(),
  description: description || null,
@@ -679,23 +668,48 @@ function NewGoalModal({
  linked_habit_id: selectedHabitId || null,
  weekly_history: [],
  });
+ insertError = error;
  } else {
  const validSteps = steps.filter(s => s.trim()).map(s => ({ id: crypto.randomUUID(), title: s, completed: false }));
- await supabase.from("goals").insert({
+ const goalPayload = {
+ user_id: user.id,
+ title: title.trim(),
+ description: description || null,
+ emoji,
+ color,
+ type: "longo_prazo" as const,
+ deadline: deadline || null,
+ smart_specific: smartSpecific.trim() || null,
+ smart_measurable: smartMeasurable.trim() || null,
+ smart_achievable: smartAchievable.trim() || null,
+ smart_relevant: smartRelevant.trim() || null,
+ steps: validSteps,
+ completed_at: null,
+ };
+ const { error } = await supabase.from("goals").insert(goalPayload);
+ insertError = error;
+
+ // Permite criar a meta mesmo enquanto a migração de campos opcionais ainda não foi aplicada.
+ if (insertError && /smart_|schema cache|column .*goals/i.test(insertError.message ?? "")) {
+ const { error: fallbackError } = await supabase.from("goals").insert({
  user_id: user.id,
  title: title.trim(),
  description: description || null,
  emoji,
  color,
  type: "longo_prazo",
-  deadline: deadline || null,
-  smart_specific: smartSpecific.trim(),
-  smart_measurable: smartMeasurable.trim(),
-  smart_achievable: smartAchievable.trim(),
-  smart_relevant: smartRelevant.trim(),
-  steps: validSteps,
-  completed_at: null,
+ deadline: deadline || null,
+ steps: validSteps,
+ completed_at: null,
  });
+ insertError = fallbackError;
+ }
+ }
+
+ if (insertError) {
+ console.error("[Goals] Erro ao criar meta:", insertError);
+ showToast("Não foi possível salvar a meta. Tente novamente.", "info");
+ return;
  }
 
  // Notify other tabs (e.g. Today open elsewhere) to refresh goals
@@ -784,14 +798,14 @@ function NewGoalModal({
  ) : (
  <>
  <div>
- <div className="ledger-marginalia mb-2">Objetivo SMART</div>
- <p style={{ margin: "0 0 10px", color: "var(--muted-foreground)", fontSize: 11, lineHeight: 1.45 }}>Descreva a meta com clareza para transformar intenção em um plano acompanhável.</p>
+ <div className="ledger-marginalia mb-2">Reflexão da meta</div>
+ <p style={{ margin: "0 0 10px", color: "var(--muted-foreground)", fontSize: 11, lineHeight: 1.45 }}>Se quiser, responda às perguntas para deixar sua meta mais clara e fácil de acompanhar.</p>
  <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
- <label style={{ display: "flex", flexDirection: "column", gap: 5 }}><span style={{ fontSize: 11, fontWeight: 700 }}>S — Específica</span><textarea className="ledger-input" rows={2} placeholder="O que será alcançado, por quem e por que importa?" value={smartSpecific} onChange={e => setSmartSpecific(e.target.value)} /></label>
- <label style={{ display: "flex", flexDirection: "column", gap: 5 }}><span style={{ fontSize: 11, fontWeight: 700 }}>M — Mensurável</span><textarea className="ledger-input" rows={2} placeholder="Qual número ou indicador mostrará o progresso?" value={smartMeasurable} onChange={e => setSmartMeasurable(e.target.value)} /></label>
- <label style={{ display: "flex", flexDirection: "column", gap: 5 }}><span style={{ fontSize: 11, fontWeight: 700 }}>A — Atingível</span><textarea className="ledger-input" rows={2} placeholder="Quais recursos, tempo e habilidades você já tem?" value={smartAchievable} onChange={e => setSmartAchievable(e.target.value)} /></label>
- <label style={{ display: "flex", flexDirection: "column", gap: 5 }}><span style={{ fontSize: 11, fontWeight: 700 }}>R — Relevante</span><textarea className="ledger-input" rows={2} placeholder="Como essa meta se conecta às suas prioridades atuais?" value={smartRelevant} onChange={e => setSmartRelevant(e.target.value)} /></label>
- <label style={{ display: "flex", flexDirection: "column", gap: 5 }}><span style={{ fontSize: 11, fontWeight: 700 }}>T — Temporal</span><input className="ledger-input" type="date" value={deadline} onChange={e => setDeadline(e.target.value)} /></label>
+ <label style={{ display: "flex", flexDirection: "column", gap: 5 }}><span style={{ fontSize: 11, fontWeight: 700 }}>O que você quer alcançar?</span><textarea className="ledger-input" rows={2} placeholder="Descreva o resultado que deseja alcançar." value={smartSpecific} onChange={e => setSmartSpecific(e.target.value)} /></label>
+ <label style={{ display: "flex", flexDirection: "column", gap: 5 }}><span style={{ fontSize: 11, fontWeight: 700 }}>Como você vai medir o progresso?</span><textarea className="ledger-input" rows={2} placeholder="Ex.: alcançar um número, concluir etapas ou acompanhar um indicador." value={smartMeasurable} onChange={e => setSmartMeasurable(e.target.value)} /></label>
+ <label style={{ display: "flex", flexDirection: "column", gap: 5 }}><span style={{ fontSize: 11, fontWeight: 700 }}>O que torna essa meta possível?</span><textarea className="ledger-input" rows={2} placeholder="Considere seu tempo, recursos e habilidades disponíveis." value={smartAchievable} onChange={e => setSmartAchievable(e.target.value)} /></label>
+ <label style={{ display: "flex", flexDirection: "column", gap: 5 }}><span style={{ fontSize: 11, fontWeight: 700 }}>Por que essa meta importa agora?</span><textarea className="ledger-input" rows={2} placeholder="Conte como ela se conecta às suas prioridades." value={smartRelevant} onChange={e => setSmartRelevant(e.target.value)} /></label>
+ <label style={{ display: "flex", flexDirection: "column", gap: 5 }}><span style={{ fontSize: 11, fontWeight: 700 }}>Qual é o prazo?</span><input className="ledger-input" type="date" value={deadline} onChange={e => setDeadline(e.target.value)} /></label>
  </div>
  </div>
  <div><div className="ledger-marginalia mb-2">Etapas</div><div style={{ display: "flex", flexDirection: "column", gap: 8 }}>

@@ -1,6 +1,6 @@
--- Adiciona os critérios SMART às metas de longo prazo.
--- Os campos permanecem opcionais no banco para preservar metas criadas antes desta migração;
--- a interface exige o preenchimento ao criar novas metas de longo prazo.
+-- Adiciona perguntas opcionais de planejamento às metas de longo prazo.
+-- Os campos permanecem opcionais no banco para preservar metas criadas antes desta migração
+-- e permitir que cada pessoa escolha o nível de detalhe da própria meta.
 ALTER TABLE public.goals
   ADD COLUMN IF NOT EXISTS smart_specific text,
   ADD COLUMN IF NOT EXISTS smart_measurable text,
@@ -11,5 +11,5 @@ COMMENT ON COLUMN public.goals.smart_specific IS 'Descrição específica do obj
 COMMENT ON COLUMN public.goals.smart_measurable IS 'Indicador ou número usado para medir o progresso da meta';
 COMMENT ON COLUMN public.goals.smart_achievable IS 'Recursos, tempo e habilidades que tornam a meta atingível';
 COMMENT ON COLUMN public.goals.smart_relevant IS 'Motivação e alinhamento da meta com as prioridades atuais';
-COMMENT ON COLUMN public.goals.deadline IS 'Prazo (T de SMART) da meta de longo prazo';
+COMMENT ON COLUMN public.goals.deadline IS 'Prazo opcional da meta de longo prazo';
 
