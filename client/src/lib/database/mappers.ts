@@ -54,6 +54,10 @@ export function goalFromRow(row: GoalDatabaseRow): Goal {
     recordStreak: row.record_streak,
     linkedHabitId: row.linked_habit_id,
     weekStart: row.week_start,
+    smartSpecific: row.smart_specific ?? undefined,
+    smartMeasurable: row.smart_measurable ?? undefined,
+    smartAchievable: row.smart_achievable ?? undefined,
+    smartRelevant: row.smart_relevant ?? undefined,
   };
 }
 

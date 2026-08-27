@@ -38,6 +38,10 @@ export async function loadGoalsData(): Promise<void> {
     recordStreak: goal.record_streak,
     linkedHabitId: goal.linked_habit_id,
     weekStart: goal.week_start,
+    smartSpecific: goal.smart_specific,
+    smartMeasurable: goal.smart_measurable,
+    smartAchievable: goal.smart_achievable,
+    smartRelevant: goal.smart_relevant,
   }));
 
   store.update(state => {

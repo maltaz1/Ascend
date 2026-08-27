@@ -32,6 +32,10 @@ export interface GoalDatabaseRow {
   record_streak?: number;
   linked_habit_id?: string | null;
   week_start?: string | null;
+  smart_specific?: string | null;
+  smart_measurable?: string | null;
+  smart_achievable?: string | null;
+  smart_relevant?: string | null;
 }
 
 export interface WorkoutDatabaseRow {

@@ -115,6 +115,10 @@ export async function loadGoalsData(): Promise<void> {
     linkedHabitId: item.linked_habit_id,
     weekStart: item.week_start,
     weeklyHistory: item.weekly_history || [],
+    smartSpecific: item.smart_specific,
+    smartMeasurable: item.smart_measurable,
+    smartAchievable: item.smart_achievable,
+    smartRelevant: item.smart_relevant,
   }));
 
   const normalizedGoals = mappedGoals.map(goal => {
