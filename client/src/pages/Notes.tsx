@@ -100,8 +100,18 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  const autosaveTimeoutRef = useRef<NodeJS.Timeout | null>(null);
  const lastSavedContentRef = useRef<string>("");
  const isMountedRef = useRef(true);
+ const notesRef = useRef<NoteUI[]>([]);
+ const selectedNoteIdRef = useRef<string | null>(null);
 
  const selectedNote = useMemo(() => notes.find(n => n.id === selectedNoteId), [notes, selectedNoteId]);
+
+ useEffect(() => {
+ notesRef.current = notes;
+ }, [notes]);
+
+ useEffect(() => {
+ selectedNoteIdRef.current = selectedNoteId;
+ }, [selectedNoteId]);
 
  // Cleanup no unmount
  useEffect(() => {
@@ -135,12 +145,15 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  folder: note.folder_id ? (foldersData.find(f => f.id === note.folder_id)?.name || "Sem pasta") : "Sem pasta",
  }));
 
+ notesRef.current = mappedNotes;
  setNotes(mappedNotes);
  setUserFolders(foldersData);
 
  // Selecionar a primeira nota se houver
  if (mappedNotes.length > 0) {
+ selectedNoteIdRef.current = mappedNotes[0].id;
  setSelectedNoteId(mappedNotes[0].id);
+ lastSavedContentRef.current = mappedNotes[0].content;
  }
  } catch (error) {
  if (!isMountedRef.current) return;
@@ -170,42 +183,28 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  return () => window.removeEventListener('resize', checkMobile);
  }, []);
 
- // Autosave com debounce (otimizado para evitar race conditions)
- const scheduleAutosave = useCallback(() => {
- if (!selectedNote || !isMountedRef.current) return;
+ // Autosave com debounce. Recebe o snapshot mais recente para evitar estado defasado.
+ const scheduleAutosave = useCallback((note: NoteUI) => {
+ if (!isMountedRef.current) return;
 
  setSyncState({ status: 'typing' });
 
- // Limpar timeout anterior
  if (autosaveTimeoutRef.current) {
  clearTimeout(autosaveTimeoutRef.current);
  }
 
  autosaveTimeoutRef.current = setTimeout(async () => {
- if (!isMountedRef.current || !selectedNote) return;
-
- const currentContent = selectedNote.content;
- 
- // Evitar salvar se o conteúdo não mudou
- if (currentContent === lastSavedContentRef.current) {
- if (isMountedRef.current) {
- setSyncState({ status: 'synced', lastSyncTime: new Date() });
- }
- return;
- }
+ if (!isMountedRef.current) return;
 
  try {
- if (isMountedRef.current) {
  setSyncState({ status: 'saving' });
- }
-
- await updateNote(selectedNote.id, {
- content: currentContent,
+ await updateNote(note.id, {
+ title: note.title,
+ content: note.content,
  });
 
  if (!isMountedRef.current) return;
-
- lastSavedContentRef.current = currentContent;
+ lastSavedContentRef.current = note.content;
  setSyncState({ status: 'synced', lastSyncTime: new Date() });
  } catch (error) {
  if (!isMountedRef.current) return;
@@ -214,7 +213,7 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  showToast("Erro ao salvar nota", "error");
  }
  }, 800);
- }, [selectedNote]);
+ }, []);
 
  // Handlers memoizados
  const handleCreateFolder = useCallback(async (e: React.FormEvent<HTMLFormElement>) => {
@@ -257,10 +256,12 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  ...newNote,
  folder: activeFolder || "Sem pasta",
  };
- setNotes(prev => [noteUI, ...prev]);
+ notesRef.current = [noteUI, ...notesRef.current];
+ setNotes(notesRef.current);
+ selectedNoteIdRef.current = newNote.id;
  setSelectedNoteId(newNote.id);
  if (isMobile) setViewMode('editor');
- lastSavedContentRef.current = "";
+ lastSavedContentRef.current = newNote.content;
  showToast("Nota criada!", "success");
  }
  } catch (error) {
@@ -271,11 +272,15 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  }, [activeFolder, userFolders, isMobile]);
 
  const handleUpdateNote = useCallback(async (id: string, field: string, value: any) => {
- // Atualizar estado localmente
- setNotes(prev => prev.map(n => n.id === id ? { ...n, [field]: value } : n));
+ const currentNote = notesRef.current.find(n => n.id === id);
+ if (!currentNote) return;
 
- if (field === 'content') {
- scheduleAutosave();
+ const updatedNote = { ...currentNote, [field]: value } as NoteUI;
+ notesRef.current = notesRef.current.map(n => n.id === id ? updatedNote : n);
+ setNotes(notesRef.current);
+
+ if (field === 'content' || field === 'title') {
+ scheduleAutosave(updatedNote);
  } else {
  // Salvar imediatamente para outros campos
  try {
