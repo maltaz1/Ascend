@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
+import { Zap } from "lucide-react";
 import { useLocation, useNavigate } from "react-router-dom";
 import { loadGymData } from "./lib/gym";
 import { supabase } from "./lib/supabase";
@@ -40,6 +41,7 @@ function timeoutPromise<T>(promise: Promise<T>, ms: number): Promise<T> {
 
 import UpgradeModal from "./components/UpgradeModal";
 import { Onboarding, shouldShowOnboarding } from "./components/Onboarding";
+import { FREE_TABS } from "./config/planLimits";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
@@ -126,6 +128,47 @@ function getTabFromPathname(pathname: string): Tab {
   return "dashboard";
 }
 
+const PRO_TAB_LABELS: Partial<Record<Tab, string>> = {
+  prayer: "Oração",
+  academy: "Academia",
+  evolution: "Evolução",
+  diet: "Dieta",
+  financial: "Financeiro",
+  notes: "Notas",
+};
+
+function ProAccessGate({
+  tab,
+  onOpenUpgrade,
+}: {
+  tab: Tab;
+  onOpenUpgrade: () => void;
+}) {
+  const label = PRO_TAB_LABELS[tab] || "Este recurso";
+
+  return (
+    <div className="flex min-h-[calc(100vh-40px)] items-center justify-center p-6">
+      <div className="max-w-md space-y-6 text-center">
+        <div className="mx-auto flex h-20 w-20 items-center justify-center rounded-md border border-purple-500/30 bg-[#ede9fe] text-[var(--primary)]">
+          <Zap size={40} />
+        </div>
+        <div className="space-y-2">
+          <h2 className="text-2xl font-bold text-[var(--ink)]">{label} é um recurso Pro</h2>
+          <p className="text-[var(--ink-muted)]">
+            Faça o upgrade para o Pro para desbloquear este recurso.
+          </p>
+        </div>
+        <button
+          onClick={onOpenUpgrade}
+          className="rounded-md bg-[var(--primary)] px-8 py-3 font-semibold text-white transition-all hover:opacity-90"
+        >
+          Assinar Pro Agora
+        </button>
+      </div>
+    </div>
+  );
+}
+
 function AppContent({
   isPro,
   onOpenUpgrade,
@@ -153,6 +196,12 @@ function AppContent({
   };
 
   const renderPage = () => {
+    // O menu bloqueia o clique, mas a URL também precisa ser protegida.
+    // Qualquer aba fora de FREE_TABS é considerada exclusiva do Pro.
+    if (!isPro && !FREE_TABS.includes(activeTab)) {
+      return <ProAccessGate tab={activeTab} onOpenUpgrade={onOpenUpgrade} />;
+    }
+
     switch (activeTab) {
       case "dashboard":
         return <Dashboard />;
