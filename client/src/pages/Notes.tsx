@@ -18,7 +18,8 @@ import {
  FileText,
  ChevronRight,
  Trash2,
- ChevronLeft
+ ChevronLeft,
+ Save
 } from "lucide-react";
 import { motion, AnimatePresence } from "framer-motion";
 import { showToast } from "@/components/ui/FlowToast";
@@ -270,6 +271,34 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  showToast("Erro ao criar nota", "error");
  }
  }, [activeFolder, userFolders, isMobile]);
+
+ const handleManualSave = useCallback(async () => {
+ const note = notesRef.current.find(n => n.id === selectedNoteIdRef.current);
+ if (!note || !isMountedRef.current) return;
+
+ if (autosaveTimeoutRef.current) {
+ clearTimeout(autosaveTimeoutRef.current);
+ autosaveTimeoutRef.current = null;
+ }
+
+ try {
+ setSyncState({ status: 'saving' });
+ await updateNote(note.id, {
+ title: note.title,
+ content: note.content,
+ });
+
+ if (!isMountedRef.current) return;
+ lastSavedContentRef.current = note.content;
+ setSyncState({ status: 'synced', lastSyncTime: new Date() });
+ showToast("Nota salva com sucesso!", "success");
+ } catch (error) {
+ if (!isMountedRef.current) return;
+ console.error("Erro ao salvar nota:", error);
+ setSyncState({ status: 'idle' });
+ showToast("Erro ao salvar nota", "error");
+ }
+ }, []);
 
  const handleUpdateNote = useCallback(async (id: string, field: string, value: any) => {
  const currentNote = notesRef.current.find(n => n.id === id);
@@ -542,11 +571,16 @@ export default function Notes({ isPro, onOpenUpgrade }: { isPro?: boolean; onOpe
  className="bg-transparent text-xl lg:text-3xl font-black text-white outline-none w-full tracking-tight truncate"
  placeholder="Título da nota"
  /></div></div><div className="flex items-center gap-1 flex-shrink-0">
- {!isMobile && (
- <div className="text-[9px] font-bold text-[var(--ink-muted)] uppercase tracking-widest px-3 py-2 rounded-md bg-[var(--ledger-paper-bg)] border border-[var(--ledger-paper-border)]">
- {selectedNote.content.replace(/<[^>]*>/g, '').split(/\s+/).filter(Boolean).length} palavras
- </div>
- )}
+ <button
+ type="button"
+ onClick={handleManualSave}
+ disabled={syncState.status === 'saving'}
+ title="Salvar nota agora"
+ className="inline-flex items-center gap-2 px-3 py-2 rounded-md border border-[var(--ledger-paper-border)] bg-[var(--ledger-paper-bg)] text-[var(--ink-muted)] hover:text-[var(--primary)] hover:border-[var(--primary)] transition-all disabled:opacity-50 disabled:cursor-wait"
+ >
+ <Save size={isMobile ? 16 : 15} />
+ {!isMobile && <span className="text-[9px] font-bold uppercase tracking-widest">Salvar</span>}
+ </button>
  <ToolbarButton 
  icon={<MoreVertical size={isMobile ? 18 : 20} />} 
  menuItems={[
