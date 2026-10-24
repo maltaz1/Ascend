@@ -9,7 +9,34 @@ Usa o mesmo Supabase do site, então conta e dados são os mesmos nos dois.
 2. Instale as dependências: `npm install --legacy-peer-deps`
 3. Rode `npx expo start` e leia o QR code com o app **Expo Go** no celular.
 
-Pré-visualização no navegador com dados de exemplo (sem Supabase, PRO liberado): `npm run demo:web` e abra `http://localhost:8082`.
+Pré-visualização no navegador:
+
+- `npm run web` → back-end real (Supabase do site), em `http://localhost:8084`
+- `npm run demo:web` → dados de exemplo, sem Supabase e com PRO liberado, em `http://localhost:8082`
+
+## Back-end
+
+O app usa o mesmo back-end do site, sem nada separado:
+
+- Supabase `rwdzcbbneczjefmjzkdr` (projeto "FlowZone Teste"): todas as tabelas com RLS; limites do plano grátis e bloqueio de autopromoção a PRO aplicados por gatilhos no banco
+- Funções: `delete-account` (excluir conta, usada em Configurações) e `notify-cancellation`
+- Site `https://ascend-lac-zeta.vercel.app`: termos, privacidade, confirmação de e-mail e redefinição de senha
+- Pagamento PRO (Cakto) continua pelo site. No Android/iOS o botão de assinar fica escondido (regra das lojas); quem já é PRO tem tudo liberado pela conta
+
+As chaves públicas ficam em `.env.local` (uso local) e em `eas.json` (builds na nuvem do EAS, que não recebem o `.env.local`).
+
+## Gerar o app Android e o link de download
+
+Pacote Android: `com.ascendprod.app` (não dá para trocar depois de publicar na Play Store).
+
+1. Entrar na conta Expo (uma vez): `npx eas-cli@latest login`
+2. Ligar o projeto à conta: `npx eas-cli@latest init`
+3. APK para instalar direto (gera um link de download na página do build):
+   `npx eas-cli@latest build -p android --profile preview`
+4. Pacote para a Play Store (AAB): `npx eas-cli@latest build -p android --profile production`
+5. Na Google Play Console (conta de desenvolvedor, taxa única de US$ 25): criar o app, enviar o primeiro AAB à mão, preencher a política de privacidade (`/privacy` do site), a seção de segurança de dados e o link de exclusão de conta. Depois, `npx eas-cli@latest submit -p android` envia os próximos builds para o teste interno.
+
+Contas pessoais novas na Play Console precisam de um teste fechado com pelo menos 12 testadores por 14 dias antes de liberar a produção.
 
 ## Identidade visual
 

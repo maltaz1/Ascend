@@ -1,0 +1,36 @@
+{
+  "cli": {
+    "version": ">= 16.0.0",
+    "appVersionSource": "remote"
+  },
+  "build": {
+    "base": {
+      "env": {
+        "EXPO_PUBLIC_SUPABASE_URL": "https://rwdzcbbneczjefmjzkdr.supabase.co",
+        "EXPO_PUBLIC_SUPABASE_ANON_KEY": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3ZHpjYmJuZWN6amVmbWp6a2RyIiwicm9sZSI6ImFub24iLCJpYXQiOjE3Nzc0OTE1NjMsImV4cCI6MjA5MzA2NzU2M30.O5PHKNZvSFTWdzGNPnNmWR9-THZBrjwyn3AbD6TWJn0",
+        "EXPO_PUBLIC_WEB_URL": "https://ascend-lac-zeta.vercel.app"
+      }
+    },
+    "preview": {
+      "extends": "base",
+      "distribution": "internal",
+      "android": {
+        "buildType": "apk"
+      }
+    },
+    "production": {
+      "extends": "base",
+      "autoIncrement": true,
+      "android": {
+        "buildType": "app-bundle"
+      }
+    }
+  },
+  "submit": {
+    "production": {
+      "android": {
+        "track": "internal"
+      }
+    }
+  }
+}

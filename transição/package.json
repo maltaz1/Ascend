@@ -34,7 +34,7 @@
     "start": "expo start",
     "android": "expo start --android",
     "ios": "expo start --ios",
-    "web": "expo start --web",
+    "web": "node scripts/demo-web.js --real",
     "typecheck": "tsc --noEmit",
     "demo:web": "node scripts/demo-web.js",
     "lint": "expo lint"

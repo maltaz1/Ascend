@@ -1,5 +1,5 @@
 import type { ReactNode } from "react";
-import { Linking, View } from "react-native";
+import { Linking, Platform, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { useAuth } from "@/hooks/useAuth";
 import { notifyError } from "@/lib/notifications";
@@ -17,6 +17,11 @@ const BENEFITS = [
   "Sincronização avançada",
   "Analytics avançado",
 ];
+
+// As lojas (Google Play / App Store) não permitem levar o usuário a pagar uma
+// assinatura digital fora delas. No Android/iOS o botão de checkout fica
+// escondido até existir compra pela loja; no navegador continua como no site.
+export const CAN_BUY_IN_APP = Platform.OS === "web";
 
 export function openCheckout(email?: string | null) {
   const checkoutUrl = process.env.EXPO_PUBLIC_CAKTO_CHECKOUT_URL;
@@ -48,7 +53,13 @@ export function UpgradeCard() {
           </View>
         ))}
       </View>
-      <Button label="Assinar Pro agora" icon="flash" onPress={() => openCheckout(user?.email)} />
+      {CAN_BUY_IN_APP ? (
+        <Button label="Assinar Pro agora" icon="flash" onPress={() => openCheckout(user?.email)} />
+      ) : (
+        <Txt variant="label" muted>
+          Disponível para assinantes Ascend PRO.
+        </Txt>
+      )}
     </Card>
   );
 }
@@ -81,7 +92,7 @@ export function ProGate({ section, children }: { section: Section; children: Rea
           {label} é um recurso Pro
         </Txt>
         <Txt muted style={{ textAlign: "center" }}>
-          Faça o upgrade para o Pro para desbloquear este recurso.
+          {CAN_BUY_IN_APP ? "Faça o upgrade para o Pro para desbloquear este recurso." : "Este recurso faz parte do Ascend PRO."}
         </Txt>
       </View>
       <UpgradeCard />
