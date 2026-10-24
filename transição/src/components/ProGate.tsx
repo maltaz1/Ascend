@@ -33,7 +33,7 @@ export function UpgradeCard() {
   const theme = useTheme();
   const { user } = useAuth();
   return (
-    <Card accent={theme.primary} style={{ gap: 14 }}>
+    <Card tone="violet" style={{ gap: 14 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
         <Ionicons name="flash" size={22} color={theme.primary} />
         <Txt variant="h2">
@@ -61,7 +61,7 @@ export function ProGate({ section, children }: { section: Section; children: Rea
 
   const label = SECTIONS.find(item => item.id === section)?.label ?? "Este recurso";
   return (
-    <Screen back title={label}>
+    <Screen title={label}>
       <View style={{ alignItems: "center", gap: 12, marginVertical: 24 }}>
         <View
           style={{

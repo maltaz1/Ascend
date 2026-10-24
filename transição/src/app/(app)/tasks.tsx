@@ -1,15 +1,17 @@
 import { useState } from "react";
-import { Alert, View } from "react-native";
-import { deleteTask, getTodayString, type Task } from "@/lib/store";
+import { View } from "react-native";
+import { getTodayString, type Task } from "@/lib/store";
 import { saveTask } from "@/store/tasks.store";
 import { countTasksCreatedThisWeek, FREE_LIMITS } from "@/config/planLimits";
 import { notifyError, notifyInfo, notifySuccess } from "@/lib/notifications";
 import { useStore } from "@/hooks/useStore";
 import { useAuth } from "@/hooks/useAuth";
-import { Button, Card, EmptyState, IconButton, Input, Screen, SectionTitle, Segmented, Sheet, Txt } from "@/components/ui";
-import { TaskRow } from "@/components/rows";
+import { Button, Card, EmptyState, IconButton, Input, Marginalia, Screen, Segmented, Sheet, Txt } from "@/components/ui";
+import { longDate, TaskCard } from "@/components/rows";
 import { DateStrip } from "@/components/DateStrip";
+import { MonthCalendar } from "@/components/MonthCalendar";
 import type { RecurrenceConfig, RecurrenceType } from "@/types/recurrence";
+import { useTheme } from "@/theme";
 
 const PRIORITIES: { value: Task["priority"]; label: string }[] = [
   { value: "low", label: "Baixa" },
@@ -25,21 +27,26 @@ const RECURRENCES: { value: RecurrenceType; label: string }[] = [
   { value: "monthly", label: "Mensal" },
 ];
 
-type Filter = "all" | "pending" | "completed";
+type Filter = "all" | "pending" | "completed" | "overdue";
 
+// Porta de pages/Tasks.tsx: mini calendário, filtros, busca e lista.
 export default function TasksScreen() {
+  const theme = useTheme();
   const data = useStore();
   const { isPro } = useAuth();
-  const [selectedDate, setSelectedDate] = useState(getTodayString());
+  const today = getTodayString();
+  const [selectedDate, setSelectedDate] = useState(today);
   const [filter, setFilter] = useState<Filter>("all");
+  const [search, setSearch] = useState("");
   const [editing, setEditing] = useState<Task | null>(null);
   const [showSheet, setShowSheet] = useState(false);
 
+  const q = search.trim().toLowerCase();
   const dayTasks = data.tasks
-    .filter(task => task.date === selectedDate)
+    .filter(task => (filter === "overdue" ? !task.completed && task.date < today : task.date === selectedDate))
     .filter(task => (filter === "pending" ? !task.completed : filter === "completed" ? task.completed : true))
-    .sort((a, b) => Number(a.completed) - Number(b.completed) || (a.priority === "high" ? -1 : 1));
-  const marks = new Set(data.tasks.filter(t => !t.completed).map(t => t.date));
+    .filter(task => !q || task.title.toLowerCase().includes(q))
+    .sort((a, b) => Number(a.completed) - Number(b.completed));
   const createdThisWeek = countTasksCreatedThisWeek(data.tasks);
 
   const openNew = () => {
@@ -51,71 +58,91 @@ export default function TasksScreen() {
     setShowSheet(true);
   };
 
-  const confirmDelete = (task: Task) => {
-    Alert.alert("Excluir tarefa", `Excluir "${task.title}"?`, [
-      { text: "Cancelar", style: "cancel" },
-      { text: "Editar", onPress: () => { setEditing(task); setShowSheet(true); } },
-      { text: "Excluir", style: "destructive", onPress: () => void deleteTask(task.id) },
-    ]);
-  };
-
-  const label =
-    selectedDate === getTodayString()
-      ? "Hoje"
-      : new Date(`${selectedDate}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
+  const label = longDate(new Date(`${selectedDate}T12:00:00`));
+  const title = label.replace(/(^|\s)\S/g, s => s.toUpperCase()).replace(/ De /g, " De ");
 
   return (
-    <Screen title="Tarefas" right={<IconButton icon="add" label="Nova tarefa" onPress={openNew} filled />}>
-      <DateStrip value={selectedDate} onChange={setSelectedDate} marks={marks} />
+    <Screen>
+      <Card>
+        <MonthCalendar
+          value={selectedDate}
+          onChange={setSelectedDate}
+          dots={key => {
+            const list = data.tasks.filter(t => t.date === key);
+            const marks: string[] = [];
+            if (list.some(t => !t.completed)) marks.push(theme.primary);
+            if (list.length > 0 && list.every(t => t.completed)) marks.push(theme.success);
+            return marks;
+          }}
+        />
+        <View style={{ height: 1, backgroundColor: theme.border }} />
+        <View style={{ flexDirection: "row", gap: 16 }}>
+          <LegendDot color={theme.primary} label="Com tarefas" />
+          <LegendDot color={theme.success} label="Concluídas" />
+        </View>
+      </Card>
+
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+        <Txt variant="h2" style={{ flex: 1 }} numberOfLines={1}>
+          {filter === "overdue" ? "Tarefas atrasadas" : title}
+        </Txt>
+        <IconButton icon="time-outline" label="Voltar para hoje" onPress={() => setSelectedDate(today)} />
+        <IconButton icon="add" label="Nova tarefa" onPress={openNew} filled />
+      </View>
+
       <Segmented
+        kind="stamp"
         options={[
           { value: "all", label: "Todas" },
           { value: "pending", label: "Pendentes" },
           { value: "completed", label: "Concluídas" },
+          { value: "overdue", label: "Atrasadas" },
         ]}
         value={filter}
         onChange={setFilter}
       />
 
-      <SectionTitle>{label}</SectionTitle>
-      <Card>
-        {dayTasks.length === 0 ? (
-          <View style={{ gap: 10 }}>
-            <EmptyState icon="checkbox-outline" text="Nenhuma tarefa neste dia." />
-            <Button label="Nova tarefa" variant="soft" icon="add" onPress={openNew} />
-          </View>
-        ) : (
-          dayTasks.map(task => (
-            <TaskRow
+      <Input icon="search" placeholder="Buscar tarefas..." value={search} onChangeText={setSearch} />
+
+      {dayTasks.length === 0 ? (
+        <Card>
+          <EmptyState icon="checkbox-outline" text="Nenhuma tarefa por aqui." />
+          <Button label="Nova tarefa" variant="soft" icon="add" onPress={openNew} />
+        </Card>
+      ) : (
+        <View style={{ gap: 10 }}>
+          {dayTasks.map(task => (
+            <TaskCard
               key={task.id}
               task={task}
               onPress={() => {
                 setEditing(task);
                 setShowSheet(true);
               }}
-              onLongPress={() => confirmDelete(task)}
             />
-          ))
-        )}
-      </Card>
+          ))}
+        </View>
+      )}
 
       {!isPro && (
         <Txt variant="caption" muted style={{ textAlign: "center" }}>
           {createdThisWeek}/{FREE_LIMITS.tasksPerWeek} tarefas criadas nesta semana (plano grátis)
         </Txt>
       )}
-      <Txt variant="caption" muted style={{ textAlign: "center" }}>
-        Toque no círculo para concluir · toque na tarefa para editar · segure para excluir
-      </Txt>
 
-      <TaskSheet
-        visible={showSheet}
-        task={editing}
-        defaultDate={selectedDate}
-        isPro={isPro}
-        onClose={() => setShowSheet(false)}
-      />
+      <TaskSheet visible={showSheet} task={editing} defaultDate={selectedDate} isPro={isPro} onClose={() => setShowSheet(false)} />
     </Screen>
+  );
+}
+
+function LegendDot({ color, label }: { color: string; label: string }) {
+  return (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+      <View style={{ width: 6, height: 6, borderRadius: 3, backgroundColor: color }} />
+      <Txt variant="caption" muted>
+        {label}
+      </Txt>
+    </View>
   );
 }
 
@@ -176,21 +203,15 @@ function TaskSheet({
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose} title={task ? "Editar tarefa" : "Nova tarefa"}>
+    <Sheet visible={visible} onClose={onClose} title={task ? "Editar Tarefa" : "Nova Tarefa"}>
       <Input label="Título *" placeholder="O que precisa ser feito?" value={title} onChangeText={setTitle} />
       <Input label="Descrição (opcional)" placeholder="Detalhes..." value={description} onChangeText={setDescription} multiline />
-      <Txt variant="label" muted>
-        Data
-      </Txt>
+      <Marginalia>Data *</Marginalia>
       <DateStrip value={date} onChange={setDate} daysBefore={1} daysAfter={60} />
-      <Txt variant="label" muted>
-        Prioridade
-      </Txt>
-      <Segmented options={PRIORITIES} value={priority} onChange={setPriority} />
-      <Txt variant="label" muted>
-        Repetir {!isPro ? "(PRO)" : ""}
-      </Txt>
-      <Segmented options={RECURRENCES} value={recurrenceType} onChange={setRecurrenceType} wrap />
+      <Marginalia>Prioridade</Marginalia>
+      <Segmented kind="stamp" options={PRIORITIES} value={priority} onChange={setPriority} />
+      <Marginalia>Repetir {!isPro ? "(Pro)" : ""}</Marginalia>
+      <Segmented kind="stamp" options={RECURRENCES} value={recurrenceType} onChange={setRecurrenceType} />
       <Button label={task ? "Salvar" : "Criar tarefa"} onPress={handleSave} loading={saving} disabled={!title.trim()} />
     </Sheet>
   );

@@ -7,12 +7,11 @@ import { getTodayString } from "@/lib/store";
 import { notifyError, notifySuccess } from "@/lib/notifications";
 import { useStore } from "@/hooks/useStore";
 import { ProGate } from "@/components/ProGate";
-import { Button, Card, EmptyState, IconButton, Input, Screen, SectionTitle, Segmented, Sheet, StatTile, Txt } from "@/components/ui";
-import { BarChart, DonutChart, Legend } from "@/components/charts";
+import { Button, Card, EmptyState, Input, Marginalia, Screen, Segmented, Sheet, Txt } from "@/components/ui";
+import { DonutChart, HBar } from "@/components/charts";
 import { DateStrip } from "@/components/DateStrip";
+import { MonthCalendar } from "@/components/MonthCalendar";
 import { resolveColor, useTheme } from "@/theme";
-
-const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 
 // Mesmas categorias de pages/Financial.tsx.
 const EXPENSE_CATEGORIES = [
@@ -31,9 +30,7 @@ const INCOME_CATEGORIES = [
   { name: "Investimentos", icon: "📈" },
   { name: "Outros", icon: "🧩" },
 ];
-const ICONS: Record<string, string> = Object.fromEntries(
-  [...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES].map(c => [c.name, c.icon])
-);
+const ICONS: Record<string, string> = Object.fromEntries([...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES].map(c => [c.name, c.icon]));
 const CHART_COLORS = ["var(--primary)", "#EC4899", "var(--accent)", "#10B981", "#06B6D4", "#3B82F6", "#EF4444", "#6366F1"];
 
 export default function FinancialScreen() {
@@ -44,33 +41,43 @@ export default function FinancialScreen() {
   );
 }
 
+type Tx = { id: string; title: string; amount: number; type: "income" | "expense"; category?: string; date: string };
+
+const sum = (list: Tx[], type: "income" | "expense") => list.filter(t => t.type === type).reduce((s, t) => s + t.amount, 0);
+const dateOf = (t: Tx) => new Date(`${t.date.slice(0, 10)}T12:00:00`);
+
+// Porta de pages/Financial.tsx ("O caderno de entrada e saída").
 function Financial() {
   const theme = useTheme();
   const data = useStore();
-  const [cursor, setCursor] = useState(() => new Date());
-  const [chart, setChart] = useState<"bars" | "pie">("pie");
+  const [selected, setSelected] = useState(getTodayString());
+  const [chart, setChart] = useState<"bars" | "pie">("bars");
   const [showAdd, setShowAdd] = useState(false);
 
-  const year = cursor.getFullYear();
-  const month = cursor.getMonth();
-  const all = data.financial.transactions;
-
-  const inMonth = (y: number, m: number) =>
-    all.filter(t => {
-      const d = new Date(`${t.date.slice(0, 10)}T12:00:00`);
-      return d.getFullYear() === y && d.getMonth() === m;
-    });
-
+  const all = data.financial.transactions as Tx[];
+  const ref = new Date(`${selected}T12:00:00`);
+  const year = ref.getFullYear();
+  const month = ref.getMonth();
+  const inMonth = (y: number, m: number) => all.filter(t => dateOf(t).getFullYear() === y && dateOf(t).getMonth() === m);
   const current = inMonth(year, month).sort((a, b) => b.date.localeCompare(a.date));
-  const prevDate = new Date(year, month - 1, 1);
-  const previous = inMonth(prevDate.getFullYear(), prevDate.getMonth());
+  const prev = new Date(year, month - 1, 1);
+  const previous = inMonth(prev.getFullYear(), prev.getMonth());
 
-  const sum = (list: typeof all, type: "income" | "expense") =>
-    list.filter(t => t.type === type).reduce((s, t) => s + t.amount, 0);
+  const weekStart = new Date(ref);
+  weekStart.setDate(ref.getDate() - ref.getDay());
+  weekStart.setHours(0, 0, 0, 0);
+  const inRange = (from: Date, days: number) =>
+    all.filter(t => {
+      const d = dateOf(t);
+      const end = new Date(from);
+      end.setDate(from.getDate() + days);
+      return d >= from && d < end;
+    });
+  const lastWeekStart = new Date(weekStart);
+  lastWeekStart.setDate(weekStart.getDate() - 7);
+
   const income = sum(current, "income");
   const expense = sum(current, "expense");
-  const prevExpense = sum(previous, "expense");
-  const expenseDelta = prevExpense > 0 ? Math.round(((expense - prevExpense) / prevExpense) * 100) : 0;
 
   const totals = new Map<string, number>();
   current
@@ -79,76 +86,87 @@ function Financial() {
   const byCategory = [...totals.entries()]
     .sort((a, b) => b[1] - a[1])
     .map(([name, value], i) => ({ name, value, color: resolveColor(CHART_COLORS[i % CHART_COLORS.length], theme) }));
+  const topValue = byCategory[0]?.value ?? 1;
 
-  const confirmDelete = (id: string, title: string) => {
-    Alert.alert("Excluir lançamento", `Excluir "${title}"?`, [
+  const confirmDelete = (t: Tx) =>
+    Alert.alert("Excluir lançamento", `Excluir "${t.title}"?`, [
       { text: "Cancelar", style: "cancel" },
-      { text: "Excluir", style: "destructive", onPress: () => void deleteTransaction(id) },
+      { text: "Excluir", style: "destructive", onPress: () => void deleteTransaction(t.id) },
     ]);
-  };
 
   return (
-    <Screen back title="Financeiro" right={<IconButton icon="add" label="Novo lançamento" onPress={() => setShowAdd(true)} filled />}>
-      <Card style={{ flexDirection: "row", alignItems: "center" }}>
-        <Pressable onPress={() => setCursor(new Date(year, month - 1, 1))} hitSlop={10} accessibilityLabel="Mês anterior">
-          <Ionicons name="chevron-back" size={22} color={theme.ink} />
-        </Pressable>
-        <Txt variant="h3" style={{ flex: 1, textAlign: "center" }}>
-          {MONTHS[month]} {year}
+    <Screen>
+      <Card style={{ gap: 8, paddingVertical: 22 }}>
+        <Marginalia index="07">Movimento</Marginalia>
+        <Txt variant="hero" style={{ fontSize: 32 }}>
+          Finanças
         </Txt>
-        <Pressable onPress={() => setCursor(new Date(year, month + 1, 1))} hitSlop={10} accessibilityLabel="Próximo mês">
-          <Ionicons name="chevron-forward" size={22} color={theme.ink} />
-        </Pressable>
+        <Txt muted>O caderno de entrada e saída.</Txt>
       </Card>
 
-      <Card accent={income - expense >= 0 ? theme.success : theme.danger}>
-        <Txt variant="overline" muted>
-          Saldo do mês
-        </Txt>
-        <Txt variant="display" color={income - expense >= 0 ? theme.success : theme.danger}>
-          {formatCurrency(income - expense)}
-        </Txt>
-        <Txt variant="caption" muted>
-          {prevExpense > 0
-            ? `Gastos ${expenseDelta >= 0 ? "+" : ""}${expenseDelta}% vs. mês anterior`
-            : "Sem gastos no mês anterior para comparar"}
-        </Txt>
-      </Card>
-      <View style={{ flexDirection: "row", gap: 10 }}>
-        <StatTile icon="arrow-down-circle-outline" value={formatCurrency(income)} label="Entradas" color={theme.success} />
-        <StatTile icon="arrow-up-circle-outline" value={formatCurrency(expense)} label="Gastos" color={theme.danger} />
+      <View style={{ flexDirection: "row", borderWidth: 1, borderColor: theme.border, borderRadius: 6, backgroundColor: theme.surface }}>
+        {[
+          { label: "Entradas", value: income, color: theme.success },
+          { label: "Gastos", value: expense, color: theme.danger },
+          { label: "Saldo", value: income - expense, color: theme.primary },
+        ].map((item, i) => (
+          <View key={item.label} style={{ flex: 1, padding: 12, gap: 6, borderLeftWidth: i ? 1 : 0, borderLeftColor: theme.border }}>
+            <Txt variant="caption" muted>
+              {item.label}
+            </Txt>
+            <Txt variant="mono" color={item.color} numberOfLines={1} adjustsFontSizeToFit>
+              {formatCurrency(item.value)}
+            </Txt>
+          </View>
+        ))}
       </View>
 
-      <SectionTitle
-        right={
+      <Comparison label="vs. mês anterior" current={expense} previous={sum(previous, "expense")} />
+      <Comparison label="vs. semana anterior" current={sum(inRange(weekStart, 7), "expense")} previous={sum(inRange(lastWeekStart, 7), "expense")} />
+
+      <Card>
+        <MonthCalendar
+          value={selected}
+          onChange={setSelected}
+          weekLabels={["D", "S", "T", "Q", "Q", "S", "S"]}
+          selectedStyle="filled"
+          arrowColor={theme.primary}
+          dots={key => (all.some(t => t.date.slice(0, 10) === key) ? [theme.primary] : [])}
+        />
+        <View style={{ height: 1, backgroundColor: theme.border }} />
+        <Button label="Registrar transação" icon="add" onPress={() => setShowAdd(true)} />
+      </Card>
+
+      <Card>
+        <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
+          <View style={{ flex: 1, gap: 4 }}>
+            <Marginalia index="08">Distribuição</Marginalia>
+            <Txt variant="h2">Distribuição por categoria</Txt>
+          </View>
           <View style={{ width: 150 }}>
             <Segmented
               options={[
-                { value: "pie", label: "Pizza" },
-                { value: "bars", label: "Barras" },
+                { value: "bars", label: "Barras", icon: "bar-chart-outline" },
+                { value: "pie", label: "Pizza", icon: "pie-chart-outline" },
               ]}
               value={chart}
               onChange={setChart}
             />
           </View>
-        }
-      >
-        Gastos por categoria
-      </SectionTitle>
-      <Card>
+        </View>
         {byCategory.length === 0 ? (
           <EmptyState text="Nenhum gasto neste mês." />
         ) : chart === "pie" ? (
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
-            <DonutChart slices={byCategory.map(c => ({ value: c.value, color: c.color, label: c.name }))} size={120} stroke={20} />
-            <View style={{ flex: 1, gap: 6 }}>
+          <View style={{ alignItems: "center", gap: 14 }}>
+            <DonutChart slices={byCategory.map(c => ({ value: c.value, color: c.color, label: c.name }))} size={170} stroke={30} />
+            <View style={{ alignSelf: "stretch", gap: 8 }}>
               {byCategory.map(c => (
-                <View key={c.name} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                  <View style={{ width: 10, height: 10, borderRadius: 3, backgroundColor: c.color }} />
-                  <Txt variant="caption" style={{ flex: 1 }} numberOfLines={1}>
+                <View key={c.name} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: c.color }} />
+                  <Txt variant="label" style={{ flex: 1 }}>
                     {ICONS[c.name] ?? ""} {c.name}
                   </Txt>
-                  <Txt variant="caption" muted>
+                  <Txt variant="mono" color={c.color}>
                     {Math.round((c.value / expense) * 100)}%
                   </Txt>
                 </View>
@@ -156,73 +174,103 @@ function Financial() {
             </View>
           </View>
         ) : (
-          <>
-            <BarChart
-              data={byCategory.map(c => ({ label: ICONS[c.name] ?? c.name.slice(0, 3), value: c.value }))}
-              series={[{ key: "value", label: "Gastos", color: theme.primary }]}
-            />
-            <Legend series={byCategory.map(c => ({ label: `${c.name}: ${formatCurrency(c.value)}`, color: c.color }))} />
-          </>
+          <View style={{ gap: 14 }}>
+            {byCategory.map(c => (
+              <View key={c.name} style={{ gap: 6 }}>
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+                  <Txt style={{ fontSize: 14 }}>{ICONS[c.name] ?? "🧾"}</Txt>
+                  <Txt variant="label" color={c.color} style={{ flex: 1 }} numberOfLines={1}>
+                    {c.name}
+                  </Txt>
+                  <Txt variant="mono" color={c.color}>
+                    {formatCurrency(c.value)}
+                  </Txt>
+                </View>
+                <View style={{ paddingLeft: 24 }}>
+                  <HBar percent={(c.value / topValue) * 100} color={c.color} />
+                </View>
+              </View>
+            ))}
+          </View>
         )}
       </Card>
 
-      <SectionTitle>Lançamentos</SectionTitle>
       <Card>
+        <Marginalia>Lançamentos recentes</Marginalia>
         {current.length === 0 ? (
           <EmptyState icon="cash-outline" text="Nenhum lançamento neste mês." />
         ) : (
           current.map(t => (
-            <Pressable
-              key={t.id}
-              onLongPress={() => confirmDelete(t.id, t.title)}
-              style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 6 }}
-            >
-              <View
-                style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 10,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: theme.primarySoft,
-                }}
-              >
-                <Txt style={{ fontSize: 18 }}>{ICONS[t.category ?? ""] ?? (t.type === "income" ? "💰" : "🧾")}</Txt>
+            <View key={t.id} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 4 }}>
+              <View style={{ width: 34, height: 34, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: theme.raised }}>
+                <Txt style={{ fontSize: 16 }}>{ICONS[t.category ?? ""] ?? (t.type === "income" ? "💰" : "🧾")}</Txt>
               </View>
               <View style={{ flex: 1 }}>
                 <Txt variant="bodyStrong" numberOfLines={1}>
                   {t.title}
                 </Txt>
-                <Txt variant="caption" muted>
-                  {t.category ?? "Sem categoria"} · {new Date(`${t.date.slice(0, 10)}T12:00:00`).toLocaleDateString("pt-BR")}
+                <Txt variant="caption" muted numberOfLines={1}>
+                  {t.category ?? "Sem categoria"}
                 </Txt>
               </View>
-              <Txt variant="bodyStrong" color={t.type === "income" ? theme.success : theme.danger}>
-                {t.type === "income" ? "+" : "−"}
+              <Txt variant="mono" color={t.type === "income" ? theme.success : theme.danger}>
+                {t.type === "income" ? "+" : "-"}
                 {formatCurrency(t.amount)}
               </Txt>
-            </Pressable>
+              <Txt variant="mono" muted style={{ fontSize: 11, fontWeight: "400" }}>
+                {dateOf(t).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" })}
+              </Txt>
+              <Pressable onPress={() => confirmDelete(t)} hitSlop={8} accessibilityLabel="Excluir lançamento">
+                <Ionicons name="trash-outline" size={16} color={theme.inkMuted} />
+              </Pressable>
+            </View>
           ))
         )}
       </Card>
-      {current.length > 0 && (
-        <Txt variant="caption" muted style={{ textAlign: "center" }}>
-          Segure um lançamento para excluir
-        </Txt>
-      )}
 
-      <TransactionSheet visible={showAdd} onClose={() => setShowAdd(false)} />
+      <TransactionSheet visible={showAdd} defaultDate={selected} onClose={() => setShowAdd(false)} />
     </Screen>
   );
 }
 
-function TransactionSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+// Selo "↑ 100.0% maior" (comparação com o período anterior).
+function Comparison({ label, current, previous }: { label: string; current: number; previous: number }) {
+  const theme = useTheme();
+  const delta = previous > 0 ? ((current - previous) / previous) * 100 : current > 0 ? 100 : 0;
+  const up = delta > 0;
+  const color = up ? theme.danger : theme.success;
+  return (
+    <Card style={{ gap: 10 }}>
+      <Marginalia>{label}</Marginalia>
+      <View
+        style={{
+          alignSelf: "flex-start",
+          paddingHorizontal: 10,
+          paddingVertical: 6,
+          borderRadius: 4,
+          borderWidth: 1,
+          borderColor: `${color}66`,
+          backgroundColor: theme.mode === "dark" ? (up ? "#fee2e2" : "#d1fae5") : `${color}14`,
+        }}
+      >
+        <Txt variant="mono" color={up ? "#dc2626" : "#059669"} style={{ fontWeight: "500" }}>
+          {up ? "↑" : delta < 0 ? "↓" : "="} {Math.abs(delta).toFixed(1)}% {up ? "maior" : delta < 0 ? "menor" : "igual"}
+        </Txt>
+      </View>
+      <Txt variant="mono" muted style={{ fontSize: 12, fontWeight: "400" }}>
+        anterior: {formatCurrency(previous)}
+      </Txt>
+    </Card>
+  );
+}
+
+function TransactionSheet({ visible, defaultDate, onClose }: { visible: boolean; defaultDate: string; onClose: () => void }) {
   const theme = useTheme();
   const [type, setType] = useState<"income" | "expense">("expense");
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState(EXPENSE_CATEGORIES[0].name);
-  const [date, setDate] = useState(getTodayString());
+  const [date, setDate] = useState(defaultDate);
   const [saving, setSaving] = useState(false);
 
   const categories = type === "expense" ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
@@ -245,7 +293,8 @@ function TransactionSheet({ visible, onClose }: { visible: boolean; onClose: () 
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Novo lançamento">
+    <Sheet visible={visible} onClose={onClose} title="Registrar transação">
+      <Marginalia>Tipo</Marginalia>
       <Segmented
         options={[
           { value: "expense", label: "Gasto" },
@@ -259,9 +308,7 @@ function TransactionSheet({ visible, onClose }: { visible: boolean; onClose: () 
       />
       <Input label="Descrição" value={name} onChangeText={setName} placeholder="Ex.: Mercado" />
       <Input label="Valor (R$)" value={amount} onChangeText={setAmount} placeholder="0,00" keyboardType="decimal-pad" />
-      <Txt variant="label" muted>
-        Categoria
-      </Txt>
+      <Marginalia>Categoria</Marginalia>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {categories.map(c => (
           <Pressable
@@ -270,9 +317,9 @@ function TransactionSheet({ visible, onClose }: { visible: boolean; onClose: () 
             style={{
               paddingHorizontal: 10,
               paddingVertical: 7,
-              borderRadius: 8,
+              borderRadius: 3,
               borderWidth: 1,
-              borderColor: category === c.name ? theme.primary : theme.border,
+              borderColor: category === c.name ? theme.primaryBorder : theme.border,
               backgroundColor: category === c.name ? theme.primarySoft : "transparent",
             }}
           >
@@ -282,9 +329,7 @@ function TransactionSheet({ visible, onClose }: { visible: boolean; onClose: () 
           </Pressable>
         ))}
       </View>
-      <Txt variant="label" muted>
-        Data
-      </Txt>
+      <Marginalia>Data</Marginalia>
       <DateStrip value={date} onChange={setDate} daysBefore={30} daysAfter={30} />
       <Button label="Salvar" onPress={save} loading={saving} disabled={!valid} />
     </Sheet>

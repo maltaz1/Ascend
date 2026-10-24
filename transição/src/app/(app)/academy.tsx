@@ -1,4 +1,4 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { Alert, Pressable, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
@@ -15,8 +15,8 @@ import { generateId } from "@/store/utils";
 import { notifyError, notifySuccess } from "@/lib/notifications";
 import { useStore } from "@/hooks/useStore";
 import { ProGate } from "@/components/ProGate";
-import { Button, Card, EmptyState, IconButton, Input, Screen, SectionTitle, Segmented, Sheet, StatTile, Txt } from "@/components/ui";
-import { LineChart } from "@/components/charts";
+import { Button, Card, EmptyState, IconButton, Input, Metric, Screen, Segmented, Sheet, Stamp, Txt } from "@/components/ui";
+import { EvolutionContent } from "@/components/EvolutionContent";
 import { fonts, useTheme } from "@/theme";
 
 const DAYS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
@@ -29,134 +29,140 @@ export default function AcademyScreen() {
   );
 }
 
-// Porta de pages/Academy.tsx: fichas, sessão de treino, histórico e progresso.
+// Porta de pages/Academy.tsx: abas Treinos / Exercícios / Evolução.
 function Academy() {
   const theme = useTheme();
   const data = useStore();
+  const [tab, setTab] = useState<"workouts" | "exercises" | "evolution">("workouts");
   const [showNew, setShowNew] = useState(false);
   const [active, setActive] = useState<Workout | null>(null);
-  const [period, setPeriod] = useState<7 | 30 | 90>(30);
+  const [selected, setSelected] = useState<Workout | null>(null);
+  const [search, setSearch] = useState("");
 
   const stats = getGymStats();
-  const weekday = new Date().getDay();
-  const todays = data.workouts.filter(w => (w.daysOfWeek ?? [w.dayOfWeek]).includes(weekday));
-
-  const sessions = useMemo(() => {
-    const since = new Date();
-    since.setDate(since.getDate() - period);
-    return [...data.workoutSessions]
-      .filter(s => new Date(s.completedAt || s.date) >= since)
-      .sort((a, b) => (a.completedAt || a.date).localeCompare(b.completedAt || b.date));
-  }, [data.workoutSessions, period]);
-  const volume = sessions.reduce((s, x) => s + (x.totalVolume || 0), 0);
+  const catalog = getCatalogExercises().filter(c => c.name.toLowerCase().includes(search.trim().toLowerCase()));
 
   const confirmDelete = (w: Workout) => {
     Alert.alert("Excluir ficha", `Excluir "${w.name}"?`, [
       { text: "Cancelar", style: "cancel" },
-      { text: "Excluir", style: "destructive", onPress: () => void deleteWorkout(w.id) },
+      {
+        text: "Excluir",
+        style: "destructive",
+        onPress: () => {
+          if (selected?.id === w.id) setSelected(null);
+          void deleteWorkout(w.id);
+        },
+      },
     ]);
   };
 
   if (active) return <ActiveSession workout={active} onExit={() => setActive(null)} />;
 
   return (
-    <Screen back title="Academia" right={<IconButton icon="add" label="Nova ficha" onPress={() => setShowNew(true)} filled />}>
-      <View style={{ flexDirection: "row", gap: 10 }}>
-        <StatTile icon="barbell-outline" value={String(stats.totalWorkouts)} label="Treinos feitos" />
-        <StatTile icon="list-outline" value={String(stats.totalWorkoutPlans)} label="Fichas" color={theme.accent} />
-        <StatTile icon="fitness-outline" value={String(stats.totalExercises)} label="Exercícios" color={theme.success} />
-      </View>
-
-      <SectionTitle>Treino de hoje · {DAYS[weekday]}</SectionTitle>
-      {todays.length === 0 ? (
-        <Card>
-          <EmptyState icon="bed-outline" text="Nenhuma ficha para hoje. Dia de descanso?" />
-        </Card>
-      ) : (
-        todays.map(w => (
-          <Card key={w.id} accent={theme.primary}>
-            <Txt variant="h3">{w.name}</Txt>
-            <Txt variant="caption" muted>
-              {w.exercises.length} exercícios
-            </Txt>
-            <Button label="Começar treino" icon="play" onPress={() => setActive(w)} />
-          </Card>
-        ))
-      )}
-
-      <SectionTitle>Minhas fichas</SectionTitle>
-      {data.workouts.length === 0 ? (
-        <Card>
-          <EmptyState icon="barbell-outline" text="Crie sua primeira ficha de treino." />
-          <Button label="Nova ficha" icon="add" variant="soft" onPress={() => setShowNew(true)} />
-        </Card>
-      ) : (
-        data.workouts.map(w => (
-          <Card key={w.id} onPress={() => setActive(w)}>
-            <Pressable onLongPress={() => confirmDelete(w)} style={{ gap: 6 }}>
-              <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-                <Txt variant="h3">{w.name}</Txt>
-                <Ionicons name="play-circle" size={26} color={theme.primary} />
-              </View>
-              <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap" }}>
-                {(w.daysOfWeek ?? [w.dayOfWeek]).map(d => (
-                  <View key={d} style={{ paddingHorizontal: 8, paddingVertical: 2, borderRadius: 6, backgroundColor: theme.primarySoft }}>
-                    <Txt variant="caption" color={theme.primaryInk}>
-                      {DAYS[d]}
-                    </Txt>
-                  </View>
-                ))}
-              </View>
-              {w.exercises.map(ex => (
-                <Txt key={ex.id} variant="label" muted>
-                  • {ex.name} — {ex.series}x {ex.repMin}-{ex.repMax}
-                </Txt>
-              ))}
-            </Pressable>
-          </Card>
-        ))
-      )}
-
-      <SectionTitle>Progresso</SectionTitle>
+    <Screen>
       <Segmented
         options={[
-          { value: 7, label: "7 dias" },
-          { value: 30, label: "30 dias" },
-          { value: 90, label: "90 dias" },
+          { value: "workouts", label: "Treinos" },
+          { value: "exercises", label: "Exercícios" },
+          { value: "evolution", label: "Evolução" },
         ]}
-        value={period}
-        onChange={setPeriod}
+        value={tab}
+        onChange={setTab}
       />
-      <Card>
-        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-          <Txt variant="label" muted>
-            {sessions.length} treinos
-          </Txt>
-          <Txt variant="label" muted>
-            Volume: {Math.round(volume).toLocaleString("pt-BR")} kg
-          </Txt>
-        </View>
-        {sessions.length > 1 ? (
-          <LineChart
-            data={sessions.map(s => ({
-              label: new Date(s.completedAt || s.date).toLocaleDateString("pt-BR", { day: "2-digit", month: "2-digit" }),
-              volume: s.totalVolume || 0,
-            }))}
-            series={[{ key: "volume", label: "Volume", color: theme.primary }]}
-          />
-        ) : (
-          <EmptyState text="Faça pelo menos dois treinos para ver o gráfico." />
-        )}
-        {[...sessions].reverse().slice(0, 6).map(s => (
-          <View key={s.id} style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <Txt variant="label">{s.workoutName}</Txt>
-            <Txt variant="caption" muted>
-              {new Date(s.completedAt || s.date).toLocaleDateString("pt-BR")} · {s.durationMinutes} min ·{" "}
-              {Math.round(s.totalVolume || 0)} kg
+
+      {tab === "evolution" ? (
+        <EvolutionContent />
+      ) : tab === "exercises" ? (
+        <>
+          <Input boxed icon="search" placeholder="Buscar exercício..." value={search} onChangeText={setSearch} />
+          <Card style={{ gap: 0 }} padded={false}>
+            {catalog.length === 0 ? (
+              <EmptyState text="Nenhum exercício encontrado" />
+            ) : (
+              catalog.map((c, i) => (
+                <View
+                  key={c.id}
+                  style={{ flexDirection: "row", alignItems: "center", paddingVertical: 14, paddingHorizontal: 18, borderTopWidth: i ? 1 : 0, borderTopColor: theme.border }}
+                >
+                  <Txt variant="bodyStrong" style={{ flex: 1 }}>
+                    {c.name}
+                  </Txt>
+                  {c.targetMuscleGroup ? <Stamp label={c.targetMuscleGroup} tone="violet" /> : null}
+                </View>
+              ))
+            )}
+          </Card>
+        </>
+      ) : (
+        <>
+          <Metric label="" value={String(stats.totalWorkouts)} caption="Treinos Completos" valueColor={theme.primary} center />
+          <Metric label="" value={String(stats.totalWorkoutPlans)} caption="Fichas de Treino" valueColor={theme.primary} center />
+          <Metric label="" value={String(stats.totalExercises)} caption="Exercícios" valueColor={theme.cyan} center />
+
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 8 }}>
+            <Txt variant="h1" style={{ fontSize: 20 }}>
+              Fichas de Treino
             </Txt>
+            <Button label="Nova Ficha" icon="add" compact onPress={() => setShowNew(true)} />
           </View>
-        ))}
-      </Card>
+
+          {data.workouts.length === 0 ? (
+            <Card>
+              <EmptyState icon="barbell-outline" text="Crie sua primeira ficha de treino." />
+            </Card>
+          ) : (
+            data.workouts.map(w => (
+              <Card key={w.id} onPress={() => setSelected(w)} tone={selected?.id === w.id ? "violet" : undefined}>
+                <Pressable onLongPress={() => confirmDelete(w)} style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+                  <View style={{ flex: 1, gap: 4 }}>
+                    <Txt variant="h3" style={{ fontSize: 15 }}>
+                      {w.name}
+                    </Txt>
+                    <Txt variant="caption" muted>
+                      {(w.daysOfWeek ?? [w.dayOfWeek]).map(d => DAYS[d]).join(", ")} • {w.exercises.length} exercícios
+                    </Txt>
+                  </View>
+                  <Button label="Iniciar" icon="play-outline" variant="orange" compact onPress={() => setActive(w)} />
+                </Pressable>
+              </Card>
+            ))
+          )}
+
+          <Card>
+            {selected ? (
+              <View style={{ gap: 10 }}>
+                <Txt variant="h2">{selected.name}</Txt>
+                {selected.exercises.map((ex, i) => {
+                  const last = getLastExercisePerformance(ex.name);
+                  return (
+                    <View key={ex.id} style={{ flexDirection: "row", gap: 12, alignItems: "center", backgroundColor: theme.raised, borderRadius: 6, padding: 12 }}>
+                      <Txt variant="marginalia">{String(i + 1).padStart(2, "0")}</Txt>
+                      <View style={{ flex: 1 }}>
+                        <Txt variant="bodyStrong">{ex.name}</Txt>
+                        <Txt variant="caption" muted>
+                          {ex.series} séries · {ex.repMin}-{ex.repMax} reps · {ex.restSeconds}s
+                        </Txt>
+                      </View>
+                      {last ? (
+                        <Txt variant="mono" color={theme.accent} style={{ fontSize: 12 }}>
+                          {last.weight}kg
+                        </Txt>
+                      ) : null}
+                    </View>
+                  );
+                })}
+                <Txt variant="caption" muted style={{ textAlign: "center" }}>
+                  Segure a ficha para excluir
+                </Txt>
+              </View>
+            ) : (
+              <Txt muted style={{ textAlign: "center", paddingVertical: 18 }}>
+                Selecione uma ficha para ver detalhes
+              </Txt>
+            )}
+          </Card>
+        </>
+      )}
 
       <NewWorkoutSheet visible={showNew} onClose={() => setShowNew(false)} />
     </Screen>

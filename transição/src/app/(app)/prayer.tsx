@@ -64,7 +64,6 @@ function Prayer() {
 
   return (
     <Screen
-      back
       title="Oração"
       subtitle="Um espaço para reflexão"
       right={

@@ -104,7 +104,7 @@ function NotesList() {
   ];
 
   return (
-    <Screen back title="Notas" right={<IconButton icon="add" label="Nova nota" onPress={newNote} filled />}>
+    <Screen title="Notas" right={<IconButton icon="add" label="Nova nota" onPress={newNote} filled />}>
       <Input placeholder="Buscar notas..." value={search} onChangeText={setSearch} />
       <ScrollView horizontal showsHorizontalScrollIndicator={false} contentContainerStyle={{ gap: 8 }}>
         {chips.map(chip => (

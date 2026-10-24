@@ -3,9 +3,12 @@
 const { spawn } = require("node:child_process");
 const path = require("node:path");
 
-const cacheDir = path.resolve(__dirname, "..", "..", ".cache");
+const projectDir = path.resolve(__dirname, "..");
+const cacheDir = path.resolve(projectDir, "..", ".cache");
 
 const child = spawn("npx", ["expo", "start", "--web", "--port", "8082"], {
+  // Roda sempre dentro de transição/, mesmo se chamado da raiz (ex.: launch.json).
+  cwd: projectDir,
   stdio: "inherit",
   shell: true,
   env: {

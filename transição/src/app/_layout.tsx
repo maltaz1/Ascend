@@ -17,7 +17,7 @@ import {
 } from "@expo-google-fonts/dm-sans";
 import { AuthProvider, useAuth } from "@/hooks/useAuth";
 import { ToastHost } from "@/components/ToastHost";
-import { useTheme } from "@/theme";
+import { ThemeProvider, useTheme } from "@/theme";
 
 // A splash (logo Ascend) fica na tela até as fontes e a sessão carregarem.
 void SplashScreen.preventAutoHideAsync();
@@ -61,10 +61,12 @@ export default function RootLayout() {
 
   return (
     <SafeAreaProvider>
-      <AuthProvider>
-        <RootNavigator fontsReady={fontsLoaded || !!fontError} />
-        <ToastHost />
-      </AuthProvider>
+      <ThemeProvider>
+        <AuthProvider>
+          <RootNavigator fontsReady={fontsLoaded || !!fontError} />
+          <ToastHost />
+        </AuthProvider>
+      </ThemeProvider>
     </SafeAreaProvider>
   );
 }

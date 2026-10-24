@@ -19,8 +19,9 @@ import { generateId } from "@/store/utils";
 import { notifySuccess } from "@/lib/notifications";
 import { useStore } from "@/hooks/useStore";
 import { ProGate } from "@/components/ProGate";
-import { Button, Card, EmptyState, IconButton, Input, ProgressBar, ProgressRing, Screen, SectionTitle, Segmented, Sheet, Txt } from "@/components/ui";
-import { resolveColor, useTheme } from "@/theme";
+import { Button, Card, EmptyState, Input, Marginalia, ProgressBar, ProgressRing, Screen, Segmented, Sheet, Txt } from "@/components/ui";
+import { longDate } from "@/components/rows";
+import { fonts, resolveColor, useTheme } from "@/theme";
 
 // Mesmos tipos de refeição de pages/Diet.tsx.
 const MEAL_TYPES = {
@@ -39,11 +40,20 @@ export default function DietScreen() {
   );
 }
 
+function greeting(): string {
+  const hour = new Date().getHours();
+  if (hour < 12) return "Bom dia";
+  if (hour < 18) return "Boa tarde";
+  return "Boa noite";
+}
+
+// Porta de pages/Diet.tsx.
 function Diet() {
   const theme = useTheme();
   const data = useStore();
   const [addFor, setAddFor] = useState<MealType | null>(null);
   const [showSettings, setShowSettings] = useState(false);
+  const [showWater, setShowWater] = useState(false);
 
   const nutrition = getTodayNutrition();
   const hydration = getTodayHydration();
@@ -52,10 +62,11 @@ function Diet() {
   const calPercent = (nutrition.calories / Math.max(1, settings.dailyCalorieGoal)) * 100;
   const waterGoal = hydration.goal || settings.waterGoal;
 
-  const macros = [
-    { label: "Proteína", value: nutrition.protein, goal: settings.proteinGoal, color: "#10B981" },
-    { label: "Carboidratos", value: nutrition.carbs, goal: settings.carbsGoal, color: theme.accent },
-    { label: "Gorduras", value: nutrition.fat, goal: settings.fatGoal, color: theme.pink },
+  const rings = [
+    { label: "Proteína", value: nutrition.protein, goal: settings.proteinGoal, color: theme.success },
+    { label: "Carboidratos", value: nutrition.carbs, goal: settings.carbsGoal, color: theme.primary },
+    { label: "Gordura", value: nutrition.fat, goal: settings.fatGoal, color: theme.pink },
+    { label: "Calorias", value: nutrition.calories, goal: settings.dailyCalorieGoal, color: theme.accent },
   ];
 
   const removeMeal = (meal: Meal) => {
@@ -73,63 +84,81 @@ function Diet() {
   };
 
   return (
-    <Screen back title="Dieta" right={<IconButton icon="options-outline" label="Metas da dieta" onPress={() => setShowSettings(true)} />}>
-      <Card style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
-        <ProgressRing percent={calPercent} size={100} stroke={9} color={calPercent > 100 ? theme.danger : theme.primary}>
-          <Txt variant="h2">{Math.round(nutrition.calories)}</Txt>
-          <Txt variant="caption" muted>
-            kcal
-          </Txt>
-        </ProgressRing>
-        <View style={{ flex: 1, gap: 8 }}>
-          <Txt variant="label" muted>
-            Meta: {settings.dailyCalorieGoal} kcal
-          </Txt>
-          {macros.map(m => (
-            <View key={m.label} style={{ gap: 3 }}>
-              <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-                <Txt variant="caption">{m.label}</Txt>
-                <Txt variant="caption" muted>
-                  {Math.round(m.value)}/{m.goal} g
-                </Txt>
-              </View>
-              <ProgressBar percent={(m.value / Math.max(1, m.goal)) * 100} color={m.color} height={5} />
-            </View>
-          ))}
-        </View>
-      </Card>
-
-      <SectionTitle>Hidratação</SectionTitle>
-      <Card>
-        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
-          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Ionicons name="water" size={22} color={theme.blue} />
-            <Txt variant="h2">{(hydration.cupsConsumed / 1000).toFixed(1)} L</Txt>
-            <Txt muted>/ {(waterGoal / 1000).toFixed(1)} L</Txt>
+    <Screen>
+      <Card style={{ gap: 8, paddingVertical: 22 }}>
+        <View style={{ flexDirection: "row", alignItems: "flex-start" }}>
+          <View style={{ flex: 1, gap: 8 }}>
+            <Marginalia index="10">Registro alimentar</Marginalia>
+            <Txt variant="hero" style={{ fontSize: 30 }}>
+              {greeting()},{"\n"}
+              {data.user.name?.split(" ")[0] || "você"}
+            </Txt>
+            <Txt muted>{longDate()}</Txt>
           </View>
-          <Txt variant="label" color={theme.blue}>
-            {Math.round((hydration.cupsConsumed / Math.max(1, waterGoal)) * 100)}%
-          </Txt>
-        </View>
-        <ProgressBar percent={(hydration.cupsConsumed / Math.max(1, waterGoal)) * 100} color={theme.blue} />
-        <View style={{ flexDirection: "row", gap: 8 }}>
-          {[200, 300, 500].map(ml => (
-            <View key={ml} style={{ flex: 1 }}>
-              <Button
-                label={`+${ml} mL`}
-                variant="ghost"
-                compact
-                onPress={async () => {
-                  await addWaterMl(ml);
-                  notifySuccess(`${ml} mL de água adicionado!`);
-                }}
-              />
-            </View>
-          ))}
+          <Pressable
+            onPress={() => setShowSettings(true)}
+            accessibilityLabel="Metas da dieta"
+            style={{ width: 40, height: 40, borderRadius: 6, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: theme.primaryBorder, backgroundColor: theme.primarySoft }}
+          >
+            <Ionicons name="settings-outline" size={18} color={theme.primary} />
+          </Pressable>
         </View>
       </Card>
 
-      <SectionTitle>Refeições de hoje</SectionTitle>
+      <Card>
+        <Marginalia index="11">Meta calórica</Marginalia>
+        <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between" }}>
+          <Txt variant="marginalia" style={{ fontSize: 12 }}>
+            Meta calórica diária
+          </Txt>
+          <Txt variant="h3" color={theme.primary}>
+            {Math.round(nutrition.calories)} / {settings.dailyCalorieGoal} kcal
+          </Txt>
+        </View>
+        <ProgressBar percent={calPercent} height={7} color={calPercent > 100 ? theme.danger : theme.primary} />
+      </Card>
+
+      <View style={{ flexDirection: "row", flexWrap: "wrap", rowGap: 22 }}>
+        {rings.map(r => (
+          <View key={r.label} style={{ width: "50%", alignItems: "center", gap: 10 }}>
+            <ProgressRing percent={(r.value / Math.max(1, r.goal)) * 100} size={104} stroke={8} color={r.color}>
+              <Txt style={{ fontFamily: fonts.display, fontSize: 20 }} color={r.color}>
+                {Math.round(r.value)}
+              </Txt>
+              <Txt variant="caption" muted>
+                / {r.goal}
+              </Txt>
+            </ProgressRing>
+            <Txt variant="marginalia" style={{ fontSize: 11.5 }}>
+              {r.label}
+            </Txt>
+          </View>
+        ))}
+      </View>
+
+      <Card style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <Ionicons name="water-outline" size={22} color={theme.cyan} />
+        <View style={{ flex: 1 }}>
+          <Txt style={{ fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 1 }} color={theme.cyan}>
+            HIDRATAÇÃO
+          </Txt>
+          <Txt variant="label" muted>
+            {hydration.cupsConsumed} / {waterGoal} mL
+          </Txt>
+          <View style={{ marginTop: 8 }}>
+            <ProgressBar percent={(hydration.cupsConsumed / Math.max(1, waterGoal)) * 100} color={theme.cyan} height={5} />
+          </View>
+        </View>
+        <Pressable
+          onPress={() => setShowWater(true)}
+          accessibilityLabel="Adicionar água"
+          style={{ width: 44, height: 44, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: theme.cyan }}
+        >
+          <Ionicons name="add" size={24} color="#fff" />
+        </Pressable>
+      </Card>
+
+      <Marginalia index="12">Refeições</Marginalia>
       {(Object.keys(MEAL_TYPES) as MealType[]).map(type => {
         const config = MEAL_TYPES[type];
         const color = resolveColor(config.color, theme);
@@ -140,9 +169,9 @@ function Diet() {
             <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
               <View
                 style={{
-                  width: 38,
-                  height: 38,
-                  borderRadius: 10,
+                  width: 30,
+                  height: 30,
+                  borderRadius: 4,
                   alignItems: "center",
                   justifyContent: "center",
                   backgroundColor: `${color}22`,
@@ -150,7 +179,7 @@ function Diet() {
                   borderColor: `${color}66`,
                 }}
               >
-                <Txt style={{ fontSize: 18 }}>{config.emoji}</Txt>
+                <Txt style={{ fontSize: 14 }}>{config.emoji}</Txt>
               </View>
               <View style={{ flex: 1 }}>
                 <Txt variant="h3" color={color}>
@@ -160,17 +189,22 @@ function Diet() {
                   {Math.round(kcal)} kcal
                 </Txt>
               </View>
-              <IconButton icon="add" label={`Adicionar ${config.label}`} onPress={() => setAddFor(type)} />
+              <Pressable onPress={() => setAddFor(type)} hitSlop={10} accessibilityLabel={`Adicionar ${config.label}`}>
+                <Ionicons name="add" size={24} color={color} />
+              </Pressable>
             </View>
             {ofType.map(meal => (
-              <Pressable key={meal.id} onLongPress={() => removeMeal(meal)} style={{ gap: 2 }}>
+              <Pressable key={meal.id} onLongPress={() => removeMeal(meal)} style={{ gap: 6 }}>
                 {meal.foods.map(food => (
-                  <View key={food.id} style={{ flexDirection: "row", justifyContent: "space-between" }}>
+                  <View key={food.id} style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: theme.raised, borderRadius: 6, paddingVertical: 10, paddingHorizontal: 12 }}>
                     <Txt variant="label" style={{ flex: 1 }} numberOfLines={1}>
-                      {food.name} · {food.quantity}
-                      {food.unit === "unit" ? " un" : food.unit}
+                      {food.name}
                     </Txt>
                     <Txt variant="caption" muted>
+                      {food.quantity}
+                      {food.unit === "unit" ? " un" : food.unit}
+                    </Txt>
+                    <Txt variant="mono" color={theme.accent} style={{ fontSize: 12 }}>
                       {Math.round(food.calories)} kcal
                     </Txt>
                   </View>
@@ -185,12 +219,24 @@ function Diet() {
       </Txt>
 
       <AddFoodSheet type={addFor} onClose={() => setAddFor(null)} />
-      <DietSettingsSheet
-        key={showSettings ? "open" : "closed"}
-        visible={showSettings}
-        settings={settings}
-        onClose={() => setShowSettings(false)}
-      />
+      <DietSettingsSheet key={showSettings ? "open" : "closed"} visible={showSettings} settings={settings} onClose={() => setShowSettings(false)} />
+      <Sheet visible={showWater} onClose={() => setShowWater(false)} title="Adicionar água">
+        <View style={{ flexDirection: "row", gap: 8 }}>
+          {[200, 300, 500].map(ml => (
+            <View key={ml} style={{ flex: 1 }}>
+              <Button
+                label={`+${ml} mL`}
+                variant="ghost"
+                onPress={async () => {
+                  await addWaterMl(ml);
+                  notifySuccess(`${ml} mL de água adicionado!`);
+                  setShowWater(false);
+                }}
+              />
+            </View>
+          ))}
+        </View>
+      </Sheet>
     </Screen>
   );
 }

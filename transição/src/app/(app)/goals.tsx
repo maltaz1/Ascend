@@ -2,13 +2,13 @@ import { useState } from "react";
 import { Pressable, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { createGoal } from "@/store/goals.store";
-import { getWeekConsistencyAverage } from "@/lib/weeklyGoals";
 import { FREE_LIMITS } from "@/config/planLimits";
 import { notifyError, notifyInfo, notifySuccess } from "@/lib/notifications";
 import { useStore } from "@/hooks/useStore";
 import { useAuth } from "@/hooks/useAuth";
-import { Button, Card, EmptyState, IconButton, Input, Screen, SectionTitle, Segmented, Sheet, StatTile, Txt } from "@/components/ui";
+import { Button, Card, EmptyState, Input, Marginalia, Metric, Screen, Segmented, Sheet, Txt } from "@/components/ui";
 import { LongTermGoalCard, WeeklyGoalCard } from "@/components/rows";
+import { getWeekConsistencyAverage } from "@/lib/weeklyGoals";
 import { DateStrip } from "@/components/DateStrip";
 import { resolveColor, useTheme } from "@/theme";
 
@@ -18,9 +18,8 @@ const FREQUENCIES = [1, 2, 3, 4, 5, 6, 7];
 
 type LongFilter = "all" | "ongoing" | "completed";
 
-// Porta de pages/Goals.tsx (metas semanais + longo prazo).
+// Porta de pages/Goals.tsx ("Livro de objetivos").
 export default function GoalsScreen() {
-  const theme = useTheme();
   const data = useStore();
   const { isPro } = useAuth();
   const [filter, setFilter] = useState<LongFilter>("all");
@@ -28,9 +27,8 @@ export default function GoalsScreen() {
 
   const weekly = data.goals.filter(g => g.type === "semanal");
   const longTerm = data.goals.filter(g => g.type !== "semanal");
-  const longFiltered = longTerm.filter(g =>
-    filter === "ongoing" ? !g.completedAt : filter === "completed" ? !!g.completedAt : true
-  );
+  const longFiltered = longTerm.filter(g => (filter === "ongoing" ? !g.completedAt : filter === "completed" ? !!g.completedAt : true));
+  // Mesma conta do site (lib/weeklyGoals.getWeekConsistencyAverage).
   const consistency = Math.round(
     getWeekConsistencyAverage(
       weekly.map(g => ({
@@ -47,18 +45,36 @@ export default function GoalsScreen() {
         weeklyHistory: g.weeklyHistory ?? [],
         createdAt: g.createdAt,
       }))
-    )
+    ) || 0
   );
+  const streakTotal = weekly.reduce((s, g) => s + (g.streak ?? 0), 0);
 
   return (
-    <Screen title="Metas" right={<IconButton icon="add" label="Nova meta" onPress={() => setShowNew(true)} filled />}>
-      <View style={{ flexDirection: "row", gap: 10 }}>
-        <StatTile icon="calendar-outline" value={String(weekly.length)} label="Semanais" />
-        <StatTile icon="flag-outline" value={String(longTerm.filter(g => !g.completedAt).length)} label="Em andamento" color={theme.accent} />
-        <StatTile icon="pulse-outline" value={`${consistency || 0}%`} label="Consistência" color={theme.success} />
+    <Screen>
+      <View style={{ gap: 10, paddingTop: 4 }}>
+        <Marginalia>Metas · Livro de objetivos</Marginalia>
+        <Txt variant="hero">O que você quer conquistar.</Txt>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+          <Txt muted style={{ flex: 1, lineHeight: 20 }}>
+            Metas anotadas a tinta: semanal, de longo prazo e tudo que fica pelo caminho.
+          </Txt>
+          <Button label="Nova Meta" icon="add" onPress={() => setShowNew(true)} />
+        </View>
       </View>
 
-      <SectionTitle>Metas semanais</SectionTitle>
+      <View style={{ gap: 4, marginTop: 8 }}>
+        <Marginalia index="01">Semanais</Marginalia>
+        <View style={{ flexDirection: "row", alignItems: "baseline", justifyContent: "space-between" }}>
+          <Txt variant="h2">Metas Semanais</Txt>
+          <Txt variant="caption" muted>
+            Resets a cada segunda-feira
+          </Txt>
+        </View>
+      </View>
+      <Metric label="Consistência" value={`${consistency}%`} />
+      <Metric label="Ativas" value={String(weekly.length)} />
+      <Metric label="Streak total" value={String(streakTotal)} />
+
       {weekly.length === 0 ? (
         <Card>
           <EmptyState icon="calendar-outline" text="Crie uma meta semanal, como “Treinar 4x por semana”." />
@@ -67,8 +83,12 @@ export default function GoalsScreen() {
         weekly.map(goal => <WeeklyGoalCard key={goal.id} goal={goal} habits={data.habits} />)
       )}
 
-      <SectionTitle>Longo prazo</SectionTitle>
+      <View style={{ gap: 4, marginTop: 8 }}>
+        <Marginalia index="02">Longo prazo</Marginalia>
+        <Txt variant="h2">Metas de Longo Prazo</Txt>
+      </View>
       <Segmented
+        kind="stamp"
         options={[
           { value: "all", label: "Todas" },
           { value: "ongoing", label: "Em andamento" },
@@ -82,19 +102,10 @@ export default function GoalsScreen() {
           <EmptyState icon="flag-outline" text="Nenhuma meta aqui ainda." />
         </Card>
       ) : (
-        longFiltered.map(goal => <LongTermGoalCard key={goal.id} goal={goal} expanded />)
+        longFiltered.map(goal => <LongTermGoalCard key={goal.id} goal={goal} />)
       )}
-      <Txt variant="caption" muted style={{ textAlign: "center" }}>
-        Segure uma meta para excluir
-      </Txt>
 
-      <NewGoalSheet
-        visible={showNew}
-        onClose={() => setShowNew(false)}
-        isPro={isPro}
-        weeklyCount={weekly.length}
-        longCount={longTerm.length}
-      />
+      <NewGoalSheet visible={showNew} onClose={() => setShowNew(false)} isPro={isPro} weeklyCount={weekly.length} longCount={longTerm.length} />
     </Screen>
   );
 }

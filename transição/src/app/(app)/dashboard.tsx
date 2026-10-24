@@ -1,7 +1,7 @@
 import { useMemo } from "react";
 import { View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { getHabitStreak, getTodayString, toYYYYMMDD } from "@/lib/store";
+import { getTodayString, toYYYYMMDD } from "@/lib/store";
 import { getGlobalStreak } from "@/lib/streak";
 import { getFinancialData } from "@/store/financial.store";
 import { formatCurrency } from "@/lib/financial";
@@ -14,9 +14,10 @@ import {
 } from "@/utils/analytics";
 import { useStore } from "@/hooks/useStore";
 import { useAuth } from "@/hooks/useAuth";
-import { Card, ProgressBar, Screen, SectionTitle, StatTile, Txt } from "@/components/ui";
-import { BarChart, DonutChart, Legend, LineChart } from "@/components/charts";
-import { resolveColor, useTheme } from "@/theme";
+import { Card, Marginalia, Metric, ProgressBar, ProgressRing, Screen, Txt } from "@/components/ui";
+import { AreaChart, BarChart, DonutChart, Legend } from "@/components/charts";
+import { Expandable, SubPanel } from "@/components/Expandable";
+import { fonts, resolveColor, useTheme } from "@/theme";
 
 const MILESTONES = [
   { at: 100, label: "Centurião", color: "#f59e0b" },
@@ -24,13 +25,14 @@ const MILESTONES = [
   { at: 7, label: "Semana", color: "#10B981" },
   { at: 3, label: "Trio", color: "#06B6D4" },
 ];
+const MONTH_SHORT = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
 // Porta de pages/Dashboard.tsx.
 export default function DashboardScreen() {
   const theme = useTheme();
   const data = useStore();
   const { isPro } = useAuth();
-  const { tasks, habits } = data;
+  const { tasks, habits, user } = data;
   const today = getTodayString();
 
   const completedToday = tasks.filter(t => t.completed && t.date === today).length;
@@ -39,221 +41,303 @@ export default function DashboardScreen() {
   const overdue = tasks.filter(t => !t.completed && t.date < today).length;
   const globalStreak = getGlobalStreak(tasks, habits);
   const milestone = MILESTONES.find(m => globalStreak >= m.at);
+  let totalXP = user.xp;
+  for (let l = 1; l < user.level; l++) totalXP += l * 100;
+
+  const countOn = (ds: string) => ({
+    tasks: tasks.filter(t => t.completed && t.date === ds).length,
+    habits: habits.filter(h => h.completedDates.includes(ds)).length,
+  });
 
   const weeklyData = useMemo(() => {
     const days = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
     const now = new Date();
-    return days.map((day, index) => {
+    return days.map((label, index) => {
       const d = new Date(now);
       d.setDate(now.getDate() - now.getDay() + index);
-      const ds = toYYYYMMDD(d);
-      return {
-        label: day,
-        tasks: tasks.filter(t => t.completed && t.date === ds).length,
-        habits: habits.filter(h => h.completedDates.includes(ds)).length,
-      };
+      return { label, ...countOn(toYYYYMMDD(d)) };
     });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tasks, habits]);
 
-  const activity = useMemo(() => {
+  const monthLine = useMemo(() => {
     const now = new Date();
-    return Array.from({ length: 30 }, (_, k) => {
+    return Array.from({ length: 28 }, (_, k) => {
       const d = new Date(now);
-      d.setDate(d.getDate() - (29 - k));
-      const ds = toYYYYMMDD(d);
+      d.setDate(d.getDate() - (27 - k));
+      return { label: String(d.getDate()), ...countOn(toYYYYMMDD(d)) };
+    });
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tasks, habits]);
+
+  const yearLine = useMemo(() => {
+    const now = new Date();
+    return Array.from({ length: 12 }, (_, k) => {
+      const d = new Date(now.getFullYear(), now.getMonth() - (11 - k), 1);
+      const prefix = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, "0")}`;
       return {
-        label: String(d.getDate()),
-        tasks: tasks.filter(t => t.completed && t.date === ds).length,
-        habits: habits.filter(h => h.completedDates.includes(ds)).length,
+        label: `${MONTH_SHORT[d.getMonth()]}/${String(d.getFullYear()).slice(2)}`,
+        tasks: tasks.filter(t => t.completed && t.date.startsWith(prefix)).length,
+        habits: habits.reduce((s, h) => s + h.completedDates.filter(x => x.startsWith(prefix)).length, 0),
       };
     });
   }, [tasks, habits]);
 
-  // Mapa de calor dos últimos 90 dias (StreakHeatmap do web).
+  // Mapa de calor: 13 semanas (colunas) x 7 dias (linhas), como no GitHub.
   const heatmap = useMemo(() => {
-    const now = new Date();
-    const cells = Array.from({ length: 91 }, (_, k) => {
-      const d = new Date(now);
-      d.setDate(d.getDate() - (90 - k));
-      const ds = toYYYYMMDD(d);
-      return (
-        tasks.filter(t => t.completed && t.date === ds).length + habits.filter(h => h.completedDates.includes(ds)).length
-      );
-    });
-    return { cells, max: Math.max(1, ...cells) };
+    const end = new Date();
+    const start = new Date(end);
+    start.setDate(start.getDate() - 90);
+    start.setDate(start.getDate() - start.getDay()); // volta até o domingo
+    const weeks: { date: string; count: number; future: boolean }[][] = [];
+    const cursor = new Date(start);
+    while (cursor <= end || cursor.getDay() !== 0) {
+      if (cursor.getDay() === 0) weeks.push([]);
+      const ds = toYYYYMMDD(cursor);
+      const c = countOn(ds);
+      weeks[weeks.length - 1].push({ date: ds, count: c.tasks + c.habits, future: cursor > end });
+      cursor.setDate(cursor.getDate() + 1);
+    }
+    const max = Math.max(1, ...weeks.flat().map(c => c.count));
+    return { weeks, max };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tasks, habits]);
 
   const trend = getCompletionTrend(tasks);
   const bestDays = getBestDayOfWeek(tasks);
+  const todayIdx = new Date().getDay();
   const priorities = getPriorityDistribution(tasks);
   const adherence = getHabitAdherence(habits);
   const insights = generateInsights(tasks, habits, globalStreak, weeklyData);
-  const bestHabit = habits.reduce<{ title: string; streak: number }>(
-    (best, h) => {
-      const s = getHabitStreak(h);
-      return s > best.streak ? { title: h.title, streak: s } : best;
-    },
-    { title: "-", streak: 0 }
-  );
 
   const finance = getFinancialData();
   const month = new Date().getMonth();
   const year = new Date().getFullYear();
   const monthTx = (finance.transactions || []).filter(t => {
-    const d = new Date(t.date);
+    const d = new Date(`${t.date.slice(0, 10)}T12:00:00`);
     return d.getMonth() === month && d.getFullYear() === year;
   });
   const income = monthTx.filter(t => t.type === "income").reduce((s, t) => s + t.amount, 0);
   const expense = monthTx.filter(t => t.type === "expense").reduce((s, t) => s + t.amount, 0);
 
   return (
-    <Screen back title="Dashboard" subtitle="Registros diários e evolução mensal">
-      <Card style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-        <Ionicons name="flame" size={20} color={theme.accent} />
-        <Txt variant="display" color={theme.accent} style={{ fontSize: 26 }}>
+    <Screen>
+      <Card style={{ gap: 10, paddingVertical: 22 }}>
+        <Marginalia index="01">Painel de nível</Marginalia>
+        <Txt variant="hero" style={{ fontSize: 32 }}>
+          Seu dia, anotado.
+        </Txt>
+        <Txt muted>
+          {user.name || "Você"} — nível {user.level}
+        </Txt>
+        <View style={{ flexDirection: "row", justifyContent: "space-between", marginTop: 12 }}>
+          <Txt variant="marginalia">NV {user.level}</Txt>
+          <Txt variant="marginalia" color={theme.primary}>
+            {user.xp} / {user.level * 100} XP
+          </Txt>
+        </View>
+        <ProgressBar percent={(user.xp / (user.level * 100)) * 100} />
+      </Card>
+
+      <View style={{ flexDirection: "row", gap: 12 }}>
+        <Metric index="02" label="XP" value={String(totalXP)} caption="Experiência total" sub={`Nível ${user.level}`} subColor={theme.primary} />
+        <Metric index="03" label="Tarefas" value={String(completedToday)} caption="Concluídas hoje" sub={`${todayTotal} no caderno de hoje`} subColor={theme.success} />
+      </View>
+      <View style={{ flexDirection: "row", gap: 12 }}>
+        <Metric index="04" label="Hábitos" value={String(habitsToday)} caption="Marcados hoje" sub="hábitos concluídos" subColor="#f97316" />
+        <Metric index="05" label="Dívidas" value={String(overdue)} caption="Tarefas atrasadas" sub="pendentes de anotação" subColor={theme.primary} />
+      </View>
+
+      <Card style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 14 }}>
+        <Ionicons name="flame-outline" size={16} color={theme.accent} />
+        <Txt style={{ fontFamily: fonts.display, fontSize: 22 }} color={theme.accent}>
           {globalStreak}
         </Txt>
-        <Txt muted>dias seguidos</Txt>
+        <Txt variant="label" muted>
+          dias seguidos
+        </Txt>
         {milestone ? (
-          <Txt variant="overline" color={milestone.color}>
-            · {milestone.label}
+          <Txt style={{ fontFamily: fonts.bodyBold, fontSize: 10, letterSpacing: 0.8 }} color={milestone.color}>
+            · {milestone.label.toUpperCase()}
           </Txt>
         ) : null}
       </Card>
 
-      <View style={{ flexDirection: "row", gap: 10 }}>
-        <StatTile icon="checkbox-outline" value={`${completedToday}/${todayTotal}`} label="Tarefas hoje" />
-        <StatTile icon="flame-outline" value={`${habitsToday}/${habits.length}`} label="Hábitos hoje" color={theme.accent} />
-      </View>
-      <View style={{ flexDirection: "row", gap: 10 }}>
-        <StatTile icon="alert-circle-outline" value={String(overdue)} label="Atrasadas" color={theme.danger} />
-        <StatTile
-          icon={trend.direction === "down" ? "trending-down-outline" : "trending-up-outline"}
-          value={`${trend.currentRate}%`}
-          label={`Conclusão 7 dias (${trend.delta >= 0 ? "+" : ""}${trend.delta} pp)`}
-          color={trend.direction === "down" ? theme.danger : theme.success}
-        />
-      </View>
+      <Expandable icon="calendar-outline" title="Atividade — Últimos 90 dias" subtitle="Registros diários e evolução mensal" defaultOpen>
+        <SubPanel label="06A — Heatmap diário">
+          <View style={{ flexDirection: "row", gap: 3, justifyContent: "center" }}>
+            {heatmap.weeks.map((week, wi) => (
+              <View key={wi} style={{ gap: 3 }}>
+                {week.map(cell => (
+                  <View
+                    key={cell.date}
+                    style={{
+                      width: 16,
+                      height: 16,
+                      borderRadius: 3,
+                      backgroundColor: cell.future ? "transparent" : cell.count === 0 ? theme.track : theme.primary,
+                      opacity: cell.future ? 0 : cell.count === 0 ? 1 : 0.3 + 0.7 * (cell.count / heatmap.max),
+                    }}
+                  />
+                ))}
+              </View>
+            ))}
+          </View>
+          <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 4 }}>
+            <Txt variant="caption" muted>
+              Menos
+            </Txt>
+            {[0, 0.35, 0.6, 0.8, 1].map(o => (
+              <View key={o} style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: o === 0 ? theme.track : theme.primary, opacity: o || 1 }} />
+            ))}
+            <Txt variant="caption" muted>
+              Mais
+            </Txt>
+          </View>
+        </SubPanel>
+        <SubPanel label="06B — Evolução · 12 meses">
+          <AreaChart
+            data={yearLine}
+            series={[
+              { key: "tasks", label: "Tarefas", color: theme.primary },
+              { key: "habits", label: "Hábitos", color: "#a78bfa" },
+            ]}
+            height={180}
+          />
+        </SubPanel>
+      </Expandable>
 
-      <SectionTitle>Esta semana</SectionTitle>
       <Card>
+        <Marginalia index="07">Linha do mês</Marginalia>
+        <AreaChart
+          data={monthLine}
+          series={[
+            { key: "tasks", label: "Tarefas", color: theme.primary },
+            { key: "habits", label: "Hábitos", color: "#a78bfa" },
+          ]}
+          height={190}
+        />
+      </Card>
+
+      <Card>
+        <Marginalia index="08">Semana</Marginalia>
         <BarChart
           data={weeklyData}
           series={[
             { key: "tasks", label: "Tarefas", color: theme.primary },
-            { key: "habits", label: "Hábitos", color: theme.accent },
+            { key: "habits", label: "Hábitos", color: "#a78bfa" },
           ]}
+          highlightIndex={todayIdx}
         />
       </Card>
 
-      <SectionTitle>Atividade — últimos 30 dias</SectionTitle>
-      <Card>
-        <LineChart
-          data={activity}
-          series={[
-            { key: "tasks", label: "Tarefas", color: theme.primary },
-            { key: "habits", label: "Hábitos", color: theme.accent },
-          ]}
-        />
-      </Card>
-
-      <SectionTitle>Atividade — últimos 90 dias</SectionTitle>
-      <Card>
-        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 4 }}>
-          {heatmap.cells.map((count, i) => (
-            <View
-              key={i}
-              style={{
-                width: 14,
-                height: 14,
-                borderRadius: 3,
-                backgroundColor: count === 0 ? theme.primarySoft : theme.primary,
-                opacity: count === 0 ? 1 : 0.35 + 0.65 * (count / heatmap.max),
-              }}
-            />
-          ))}
-        </View>
-      </Card>
-
-      <SectionTitle>Insights</SectionTitle>
-      {insights.length === 0 ? (
-        <Card>
+      <Expandable icon="bulb-outline" title="Insights" subtitle="Análises automáticas do seu desempenho" defaultOpen>
+        {insights.length === 0 ? (
           <Txt muted>Continue registrando suas atividades para receber análises.</Txt>
-        </Card>
-      ) : (
-        insights.map((insight, i) => (
-          <Card key={i} style={{ flexDirection: "row", gap: 12, alignItems: "flex-start" }}>
-            <Txt style={{ fontSize: 22 }}>{insight.icon}</Txt>
-            <View style={{ flex: 1, gap: 2 }}>
-              <Txt variant="h3" color={resolveColor(insight.color, theme)}>
-                {insight.title}
+        ) : (
+          insights.map((insight, i) => (
+            <View key={i} style={{ flexDirection: "row", gap: 14 }}>
+              <Txt variant="marginalia" style={{ width: 24, marginTop: 3 }}>
+                {`0.${i + 1}`}
               </Txt>
-              <Txt variant="label" muted>
-                {insight.detail}
-              </Txt>
+              <View style={{ flex: 1, gap: 2 }}>
+                <Txt variant="h3" color={resolveColor(insight.color, theme)}>
+                  {insight.title}
+                </Txt>
+                <Txt variant="label" muted>
+                  {insight.detail}
+                </Txt>
+              </View>
             </View>
-          </Card>
-        ))
-      )}
+          ))
+        )}
+      </Expandable>
 
-      <SectionTitle>Melhores dias da semana</SectionTitle>
       <Card>
-        {bestDays.map(day => (
-          <View key={day.day} style={{ gap: 4 }}>
-            <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <Txt variant="label">{day.day}</Txt>
-              <Txt variant="caption" muted>
-                {day.completed}/{day.total} · {Math.round(day.rate)}%
-              </Txt>
-            </View>
-            <ProgressBar percent={day.rate} height={6} />
+        <Marginalia index="11">Tendência</Marginalia>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+          <ProgressRing percent={trend.currentRate} size={84} stroke={7} color={trend.direction === "down" ? theme.danger : theme.success}>
+            <Txt style={{ fontFamily: fonts.display, fontSize: 18 }}>{trend.currentRate}%</Txt>
+          </ProgressRing>
+          <View style={{ flex: 1, gap: 4 }}>
+            <Txt variant="label" muted>
+              Últimos 7 dias vs 7 dias anteriores
+            </Txt>
+            <Txt variant="h3" color={trend.direction === "down" ? theme.danger : theme.success}>
+              {trend.direction === "down" ? "▼" : "▲"} {Math.abs(trend.delta)} pontos ({trend.previousRate}% → {trend.currentRate}%)
+            </Txt>
+            <Txt variant="caption" muted>
+              Comparação da taxa de conclusão entre as duas janelas
+            </Txt>
           </View>
-        ))}
-      </Card>
-
-      <SectionTitle>Prioridades</SectionTitle>
-      <Card style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
-        <DonutChart
-          size={110}
-          stroke={18}
-          slices={priorities.map(p => ({ value: p.value, color: resolveColor(p.color, theme), label: p.name }))}
-          center={String(tasks.length)}
-        />
-        <View style={{ flex: 1 }}>
-          <Legend series={priorities.map(p => ({ label: `${p.name} (${p.value})`, color: resolveColor(p.color, theme) }))} />
         </View>
       </Card>
 
-      <SectionTitle>Aderência aos hábitos</SectionTitle>
       <Card>
+        <Marginalia index="12">Dia da semana</Marginalia>
+        <BarChart
+          data={bestDays.map(d => ({ label: d.day, completed: d.completed }))}
+          series={[{ key: "completed", label: "Concluídas", color: theme.primary }]}
+          highlightIndex={todayIdx}
+        />
+      </Card>
+
+      <Card>
+        <Marginalia index="13">Prioridades</Marginalia>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 18 }}>
+          <DonutChart
+            size={110}
+            stroke={16}
+            slices={priorities.map(p => ({ value: p.value, color: resolveColor(p.color, theme), label: p.name }))}
+            center={String(tasks.length)}
+          />
+          <View style={{ flex: 1 }}>
+            <Legend series={priorities.map(p => ({ label: `${p.name} (${p.value})`, color: resolveColor(p.color, theme) }))} />
+          </View>
+        </View>
+      </Card>
+
+      <Card>
+        <Marginalia index="14">Aderência aos hábitos</Marginalia>
         {adherence.length === 0 ? (
           <Txt muted>Nenhum hábito ainda.</Txt>
         ) : (
           adherence.map(h => (
-            <View key={h.name} style={{ gap: 4 }}>
+            <View key={h.name} style={{ gap: 6 }}>
               <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
                 <Txt variant="label">{h.name}</Txt>
-                <Txt variant="caption" muted>
+                <Txt variant="mono" color={theme.accent}>
                   {Math.round(h.rate)}% {h.trend === "up" ? "↑" : h.trend === "down" ? "↓" : ""}
                 </Txt>
               </View>
-              <ProgressBar percent={h.rate} color={theme.accent} height={6} />
+              <ProgressBar percent={h.rate} color={theme.accent} />
             </View>
           ))
         )}
-        <Txt variant="caption" muted>
-          Maior sequência: {bestHabit.title} · {bestHabit.streak} dias
-        </Txt>
       </Card>
 
       {isPro && (
-        <>
-          <SectionTitle>Finanças do mês</SectionTitle>
-          <View style={{ flexDirection: "row", gap: 10 }}>
-            <StatTile icon="arrow-down-circle-outline" value={formatCurrency(income)} label="Receitas" color={theme.success} />
-            <StatTile icon="arrow-up-circle-outline" value={formatCurrency(expense)} label="Despesas" color={theme.danger} />
+        <Card>
+          <Marginalia index="15">Finanças</Marginalia>
+          <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+            <View>
+              <Txt variant="caption" muted>
+                Receitas do mês
+              </Txt>
+              <Txt variant="mono" color={theme.success} style={{ fontSize: 16 }}>
+                {formatCurrency(income)}
+              </Txt>
+            </View>
+            <View style={{ alignItems: "flex-end" }}>
+              <Txt variant="caption" muted>
+                Despesas do mês
+              </Txt>
+              <Txt variant="mono" color={theme.danger} style={{ fontSize: 16 }}>
+                {formatCurrency(expense)}
+              </Txt>
+            </View>
           </View>
-        </>
+        </Card>
       )}
     </Screen>
   );

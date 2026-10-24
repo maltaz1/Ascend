@@ -99,7 +99,7 @@ export default function SettingsScreen() {
   );
 
   return (
-    <Screen back title="Configurações">
+    <Screen title="Configurações">
       <SectionTitle>Perfil</SectionTitle>
       <Card>
         <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>

@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Alert, Pressable, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { getTodayString, toYYYYMMDD } from "@/lib/store";
@@ -14,8 +14,8 @@ import { APPOINTMENT_CATEGORIES, APPOINTMENT_COLORS, type Appointment, type Cale
 import { notifyError, notifySuccess } from "@/lib/notifications";
 import { IS_DEMO } from "@/demo";
 import { useStore } from "@/hooks/useStore";
-import { Button, Card, EmptyState, IconButton, Input, Screen, SectionTitle, Sheet, Txt } from "@/components/ui";
-import { TaskRow } from "@/components/rows";
+import { Button, Card, EmptyState, Input, Marginalia, Screen, Sheet, Txt } from "@/components/ui";
+import { longDate, TaskRow } from "@/components/rows";
 import { fonts, useTheme } from "@/theme";
 
 const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
@@ -33,6 +33,7 @@ export default function CalendarScreen() {
   // Rascunho da anotação, preso ao dia em que foi digitado.
   const [draft, setDraft] = useState<{ date: string; text: string } | null>(null);
   const [showNew, setShowNew] = useState(false);
+  const [showNote, setShowNote] = useState(false);
 
   const reload = useCallback(async () => {
     if (IS_DEMO) return;
@@ -60,11 +61,6 @@ export default function CalendarScreen() {
 
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
-  const cells = useMemo(() => {
-    const first = new Date(year, month, 1).getDay();
-    const days = new Date(year, month + 1, 0).getDate();
-    return [...Array(first).fill(null), ...Array.from({ length: days }, (_, i) => toYYYYMMDD(new Date(year, month, i + 1)))];
-  }, [year, month]);
 
   const dayTasks = data.tasks.filter(t => t.date === selected);
   const dayApts = getAppointmentsForDate(appointments, selected).sort((a, b) => a.startTime.localeCompare(b.startTime));
@@ -95,104 +91,178 @@ export default function CalendarScreen() {
     ]);
   };
 
+  // Grade de 6 semanas com os dias dos meses vizinhos apagados (como no site).
+  const firstWeekday = new Date(year, month, 1).getDay();
+  const grid = Array.from({ length: 42 }, (_, i) => {
+    const d = new Date(year, month, 1 - firstWeekday + i);
+    return { key: toYYYYMMDD(d), day: d.getDate(), inMonth: d.getMonth() === month };
+  });
+  const goalsCount = data.goals.filter(g => g.type !== "semanal" && g.deadline === selected).length;
+
   return (
-    <Screen back title="Calendário" right={<IconButton icon="add" label="Novo compromisso" onPress={() => setShowNew(true)} filled />}>
+    <Screen title="Calendário" subtitle="Visão geral de tarefas e metas">
       <Card>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
-          <Pressable onPress={() => setCursor(new Date(year, month - 1, 1))} hitSlop={10} accessibilityLabel="Mês anterior">
-            <Ionicons name="chevron-back" size={22} color={theme.ink} />
-          </Pressable>
-          <Txt variant="h3" style={{ flex: 1, textAlign: "center" }}>
+          <CalArrow icon="chevron-back" label="Mês anterior" onPress={() => setCursor(new Date(year, month - 1, 1))} />
+          <Txt variant="h2" style={{ flex: 1, textAlign: "center" }}>
             {MONTHS[month]} {year}
           </Txt>
-          <Pressable onPress={() => setCursor(new Date(year, month + 1, 1))} hitSlop={10} accessibilityLabel="Próximo mês">
-            <Ionicons name="chevron-forward" size={22} color={theme.ink} />
-          </Pressable>
+          <CalArrow icon="chevron-forward" label="Próximo mês" onPress={() => setCursor(new Date(year, month + 1, 1))} />
         </View>
         <View style={{ flexDirection: "row" }}>
           {WEEK.map((d, i) => (
-            <Txt key={i} variant="caption" muted style={{ flex: 1, textAlign: "center" }}>
+            <Txt key={i} style={{ flex: 1, textAlign: "center", fontFamily: fonts.bodyBold, fontSize: 11 }} muted>
               {d}
             </Txt>
           ))}
         </View>
         <View style={{ flexDirection: "row", flexWrap: "wrap" }}>
-          {cells.map((key, i) => {
-            if (!key) return <View key={`e${i}`} style={{ width: `${100 / 7}%`, height: 46 }} />;
+          {grid.map(({ key, day, inMonth }) => {
             const isSel = key === selected;
             const isToday = key === today;
-            const hasTask = data.tasks.some(t => t.date === key && !t.completed);
-            const hasApt = appointments.some(a => a.date === key);
-            const hasNote = notes.some(n => n.date === key);
+            const list = data.tasks.filter(t => t.date === key);
+            const marks = [
+              list.some(t => t.completed) ? theme.success : null,
+              list.some(t => !t.completed && t.date >= today) ? theme.accent : null,
+              list.some(t => !t.completed && t.date < today) ? theme.danger : null,
+              appointments.some(a => a.date === key) ? theme.blue : null,
+              notes.some(n => n.date === key) ? theme.accent : null,
+            ].filter(Boolean) as string[];
             return (
-              <Pressable key={key} onPress={() => setSelected(key)} style={{ width: `${100 / 7}%`, height: 46, alignItems: "center", justifyContent: "center" }}>
-                <View
+              <View key={key} style={{ width: `${100 / 7}%`, padding: 2.5 }}>
+                <Pressable
+                  onPress={() => {
+                    if (!inMonth) setCursor(new Date(`${key}T12:00:00`));
+                    setSelected(key);
+                  }}
                   style={{
-                    width: 36,
-                    height: 36,
-                    borderRadius: 10,
+                    aspectRatio: 0.92,
+                    borderRadius: 5,
                     alignItems: "center",
-                    justifyContent: "center",
-                    backgroundColor: isSel ? theme.primary : "transparent",
-                    borderWidth: isToday && !isSel ? 1 : 0,
-                    borderColor: theme.primary,
+                    paddingTop: 8,
+                    gap: 6,
+                    backgroundColor: !inMonth ? "transparent" : isToday ? theme.accentSoft : theme.raised,
+                    borderWidth: isToday || isSel ? 1 : 0,
+                    borderColor: isToday ? theme.accent : theme.primary,
+                    opacity: inMonth ? 1 : 0.35,
                   }}
                 >
-                  <Txt style={{ fontFamily: fonts.bodySemi }} color={isSel ? "#fff" : theme.ink}>
-                    {Number(key.slice(8))}
+                  <Txt style={{ fontFamily: isToday ? fonts.display : fonts.bodySemi, fontSize: 13 }} color={isToday ? theme.accent : theme.ink}>
+                    {day}
                   </Txt>
-                </View>
-                <View style={{ flexDirection: "row", gap: 2, position: "absolute", bottom: 2 }}>
-                  {hasTask && <Dot color={theme.primary} />}
-                  {hasApt && <Dot color={theme.accent} />}
-                  {hasNote && <Dot color={theme.success} />}
-                </View>
-              </Pressable>
+                  <View style={{ flexDirection: "row", gap: 2 }}>
+                    {marks.slice(0, 3).map((c, j) => (
+                      <Dot key={j} color={c} />
+                    ))}
+                  </View>
+                </Pressable>
+              </View>
             );
           })}
         </View>
+        <View style={{ height: 1, backgroundColor: theme.border }} />
+        <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 12 }}>
+          {[
+            { c: theme.success, l: "Concluída" },
+            { c: theme.inkMuted, l: "Pendente" },
+            { c: theme.danger, l: "Atrasada" },
+            { c: theme.blue, l: "Compromisso" },
+          ].map(item => (
+            <View key={item.l} style={{ flexDirection: "row", alignItems: "center", gap: 5 }}>
+              <Dot color={item.c} />
+              <Txt variant="caption" muted>
+                {item.l}
+              </Txt>
+            </View>
+          ))}
+        </View>
       </Card>
 
-      <Txt variant="h2">
-        {(() => {
-          const label = new Date(`${selected}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" });
-          return label.charAt(0).toUpperCase() + label.slice(1);
-        })()}
-      </Txt>
+      <Card style={{ gap: 4 }}>
+        <Txt variant="h2">{longDate(new Date(`${selected}T12:00:00`))}</Txt>
+        <Txt variant="caption" muted>
+          {dayTasks.length} {dayTasks.length === 1 ? "tarefa" : "tarefas"} · {goalsCount} {goalsCount === 1 ? "meta" : "metas"}
+        </Txt>
+      </Card>
 
-      <SectionTitle>Compromissos</SectionTitle>
+      <View style={{ flexDirection: "row", gap: 10 }}>
+        <View style={{ flex: 1 }}>
+          <Button label="Compromisso" icon="add" onPress={() => setShowNew(true)} />
+        </View>
+        <View style={{ flex: 1 }}>
+          <Button label="Anotação" icon="add" variant="ghost" onPress={() => setShowNote(true)} />
+        </View>
+      </View>
+
       <Card>
+        <Marginalia>Compromissos</Marginalia>
         {dayApts.length === 0 ? (
           <EmptyState text="Nenhum compromisso." />
         ) : (
           dayApts.map(apt => (
-            <Pressable key={apt.id} onLongPress={() => removeApt(apt)} style={{ flexDirection: "row", gap: 12, alignItems: "center" }}>
-              <View style={{ width: 4, alignSelf: "stretch", borderRadius: 2, backgroundColor: apt.color }} />
+            <Pressable key={apt.id} onLongPress={() => removeApt(apt)} style={{ flexDirection: "row", gap: 12, alignItems: "center", backgroundColor: theme.raised, borderRadius: 6, padding: 12 }}>
+              <View style={{ width: 3, alignSelf: "stretch", borderRadius: 2, backgroundColor: apt.color }} />
               <View style={{ flex: 1 }}>
                 <Txt variant="bodyStrong">{apt.title}</Txt>
                 <Txt variant="caption" muted>
-                  {apt.startTime}–{apt.endTime}
-                  {apt.category ? ` · ${apt.category}` : ""}
+                  {apt.category ? `${apt.category} · ` : ""}
                 </Txt>
               </View>
+              <Txt variant="mono" muted style={{ fontSize: 12 }}>
+                {apt.startTime}–{apt.endTime}
+              </Txt>
             </Pressable>
           ))
         )}
       </Card>
 
-      <SectionTitle>Tarefas</SectionTitle>
       <Card>
-        {dayTasks.length === 0 ? <EmptyState text="Nenhuma tarefa." /> : dayTasks.map(task => <TaskRow key={task.id} task={task} />)}
+        <Marginalia>Tarefas</Marginalia>
+        {dayTasks.length === 0 ? (
+          <EmptyState text="Nenhuma tarefa." />
+        ) : (
+          <View style={{ gap: 8 }}>
+            {dayTasks.map(task => (
+              <TaskRow key={task.id} task={task} />
+            ))}
+          </View>
+        )}
       </Card>
 
-      <SectionTitle>Anotação do dia</SectionTitle>
-      <Card>
-        <Input value={noteText} onChangeText={setNoteText} placeholder="Escreva algo sobre este dia..." multiline />
-        <Button label="Salvar anotação" variant="soft" onPress={saveNote} compact />
-      </Card>
+      {note || noteText ? (
+        <Card tone="amber">
+          <Marginalia>Anotação do dia</Marginalia>
+          <Txt style={{ lineHeight: 21 }}>{note?.content ?? noteText}</Txt>
+          <Button label="Editar anotação" variant="ghost" compact onPress={() => setShowNote(true)} />
+        </Card>
+      ) : null}
 
       <AppointmentSheet visible={showNew} date={selected} onClose={() => setShowNew(false)} onSaved={reload} />
+      <Sheet visible={showNote} onClose={() => setShowNote(false)} title="Anotação do dia">
+        <Input value={noteText} onChangeText={setNoteText} placeholder="Escreva algo sobre este dia..." multiline />
+        <Button
+          label="Salvar anotação"
+          onPress={async () => {
+            await saveNote();
+            setShowNote(false);
+          }}
+        />
+      </Sheet>
     </Screen>
+  );
+}
+
+function CalArrow({ icon, label, onPress }: { icon: "chevron-back" | "chevron-forward"; label: string; onPress: () => void }) {
+  const theme = useTheme();
+  return (
+    <Pressable
+      onPress={onPress}
+      hitSlop={8}
+      accessibilityLabel={label}
+      style={{ width: 36, height: 36, borderRadius: 6, borderWidth: 1, borderColor: theme.border, alignItems: "center", justifyContent: "center" }}
+    >
+      <Ionicons name={icon} size={16} color={theme.ink} />
+    </Pressable>
   );
 }
 

@@ -13,32 +13,32 @@ Pré-visualização no navegador com dados de exemplo (sem Supabase, PRO liberad
 
 ## Identidade visual
 
-Mesma do site (`client/src/index.css`):
+Igual ao site no celular (conferido lado a lado com o site rodando localmente em 375 px):
 
-- Fontes Space Grotesk (títulos) e DM Sans (texto)
-- Fundo de papel com luz: "Caderno Diurno" no claro, "Ledger Noturno" no escuro
-- Roxo `#8b5cf6` com destaque âmbar `#f59e0b`, cartões tipo folha de caderno
-- Ícone, ícone adaptativo do Android e marca no app vêm de `client/public/icons/icon-any-512.png` (mesmo símbolo das logos, já com fundo transparente)
-- Splash: recorte da `Logo-principal.jpg` (pasta `D:\Ascend\Logos`)
+- Menu lateral (☰) com o mesmo conteúdo e o item ativo em âmbar; botão de tema claro/escuro (padrão escuro, salvo na chave `theme` como no site)
+- Fontes Space Grotesk (títulos), DM Sans (texto) e monoespaçada nos valores em dinheiro
+- "Ledger" do `client/src/index.css`: folhas com borda de cima de 2 px, cantos de 6 px e sombra dura; rótulos de margem numerados ("01 — …"); carimbos em caixa alta; campos sublinhados
+- Gráficos em SVG no estilo do recharts: curvas suaves com área em degradê, grade tracejada, eixos com números, barras arredondadas com o dia atual em destaque, rosca, sparkline e mapa de calor
+- Logo do menu: `client/public/Logo-TaskBar.png`; ícone do app e marca: `client/public/icons/icon-any-512.png`; splash: recorte da `Logo-principal.jpg` (pasta `D:\Ascend\Logos`)
 
-## Telas
+## Telas (menu lateral)
 
-| Aba / menu | O que faz |
+| Área | O que faz |
 |---|---|
-| Hoje | Progresso do dia, nível/XP, atrasadas, tarefas, hábitos e metas |
-| Hábitos | Mês com navegação, gráfico de atividade, cartões com todos os dias do mês |
-| Tarefas | Faixa de dias, filtros, criar/editar com prioridade e recorrência (PRO) |
-| Metas | Semanais (com hábito vinculado) e de longo prazo (com etapas) |
-| Mais → Dashboard | Sequência, métricas, gráficos, mapa de 90 dias, insights, prioridades |
-| Mais → Calendário | Mês com marcadores, compromissos, tarefas e anotação do dia |
-| Mais → Notas (PRO) | Busca, pastas, favoritas, fixadas, editor |
-| Mais → Oração (PRO) | Intenções sugeridas, respostas e favoritas |
-| Mais → Academia (PRO) | Fichas, treino do dia, sessão com séries, progresso |
-| Mais → Dieta (PRO) | Calorias e macros, água, refeições com busca de alimentos, metas |
-| Mais → Financeiro (PRO) | Saldo do mês, gastos por categoria, lançamentos |
-| Mais → Evolução (PRO) | Carga e volume por exercício |
-| Mais → Conquistas | Conquistas desbloqueadas e a desbloquear |
-| Mais → Configurações | Perfil, plano, cancelamento, suporte, LGPD, sair, excluir conta |
+| Hoje | Progresso do dia, nível/XP, tarefas, hábitos e metas da semana / longo prazo |
+| Hábitos | Busca, mês, gráfico "Consistência em foco" (diário/semanal), tabela com os dias do mês |
+| Tarefas | Mini calendário, filtros (todas/pendentes/concluídas/atrasadas), busca, criar/editar com recorrência (PRO) |
+| Metas | "Livro de objetivos": semanais com dias e consistência, longo prazo com etapas |
+| Dashboard | Painel de nível, métricas, sequência, mapa de 90 dias, evolução, semana, insights, tendência |
+| Oração (PRO) | Intenções sugeridas, respostas e favoritas |
+| Academia (PRO) | Abas Treinos / Exercícios / Evolução, fichas e sessão com séries |
+| Dieta (PRO) | Meta calórica, anéis de macros, hidratação, refeições com busca de alimentos |
+| Financeiro (PRO) | Entradas/gastos/saldo, comparação com mês e semana anteriores, calendário, distribuição, lançamentos |
+| Notas (PRO) | Busca, pastas, favoritas, fixadas, editor |
+| Calendário | Grade do mês com marcadores, compromissos, tarefas e anotação do dia |
+| Configurações | Perfil, plano, cancelamento, suporte, LGPD, sair, excluir conta |
+
+Evolução e Conquistas também existem como telas (`/evolution`, `/achievements`), mas não aparecem no menu — como no site.
 
 Limites do plano grátis iguais ao site (5 tarefas/semana, 3 hábitos, 2 metas semanais, 1 meta de longo prazo). Áreas PRO mostram o convite de upgrade, que abre o checkout do Cakto.
 
@@ -47,7 +47,7 @@ Limites do plano grátis iguais ao site (5 tarefas/semana, 3 hábitos, 2 metas s
 | Pasta | Origem |
 |---|---|
 | `src/store`, `src/lib`, `src/types`, `src/shared`, `src/utils` | Copiados do site, com ajustes para celular |
-| `src/app`, `src/components`, `src/hooks`, `src/theme.ts`, `src/navigation.ts` | Novos — telas em componentes nativos |
+| `src/app`, `src/components`, `src/hooks`, `src/theme.tsx`, `src/navigation.ts` | Novos — telas em componentes nativos |
 
 Regras que no site ficavam dentro das páginas e vieram para a camada de lógica:
 

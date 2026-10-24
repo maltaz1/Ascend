@@ -15,8 +15,8 @@ export default function AchievementsScreen() {
   const percent = data.achievements.length ? (unlocked.length / data.achievements.length) * 100 : 0;
 
   return (
-    <Screen back title="Conquistas" subtitle={`${unlocked.length}/${data.achievements.length} desbloqueadas`}>
-      <Card style={{ flexDirection: "row", alignItems: "center", gap: 16 }} accent={theme.accent}>
+    <Screen title="Conquistas" subtitle={`${unlocked.length}/${data.achievements.length} desbloqueadas`}>
+      <Card style={{ flexDirection: "row", alignItems: "center", gap: 16 }} tone="amber">
         <ProgressRing percent={percent} size={84} stroke={8} color={theme.accent}>
           <Ionicons name="trophy" size={28} color={theme.accent} />
         </ProgressRing>
