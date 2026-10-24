@@ -158,7 +158,7 @@ function Financial() {
           <EmptyState text="Nenhum gasto neste mês." />
         ) : chart === "pie" ? (
           <View style={{ alignItems: "center", gap: 14 }}>
-            <DonutChart slices={byCategory.map(c => ({ value: c.value, color: c.color, label: c.name }))} size={170} stroke={30} />
+            <DonutChart slices={byCategory.map(c => ({ value: c.value, color: c.color, label: c.name }))} size={170} stroke={30} format={formatCurrency} />
             <View style={{ alignSelf: "stretch", gap: 8 }}>
               {byCategory.map(c => (
                 <View key={c.name} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>

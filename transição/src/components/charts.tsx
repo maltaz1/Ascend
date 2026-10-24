@@ -1,16 +1,19 @@
 import { useState } from "react";
-import { View, type LayoutChangeEvent } from "react-native";
+import { View, type GestureResponderEvent, type LayoutChangeEvent } from "react-native";
 import Svg, { Circle, Defs, G, Line, LinearGradient, Path, Rect, Stop, Text as SvgText } from "react-native-svg";
 import { fonts, useTheme } from "@/theme";
 import { Txt } from "./ui";
 
 // Gráficos em SVG no estilo do recharts do web: curvas suaves (monotone),
-// área em degradê, grade tracejada e eixos com números.
+// área em degradê, grade tracejada e eixos com números. Tocar num ponto
+// mostra a linha-guia e o balão com os valores (o Tooltip do recharts).
 
 type Series = { key: string; color: string; label: string };
 type Datum = { label: string } & Record<string, number | string>;
+type Formatter = (value: number) => string;
 
 const PAD = { top: 10, right: 8, bottom: 22, left: 30 };
+const TOOLTIP_W = 176;
 
 function useWidth(): [number, (e: LayoutChangeEvent) => void] {
   const [width, setWidth] = useState(0);
@@ -29,6 +32,8 @@ function formatTick(v: number): string {
   if (Math.abs(v) >= 1000) return `${Math.round(v / 100) / 10}k`;
   return Number.isInteger(v) ? String(v) : v.toFixed(2).replace(/\.?0+$/, "");
 }
+
+const defaultFormat: Formatter = v => (Number.isInteger(v) ? v.toLocaleString("pt-BR") : v.toLocaleString("pt-BR", { maximumFractionDigits: 1 }));
 
 // Curva monotone (mesmo tipo do recharts type="monotone").
 function monotonePath(points: { x: number; y: number }[]): string {
@@ -91,19 +96,110 @@ function Grid({ width, height, max, ticks = 4 }: { width: number; height: number
   );
 }
 
+// Balão com o rótulo do ponto e o valor de cada série.
+function Tooltip({
+  x,
+  width,
+  title,
+  rows,
+}: {
+  x: number;
+  width: number;
+  title: string;
+  rows: { color: string; label: string; value: string }[];
+}) {
+  const theme = useTheme();
+  const left = Math.max(0, Math.min(width - TOOLTIP_W, x - TOOLTIP_W / 2));
+  return (
+    <View
+      pointerEvents="none"
+      style={{
+        position: "absolute",
+        top: 0,
+        left,
+        width: TOOLTIP_W,
+        backgroundColor: theme.surface,
+        borderWidth: 1,
+        borderColor: theme.primaryBorder,
+        borderRadius: 6,
+        paddingVertical: 8,
+        paddingHorizontal: 10,
+        gap: 4,
+        shadowColor: "#000",
+        shadowOpacity: 0.3,
+        shadowRadius: 8,
+        shadowOffset: { width: 0, height: 3 },
+        elevation: 6,
+      }}
+    >
+      <Txt style={{ fontFamily: fonts.bodyBold, fontSize: 12 }}>{title}</Txt>
+      {rows.map(r => (
+        <View key={r.label} style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <View style={{ width: 8, height: 8, borderRadius: 2, backgroundColor: r.color }} />
+          <Txt variant="caption" muted style={{ flex: 1 }} numberOfLines={1}>
+            {r.label}
+          </Txt>
+          <Txt style={{ fontFamily: fonts.bodyBold, fontSize: 12 }} color={r.color}>
+            {r.value}
+          </Txt>
+        </View>
+      ))}
+    </View>
+  );
+}
+
+// Camada transparente que captura o toque e devolve o índice mais próximo.
+function TouchLayer({ count, width, onSelect }: { count: number; width: number; onSelect: (index: number) => void }) {
+  const pick = (e: GestureResponderEvent) => {
+    const chartW = width - PAD.left - PAD.right;
+    const rel = (e.nativeEvent.locationX - PAD.left) / Math.max(1, chartW);
+    onSelect(Math.max(0, Math.min(count - 1, Math.round(rel * (count - 1)))));
+  };
+  return (
+    <View
+      style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+      onStartShouldSetResponder={() => true}
+      onResponderGrant={pick}
+      onResponderMove={pick}
+      accessibilityHint="Toque para ver os valores"
+    />
+  );
+}
+
+function BarTouchLayer({ count, width, onSelect }: { count: number; width: number; onSelect: (index: number) => void }) {
+  const pick = (e: GestureResponderEvent) => {
+    const groupW = (width - PAD.left - PAD.right) / Math.max(1, count);
+    onSelect(Math.max(0, Math.min(count - 1, Math.floor((e.nativeEvent.locationX - PAD.left) / groupW))));
+  };
+  return (
+    <View
+      style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+      onStartShouldSetResponder={() => true}
+      onResponderGrant={pick}
+      onResponderMove={pick}
+      accessibilityHint="Toque para ver os valores"
+    />
+  );
+}
+
 export function AreaChart({
   data,
   series,
   height = 200,
   dots = false,
+  format = defaultFormat,
+  tooltipTitle,
 }: {
   data: Datum[];
   series: Series[];
   height?: number;
   dots?: boolean;
+  format?: Formatter;
+  tooltipTitle?: (d: Datum, index: number) => string;
 }) {
   const theme = useTheme();
   const [width, onLayout] = useWidth();
+  const [active, setActive] = useState<number | null>(null);
   const max = niceMax(Math.max(0, ...data.flatMap(d => series.map(s => Number(d[s.key]) || 0))));
   const chartW = width - PAD.left - PAD.right;
   const chartH = height - PAD.top - PAD.bottom;
@@ -111,41 +207,55 @@ export function AreaChart({
   const x = (i: number) => PAD.left + i * step;
   const y = (v: number) => PAD.top + chartH - (v / max) * chartH;
   const labelEvery = Math.max(1, Math.ceil(data.length / 7));
+  const current = active !== null && active < data.length ? data[active] : null;
 
   return (
     <View style={{ gap: 10 }}>
       <View onLayout={onLayout} style={{ height }}>
         {width > 0 && (
-          <Svg width={width} height={height}>
-            <Defs>
-              {series.map(s => (
-                <LinearGradient key={s.key} id={`fill-${s.key}`} x1="0" y1="0" x2="0" y2="1">
-                  <Stop offset="0" stopColor={s.color} stopOpacity={0.35} />
-                  <Stop offset="1" stopColor={s.color} stopOpacity={0} />
-                </LinearGradient>
-              ))}
-            </Defs>
-            <Grid width={width} height={height} max={max} />
-            {series.map(s => {
-              const pts = data.map((d, i) => ({ x: x(i), y: y(Number(d[s.key]) || 0) }));
-              const line = monotonePath(pts);
-              const area = pts.length ? `${line} L ${pts[pts.length - 1].x} ${PAD.top + chartH} L ${pts[0].x} ${PAD.top + chartH} Z` : "";
-              return (
-                <G key={s.key}>
-                  <Path d={area} fill={`url(#fill-${s.key})`} />
-                  <Path d={line} stroke={s.color} strokeWidth={2.5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
-                  {dots && pts.map((p, i) => <Circle key={i} cx={p.x} cy={p.y} r={3} fill={theme.surface} stroke={s.color} strokeWidth={2} />)}
-                </G>
-              );
-            })}
-            {data.map((d, i) =>
-              i % labelEvery === 0 || (i === data.length - 1 && i % labelEvery >= labelEvery / 2) ? (
-                <SvgText key={i} x={x(i)} y={height - 6} fontSize={10} fill={theme.inkMuted} textAnchor="middle" fontFamily={fonts.body}>
-                  {d.label}
-                </SvgText>
-              ) : null
+          <>
+            <Svg width={width} height={height}>
+              <Defs>
+                {series.map(s => (
+                  <LinearGradient key={s.key} id={`fill-${s.key}`} x1="0" y1="0" x2="0" y2="1">
+                    <Stop offset="0" stopColor={s.color} stopOpacity={0.35} />
+                    <Stop offset="1" stopColor={s.color} stopOpacity={0} />
+                  </LinearGradient>
+                ))}
+              </Defs>
+              <Grid width={width} height={height} max={max} />
+              {current && <Line x1={x(active!)} x2={x(active!)} y1={PAD.top} y2={PAD.top + chartH} stroke={theme.inkMuted} strokeDasharray="4 3" />}
+              {series.map(s => {
+                const pts = data.map((d, i) => ({ x: x(i), y: y(Number(d[s.key]) || 0) }));
+                const line = monotonePath(pts);
+                const area = pts.length ? `${line} L ${pts[pts.length - 1].x} ${PAD.top + chartH} L ${pts[0].x} ${PAD.top + chartH} Z` : "";
+                return (
+                  <G key={s.key}>
+                    <Path d={area} fill={`url(#fill-${s.key})`} />
+                    <Path d={line} stroke={s.color} strokeWidth={2.5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                    {dots && pts.map((p, i) => <Circle key={i} cx={p.x} cy={p.y} r={3} fill={theme.surface} stroke={s.color} strokeWidth={2} />)}
+                    {current && <Circle cx={pts[active!].x} cy={pts[active!].y} r={5} fill={s.color} stroke={theme.surface} strokeWidth={2} />}
+                  </G>
+                );
+              })}
+              {data.map((d, i) =>
+                i % labelEvery === 0 || (i === data.length - 1 && i % labelEvery >= labelEvery / 2) ? (
+                  <SvgText key={i} x={x(i)} y={height - 6} fontSize={10} fill={theme.inkMuted} textAnchor="middle" fontFamily={fonts.body}>
+                    {d.label}
+                  </SvgText>
+                ) : null
+              )}
+            </Svg>
+            <TouchLayer count={data.length} width={width} onSelect={i => setActive(prev => (prev === i ? null : i))} />
+            {current && (
+              <Tooltip
+                x={x(active!)}
+                width={width}
+                title={tooltipTitle ? tooltipTitle(current, active!) : String(current.label)}
+                rows={series.map(s => ({ color: s.color, label: s.label, value: format(Number(current[s.key]) || 0) }))}
+              />
             )}
-          </Svg>
+          </>
         )}
       </View>
       {series.length > 1 ? <Legend series={series} line /> : null}
@@ -161,65 +271,79 @@ export function BarChart({
   series,
   height = 180,
   highlightIndex,
+  format = defaultFormat,
+  tooltipTitle,
 }: {
   data: Datum[];
   series: Series[];
   height?: number;
   highlightIndex?: number;
+  format?: Formatter;
+  tooltipTitle?: (d: Datum, index: number) => string;
 }) {
   const theme = useTheme();
   const [width, onLayout] = useWidth();
+  const [active, setActive] = useState<number | null>(null);
   const max = niceMax(Math.max(0, ...data.flatMap(d => series.map(s => Number(d[s.key]) || 0))));
   const chartW = width - PAD.left - PAD.right;
   const chartH = height - PAD.top - PAD.bottom;
   const groupW = chartW / Math.max(1, data.length);
   const barW = Math.max(4, Math.min(22, (groupW * 0.7) / series.length));
+  const focus = active ?? highlightIndex;
+  const current = active !== null && active < data.length ? data[active] : null;
 
   return (
     <View style={{ gap: 10 }}>
       <View onLayout={onLayout} style={{ height }}>
         {width > 0 && (
-          <Svg width={width} height={height}>
-            <Defs>
-              {series.map(s => (
-                <LinearGradient key={s.key} id={`bar-${s.key}`} x1="0" y1="0" x2="0" y2="1">
-                  <Stop offset="0" stopColor={s.color} stopOpacity={1} />
-                  <Stop offset="1" stopColor={s.color} stopOpacity={0.55} />
-                </LinearGradient>
-              ))}
-            </Defs>
-            <Grid width={width} height={height} max={max} />
-            {data.map((d, i) => {
-              const gx = PAD.left + i * groupW + (groupW - barW * series.length) / 2;
-              const dim = highlightIndex !== undefined && highlightIndex !== i;
-              return (
-                <G key={`${d.label}-${i}`} opacity={dim ? 0.55 : 1}>
-                  {series.map((s, j) => {
-                    const v = Number(d[s.key]) || 0;
-                    const h = (v / max) * chartH;
-                    if (h <= 0) return null;
-                    const bx = gx + j * barW + 1;
-                    const by = PAD.top + chartH - h;
-                    const w = barW - 2;
-                    const r = Math.min(4, w / 2, h);
-                    // retângulo com cantos de cima arredondados (radius [4,4,0,0] do recharts)
-                    const path = `M ${bx} ${by + h} L ${bx} ${by + r} Q ${bx} ${by} ${bx + r} ${by} L ${bx + w - r} ${by} Q ${bx + w} ${by} ${bx + w} ${by + r} L ${bx + w} ${by + h} Z`;
-                    return <Path key={s.key} d={path} fill={`url(#bar-${s.key})`} />;
-                  })}
-                  <SvgText
-                    x={PAD.left + i * groupW + groupW / 2}
-                    y={height - 6}
-                    fontSize={10}
-                    fill={theme.inkMuted}
-                    textAnchor="middle"
-                    fontFamily={fonts.body}
-                  >
-                    {d.label}
-                  </SvgText>
-                </G>
-              );
-            })}
-          </Svg>
+          <>
+            <Svg width={width} height={height}>
+              <Defs>
+                {series.map(s => (
+                  <LinearGradient key={s.key} id={`bar-${s.key}`} x1="0" y1="0" x2="0" y2="1">
+                    <Stop offset="0" stopColor={s.color} stopOpacity={1} />
+                    <Stop offset="1" stopColor={s.color} stopOpacity={0.55} />
+                  </LinearGradient>
+                ))}
+              </Defs>
+              <Grid width={width} height={height} max={max} />
+              {current && (
+                <Rect x={PAD.left + active! * groupW} y={PAD.top} width={groupW} height={chartH} fill={theme.primary} opacity={0.08} rx={4} />
+              )}
+              {data.map((d, i) => {
+                const gx = PAD.left + i * groupW + (groupW - barW * series.length) / 2;
+                const dim = focus !== undefined && focus !== null && focus !== i;
+                return (
+                  <G key={`${d.label}-${i}`} opacity={dim ? 0.55 : 1}>
+                    {series.map((s, j) => {
+                      const v = Number(d[s.key]) || 0;
+                      const h = (v / max) * chartH;
+                      if (h <= 0) return null;
+                      const bx = gx + j * barW + 1;
+                      const by = PAD.top + chartH - h;
+                      const w = barW - 2;
+                      const r = Math.min(4, w / 2, h);
+                      // retângulo com cantos de cima arredondados (radius [4,4,0,0] do recharts)
+                      const path = `M ${bx} ${by + h} L ${bx} ${by + r} Q ${bx} ${by} ${bx + r} ${by} L ${bx + w - r} ${by} Q ${bx + w} ${by} ${bx + w} ${by + r} L ${bx + w} ${by + h} Z`;
+                      return <Path key={s.key} d={path} fill={`url(#bar-${s.key})`} />;
+                    })}
+                    <SvgText x={PAD.left + i * groupW + groupW / 2} y={height - 6} fontSize={10} fill={theme.inkMuted} textAnchor="middle" fontFamily={fonts.body}>
+                      {d.label}
+                    </SvgText>
+                  </G>
+                );
+              })}
+            </Svg>
+            <BarTouchLayer count={data.length} width={width} onSelect={i => setActive(prev => (prev === i ? null : i))} />
+            {current && (
+              <Tooltip
+                x={PAD.left + active! * groupW + groupW / 2}
+                width={width}
+                title={tooltipTitle ? tooltipTitle(current, active!) : String(current.label)}
+                rows={series.map(s => ({ color: s.color, label: s.label, value: format(Number(current[s.key]) || 0) }))}
+              />
+            )}
+          </>
         )}
       </View>
       {series.length > 1 ? <Legend series={series} /> : null}
@@ -237,23 +361,50 @@ export function HBar({ percent, color }: { percent: number; color: string }) {
   );
 }
 
-// Pizza em rosca.
+// Pizza em rosca. Tocar numa fatia mostra nome, valor e porcentagem no centro.
 export function DonutChart({
   slices,
   size = 140,
   stroke = 22,
   center,
+  format = defaultFormat,
 }: {
   slices: { value: number; color: string; label: string }[];
   size?: number;
   stroke?: number;
   center?: string;
+  format?: Formatter;
 }) {
   const theme = useTheme();
+  const [active, setActive] = useState<number | null>(null);
   const total = slices.reduce((sum, s) => sum + s.value, 0);
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   let offset = 0;
+
+  const pick = (e: GestureResponderEvent) => {
+    if (total <= 0) return;
+    const dx = e.nativeEvent.locationX - size / 2;
+    const dy = e.nativeEvent.locationY - size / 2;
+    const dist = Math.sqrt(dx * dx + dy * dy);
+    if (dist < r - stroke || dist > r + stroke) {
+      setActive(null);
+      return;
+    }
+    // ângulo a partir do topo, no sentido horário (a rosca começa às 12h)
+    const angle = (Math.atan2(dy, dx) + Math.PI / 2 + 2 * Math.PI) % (2 * Math.PI);
+    const target = (angle / (2 * Math.PI)) * total;
+    let acc = 0;
+    for (let i = 0; i < slices.length; i++) {
+      acc += slices[i].value;
+      if (target <= acc) {
+        setActive(prev => (prev === i ? null : i));
+        return;
+      }
+    }
+  };
+
+  const sel = active !== null ? slices[active] : null;
   return (
     <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
       <Svg width={size} height={size} style={{ position: "absolute", transform: [{ rotate: "-90deg" }] }}>
@@ -269,7 +420,8 @@ export function DonutChart({
                 cy={size / 2}
                 r={r}
                 stroke={s.color}
-                strokeWidth={stroke}
+                strokeWidth={active === i ? stroke + 6 : stroke}
+                opacity={active === null || active === i ? 1 : 0.4}
                 fill="none"
                 strokeDasharray={`${Math.max(0, len - gap)} ${c - len + gap}`}
                 strokeDashoffset={-offset}
@@ -279,7 +431,29 @@ export function DonutChart({
             return el;
           })}
       </Svg>
-      {center ? <Txt variant="h3">{center}</Txt> : null}
+      {sel ? (
+        <View pointerEvents="none" style={{ alignItems: "center", maxWidth: size - stroke * 2 - 8 }}>
+          <Txt variant="caption" muted numberOfLines={1}>
+            {sel.label}
+          </Txt>
+          <Txt style={{ fontFamily: fonts.display, fontSize: 14 }} color={sel.color} numberOfLines={1} adjustsFontSizeToFit>
+            {format(sel.value)}
+          </Txt>
+          <Txt variant="caption" muted>
+            {Math.round((sel.value / total) * 100)}%
+          </Txt>
+        </View>
+      ) : center ? (
+        <View pointerEvents="none">
+          <Txt variant="h3">{center}</Txt>
+        </View>
+      ) : null}
+      <View
+        style={{ position: "absolute", top: 0, left: 0, right: 0, bottom: 0 }}
+        onStartShouldSetResponder={() => true}
+        onResponderGrant={pick}
+        accessibilityHint="Toque numa fatia para ver o valor"
+      />
     </View>
   );
 }
@@ -330,6 +504,3 @@ export function Legend({ series, line }: { series: { color: string; label: strin
     </View>
   );
 }
-
-// Retângulo usado como célula do mapa de calor.
-export const HeatCell = Rect;

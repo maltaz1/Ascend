@@ -55,7 +55,7 @@ export function MonthCalendar({
       <View style={{ flexDirection: "row", alignItems: "center" }}>
         {arrow("chevron-back", -1)}
         <Txt variant="h2" style={{ flex: 1, textAlign: "center" }}>
-          {MONTHS[month]} {selectedStyle === "filled" ? "De " : ""}
+          {MONTHS[month]} {selectedStyle === "filled" ? "de " : ""}
           {year}
         </Txt>
         {arrow("chevron-forward", 1)}

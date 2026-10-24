@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useState, type ReactNode } from "react";
 import {
   ActivityIndicator,
   KeyboardAvoidingView,
@@ -256,6 +256,41 @@ function toneColor(tone: Tone | undefined, theme: Theme): string | undefined {
   return { violet: theme.primary, amber: theme.accent, green: theme.success, red: theme.danger }[tone];
 }
 
+const LAYOUT_KEYS = [
+  "width",
+  "minWidth",
+  "maxWidth",
+  "height",
+  "flex",
+  "flexGrow",
+  "flexShrink",
+  "flexBasis",
+  "alignSelf",
+  "margin",
+  "marginTop",
+  "marginBottom",
+  "marginLeft",
+  "marginRight",
+  "marginHorizontal",
+  "marginVertical",
+  "position",
+  "top",
+  "left",
+  "right",
+  "bottom",
+] as const;
+
+function splitLayoutStyle(style: StyleProp<ViewStyle>): { outer: ViewStyle; inner: ViewStyle } {
+  const flat = (StyleSheet.flatten(style) ?? {}) as Record<string, unknown>;
+  const outer: Record<string, unknown> = {};
+  const inner: Record<string, unknown> = {};
+  for (const [key, value] of Object.entries(flat)) {
+    if ((LAYOUT_KEYS as readonly string[]).includes(key)) outer[key] = value;
+    else inner[key] = value;
+  }
+  return { outer: outer as ViewStyle, inner: inner as ViewStyle };
+}
+
 export function Card({
   children,
   style,
@@ -271,6 +306,10 @@ export function Card({
 }) {
   const theme = useTheme();
   const top = toneColor(tone, theme) ?? theme.border;
+  // Tamanho e posição (width: "47%", flex: 1...) valem para o invólucro com a
+  // sombra; o resto do estilo vai para a folha. Sem isso o invólucro encolhe e
+  // o texto quebra letra por letra.
+  const { outer, inner } = splitLayoutStyle(style);
   const body = (
     <View
       style={[
@@ -284,7 +323,8 @@ export function Card({
           padding: padded ? 18 : 0,
           gap: 12,
         },
-        style,
+        outer.flex !== undefined || outer.height !== undefined ? { flexGrow: 1 } : null,
+        inner,
       ]}
     >
       {children}
@@ -293,14 +333,14 @@ export function Card({
   const shadow = <View pointerEvents="none" style={[styles.hardShadow, { backgroundColor: theme.shadow }]} />;
   if (!onPress) {
     return (
-      <View>
+      <View style={outer}>
         {shadow}
         {body}
       </View>
     );
   }
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => ({ transform: [{ translateY: pressed ? 1 : 0 }] })}>
+    <Pressable onPress={onPress} style={({ pressed }) => [outer, { transform: [{ translateY: pressed ? 1 : 0 }] }]}>
       {shadow}
       {body}
     </Pressable>
@@ -524,6 +564,9 @@ export function Input({
   ...props
 }: TextInputProps & { label?: string; boxed?: boolean; icon?: IconName }) {
   const theme = useTheme();
+  // Em foco, só a linha/borda fica roxa (.ledger-input:focus do web).
+  const [focused, setFocused] = useState(false);
+  const lineColor = focused ? theme.primary : theme.border;
   const field = (
     <View
       style={
@@ -533,18 +576,26 @@ export function Input({
               alignItems: "center",
               gap: 8,
               borderWidth: 1,
-              borderColor: theme.border,
+              borderColor: lineColor,
               borderRadius: 6,
               backgroundColor: theme.surface,
               paddingHorizontal: 12,
             }
-          : { borderBottomWidth: 1.5, borderBottomColor: theme.border }
+          : { flexDirection: "row", alignItems: "center", gap: 8, borderBottomWidth: 1.5, borderBottomColor: lineColor }
       }
     >
-      {icon ? <Ionicons name={icon} size={16} color={theme.inkMuted} /> : null}
+      {icon ? <Ionicons name={icon} size={16} color={focused ? theme.primary : theme.inkMuted} /> : null}
       <TextInput
         placeholderTextColor={theme.inkMuted}
         {...props}
+        onFocus={e => {
+          setFocused(true);
+          props.onFocus?.(e);
+        }}
+        onBlur={e => {
+          setFocused(false);
+          props.onBlur?.(e);
+        }}
         style={[
           {
             flex: 1,
@@ -554,6 +605,8 @@ export function Input({
             fontSize: 14,
             color: theme.ink,
             fontFamily: fonts.body,
+            // tira a moldura padrão do navegador (só existe na versão web)
+            outlineWidth: 0,
           },
           props.multiline && { minHeight: 80, textAlignVertical: "top" },
           props.style,

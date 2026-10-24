@@ -1,6 +1,7 @@
 import { useEffect, useState } from "react";
 import { Alert, Linking, Pressable, View } from "react-native";
 import Constants from "expo-constants";
+import { router } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { updateUserName } from "@/lib/store";
 import {
@@ -134,6 +135,8 @@ export default function SettingsScreen() {
 
       <SectionTitle>Conta e suporte</SectionTitle>
       <Card style={{ gap: 0 }}>
+        {link("Conquistas", "Suas medalhas e XP total", "trophy-outline", () => router.push("/achievements"))}
+        <Divider />
         {link("Fale conosco", SUPPORT_EMAIL, "mail-outline", () => void Linking.openURL(`mailto:${SUPPORT_EMAIL}`))}
         <Divider />
         {link("Política de Privacidade", "Como protegemos seus dados", "shield-checkmark-outline", () =>

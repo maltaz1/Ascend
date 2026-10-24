@@ -14,6 +14,7 @@ import {
 import { FREE_LIMITS } from "@/config/planLimits";
 import { notifyError, notifyInfo, notifySuccess } from "@/lib/notifications";
 import { useStore } from "@/hooks/useStore";
+import { useInitialScroll } from "@/hooks/useInitialScroll";
 import { useAuth } from "@/hooks/useAuth";
 import { Button, Card, EmptyState, Fab, IconBox, Input, Marginalia, Metric, Screen, Segmented, Sheet, Txt } from "@/components/ui";
 import { AreaChart } from "@/components/charts";
@@ -86,6 +87,9 @@ export default function HabitsScreen() {
     setShowNew(true);
   };
 
+  // Abre a tabela já mostrando os últimos dias até hoje.
+  const [daysRef, onDaysSize] = useInitialScroll(isCurrentMonth ? Math.max(0, (now.getDate() - 4) * (CELL + 12)) : 0);
+
   const dayKey = (day: number) => `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
 
   return (
@@ -117,7 +121,12 @@ export default function HabitsScreen() {
             />
           </View>
         </View>
-        <AreaChart data={chartData} series={[{ key: "count", label: "Hábitos concluídos", color: theme.primary }]} height={210} />
+        <AreaChart
+          data={chartData}
+          series={[{ key: "count", label: "Hábitos concluídos", color: theme.primary }]}
+          height={210}
+          tooltipTitle={d => (period === "daily" ? `${d.label} de ${MONTHS[month].toLowerCase()}` : `Semana ${d.label}`)}
+        />
       </Card>
 
       <Card padded={false} style={{ overflow: "hidden" }}>
@@ -161,7 +170,7 @@ export default function HabitsScreen() {
               })}
             </View>
             {/* Dias do mês (rolagem horizontal) */}
-            <ScrollView style={{ flex: 1 }} horizontal showsHorizontalScrollIndicator={false} contentOffset={{ x: isCurrentMonth ? Math.max(0, (now.getDate() - 4) * (CELL + 12)) : 0, y: 0 }}>
+            <ScrollView style={{ flex: 1 }} horizontal showsHorizontalScrollIndicator={false} ref={daysRef} onContentSizeChange={onDaysSize}>
               <View>
                 <View style={{ flexDirection: "row", height: 44, alignItems: "center", borderBottomWidth: 1, borderBottomColor: theme.border, paddingHorizontal: 6 }}>
                   {Array.from({ length: daysInMonth }, (_, i) => (

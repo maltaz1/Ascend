@@ -59,7 +59,7 @@ export default function TasksScreen() {
   };
 
   const label = longDate(new Date(`${selectedDate}T12:00:00`));
-  const title = label.replace(/(^|\s)\S/g, s => s.toUpperCase()).replace(/ De /g, " De ");
+  const title = label.charAt(0).toUpperCase() + label.slice(1);
 
   return (
     <Screen>

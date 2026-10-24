@@ -1,6 +1,7 @@
 import { Pressable, ScrollView, View } from "react-native";
 import { getTodayString, toYYYYMMDD } from "@/lib/store";
 import { fonts, useTheme } from "@/theme";
+import { useInitialScroll } from "@/hooks/useInitialScroll";
 import { Txt } from "./ui";
 
 // Faixa horizontal de dias (substitui o MiniCalendar / input date do web).
@@ -19,6 +20,7 @@ export function DateStrip({
 }) {
   const theme = useTheme();
   const today = getTodayString();
+  const [stripRef, onStripSize] = useInitialScroll(Math.max(0, (daysBefore - 1) * 60));
   const start = new Date();
   start.setDate(start.getDate() - daysBefore);
   const days = Array.from({ length: daysBefore + daysAfter + 1 }, (_, i) => {
@@ -32,7 +34,8 @@ export function DateStrip({
       horizontal
       showsHorizontalScrollIndicator={false}
       contentContainerStyle={{ gap: 8 }}
-      contentOffset={{ x: Math.max(0, (daysBefore - 1) * 60), y: 0 }}
+      ref={stripRef}
+      onContentSizeChange={onStripSize}
     >
       {days.map(date => {
         const key = toYYYYMMDD(date);

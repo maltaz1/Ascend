@@ -1,5 +1,5 @@
-import { useMemo } from "react";
-import { View } from "react-native";
+import { useMemo, useState } from "react";
+import { Pressable, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { getTodayString, toYYYYMMDD } from "@/lib/store";
 import { getGlobalStreak } from "@/lib/streak";
@@ -34,6 +34,7 @@ export default function DashboardScreen() {
   const { isPro } = useAuth();
   const { tasks, habits, user } = data;
   const today = getTodayString();
+  const [heatSel, setHeatSel] = useState<string | null>(null);
 
   const completedToday = tasks.filter(t => t.completed && t.date === today).length;
   const todayTotal = tasks.filter(t => t.date === today).length;
@@ -55,7 +56,7 @@ export default function DashboardScreen() {
     return days.map((label, index) => {
       const d = new Date(now);
       d.setDate(now.getDate() - now.getDay() + index);
-      return { label, ...countOn(toYYYYMMDD(d)) };
+      return { label, full: d.toLocaleDateString("pt-BR", { weekday: "short", day: "numeric", month: "short" }), ...countOn(toYYYYMMDD(d)) };
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tasks, habits]);
@@ -65,7 +66,7 @@ export default function DashboardScreen() {
     return Array.from({ length: 28 }, (_, k) => {
       const d = new Date(now);
       d.setDate(d.getDate() - (27 - k));
-      return { label: String(d.getDate()), ...countOn(toYYYYMMDD(d)) };
+      return { label: String(d.getDate()), full: d.toLocaleDateString("pt-BR", { weekday: "short", day: "numeric", month: "short" }), ...countOn(toYYYYMMDD(d)) };
     });
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [tasks, habits]);
@@ -169,20 +170,47 @@ export default function DashboardScreen() {
             {heatmap.weeks.map((week, wi) => (
               <View key={wi} style={{ gap: 3 }}>
                 {week.map(cell => (
-                  <View
+                  <Pressable
                     key={cell.date}
+                    disabled={cell.future}
+                    onPress={() => setHeatSel(prev => (prev === cell.date ? null : cell.date))}
+                    accessibilityLabel={`${cell.date}: ${cell.count} atividades`}
                     style={{
                       width: 16,
                       height: 16,
                       borderRadius: 3,
+                      borderWidth: heatSel === cell.date ? 2 : 0,
+                      borderColor: theme.accent,
                       backgroundColor: cell.future ? "transparent" : cell.count === 0 ? theme.track : theme.primary,
-                      opacity: cell.future ? 0 : cell.count === 0 ? 1 : 0.3 + 0.7 * (cell.count / heatmap.max),
+                      opacity: cell.future ? 0 : cell.count === 0 || heatSel === cell.date ? 1 : 0.3 + 0.7 * (cell.count / heatmap.max),
                     }}
                   />
                 ))}
               </View>
             ))}
           </View>
+          {heatSel ? (
+            (() => {
+              const c = countOn(heatSel);
+              return (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 10, backgroundColor: theme.raised, borderRadius: 6, padding: 10 }}>
+                  <Txt variant="bodyStrong" style={{ flex: 1 }}>
+                    {new Date(`${heatSel}T12:00:00`).toLocaleDateString("pt-BR", { weekday: "long", day: "numeric", month: "long" })}
+                  </Txt>
+                  <Txt variant="caption" color={theme.primary} style={{ fontFamily: fonts.bodyBold }}>
+                    {c.tasks} tarefas
+                  </Txt>
+                  <Txt variant="caption" color="#a78bfa" style={{ fontFamily: fonts.bodyBold }}>
+                    {c.habits} hábitos
+                  </Txt>
+                </View>
+              );
+            })()
+          ) : (
+            <Txt variant="caption" muted>
+              Toque num quadrado para ver o dia.
+            </Txt>
+          )}
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "flex-end", gap: 4 }}>
             <Txt variant="caption" muted>
               Menos
@@ -211,6 +239,7 @@ export default function DashboardScreen() {
         <Marginalia index="07">Linha do mês</Marginalia>
         <AreaChart
           data={monthLine}
+          tooltipTitle={d => String(d.full)}
           series={[
             { key: "tasks", label: "Tarefas", color: theme.primary },
             { key: "habits", label: "Hábitos", color: "#a78bfa" },
@@ -223,6 +252,7 @@ export default function DashboardScreen() {
         <Marginalia index="08">Semana</Marginalia>
         <BarChart
           data={weeklyData}
+          tooltipTitle={d => String(d.full)}
           series={[
             { key: "tasks", label: "Tarefas", color: theme.primary },
             { key: "habits", label: "Hábitos", color: "#a78bfa" },

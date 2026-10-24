@@ -247,6 +247,20 @@ function ActiveSession({ workout, onExit }: { workout: Workout; onExit: () => vo
               {ex.series}x {ex.repMin}-{ex.repMax} reps · descanso {ex.restSeconds}s
               {last ? ` · última vez: ${last.weight} kg x ${last.reps}` : ""}
             </Txt>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+              <Txt variant="marginalia" style={{ width: 22 }}>
+                #
+              </Txt>
+              <Txt variant="marginalia" style={{ flex: 1 }}>
+                Kg
+              </Txt>
+              <Txt variant="marginalia" style={{ flex: 1 }}>
+                Reps
+              </Txt>
+              <Txt variant="marginalia" style={{ width: 30, textAlign: "center" }}>
+                ✓
+              </Txt>
+            </View>
             {(sets[ex.id] ?? []).map((s, i) => (
               <View key={i} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                 <Txt variant="label" muted style={{ width: 22, fontFamily: fonts.bodySemi }}>

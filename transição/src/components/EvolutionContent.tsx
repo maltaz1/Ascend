@@ -48,7 +48,8 @@ export function EvolutionContent() {
         <Marginalia>Carga média geral</Marginalia>
         <AreaChart
           data={general.map(g => ({ label: short(g.date), weight: Math.round(g.weight) }))}
-          series={[{ key: "weight", label: "Carga média (kg)", color: theme.primary }]}
+          series={[{ key: "weight", label: "Carga média", color: theme.primary }]}
+          format={v => `${v} kg`}
           dots
         />
       </Card>
@@ -89,12 +90,14 @@ export function EvolutionContent() {
           </Txt>
           <AreaChart
             data={progress.map(p => ({ label: short(p.date), weight: Math.round(p.weight) }))}
-            series={[{ key: "weight", label: "Carga (kg)", color: theme.primary }]}
+            series={[{ key: "weight", label: "Carga", color: theme.primary }]}
+            format={v => `${v} kg`}
             dots
           />
           <BarChart
             data={progress.map(p => ({ label: short(p.date), volume: Math.round(p.volume) }))}
-            series={[{ key: "volume", label: "Volume (kg)", color: theme.accent }]}
+            series={[{ key: "volume", label: "Volume", color: theme.accent }]}
+            format={v => `${v.toLocaleString("pt-BR")} kg`}
             height={150}
           />
         </Card>

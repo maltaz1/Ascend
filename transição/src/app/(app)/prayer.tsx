@@ -45,7 +45,12 @@ function Prayer() {
     setLoading(true);
     setMessages(prev => [...prev, { id: generateId(), role: "user", content: text }]);
     await new Promise(resolve => setTimeout(resolve, 1200));
-    setMessages(prev => [...prev, { id: generateId(), role: "assistant", content: generatePrayerResponse(text) }]);
+    // As respostas do web têm espaços sobrando no início das linhas.
+    const reply = generatePrayerResponse(text)
+      .split("\n")
+      .map(line => line.trim())
+      .join("\n");
+    setMessages(prev => [...prev, { id: generateId(), role: "assistant", content: reply }]);
     setLoading(false);
   };
 
