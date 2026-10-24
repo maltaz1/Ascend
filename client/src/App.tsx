@@ -67,6 +67,9 @@ import Login from "./pages/Login";
 import Privacy from "./pages/Privacy";
 import Terms from "./pages/Terms";
 
+// Lista de espera do lançamento (pública)
+import Waitlist from "./pages/Waitlist";
+
 type Tab =
   | "dashboard"
   | "today"
@@ -422,7 +425,7 @@ function App() {
   }, []);
 
     useEffect(() => {
-    if (location.pathname === "/reset-password" || location.pathname === "/privacy" || location.pathname === "/terms") return;
+    if (location.pathname === "/reset-password" || location.pathname === "/privacy" || location.pathname === "/terms" || location.pathname === "/lista") return;
     if (!user?.id) {
       stopRealtimeSync();
       return;
@@ -443,6 +446,9 @@ function App() {
   }
   if (location.pathname === "/terms") {
     return <Terms />;
+  }
+  if (location.pathname === "/lista") {
+    return <Waitlist />;
   }
 
   if (loading) {
