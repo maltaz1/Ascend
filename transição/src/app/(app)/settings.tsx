@@ -11,6 +11,7 @@ import {
   type CancellationRequest,
 } from "@/lib/cancellation";
 import { deleteAccount } from "@/lib/account";
+import { manageStoreSubscription } from "@/lib/purchases";
 import { notifyError, notifySuccess } from "@/lib/notifications";
 import { IS_DEMO } from "@/demo";
 import { useStore } from "@/hooks/useStore";
@@ -26,7 +27,7 @@ const SUPPORT_EMAIL = "ascendprod1@gmail.com";
 export default function SettingsScreen() {
   const theme = useTheme();
   const data = useStore();
-  const { user, isPro, signOut } = useAuth();
+  const { user, isPro, proSource, signOut } = useAuth();
   const [name, setName] = useState(data.user.name);
   const [pending, setPending] = useState<CancellationRequest | null>(null);
   const [showCancel, setShowCancel] = useState(false);
@@ -36,8 +37,8 @@ export default function SettingsScreen() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (isPro && !IS_DEMO) void getPendingCancellationRequest().then(setPending);
-  }, [isPro]);
+    if (isPro && proSource !== "store" && !IS_DEMO) void getPendingCancellationRequest().then(setPending);
+  }, [isPro, proSource]);
 
   const saveName = () => {
     if (!name.trim() || name.trim() === data.user.name) return;
@@ -118,7 +119,16 @@ export default function SettingsScreen() {
             <Txt variant="h3">Ascend PRO</Txt>
             <Badge label="Ativo" solid color={theme.success} />
           </View>
-          {pending ? (
+          {proSource === "store" ? (
+            <Button
+              label="Gerenciar assinatura"
+              variant="ghost"
+              compact
+              onPress={() =>
+                void manageStoreSubscription().catch(() => notifyError("Não foi possível abrir as assinaturas da loja"))
+              }
+            />
+          ) : pending ? (
             <>
               <Txt variant="label" color={theme.warning}>
                 Cancelamento solicitado em {new Date(pending.created_at).toLocaleDateString("pt-BR")}. Aguardando processamento.

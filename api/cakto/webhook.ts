@@ -192,7 +192,7 @@ export default async function handler(req: any, res: any) {
     // 4. Localizar/Criar Perfil de forma confiável
     const { data: profile, error: profileError } = await supabase
       .from("profiles")
-      .select("id, is_pro, name, level, xp, streak")
+      .select("id, is_pro, pro_source, name, level, xp, streak")
       .eq("id", userId)
       .maybeSingle();
 
@@ -206,17 +206,22 @@ export default async function handler(req: any, res: any) {
       const { error: insertError } = await supabase.from("profiles").insert({
         id: userId,
         is_pro: desiredIsPro,
+        pro_source: desiredIsPro ? "cakto" : null,
         name: targetUser.user_metadata?.name || email.split("@")[0] || "Usuário",
         level: 1,
         xp: 0,
         streak: 0,
       });
       if (insertError) throw insertError;
+    } else if (!desiredIsPro && profile.pro_source === "store") {
+      // PRO atual veio da loja (Google Play / App Store): quem desliga é o webhook do RevenueCat.
+      console.log(`[CAKTO] Mantendo PRO de ${userId}: assinatura ativa pela loja`);
+      return res.status(200).json({ ok: true, ignored: true, reason: "pro_from_store" });
     } else {
       // Atualizar status PRO se o perfil já existir
       const { error: updateError } = await supabase
         .from("profiles")
-        .update({ is_pro: desiredIsPro })
+        .update({ is_pro: desiredIsPro, pro_source: desiredIsPro ? "cakto" : null })
         .eq("id", userId);
       if (updateError) throw updateError;
     }

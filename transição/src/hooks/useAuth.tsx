@@ -4,6 +4,7 @@ import { supabase } from "@/lib/supabase";
 import { initializeAuth, safeSignOut, subscribeAuthChanges } from "@/lib/auth";
 import { loadGymData } from "@/lib/gym";
 import { logger } from "@/lib/logger";
+import { identifyPurchaser, resetPurchaser } from "@/lib/purchases";
 import { DEMO_USER, IS_DEMO, seedDemoData } from "@/demo";
 import {
   _data,
@@ -17,12 +18,20 @@ import {
   stopRealtimeSync,
 } from "@/lib/store";
 
+// De onde veio o PRO: site (Cakto, ou PRO antigo/manual) ou loja do celular.
+export type ProSource = "cakto" | "store" | null;
+
 type AuthState = {
   user: User | null;
   isPro: boolean;
+  proSource: ProSource;
   loading: boolean;
   signOut: () => Promise<void>;
+  // Libera o PRO na hora após compra na loja; o Supabase é atualizado pelo webhook.
+  unlockStorePro: () => void;
 };
+
+type ProfileState = { isPro: boolean; proSource: ProSource };
 
 const AuthContext = createContext<AuthState | null>(null);
 
@@ -35,16 +44,16 @@ function timeoutPromise<T>(promise: Promise<T>, ms: number): Promise<T> {
 }
 
 // Portado de syncProfileState em client/src/App.tsx.
-async function syncProfile(user: User): Promise<boolean> {
+async function syncProfile(user: User): Promise<ProfileState> {
   const { data: profile, error } = await supabase
     .from("profiles")
-    .select("id, is_pro, xp, level, streak, name")
+    .select("id, is_pro, pro_source, xp, level, streak, name")
     .eq("id", user.id)
     .maybeSingle();
 
   if (error) {
     logger.error("auth", "Erro ao sincronizar perfil", error);
-    return false;
+    return { isPro: false, proSource: null };
   }
 
   if (!profile) {
@@ -57,7 +66,7 @@ async function syncProfile(user: User): Promise<boolean> {
       is_pro: false,
     });
     if (insertError) logger.error("auth", "Erro ao criar perfil", insertError);
-    return false;
+    return { isPro: false, proSource: null };
   }
 
   _data.user.xp = profile.xp || 0;
@@ -65,7 +74,8 @@ async function syncProfile(user: User): Promise<boolean> {
   _data.user.streak = profile.streak || 0;
   _data.user.name = profile.name || "Usuário";
   notify();
-  return Boolean(profile.is_pro);
+  if (!profile.is_pro) return { isPro: false, proSource: null };
+  return { isPro: true, proSource: profile.pro_source === "store" ? "store" : "cakto" };
 }
 
 // Portado de preloadStartupData em client/src/App.tsx.
@@ -83,6 +93,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     return DEMO_USER;
   });
   const [isPro, setIsPro] = useState(IS_DEMO);
+  const [proSource, setProSource] = useState<ProSource>(null);
   const [loading, setLoading] = useState(!IS_DEMO);
 
   useEffect(() => {
@@ -91,9 +102,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     let mounted = true;
 
     const startSession = async (nextUser: User) => {
-      const pro = await syncProfile(nextUser);
+      const [profile, storePro] = await Promise.all([syncProfile(nextUser), identifyPurchaser(nextUser.id)]);
       if (!mounted) return;
-      setIsPro(pro);
+      setIsPro(profile.isPro || storePro);
+      setProSource(profile.isPro ? profile.proSource : storePro ? "store" : null);
       await preloadData();
       initRealtimeSync(nextUser.id).catch(err => logger.error("realtime", "Falha ao iniciar", err));
     };
@@ -113,7 +125,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       setUser(nextUser);
       if (!nextUser) {
         setIsPro(false);
+        setProSource(null);
         stopRealtimeSync();
+        void resetPurchaser();
         return;
       }
       if (event === "SIGNED_IN") void startSession(nextUser);
@@ -134,7 +148,16 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     await safeSignOut();
   };
 
-  return <AuthContext.Provider value={{ user, isPro, loading, signOut }}>{children}</AuthContext.Provider>;
+  const unlockStorePro = () => {
+    setIsPro(true);
+    setProSource(current => current ?? "store");
+  };
+
+  return (
+    <AuthContext.Provider value={{ user, isPro, proSource, loading, signOut, unlockStorePro }}>
+      {children}
+    </AuthContext.Provider>
+  );
 }
 
 export function useAuth(): AuthState {

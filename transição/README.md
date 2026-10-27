@@ -21,7 +21,7 @@ O app usa o mesmo back-end do site, sem nada separado:
 - Supabase `rwdzcbbneczjefmjzkdr` (projeto "FlowZone Teste"): todas as tabelas com RLS; limites do plano grátis e bloqueio de autopromoção a PRO aplicados por gatilhos no banco
 - Funções: `delete-account` (excluir conta, usada em Configurações) e `notify-cancellation`
 - Site `https://ascend-lac-zeta.vercel.app`: termos, privacidade, confirmação de e-mail e redefinição de senha
-- Pagamento PRO (Cakto) continua pelo site. No Android/iOS o botão de assinar fica escondido (regra das lojas); quem já é PRO tem tudo liberado pela conta
+- Pagamento PRO: no site e no navegador pela Cakto; no Android/iOS pela própria loja, via RevenueCat (ver "Assinatura PRO nas lojas"). Quem já é PRO por qualquer caminho tem tudo liberado pela conta
 
 As chaves públicas ficam em `.env.local` (uso local) e em `eas.json` (builds na nuvem do EAS, que não recebem o `.env.local`).
 
@@ -37,6 +37,40 @@ Pacote Android: `com.ascendprod.app` (não dá para trocar depois de publicar na
 5. Na Google Play Console (conta de desenvolvedor, taxa única de US$ 25): criar o app, enviar o primeiro AAB à mão, preencher a política de privacidade (`/privacy` do site), a seção de segurança de dados e o link de exclusão de conta. Depois, `npx eas-cli@latest submit -p android` envia os próximos builds para o teste interno.
 
 Contas pessoais novas na Play Console precisam de um teste fechado com pelo menos 12 testadores por 14 dias antes de liberar a produção.
+
+## Assinatura PRO nas lojas (RevenueCat)
+
+Como funciona:
+
+- O app chama o RevenueCat com o id do usuário no Supabase (`src/lib/purchases.ts`). O cartão PRO mostra os planos com o preço da loja, "Restaurar compras" e, para quem assinou pela loja, "Gerenciar assinatura" em Configurações.
+- Toda compra, renovação, cancelamento ou reembolso gera um webhook para `https://<site>/api/revenuecat/webhook` (`api/revenuecat/webhook.ts`). Ele consulta o RevenueCat e liga ou desliga `profiles.is_pro`.
+- `profiles.pro_source` guarda a origem (`cakto` ou `store`): cada webhook só desliga o PRO que ele mesmo ligou, então cancelar na loja não derruba quem paga pelo site e vice-versa.
+- Sem as chaves `EXPO_PUBLIC_REVENUECAT_*` o app se comporta como antes (sem botão de compra no celular).
+
+Passo a passo (uma vez):
+
+1. **Banco:** rodar `supabase/migrations/20261027_add_pro_source_and_revenuecat_events.sql` no Supabase **antes** de publicar o site com o novo webhook da Cakto (ele grava `pro_source`).
+2. **Lojas:** criar a assinatura do PRO (ex.: `ascend_pro_mensal`, `ascend_pro_anual`)
+   - Google Play Console → Monetizar → Assinaturas (precisa de um AAB já enviado e do perfil de pagamentos)
+   - App Store Connect → Assinaturas, num grupo "Ascend PRO" (precisa do acordo de apps pagos assinado)
+3. **RevenueCat** (app.revenuecat.com):
+   - Criar o projeto e os apps Android (`com.ascendprod.app`, com a conta de serviço do Google) e iOS (`com.ascendprod.app`, com a chave de compras in-app da Apple)
+   - Product catalog → importar os produtos das duas lojas
+   - Entitlement com identificador **`pro`**, ligado a todos os produtos
+   - Offering "default" (marcada como atual) com os pacotes Mensal/Anual
+4. **Webhook do RevenueCat:** Integrations → Webhooks → URL `https://<site>/api/revenuecat/webhook` e um valor de "Authorization header" longo e aleatório
+5. **Vercel (projeto do site), variáveis de ambiente:**
+   - `REVENUECAT_WEBHOOK_AUTH` = o mesmo valor do Authorization header do passo 4
+   - `REVENUECAT_SECRET_API_KEY` = chave secreta `sk_...` (API keys → Secret API keys, versão v1)
+   - (opcional) `REVENUECAT_PRO_ENTITLEMENT` se o entitlement não se chamar `pro`
+6. **App:** colocar as chaves públicas (API keys → `goog_...` e `appl_...`) em `.env.local` e no `env` do perfil `base` em `eas.json`:
+   `EXPO_PUBLIC_REVENUECAT_ANDROID_KEY` e `EXPO_PUBLIC_REVENUECAT_IOS_KEY`
+7. **Testar sem pagar:**
+   - Android: adicionar seu e-mail em Play Console → Testes de licença e instalar o app pela trilha de teste interno
+   - iOS: build pelo TestFlight (compras em sandbox, sem cobrança)
+   - No painel do RevenueCat, o webhook mostra cada evento e a resposta do site
+
+No Expo Go a compra não é real (o SDK entra em modo de pré-visualização); teste com um build do EAS.
 
 ## Identidade visual
 
@@ -67,7 +101,7 @@ Igual ao site no celular (conferido lado a lado com o site rodando localmente em
 
 Evolução e Conquistas também existem como telas (`/evolution`, `/achievements`), mas não aparecem no menu — como no site.
 
-Limites do plano grátis iguais ao site (5 tarefas/semana, 3 hábitos, 2 metas semanais, 1 meta de longo prazo). Áreas PRO mostram o convite de upgrade, que abre o checkout do Cakto.
+Limites do plano grátis iguais ao site (5 tarefas/semana, 3 hábitos, 2 metas semanais, 1 meta de longo prazo). Áreas PRO mostram o convite de upgrade: compra pela loja no celular, checkout da Cakto no navegador.
 
 ## De onde veio cada parte
 

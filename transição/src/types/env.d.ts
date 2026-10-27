@@ -7,5 +7,7 @@ declare namespace NodeJS {
     EXPO_PUBLIC_WEB_URL?: string;
     EXPO_PUBLIC_DEMO?: string;
     EXPO_PUBLIC_CAKTO_CHECKOUT_URL?: string;
+    EXPO_PUBLIC_REVENUECAT_ANDROID_KEY?: string;
+    EXPO_PUBLIC_REVENUECAT_IOS_KEY?: string;
   }
 }
