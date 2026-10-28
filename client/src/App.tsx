@@ -1,7 +1,7 @@
 import { useEffect, useState } from "react";
 import type { User } from "@supabase/supabase-js";
 import { Zap } from "lucide-react";
-import { useLocation, useNavigate } from "react-router-dom";
+import { Navigate, useLocation, useNavigate } from "react-router-dom";
 import { loadGymData } from "./lib/gym";
 import { supabase } from "./lib/supabase";
 import { initializeAuth, subscribeAuthChanges } from "@/lib/auth";
@@ -42,6 +42,7 @@ function timeoutPromise<T>(promise: Promise<T>, ms: number): Promise<T> {
 import UpgradeModal from "./components/UpgradeModal";
 import { Onboarding, shouldShowOnboarding } from "./components/Onboarding";
 import { FREE_TABS } from "./config/planLimits";
+import { LOGIN_PATH, PRELAUNCH } from "./config/prelaunch";
 
 // Pages
 import Dashboard from "./pages/Dashboard";
@@ -376,7 +377,7 @@ function App() {
 
         if (authResult.user) {
           // Redirecionar para dashboard se estiver na home
-          if (location.pathname === "/") {
+          if (location.pathname === "/" || location.pathname === LOGIN_PATH) {
             navigate("/dashboard");
           }
           // Executa em paralelo para melhorar o tempo de startup
@@ -449,6 +450,12 @@ function App() {
   }
   if (location.pathname === "/lista") {
     return <Waitlist />;
+  }
+
+  // Pré-lançamento: visitante sem conta só vê a lista de espera. O login
+  // continua em /entrar para você e os convidados.
+  if (PRELAUNCH && !loading && !user && location.pathname !== LOGIN_PATH) {
+    return <Navigate to="/lista" replace />;
   }
 
   if (loading) {

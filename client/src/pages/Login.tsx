@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { Flame } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { notifyError, notifySuccess, notifyWarning } from "@/lib/notifications";
+import { PRELAUNCH } from "@/config/prelaunch";
 
 type Tab = "login" | "signup";
 
@@ -1135,7 +1136,8 @@ export default function Login() {
               <img src="/Logo-TaskBar.png" alt="ASCEND" />
             </div>
 
-            {/* Tabs */}
+            {/* Tabs (no pré-lançamento só convidados entram, sem criar conta) */}
+            {!PRELAUNCH && (
             <div className="asc-tabs">
               <button
                 className={`asc-tab ${tab === "login" ? "active" : ""}`}
@@ -1150,6 +1152,7 @@ export default function Login() {
                 Criar conta
               </button>
             </div>
+            )}
 
             {/* Login */}
             {tab === "login" && (
@@ -1233,10 +1236,17 @@ export default function Login() {
                   )}
                 </button>
 
-                <div className="asc-switch">
-                  Não tem uma conta?
-                  <button onClick={() => setTab("signup")}>Criar conta</button>
-                </div>
+                {PRELAUNCH ? (
+                  <div className="asc-switch">
+                    Ainda não tem acesso?
+                    <button onClick={() => navigate("/lista")}>Entrar na lista de espera</button>
+                  </div>
+                ) : (
+                  <div className="asc-switch">
+                    Não tem uma conta?
+                    <button onClick={() => setTab("signup")}>Criar conta</button>
+                  </div>
+                )}
               </>
             )}
 
