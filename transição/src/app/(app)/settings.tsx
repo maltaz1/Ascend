@@ -17,6 +17,8 @@ import { IS_DEMO } from "@/demo";
 import { useStore } from "@/hooks/useStore";
 import { useAuth } from "@/hooks/useAuth";
 import { UpgradeCard } from "@/components/ProGate";
+import { FounderBadge } from "@/components/FounderBadge";
+import { founderLabel } from "@/lib/founder";
 import { Badge, Button, Card, Divider, Input, Screen, SectionTitle, Sheet, Txt } from "@/components/ui";
 import { useTheme } from "@/theme";
 
@@ -27,7 +29,7 @@ const SUPPORT_EMAIL = "ascendprod1@gmail.com";
 export default function SettingsScreen() {
   const theme = useTheme();
   const data = useStore();
-  const { user, isPro, proSource, signOut } = useAuth();
+  const { user, isPro, proSource, founder, signOut } = useAuth();
   const [name, setName] = useState(data.user.name);
   const [pending, setPending] = useState<CancellationRequest | null>(null);
   const [showCancel, setShowCancel] = useState(false);
@@ -37,7 +39,7 @@ export default function SettingsScreen() {
   const [busy, setBusy] = useState(false);
 
   useEffect(() => {
-    if (isPro && proSource !== "store" && !IS_DEMO) void getPendingCancellationRequest().then(setPending);
+    if (isPro && proSource === "cakto" && !IS_DEMO) void getPendingCancellationRequest().then(setPending);
   }, [isPro, proSource]);
 
   const saveName = () => {
@@ -112,14 +114,34 @@ export default function SettingsScreen() {
         <Button label="Salvar nome" variant="ghost" compact onPress={saveName} />
       </Card>
 
+      {founder ? (
+        <Card>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
+            <FounderBadge number={founder.number} size={88} />
+            <View style={{ flex: 1, gap: 2 }}>
+              <Txt variant="h3">Fundador {founderLabel(founder.number)}</Txt>
+              <Txt variant="caption" muted>
+                Você estava na lista de espera do lançamento. Esse selo é seu pra sempre.
+              </Txt>
+            </View>
+          </View>
+        </Card>
+      ) : null}
+
       <SectionTitle>Plano</SectionTitle>
       {isPro ? (
         <Card>
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <Txt variant="h3">Ascend PRO</Txt>
+            <Txt variant="h3">{proSource === "founder" ? "PRO de Fundador" : "Ascend PRO"}</Txt>
             <Badge label="Ativo" solid color={theme.success} />
           </View>
-          {proSource === "store" ? (
+          {proSource === "founder" ? (
+            <Txt variant="caption" muted>
+              {founder?.proUntil
+                ? `Grátis até ${new Date(founder.proUntil).toLocaleDateString("pt-BR")}. Depois disso, você pode assinar e continua com o selo.`
+                : "Presente de quem estava na lista de espera."}
+            </Txt>
+          ) : proSource === "store" ? (
             <Button
               label="Gerenciar assinatura"
               variant="ghost"

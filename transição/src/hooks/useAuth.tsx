@@ -5,6 +5,7 @@ import { initializeAuth, safeSignOut, subscribeAuthChanges } from "@/lib/auth";
 import { loadGymData } from "@/lib/gym";
 import { logger } from "@/lib/logger";
 import { identifyPurchaser, resetPurchaser } from "@/lib/purchases";
+import { syncFounder } from "@/lib/founder";
 import { DEMO_USER, IS_DEMO, seedDemoData } from "@/demo";
 import {
   _data,
@@ -18,20 +19,28 @@ import {
   stopRealtimeSync,
 } from "@/lib/store";
 
-// De onde veio o PRO: site (Cakto, ou PRO antigo/manual) ou loja do celular.
-export type ProSource = "cakto" | "store" | null;
+// De onde veio o PRO: site (Cakto, ou PRO antigo/manual), loja do celular
+// ou o mês grátis de quem estava na lista de espera.
+export type ProSource = "cakto" | "store" | "founder" | null;
+
+export type Founder = { number: number; proUntil: string | null };
 
 type AuthState = {
   user: User | null;
   isPro: boolean;
   proSource: ProSource;
+  // Selo Fundador; null para quem não estava na lista de espera.
+  founder: Founder | null;
   loading: boolean;
   signOut: () => Promise<void>;
   // Libera o PRO na hora após compra na loja; o Supabase é atualizado pelo webhook.
   unlockStorePro: () => void;
 };
 
-type ProfileState = { isPro: boolean; proSource: ProSource };
+type ProfileState = { isPro: boolean; proSource: ProSource; founder: Founder | null };
+
+const toProSource = (source: string | null | undefined): ProSource =>
+  source === "store" ? "store" : source === "founder" ? "founder" : "cakto";
 
 const AuthContext = createContext<AuthState | null>(null);
 
@@ -53,8 +62,11 @@ async function syncProfile(user: User): Promise<ProfileState> {
 
   if (error) {
     logger.error("auth", "Erro ao sincronizar perfil", error);
-    return { isPro: false, proSource: null };
+    return { isPro: false, proSource: null, founder: null };
   }
+
+  let isPro = Boolean(profile?.is_pro);
+  let proSource: ProSource = isPro ? toProSource(profile?.pro_source) : null;
 
   if (!profile) {
     const { error: insertError } = await supabase.from("profiles").insert({
@@ -65,17 +77,29 @@ async function syncProfile(user: User): Promise<ProfileState> {
       streak: 0,
       is_pro: false,
     });
-    if (insertError) logger.error("auth", "Erro ao criar perfil", insertError);
-    return { isPro: false, proSource: null };
+    if (insertError) {
+      logger.error("auth", "Erro ao criar perfil", insertError);
+      return { isPro: false, proSource: null, founder: null };
+    }
+  } else {
+    _data.user.xp = profile.xp || 0;
+    _data.user.level = profile.level || 1;
+    _data.user.streak = profile.streak || 0;
+    _data.user.name = profile.name || "Usuário";
+    notify();
   }
 
-  _data.user.xp = profile.xp || 0;
-  _data.user.level = profile.level || 1;
-  _data.user.streak = profile.streak || 0;
-  _data.user.name = profile.name || "Usuário";
-  notify();
-  if (!profile.is_pro) return { isPro: false, proSource: null };
-  return { isPro: true, proSource: profile.pro_source === "store" ? "store" : "cakto" };
+  // Liga/desliga o selo e o PRO de fundador; o servidor devolve o PRO já atualizado.
+  const founder = await syncFounder();
+  if (founder) {
+    isPro = founder.isPro;
+    proSource = isPro ? toProSource(founder.proSource) : null;
+  }
+  return {
+    isPro,
+    proSource,
+    founder: founder?.founderNumber ? { number: founder.founderNumber, proUntil: founder.founderProUntil } : null,
+  };
 }
 
 // Portado de preloadStartupData em client/src/App.tsx.
@@ -94,6 +118,8 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   });
   const [isPro, setIsPro] = useState(IS_DEMO);
   const [proSource, setProSource] = useState<ProSource>(null);
+  // Na demonstração (vídeos), o dono aparece como Fundador #0001.
+  const [founder, setFounder] = useState<Founder | null>(IS_DEMO ? { number: 1, proUntil: null } : null);
   const [loading, setLoading] = useState(!IS_DEMO);
 
   useEffect(() => {
@@ -105,7 +131,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       const [profile, storePro] = await Promise.all([syncProfile(nextUser), identifyPurchaser(nextUser.id)]);
       if (!mounted) return;
       setIsPro(profile.isPro || storePro);
-      setProSource(profile.isPro ? profile.proSource : storePro ? "store" : null);
+      // Assinatura da loja vale mais que o mês grátis de fundador (mostra "Gerenciar assinatura").
+      const paidSource = profile.isPro && profile.proSource !== "founder" ? profile.proSource : null;
+      setProSource(paidSource ?? (storePro ? "store" : profile.isPro ? profile.proSource : null));
+      setFounder(profile.founder);
       await preloadData();
       initRealtimeSync(nextUser.id).catch(err => logger.error("realtime", "Falha ao iniciar", err));
     };
@@ -126,6 +155,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       if (!nextUser) {
         setIsPro(false);
         setProSource(null);
+        setFounder(null);
         stopRealtimeSync();
         void resetPurchaser();
         return;
@@ -150,11 +180,12 @@ export function AuthProvider({ children }: { children: ReactNode }) {
 
   const unlockStorePro = () => {
     setIsPro(true);
-    setProSource(current => current ?? "store");
+    // Comprou durante o mês grátis: a partir de agora quem manda é a loja.
+    setProSource(current => (current && current !== "founder" ? current : "store"));
   };
 
   return (
-    <AuthContext.Provider value={{ user, isPro, proSource, loading, signOut, unlockStorePro }}>
+    <AuthContext.Provider value={{ user, isPro, proSource, founder, loading, signOut, unlockStorePro }}>
       {children}
     </AuthContext.Provider>
   );

@@ -85,7 +85,15 @@ async function syncStorePro(userId: string): Promise<string> {
 
   if (active) {
     // Já é PRO pelo site: mantém a origem Cakto, que é quem vai desligar depois.
-    if (profile.is_pro && profile.pro_source !== "store") return "already_pro_other_source";
+    // PRO de fundador (mês grátis) passa a ser da loja quando a pessoa assina.
+    if (profile.is_pro && profile.pro_source !== "store" && profile.pro_source !== "founder") {
+      return "already_pro_other_source";
+    }
+    if (profile.is_pro && profile.pro_source === "founder") {
+      const { error } = await supabase.from("profiles").update({ pro_source: "store" }).eq("id", userId);
+      if (error) throw error;
+      return "founder_to_store";
+    }
     if (profile.is_pro) return "unchanged";
     const { error } = await supabase
       .from("profiles")

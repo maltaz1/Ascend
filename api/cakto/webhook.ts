@@ -213,10 +213,11 @@ export default async function handler(req: any, res: any) {
         streak: 0,
       });
       if (insertError) throw insertError;
-    } else if (!desiredIsPro && profile.pro_source === "store") {
-      // PRO atual veio da loja (Google Play / App Store): quem desliga é o webhook do RevenueCat.
-      console.log(`[CAKTO] Mantendo PRO de ${userId}: assinatura ativa pela loja`);
-      return res.status(200).json({ ok: true, ignored: true, reason: "pro_from_store" });
+    } else if (!desiredIsPro && (profile.pro_source === "store" || profile.pro_source === "founder")) {
+      // PRO atual veio da loja (quem desliga é o webhook do RevenueCat) ou dos
+      // mês grátis de fundador (quem desliga é o sync_founder no fim do prazo).
+      console.log(`[CAKTO] Mantendo PRO de ${userId}: origem ${profile.pro_source}`);
+      return res.status(200).json({ ok: true, ignored: true, reason: `pro_from_${profile.pro_source}` });
     } else {
       // Atualizar status PRO se o perfil já existir
       const { error: updateError } = await supabase
