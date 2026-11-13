@@ -3,6 +3,10 @@ import { StyleSheet, Text, View } from "react-native";
 import { useSafeAreaInsets } from "react-native-safe-area-context";
 import { subscribeToasts, type Toast } from "@/lib/toast";
 import { useTheme } from "@/theme";
+import { Corv, type CorvPose } from "./Corv";
+
+// O Corv acompanha cada aviso: joinha no que deu certo, braços cruzados no erro.
+const TOAST_POSE: Record<Toast["type"], CorvPose> = { success: "joinha", error: "bracos", warning: "bracos", info: "apontando" };
 
 // Substitui o <Toaster /> do sonner usado no web.
 export function ToastHost() {
@@ -30,8 +34,11 @@ export function ToastHost() {
           key={toast.id}
           style={[styles.toast, { backgroundColor: theme.surface, borderLeftColor: colors[toast.type] }]}
         >
-          <Text style={{ color: theme.ink, fontWeight: "600" }}>{toast.title}</Text>
-          {toast.description ? <Text style={{ color: theme.inkMuted, marginTop: 2 }}>{toast.description}</Text> : null}
+          <Corv pose={TOAST_POSE[toast.type]} size={40} />
+          <View style={{ flex: 1 }}>
+            <Text style={{ color: theme.ink, fontWeight: "600" }}>{toast.title}</Text>
+            {toast.description ? <Text style={{ color: theme.inkMuted, marginTop: 2 }}>{toast.description}</Text> : null}
+          </View>
         </View>
       ))}
     </View>
@@ -41,6 +48,9 @@ export function ToastHost() {
 const styles = StyleSheet.create({
   container: { position: "absolute", left: 16, right: 16, gap: 8 },
   toast: {
+    flexDirection: "row",
+    alignItems: "center",
+    gap: 10,
     borderLeftWidth: 4,
     borderRadius: 10,
     padding: 12,

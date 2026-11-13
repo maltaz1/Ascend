@@ -9,6 +9,7 @@ import { logger } from "@/lib/logger";
 import { isProSection, SECTIONS, type Section } from "@/navigation";
 import { useTheme } from "@/theme";
 import { Button, Card, Screen, Txt } from "./ui";
+import { Corv } from "./Corv";
 
 // Mesma lista do UpgradeModal do web.
 const BENEFITS = [
@@ -163,27 +164,13 @@ export function UpgradeCard() {
 // Envolve uma tela PRO: usuários Free veem o convite de upgrade (ProAccessGate do web).
 export function ProGate({ section, children }: { section: Section; children: ReactNode }) {
   const { isPro } = useAuth();
-  const theme = useTheme();
   if (isPro || !isProSection(section)) return <>{children}</>;
 
   const label = SECTIONS.find(item => item.id === section)?.label ?? "Este recurso";
   return (
     <Screen title={label}>
       <View style={{ alignItems: "center", gap: 12, marginVertical: 24 }}>
-        <View
-          style={{
-            width: 80,
-            height: 80,
-            borderRadius: 16,
-            alignItems: "center",
-            justifyContent: "center",
-            backgroundColor: theme.primarySoft,
-            borderWidth: 1,
-            borderColor: theme.primary,
-          }}
-        >
-          <Ionicons name="lock-closed" size={36} color={theme.primary} />
-        </View>
+        <Corv pose="apontando" size={130} />
         <Txt variant="h2" style={{ textAlign: "center" }}>
           {label} é um recurso Pro
         </Txt>

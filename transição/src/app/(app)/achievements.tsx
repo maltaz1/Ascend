@@ -3,6 +3,7 @@ import Ionicons from "@expo/vector-icons/Ionicons";
 import { useStore } from "@/hooks/useStore";
 import { Card, ProgressRing, Screen, SectionTitle, Txt } from "@/components/ui";
 import { useTheme } from "@/theme";
+import { Corv } from "@/components/Corv";
 
 // Porta de pages/Achievements.tsx.
 export default function AchievementsScreen() {
@@ -18,7 +19,7 @@ export default function AchievementsScreen() {
     <Screen title="Conquistas" subtitle={`${unlocked.length}/${data.achievements.length} desbloqueadas`}>
       <Card style={{ flexDirection: "row", alignItems: "center", gap: 16 }} tone="amber">
         <ProgressRing percent={percent} size={84} stroke={8} color={theme.accent}>
-          <Ionicons name="trophy" size={28} color={theme.accent} />
+          <Corv pose="joinha" size={58} />
         </ProgressRing>
         <View style={{ flex: 1, gap: 4 }}>
           <Txt variant="h2">Nível {data.user.level}</Txt>

@@ -24,6 +24,7 @@ import { fonts, useTheme, withAlpha, type Theme } from "@/theme";
 import { useTweenNumber } from "@/lib/motion";
 import { Glass } from "./Glass";
 import { TAB_BAR_HEIGHT } from "./layout";
+import { Corv } from "./Corv";
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -901,11 +902,11 @@ export function SectionTitle({ children, right, index }: { children: ReactNode; 
   );
 }
 
-export function EmptyState({ text, icon }: { text: string; icon?: IconName }) {
-  const theme = useTheme();
+// Tela vazia: o Corv aparece anotando, como quem diz "bora planejar".
+export function EmptyState({ text }: { text: string; icon?: IconName }) {
   return (
-    <View style={{ alignItems: "center", paddingVertical: 18, gap: 8 }}>
-      {icon ? <Ionicons name={icon} size={26} color={theme.inkMuted} /> : null}
+    <View style={{ alignItems: "center", paddingVertical: 12, gap: 6 }}>
+      <Corv pose="caderno" size={88} />
       <Txt variant="label" muted style={{ textAlign: "center" }}>
         {text}
       </Txt>

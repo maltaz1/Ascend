@@ -1,16 +1,15 @@
-import { Animated, Image, Pressable, View } from "react-native";
+import { Animated, Pressable, View } from "react-native";
 import { router } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { getGoalProgress, getTaskStatus, getTodayString, toYYYYMMDD } from "@/lib/store";
 import type { Goal, Habit, Task } from "@/lib/store";
 import { getGlobalStreak } from "@/lib/streak";
 import { useStore } from "@/hooks/useStore";
-import { AnimatedNumber, AnimatedText, EmptyState, GlassIconButton, HeroCard, ProgressBar, ProgressRing, Screen, Txt } from "@/components/ui";
+import { AnimatedNumber, AnimatedText, Button, EmptyState, GlassIconButton, HeroCard, ProgressBar, ProgressRing, Screen, Txt } from "@/components/ui";
+import { Corv, CorvSays, type CorvPose } from "@/components/Corv";
 import { useCheckPop } from "@/lib/motion";
 import { toggleHabitWithGoals, toggleTask, weeklyDays } from "@/components/rows";
 import { fonts, resolveColor, useTheme, withAlpha } from "@/theme";
-
-const logo = require("../../../assets/logo-mark.png");
 
 const WEEKDAYS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 const PRIORITY_LABEL: Record<Task["priority"], string> = { low: "Prioridade baixa", medium: "Prioridade média", high: "Prioridade alta" };
@@ -27,6 +26,29 @@ function encouragement(percent: number): string {
   if (percent >= 60) return "Quase lá, falta pouco!";
   if (percent > 0) return "Bom ritmo. Continue assim!";
   return "Comece pelo mais simples.";
+}
+
+// Pose do Corv no topo: café de manhã, joinha com o dia fechado, braços cruzados se a noite chegou com coisa pendente.
+function headerPose(hour: number, percent: number, pending: number): CorvPose {
+  if (percent >= 100 && pending === 0) return "joinha";
+  if (hour < 12) return "cafe";
+  if (hour >= 18 && pending > 0) return "bracos";
+  return "bolso";
+}
+
+// O que o Corv fala no balão abaixo do progresso (ou nada, se não há o que dizer).
+function corvMessage({ hour, percent, total, pending, streak }: { hour: number; percent: number; total: number; pending: number; streak: number }) {
+  if (total === 0) return { pose: "caderno" as const, title: "Dia em branco por aqui.", text: "Bora planejar? Crie a primeira tarefa do dia.", plan: true };
+  if (percent >= 100) return { pose: "joinha" as const, title: "Dia completo!", text: "Você fechou tudo hoje. Amanhã tem mais.", plan: false };
+  if (hour >= 18 && streak > 0)
+    return {
+      pose: "bracos" as const,
+      title: `Vai deixar ${streak} ${streak === 1 ? "dia" : "dias"} de sequência morrer?`,
+      text: `Faltam ${pending} ${pending === 1 ? "item" : "itens"} para fechar o dia.`,
+      plan: false,
+    };
+  if (hour < 12 && percent === 0) return { pose: "cafe" as const, title: "Bom dia! Café na mão?", text: "Começa pelo mais simples, o resto vem.", plan: false };
+  return null;
 }
 
 // Dias seguidos com o hábito feito, contando de hoje (ou de ontem, se hoje ainda falta).
@@ -55,14 +77,15 @@ export default function TodayScreen() {
   const overall = total > 0 ? Math.round((done / total) * 100) : 0;
   const levelMax = data.user.level * 100;
   const streak = getGlobalStreak(data.tasks, data.habits);
+  const hour = new Date().getHours();
+  const pending = total - done;
+  const message = corvMessage({ hour, percent: overall, total, pending, streak });
   const goals = [...data.goals].sort((a, b) => Number(a.type !== "semanal") - Number(b.type !== "semanal") || a.title.localeCompare(b.title));
 
   return (
     <Screen>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <View style={{ width: 46, height: 46, borderRadius: 16, backgroundColor: theme.primary, alignItems: "center", justifyContent: "center" }}>
-          <Image source={logo} style={{ width: 30, height: 30, tintColor: "#fff" }} resizeMode="contain" />
-        </View>
+        <Corv pose={headerPose(hour, overall, pending)} size={56} pop={overall >= 100} />
         <View style={{ flex: 1 }}>
           <Txt variant="label" muted>
             {greeting()},
@@ -107,6 +130,17 @@ export default function TodayScreen() {
           <ProgressBar percent={(data.user.xp / levelMax) * 100} color={theme.accent} height={8} />
         </View>
       </HeroCard>
+
+      {message ? (
+        <CorvSays
+          pose={message.pose}
+          title={message.title}
+          pop={message.pose === "joinha"}
+          action={message.plan ? <Button label="Planejar o dia" icon="add" compact onPress={() => router.push("/tasks?novo=1")} /> : undefined}
+        >
+          {message.text}
+        </CorvSays>
+      ) : null}
 
       <View style={{ flexDirection: "row", gap: 10 }}>
         <StatTile icon="checkmark" color={theme.success} value={`${tasksDone}/${todayTasks.length}`} label="Tarefas" />

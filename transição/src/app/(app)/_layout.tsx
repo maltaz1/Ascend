@@ -1,6 +1,7 @@
 import { Stack } from "expo-router";
 import { DrawerProvider } from "@/components/AppDrawer";
 import { TabBar } from "@/components/TabBar";
+import { CorvIntro, CorvLevelUp } from "@/components/CorvMoments";
 import { useTheme } from "@/theme";
 
 // Todas as áreas ficam numa pilha só e o menu lateral (☰) troca entre elas,
@@ -27,6 +28,8 @@ export default function AppLayout() {
         <Stack.Screen name="more" />
       </Stack>
       <TabBar />
+      <CorvLevelUp />
+      <CorvIntro />
     </DrawerProvider>
   );
 }

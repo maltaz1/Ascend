@@ -5,6 +5,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { useStore } from "@/hooks/useStore";
 import { isProSection, type Section } from "@/navigation";
 import { Card, Screen, Txt } from "@/components/ui";
+import { Corv } from "@/components/Corv";
+import { replayCorvIntro } from "@/components/CorvMoments";
 import { fonts, useTheme, useThemeToggle, withAlpha } from "@/theme";
 
 const logo = require("../../../assets/logo-mark.png");
@@ -102,6 +104,17 @@ export default function MoreScreen() {
             thumbColor="#fff"
             {...({ activeThumbColor: "#fff" } as object)}
           />
+        </Pressable>
+        <View style={{ height: 1, backgroundColor: theme.border, marginHorizontal: 16 }} />
+        <Pressable onPress={replayCorvIntro} style={{ flexDirection: "row", alignItems: "center", gap: 14, padding: 16 }} accessibilityRole="button">
+          <Corv pose="joinha" size={38} />
+          <View style={{ flex: 1 }}>
+            <Txt variant="bodyStrong">Conhecer o Corv</Txt>
+            <Txt variant="caption" muted>
+              Rever a apresentação do app
+            </Txt>
+          </View>
+          <Ionicons name="chevron-forward" size={20} color={theme.inkMuted} />
         </Pressable>
         <View style={{ height: 1, backgroundColor: theme.border, marginHorizontal: 16 }} />
         <Pressable onPress={() => router.push("/settings")} style={{ flexDirection: "row", alignItems: "center", gap: 14, padding: 16 }} accessibilityRole="button">
