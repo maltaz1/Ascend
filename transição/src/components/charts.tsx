@@ -1,4 +1,5 @@
 import { useState } from "react";
+import { useTween, useTweenNumber } from "@/lib/motion";
 import { View, type GestureResponderEvent, type LayoutChangeEvent } from "react-native";
 import Svg, { Circle, Defs, G, Line, LinearGradient, Path, Rect, Stop, Text as SvgText } from "react-native-svg";
 import { fonts, useTheme } from "@/theme";
@@ -200,7 +201,12 @@ export function AreaChart({
   const theme = useTheme();
   const [width, onLayout] = useWidth();
   const [active, setActive] = useState<number | null>(null);
-  const max = niceMax(Math.max(0, ...data.flatMap(d => series.map(s => Number(d[s.key]) || 0))));
+  const raw = data.flatMap(d => series.map(s => Number(d[s.key]) || 0));
+  const targetMax = niceMax(Math.max(0, ...raw));
+  // A linha "cresce" ao abrir e desliza até os valores novos quando os dados mudam.
+  const tweened = useTween([...raw, targetMax]);
+  const max = tweened[raw.length] || targetMax;
+  const valueAt = (i: number, j: number) => tweened[i * series.length + j] ?? 0;
   const chartW = width - PAD.left - PAD.right;
   const chartH = height - PAD.top - PAD.bottom;
   const step = data.length > 1 ? chartW / (data.length - 1) : 0;
@@ -218,15 +224,15 @@ export function AreaChart({
               <Defs>
                 {series.map(s => (
                   <LinearGradient key={s.key} id={`fill-${s.key}`} x1="0" y1="0" x2="0" y2="1">
-                    <Stop offset="0" stopColor={s.color} stopOpacity={0.35} />
-                    <Stop offset="1" stopColor={s.color} stopOpacity={0} />
+                    <Stop offset="0" stopColor={s.color} stopOpacity={0.16} />
+                    <Stop offset="1" stopColor={s.color} stopOpacity={0.16} />
                   </LinearGradient>
                 ))}
               </Defs>
-              <Grid width={width} height={height} max={max} />
+              <Grid width={width} height={height} max={targetMax} />
               {current && <Line x1={x(active!)} x2={x(active!)} y1={PAD.top} y2={PAD.top + chartH} stroke={theme.inkMuted} strokeDasharray="4 3" />}
-              {series.map(s => {
-                const pts = data.map((d, i) => ({ x: x(i), y: y(Number(d[s.key]) || 0) }));
+              {series.map((s, j) => {
+                const pts = data.map((_, i) => ({ x: x(i), y: y(valueAt(i, j)) }));
                 const line = monotonePath(pts);
                 const area = pts.length ? `${line} L ${pts[pts.length - 1].x} ${PAD.top + chartH} L ${pts[0].x} ${PAD.top + chartH} Z` : "";
                 return (
@@ -284,7 +290,10 @@ export function BarChart({
   const theme = useTheme();
   const [width, onLayout] = useWidth();
   const [active, setActive] = useState<number | null>(null);
-  const max = niceMax(Math.max(0, ...data.flatMap(d => series.map(s => Number(d[s.key]) || 0))));
+  const raw = data.flatMap(d => series.map(s => Number(d[s.key]) || 0));
+  const max = niceMax(Math.max(0, ...raw));
+  // As barras sobem ao abrir e mudam de altura suavemente.
+  const tweened = useTween(raw);
   const chartW = width - PAD.left - PAD.right;
   const chartH = height - PAD.top - PAD.bottom;
   const groupW = chartW / Math.max(1, data.length);
@@ -302,7 +311,7 @@ export function BarChart({
                 {series.map(s => (
                   <LinearGradient key={s.key} id={`bar-${s.key}`} x1="0" y1="0" x2="0" y2="1">
                     <Stop offset="0" stopColor={s.color} stopOpacity={1} />
-                    <Stop offset="1" stopColor={s.color} stopOpacity={0.55} />
+                    <Stop offset="1" stopColor={s.color} stopOpacity={1} />
                   </LinearGradient>
                 ))}
               </Defs>
@@ -316,7 +325,7 @@ export function BarChart({
                 return (
                   <G key={`${d.label}-${i}`} opacity={dim ? 0.55 : 1}>
                     {series.map((s, j) => {
-                      const v = Number(d[s.key]) || 0;
+                      const v = tweened[i * series.length + j] ?? 0;
                       const h = (v / max) * chartH;
                       if (h <= 0) return null;
                       const bx = gx + j * barW + 1;
@@ -354,9 +363,10 @@ export function BarChart({
 // Barras horizontais de distribuição (categorias do Financeiro).
 export function HBar({ percent, color }: { percent: number; color: string }) {
   const theme = useTheme();
+  const shown = useTweenNumber(Math.max(2, Math.min(100, percent)));
   return (
     <View style={{ height: 4, borderRadius: 2, backgroundColor: theme.track, overflow: "hidden" }}>
-      <View style={{ width: `${Math.max(2, Math.min(100, percent))}%`, height: "100%", backgroundColor: color, borderRadius: 2 }} />
+      <View style={{ width: `${shown}%`, height: "100%", backgroundColor: color, borderRadius: 2 }} />
     </View>
   );
 }
@@ -378,6 +388,10 @@ export function DonutChart({
   const theme = useTheme();
   const [active, setActive] = useState<number | null>(null);
   const total = slices.reduce((sum, s) => sum + s.value, 0);
+  // A rosca se desenha girando ao abrir; quando os valores mudam, as fatias deslizam.
+  const reveal = useTweenNumber(1, 900);
+  const shownValues = useTween(slices.map(s => s.value));
+  const shownTotal = shownValues.reduce((sum, v) => sum + v, 0);
   const r = (size - stroke) / 2;
   const c = 2 * Math.PI * r;
   let offset = 0;
@@ -411,7 +425,7 @@ export function DonutChart({
         <Circle cx={size / 2} cy={size / 2} r={r} stroke={theme.track} strokeWidth={stroke} fill="none" />
         {total > 0 &&
           slices.map((s, i) => {
-            const len = (s.value / total) * c;
+            const len = shownTotal > 0 ? ((shownValues[i] ?? 0) / shownTotal) * c * reveal : 0;
             const gap = slices.length > 1 ? 2 : 0;
             const el = (
               <Circle
@@ -461,18 +475,19 @@ export function DonutChart({
 // Mini gráfico de linha (consistência da meta semanal).
 export function Sparkline({ values, color, width = 140, height = 36 }: { values: number[]; color: string; width?: number; height?: number }) {
   const theme = useTheme();
+  const shown = useTween(values);
   if (values.length === 0) return null;
   const max = Math.max(1, ...values);
   const step = values.length > 1 ? (width - 8) / (values.length - 1) : 0;
-  const pts = values.map((v, i) => ({ x: 4 + i * step, y: height - 4 - (v / max) * (height - 10) }));
+  const pts = values.map((_, i) => shown[i] ?? 0).map((v, i) => ({ x: 4 + i * step, y: height - 4 - (v / max) * (height - 10) }));
   const line = monotonePath(pts);
   const last = pts[pts.length - 1];
   return (
     <Svg width={width} height={height}>
       <Defs>
         <LinearGradient id="spark" x1="0" y1="0" x2="0" y2="1">
-          <Stop offset="0" stopColor={color} stopOpacity={0.35} />
-          <Stop offset="1" stopColor={color} stopOpacity={0} />
+          <Stop offset="0" stopColor={color} stopOpacity={0.16} />
+          <Stop offset="1" stopColor={color} stopOpacity={0.16} />
         </LinearGradient>
       </Defs>
       <Line x1={0} x2={width} y1={height - 4} y2={height - 4} stroke={theme.border} strokeDasharray="2 3" />

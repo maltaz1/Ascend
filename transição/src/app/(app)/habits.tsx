@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Alert, Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View, Animated } from "react-native";
+import { Alert } from "@/lib/alert";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   createHabit,
@@ -20,6 +21,8 @@ import { Button, Card, EmptyState, Fab, IconBox, Input, Marginalia, Metric, Scre
 import { AreaChart } from "@/components/charts";
 import { toggleHabitWithGoals } from "@/components/rows";
 import { fonts, resolveColor, useTheme } from "@/theme";
+import { useNewParam } from "@/hooks/useNewParam";
+import { useCheckPop } from "@/lib/motion";
 
 const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 const EMOJIS = ["🏃", "📚", "💪", "🧘", "💧", "🥗", "😴", "✍️", "🎵", "🧹", "💊", "🌿", "🧠", "🙏", "🎯"];
@@ -86,6 +89,8 @@ export default function HabitsScreen() {
     }
     setShowNew(true);
   };
+  useNewParam(openNew);
+
 
   // Abre a tabela já mostrando os últimos dias até hoje.
   const [daysRef, onDaysSize] = useInitialScroll(isCurrentMonth ? Math.max(0, (now.getDate() - 4) * (CELL + 12)) : 0);
@@ -200,21 +205,7 @@ export default function HabitsScreen() {
                             style={{ width: CELL + 12, alignItems: "center" }}
                             accessibilityLabel={`${habit.title} dia ${i + 1}`}
                           >
-                            <View
-                              style={{
-                                width: done ? 22 : 14,
-                                height: done ? 22 : 14,
-                                borderRadius: 11,
-                                alignItems: "center",
-                                justifyContent: "center",
-                                backgroundColor: done ? color : theme.track,
-                                borderWidth: key === today && !done ? 1.5 : 0,
-                                borderColor: theme.accent,
-                                opacity: future ? 0.35 : 1,
-                              }}
-                            >
-                              {done ? <Ionicons name="checkmark" size={13} color="#fff" /> : null}
-                            </View>
+                            <HabitDot done={done} color={color} today={key === today} future={future} />
                           </Pressable>
                         );
                       })}
@@ -321,5 +312,29 @@ function NewHabitSheet({ visible, onClose }: { visible: boolean; onClose: () => 
       <Segmented kind="stamp" options={TARGETS.map(days => ({ value: days, label: `${days} dias` }))} value={targetDays} onChange={setTargetDays} />
       <Button label="Criar hábito" onPress={handleSave} loading={saving} disabled={!title.trim()} />
     </Sheet>
+  );
+}
+
+// Bolinha do dia no quadro do mês; "pula" ao ser marcada.
+function HabitDot({ done, color, today, future }: { done: boolean; color: string; today: boolean; future: boolean }) {
+  const theme = useTheme();
+  const scale = useCheckPop(done);
+  return (
+    <Animated.View
+      style={{
+        width: done ? 22 : 14,
+        height: done ? 22 : 14,
+        borderRadius: 11,
+        alignItems: "center",
+        justifyContent: "center",
+        backgroundColor: done ? color : theme.track,
+        borderWidth: today && !done ? 1.5 : 0,
+        borderColor: theme.accent,
+        opacity: future ? 0.35 : 1,
+        transform: [{ scale }],
+      }}
+    >
+      {done ? <Ionicons name="checkmark" size={13} color="#fff" /> : null}
+    </Animated.View>
   );
 }

@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { Alert } from "@/lib/alert";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { getTodayString, toYYYYMMDD } from "@/lib/store";
 import { addAppointment, deleteAppointment, getAppointmentsForDate, loadAppointments } from "@/store/appointments.store";

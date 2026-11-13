@@ -1,5 +1,6 @@
 import { useEffect, useState } from "react";
-import { Alert, Linking, Pressable, View } from "react-native";
+import { Linking, Pressable, View } from "react-native";
+import { Alert } from "@/lib/alert";
 import Constants from "expo-constants";
 import { router } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";

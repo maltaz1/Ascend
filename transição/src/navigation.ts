@@ -33,7 +33,6 @@ export const SECTIONS: SectionInfo[] = [
   { id: "tasks", label: "Tarefas", icon: "checkbox-outline", href: "/tasks" },
   { id: "goals", label: "Metas", icon: "radio-button-on-outline", href: "/goals" },
   { id: "dashboard", label: "Dashboard", icon: "grid-outline", href: "/dashboard" },
-  { id: "prayer", label: "Oração", icon: "heart-outline", href: "/prayer" },
   { id: "academy", label: "Academia", icon: "barbell-outline", href: "/academy" },
   { id: "diet", label: "Dieta", icon: "nutrition-outline", href: "/diet" },
   { id: "financial", label: "Financeiro", icon: "logo-usd", href: "/financial" },

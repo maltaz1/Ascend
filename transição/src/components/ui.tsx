@@ -16,13 +16,14 @@ import {
   type TextStyle,
   type ViewStyle,
 } from "react-native";
-import { LinearGradient } from "expo-linear-gradient";
 import { SafeAreaView, useSafeAreaInsets } from "react-native-safe-area-context";
-import { router } from "expo-router";
+import { router, usePathname, type Href } from "expo-router";
 import Svg, { Circle } from "react-native-svg";
 import Ionicons from "@expo/vector-icons/Ionicons";
-import { fonts, useTheme, useThemeToggle, type Theme } from "@/theme";
-import { useDrawer } from "./AppDrawer";
+import { fonts, useTheme, withAlpha, type Theme } from "@/theme";
+import { useTweenNumber } from "@/lib/motion";
+import { Glass } from "./Glass";
+import { TAB_BAR_HEIGHT } from "./layout";
 
 type IconName = keyof typeof Ionicons.glyphMap;
 
@@ -88,64 +89,95 @@ export function Marginalia({ index, children, color }: { index?: string; childre
   );
 }
 
+// Número que corre até o valor novo em vez de trocar de uma vez (33% → 40%).
+export function AnimatedNumber({ value, ...props }: TextProps & { value: number; variant?: Variant; muted?: boolean; color?: string }) {
+  const shown = useTweenNumber(value);
+  return <Txt {...props}>{Math.round(shown)}</Txt>;
+}
+
+// Anima o primeiro número inteiro de um texto ("1/3", "7d", "33%", "12 dias").
+// Valores com casas decimais ou milhar (dinheiro, kg) ficam como estão.
+const LEADING_INT = /^(\D*?)(\d+)(?![\d.,])(.*)$/s;
+
+export function AnimatedText({ text, ...props }: TextProps & { text: string; variant?: Variant; muted?: boolean; color?: string }) {
+  const match = LEADING_INT.exec(text);
+  const target = match ? Number(match[2]) : 0;
+  const shown = useTweenNumber(target);
+  if (!match) return <Txt {...props}>{text}</Txt>;
+  return (
+    <Txt {...props}>
+      {match[1]}
+      {Math.round(shown)}
+      {match[3]}
+    </Txt>
+  );
+}
+
 // ---------------------------------------------------------------------------
 // Fundo de papel com luz (body do web)
 // ---------------------------------------------------------------------------
 
 export function PaperBackground() {
   const theme = useTheme();
-  return (
-    <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bg }]} pointerEvents="none">
-      <LinearGradient colors={[theme.glowTop, "transparent"]} style={{ position: "absolute", top: 0, left: 0, right: 0, height: 380 }} />
-      <LinearGradient colors={["transparent", theme.glowBottom]} style={{ position: "absolute", bottom: 0, left: 0, right: 0, height: 320 }} />
-    </View>
-  );
+  return <View style={[StyleSheet.absoluteFill, { backgroundColor: theme.bg }]} pointerEvents="none" />;
 }
 
 // ---------------------------------------------------------------------------
-// Cabeçalho: botão do menu (☰), título e botão de tema, como no site
+// Cabeçalho: título grande à esquerda. Rotina e Saúde ganham as abas internas;
+// as páginas que saem de "Mais" ganham o botão de voltar.
 // ---------------------------------------------------------------------------
 
-function SquareButton({ icon, onPress, label, round }: { icon: IconName; onPress: () => void; label: string; round?: boolean }) {
+export function GlassIconButton({ icon, onPress, label, size = 44 }: { icon: IconName; onPress: () => void; label: string; size?: number }) {
   const theme = useTheme();
   return (
-    <Pressable
-      onPress={onPress}
-      hitSlop={8}
-      accessibilityLabel={label}
-      style={({ pressed }) => ({
-        width: 40,
-        height: 40,
-        borderRadius: round ? 20 : 10,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: theme.surface,
-        borderWidth: 1,
-        borderColor: theme.border,
-        opacity: pressed ? 0.8 : 1,
-        shadowColor: "#000",
-        shadowOpacity: 0.25,
-        shadowRadius: 6,
-        shadowOffset: { width: 0, height: 2 },
-        elevation: 3,
-      })}
-    >
-      <Ionicons name={icon} size={round ? 18 : 20} color={theme.ink} />
-    </Pressable>
+    <Glass interactive style={{ width: size, height: size, borderRadius: size / 2 }}>
+      <Pressable
+        onPress={onPress}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        style={({ pressed }) => [styles.fill, { opacity: pressed ? 0.8 : 1 }]}
+      >
+        <Ionicons name={icon} size={20} color={theme.ink} />
+      </Pressable>
+    </Glass>
   );
 }
 
-export function ThemeButton() {
-  const theme = useTheme();
-  const toggle = useThemeToggle();
-  return (
-    <SquareButton
-      icon={theme.mode === "dark" ? "sunny-outline" : "moon-outline"}
-      onPress={toggle}
-      label="Alternar tema"
-      round
-    />
-  );
+const GROUPS: { title: string; subtitle: string; tabs: { href: string; label: string }[] }[] = [
+  {
+    title: "Rotina",
+    subtitle: "Tarefas, hábitos e metas",
+    tabs: [
+      { href: "/tasks", label: "Tarefas" },
+      { href: "/habits", label: "Hábitos" },
+      { href: "/goals", label: "Metas" },
+    ],
+  },
+  {
+    title: "Saúde",
+    subtitle: "Treino e alimentação",
+    tabs: [
+      { href: "/academy", label: "Academia" },
+      { href: "/diet", label: "Dieta" },
+    ],
+  },
+];
+
+// Páginas abertas a partir da aba "Mais".
+const MORE_PAGES: Record<string, string> = {
+  "/financial": "Financeiro",
+  "/notes": "Notas",
+  "/calendar": "Calendário",
+  "/dashboard": "Dashboard",
+  "/evolution": "Evolução",
+  "/achievements": "Conquistas",
+  "/settings": "Configurações",
+};
+
+function goBack(fallback: Href) {
+  if (router.canGoBack()) router.back();
+  else router.replace(fallback);
 }
 
 export function Screen({
@@ -165,34 +197,63 @@ export function Screen({
   right?: ReactNode;
   fab?: ReactNode;
 }) {
-  const drawer = useDrawer();
-  const header = (
-    <View style={styles.header}>
-      {back ? (
-        <SquareButton
-          icon="chevron-back"
-          label="Voltar"
-          onPress={() => (router.canGoBack() ? router.back() : router.replace("/"))}
+  const pathname = usePathname();
+  const group = GROUPS.find(g => g.tabs.some(tab => tab.href === pathname));
+  const morePage = MORE_PAGES[pathname];
+
+  let header: ReactNode;
+  if (group && !right) {
+    header = (
+      <View style={{ gap: 16 }}>
+        <View>
+          <Txt variant="hero">{group.title}</Txt>
+          <Txt variant="label" muted style={{ marginTop: 2 }}>
+            {group.subtitle}
+          </Txt>
+        </View>
+        <PillTabs
+          options={group.tabs.map(tab => ({ value: tab.href, label: tab.label }))}
+          value={pathname}
+          onChange={href => router.replace(href as Href)}
         />
-      ) : (
-        <SquareButton icon="menu" label="Abrir menu" onPress={drawer.open} />
-      )}
-      <View style={{ flex: 1 }}>
-        {title ? (
-          <Txt variant="h1" numberOfLines={1}>
-            {title}
-          </Txt>
-        ) : null}
-        {subtitle ? (
-          <Txt variant="label" muted numberOfLines={1}>
-            {subtitle}
-          </Txt>
-        ) : null}
       </View>
-      {right}
-      <ThemeButton />
-    </View>
-  );
+    );
+  } else if (back || morePage) {
+    header = (
+      <View style={styles.header}>
+        <GlassIconButton icon="chevron-back" label="Voltar" onPress={() => goBack((morePage ? "/more" : "/") as Href)} />
+        <View style={{ flex: 1 }}>
+          <Txt variant="display" numberOfLines={1}>
+            {title ?? morePage}
+          </Txt>
+          {subtitle ? (
+            <Txt variant="label" muted numberOfLines={1}>
+              {subtitle}
+            </Txt>
+          ) : null}
+        </View>
+        {right}
+      </View>
+    );
+  } else if (title || right) {
+    header = (
+      <View style={styles.header}>
+        <View style={{ flex: 1 }}>
+          {title ? (
+            <Txt variant="hero" numberOfLines={1}>
+              {title}
+            </Txt>
+          ) : null}
+          {subtitle ? (
+            <Txt variant="label" muted numberOfLines={1}>
+              {subtitle}
+            </Txt>
+          ) : null}
+        </View>
+        {right}
+      </View>
+    );
+  }
 
   return (
     <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
@@ -215,33 +276,32 @@ export function Screen({
   );
 }
 
-// Botão flutuante roxo "+" (canto inferior direito, como no site).
+// Botão flutuante roxo "+" (canto inferior direito), acima da barra inferior.
 export function Fab({ onPress, label, icon = "add" }: { onPress: () => void; label: string; icon?: IconName }) {
   const theme = useTheme();
   const insets = useSafeAreaInsets();
   return (
-    <Pressable
-      onPress={onPress}
-      accessibilityLabel={label}
-      style={({ pressed }) => ({
+    <Glass
+      tint={theme.primary}
+      interactive
+      style={{
         position: "absolute",
         right: 20,
-        bottom: insets.bottom + 24,
+        bottom: Math.max(insets.bottom, 12) + TAB_BAR_HEIGHT + 16,
         width: 56,
         height: 56,
-        borderRadius: 16,
-        alignItems: "center",
-        justifyContent: "center",
-        backgroundColor: pressed ? theme.primaryPressed : theme.primary,
+        borderRadius: 28,
         shadowColor: theme.primary,
         shadowOpacity: 0.45,
         shadowRadius: 14,
         shadowOffset: { width: 0, height: 6 },
         elevation: 8,
-      })}
+      }}
     >
-      <Ionicons name={icon} size={28} color="#fff" />
-    </Pressable>
+      <Pressable onPress={onPress} accessibilityRole="button" accessibilityLabel={label} style={({ pressed }) => [styles.fill, { opacity: pressed ? 0.85 : 1 }]}>
+        <Ionicons name={icon} size={28} color="#fff" />
+      </Pressable>
+    </Glass>
   );
 }
 
@@ -305,10 +365,9 @@ export function Card({
   padded?: boolean;
 }) {
   const theme = useTheme();
-  const top = toneColor(tone, theme) ?? theme.border;
-  // Tamanho e posição (width: "47%", flex: 1...) valem para o invólucro com a
-  // sombra; o resto do estilo vai para a folha. Sem isso o invólucro encolhe e
-  // o texto quebra letra por letra.
+  const toned = toneColor(tone, theme);
+  // Tamanho e posição (width: "47%", flex: 1...) ficam no invólucro; o resto do
+  // estilo vai para o cartão. Sem isso o invólucro encolhe e o texto quebra.
   const { outer, inner } = splitLayoutStyle(style);
   const body = (
     <View
@@ -316,10 +375,8 @@ export function Card({
         {
           backgroundColor: theme.surface,
           borderWidth: 1,
-          borderTopWidth: 2,
-          borderColor: theme.border,
-          borderTopColor: top,
-          borderRadius: 6,
+          borderColor: toned ? withAlpha(toned, 0.45) : theme.border,
+          borderRadius: 24,
           padding: padded ? 18 : 0,
           gap: 12,
         },
@@ -330,20 +387,21 @@ export function Card({
       {children}
     </View>
   );
-  const shadow = <View pointerEvents="none" style={[styles.hardShadow, { backgroundColor: theme.shadow }]} />;
-  if (!onPress) {
-    return (
-      <View style={outer}>
-        {shadow}
-        {body}
-      </View>
-    );
-  }
+  if (!onPress) return <View style={outer}>{body}</View>;
   return (
-    <Pressable onPress={onPress} style={({ pressed }) => [outer, { transform: [{ translateY: pressed ? 1 : 0 }] }]}>
-      {shadow}
+    <Pressable onPress={onPress} style={({ pressed }) => [outer, { transform: [{ scale: pressed ? 0.98 : 1 }] }]}>
       {body}
     </Pressable>
+  );
+}
+
+// Cartão de destaque (progresso do dia, saldo, nível): roxo escuro sólido.
+export function HeroCard({ children, style }: { children: ReactNode; style?: StyleProp<ViewStyle> }) {
+  const theme = useTheme();
+  return (
+    <View style={[{ backgroundColor: theme.hero, borderWidth: 1, borderColor: theme.heroBorder, borderRadius: 26, padding: 18, gap: 16 }, style]}>
+      {children}
+    </View>
   );
 }
 
@@ -374,15 +432,15 @@ export function Row({
           flexDirection: "row",
           alignItems: "center",
           gap: 12,
-          paddingVertical: 12,
+          paddingVertical: 13,
           paddingHorizontal: 14,
-          borderRadius: 6,
-          backgroundColor: highlight ? `${highlight}14` : theme.raised,
+          borderRadius: 18,
+          backgroundColor: highlight ? withAlpha(highlight, 0.1) : theme.raised,
           borderWidth: 1,
-          borderColor: highlight ? `${highlight}55` : "transparent",
+          borderColor: highlight ? withAlpha(highlight, 0.35) : theme.border,
           borderLeftWidth: leftBar ? 3 : 1,
-          borderLeftColor: leftBar ?? (highlight ? `${highlight}55` : "transparent"),
-          opacity: pressed ? 0.8 : 1,
+          borderLeftColor: leftBar ?? (highlight ? withAlpha(highlight, 0.35) : theme.border),
+          transform: [{ scale: pressed ? 0.98 : 1 }],
         },
         style,
       ]}
@@ -418,9 +476,7 @@ export function Metric({
     <View style={{ flex: 1 }}>
       <Card tone={tone} style={{ gap: 6, alignItems: center ? "center" : "flex-start", paddingVertical: 16 }}>
         <Marginalia index={index}>{label}</Marginalia>
-        <Txt variant="metric" color={valueColor} style={{ marginTop: 4 }}>
-          {value}
-        </Txt>
+        <AnimatedText variant="metric" color={valueColor} style={{ marginTop: 4 }} text={value} />
         {caption ? (
           <Txt variant="label" muted>
             {caption}
@@ -448,7 +504,7 @@ export function Stamp({ label, tone = "ink", icon }: { label: string; tone?: Ton
         gap: 5,
         paddingHorizontal: 9,
         paddingVertical: 4,
-        borderRadius: 3,
+        borderRadius: 999,
         borderWidth: 1,
         borderColor: tone === "ink" ? theme.border : `${color}8c`,
         backgroundColor: tone === "ink" ? "transparent" : `${color}14`,
@@ -483,40 +539,31 @@ export function Button({
   compact?: boolean;
 }) {
   const theme = useTheme();
-  const palette = {
-    primary: { bg: theme.primary, fg: "#fff", border: theme.primary },
-    accent: { bg: theme.accent, fg: "#fff", border: theme.accent },
-    orange: { bg: theme.orange, fg: "#fff", border: theme.orange },
-    soft: { bg: theme.primarySoft, fg: theme.primaryInk, border: theme.primaryBorder },
-    ghost: { bg: "transparent", fg: theme.ink, border: theme.border },
-    danger: { bg: theme.danger, fg: "#fff", border: theme.danger },
-  }[variant];
+  const tints = { primary: theme.primary, accent: theme.accent, orange: theme.orange, danger: theme.danger, soft: undefined, ghost: undefined };
+  // Desabilitado vira vidro neutro: o GlassView não deve receber opacidade menor que 1.
+  const tint = disabled ? undefined : tints[variant];
+  const fg = disabled ? theme.inkMuted : tint ? "#fff" : variant === "soft" ? theme.primaryInk : theme.ink;
+  const height = compact ? 38 : 46;
 
   return (
-    <Pressable
-      onPress={onPress}
-      disabled={disabled || loading}
-      accessibilityRole="button"
-      style={({ pressed }) => [
-        styles.button,
-        compact && { height: 38, paddingHorizontal: 14 },
-        {
-          backgroundColor: pressed && variant === "primary" ? theme.primaryPressed : palette.bg,
-          borderColor: palette.border,
-          opacity: disabled ? 0.5 : pressed ? 0.9 : 1,
-        },
-        variant === "primary" && styles.buttonGlow,
-      ]}
-    >
-      {loading ? (
-        <ActivityIndicator color={palette.fg} />
-      ) : (
-        <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-          {icon ? <Ionicons name={icon} size={compact ? 15 : 17} color={palette.fg} /> : null}
-          <Text style={{ fontFamily: fonts.bodySemi, fontSize: compact ? 13 : 14, letterSpacing: 0.3, color: palette.fg }}>{label}</Text>
-        </View>
-      )}
-    </Pressable>
+    <Glass tint={tint} interactive={!disabled} style={[styles.button, { height, borderRadius: height / 2 }, variant === "primary" && !disabled && styles.buttonGlow]}>
+      <Pressable
+        onPress={onPress}
+        disabled={disabled || loading}
+        accessibilityRole="button"
+        accessibilityState={{ disabled: !!disabled }}
+        style={({ pressed }) => [styles.buttonPress, compact && { paddingHorizontal: 14 }, { opacity: pressed ? 0.85 : 1 }]}
+      >
+        {loading ? (
+          <ActivityIndicator color={fg} />
+        ) : (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+            {icon ? <Ionicons name={icon} size={compact ? 15 : 17} color={fg} /> : null}
+            <Text style={{ fontFamily: fonts.bodySemi, fontSize: compact ? 13 : 14, letterSpacing: 0.3, color: fg }}>{label}</Text>
+          </View>
+        )}
+      </Pressable>
+    </Glass>
   );
 }
 
@@ -535,21 +582,17 @@ export function IconButton({
 }) {
   const theme = useTheme();
   return (
-    <Pressable
-      onPress={onPress}
-      hitSlop={8}
-      accessibilityLabel={label}
-      style={({ pressed }) => [
-        styles.iconButton,
-        {
-          backgroundColor: filled ? theme.primary : theme.surface,
-          borderColor: filled ? theme.primary : theme.border,
-          opacity: pressed ? 0.8 : 1,
-        },
-      ]}
-    >
-      <Ionicons name={icon} size={20} color={filled ? "#fff" : color ?? theme.ink} />
-    </Pressable>
+    <Glass tint={filled ? theme.primary : undefined} interactive style={styles.iconButton}>
+      <Pressable
+        onPress={onPress}
+        hitSlop={8}
+        accessibilityRole="button"
+        accessibilityLabel={label}
+        style={({ pressed }) => [styles.fill, { opacity: pressed ? 0.8 : 1 }]}
+      >
+        <Ionicons name={icon} size={20} color={filled ? "#fff" : color ?? theme.ink} />
+      </Pressable>
+    </Glass>
   );
 }
 
@@ -648,9 +691,9 @@ export function Segmented<T extends string | number>({
               key={String(option.value)}
               onPress={() => onChange(option.value)}
               style={{
-                paddingHorizontal: 10,
-                paddingVertical: 7,
-                borderRadius: 3,
+                paddingHorizontal: 12,
+                paddingVertical: 8,
+                borderRadius: 999,
                 borderWidth: 1,
                 borderColor: active ? theme.primaryBorder : theme.border,
                 backgroundColor: active ? theme.primarySoft : "transparent",
@@ -665,15 +708,34 @@ export function Segmented<T extends string | number>({
       </View>
     );
   }
+  return <PillTabs options={options} value={value} onChange={onChange} wrap={wrap} />;
+}
+
+// Seletor em pílula: a opção ativa fica em violeta sólido.
+export function PillTabs<T extends string | number>({
+  options,
+  value,
+  onChange,
+  wrap,
+}: {
+  options: { value: T; label: string; icon?: IconName }[];
+  value: T;
+  onChange: (value: T) => void;
+  wrap?: boolean;
+}) {
+  const theme = useTheme();
   return (
     <View
+      accessibilityRole="tablist"
       style={{
         flexDirection: "row",
         flexWrap: wrap ? "wrap" : "nowrap",
         padding: 4,
         gap: 4,
-        borderRadius: 8,
-        backgroundColor: theme.mode === "dark" ? "rgba(255,255,255,0.04)" : "rgba(0,0,0,0.04)",
+        borderRadius: 18,
+        backgroundColor: theme.surface,
+        borderWidth: 1,
+        borderColor: theme.border,
       }}
     >
       {options.map(option => {
@@ -682,20 +744,22 @@ export function Segmented<T extends string | number>({
           <Pressable
             key={String(option.value)}
             onPress={() => onChange(option.value)}
+            accessibilityRole="tab"
+            accessibilityState={{ selected: active }}
             style={{
               flex: wrap ? undefined : 1,
               flexDirection: "row",
               gap: 6,
-              paddingVertical: 8,
+              paddingVertical: 10,
               paddingHorizontal: 12,
-              borderRadius: 6,
+              borderRadius: 14,
               alignItems: "center",
               justifyContent: "center",
               backgroundColor: active ? theme.primary : "transparent",
             }}
           >
             {option.icon ? <Ionicons name={option.icon} size={14} color={active ? "#fff" : theme.inkMuted} /> : null}
-            <Text style={{ fontFamily: fonts.bodySemi, fontSize: 13, color: active ? "#fff" : theme.inkMuted }}>{option.label}</Text>
+            <Text style={{ fontFamily: fonts.bodySemi, fontSize: 13.5, color: active ? "#fff" : theme.inkMuted }}>{option.label}</Text>
           </Pressable>
         );
       })}
@@ -709,11 +773,12 @@ export function Segmented<T extends string | number>({
 
 export function ProgressBar({ percent, color, height = 6 }: { percent: number; color?: string; height?: number }) {
   const theme = useTheme();
+  const shown = useTweenNumber(Math.max(0, Math.min(100, percent)));
   return (
     <View style={{ height, borderRadius: 999, overflow: "hidden", backgroundColor: theme.track }}>
       <View
         style={{
-          width: `${Math.max(0, Math.min(100, percent))}%`,
+          width: `${shown}%`,
           height: "100%",
           borderRadius: 999,
           backgroundColor: color ?? theme.primary,
@@ -740,7 +805,7 @@ export function ProgressRing({
   const theme = useTheme();
   const radius = (size - stroke) / 2;
   const circumference = 2 * Math.PI * radius;
-  const clamped = Math.max(0, Math.min(100, percent));
+  const clamped = useTweenNumber(Math.max(0, Math.min(100, percent)));
   return (
     <View style={{ width: size, height: size, alignItems: "center", justifyContent: "center" }}>
       <Svg width={size} height={size} style={{ position: "absolute", transform: [{ rotate: "-90deg" }] }}>
@@ -868,23 +933,25 @@ export function Sheet({ visible, onClose, title, children }: { visible: boolean;
         <View
           style={{
             backgroundColor: theme.surface,
-            borderTopLeftRadius: 14,
-            borderTopRightRadius: 14,
-            borderTopWidth: 2,
-            borderColor: theme.primary,
+            borderTopLeftRadius: 32,
+            borderTopRightRadius: 32,
+            borderWidth: 1,
+            borderBottomWidth: 0,
+            borderColor: theme.border,
             maxHeight: "90%",
-            paddingBottom: insets.bottom + 12,
+            paddingBottom: insets.bottom + 16,
           }}
         >
-          <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 18, paddingTop: 16, paddingBottom: 8 }}>
-            <Txt variant="h2" style={{ flex: 1 }}>
+          <View style={{ alignSelf: "center", width: 40, height: 5, borderRadius: 3, backgroundColor: theme.inkMuted, opacity: 0.4, marginTop: 10 }} />
+          <View style={{ flexDirection: "row", alignItems: "center", paddingHorizontal: 20, paddingTop: 12, paddingBottom: 8 }}>
+            <Txt variant="display" style={{ flex: 1, fontSize: 24 }}>
               {title}
             </Txt>
             <Pressable onPress={onClose} hitSlop={12} accessibilityLabel="Fechar">
               <Ionicons name="close" size={22} color={theme.inkMuted} />
             </Pressable>
           </View>
-          <ScrollView contentContainerStyle={{ paddingHorizontal: 18, gap: 16, paddingBottom: 8, paddingTop: 4 }} keyboardShouldPersistTaps="handled">
+          <ScrollView contentContainerStyle={{ paddingHorizontal: 20, gap: 16, paddingBottom: 8, paddingTop: 4 }} keyboardShouldPersistTaps="handled">
             {children}
           </ScrollView>
         </View>
@@ -894,17 +961,11 @@ export function Sheet({ visible, onClose, title, children }: { visible: boolean;
 }
 
 const styles = StyleSheet.create({
-  screenContent: { paddingHorizontal: 14, paddingTop: 12, gap: 16, paddingBottom: 110 },
+  screenContent: { paddingHorizontal: 14, paddingTop: 12, gap: 16, paddingBottom: 130 },
   header: { flexDirection: "row", alignItems: "center", gap: 12, marginBottom: 2 },
-  hardShadow: { position: "absolute", top: 3, left: 3, right: -3, bottom: -3, borderRadius: 6 },
-  button: {
-    height: 46,
-    borderRadius: 5,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    paddingHorizontal: 18,
-  },
+  button: { height: 46, borderRadius: 23 },
+  buttonPress: { flex: 1, alignItems: "center", justifyContent: "center", paddingHorizontal: 18 },
+  fill: { flex: 1, alignSelf: "stretch", alignItems: "center", justifyContent: "center" },
   buttonGlow: {
     shadowColor: "#8b5cf6",
     shadowOpacity: 0.3,
@@ -912,12 +973,5 @@ const styles = StyleSheet.create({
     shadowOffset: { width: 0, height: 4 },
     elevation: 4,
   },
-  iconButton: {
-    width: 40,
-    height: 40,
-    borderRadius: 6,
-    borderWidth: 1,
-    alignItems: "center",
-    justifyContent: "center",
-  },
+  iconButton: { width: 40, height: 40, borderRadius: 20 },
 });

@@ -1,4 +1,6 @@
-import { Alert, Pressable, View } from "react-native";
+import { Animated, Pressable, View } from "react-native";
+import { Alert } from "@/lib/alert";
+import { useCheckPop } from "@/lib/motion";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   completeTask,
@@ -70,6 +72,7 @@ export function TaskCard({ task, onPress }: { task: Task; onPress?: () => void }
   const theme = useTheme();
   const color = priorityColor(task.priority, theme);
   const overdue = getTaskStatus(task) === "overdue";
+  const taskPop = useCheckPop(task.completed);
 
   const confirmDelete = () =>
     Alert.alert("Excluir tarefa", `Excluir "${task.title}"?`, [
@@ -84,9 +87,9 @@ export function TaskCard({ task, onPress }: { task: Task; onPress?: () => void }
         flexDirection: "row",
         alignItems: "center",
         gap: 14,
-        paddingVertical: 16,
+        paddingVertical: 15,
         paddingHorizontal: 16,
-        borderRadius: 6,
+        borderRadius: 20,
         backgroundColor: theme.surface,
         borderWidth: 1,
         borderColor: theme.border,
@@ -101,17 +104,21 @@ export function TaskCard({ task, onPress }: { task: Task; onPress?: () => void }
         accessibilityRole="checkbox"
         accessibilityState={{ checked: task.completed }}
         style={{
-          width: 22,
-          height: 22,
-          borderRadius: 5,
-          borderWidth: 1.5,
+          width: 26,
+          height: 26,
+          borderRadius: 13,
+          borderWidth: task.completed ? 0 : 2,
           alignItems: "center",
           justifyContent: "center",
-          borderColor: task.completed ? theme.success : theme.border,
-          backgroundColor: task.completed ? `${theme.success}1f` : "transparent",
+          borderColor: theme.inkMuted,
+          backgroundColor: task.completed ? theme.primary : "transparent",
         }}
       >
-        {task.completed ? <Ionicons name="checkmark" size={14} color={theme.success} /> : null}
+        {task.completed ? (
+          <Animated.View style={{ transform: [{ scale: taskPop }] }}>
+            <Ionicons name="checkmark" size={16} color="#fff" />
+          </Animated.View>
+        ) : null}
       </Pressable>
       <View style={{ flex: 1, gap: 2 }}>
         <Txt
@@ -154,10 +161,12 @@ export function HabitRow({ habit, date }: { habit: Habit; date: string }) {
   const theme = useTheme();
   const done = habit.completedDates.includes(date);
   const color = resolveColor(habit.color, theme);
+  const pop = useCheckPop(done);
   return (
     <Row onPress={() => void toggleHabitWithGoals(habit, date)} highlight={done ? color : undefined}>
-      <View
+      <Animated.View
         style={{
+          transform: [{ scale: pop }],
           width: 20,
           height: 20,
           borderRadius: 10,
@@ -169,7 +178,7 @@ export function HabitRow({ habit, date }: { habit: Habit; date: string }) {
         }}
       >
         {done ? <Ionicons name="checkmark" size={13} color="#fff" /> : null}
-      </View>
+      </Animated.View>
       <Txt style={{ fontSize: 16 }}>{habit.emoji}</Txt>
       <Txt
         variant="bodyStrong"
@@ -242,7 +251,7 @@ export function WeeklyGoalMini({ goal, habits }: { goal: Goal; habits: Habit[] }
   const linked = goal.linkedHabitId ? habits.find(h => h.id === goal.linkedHabitId) : undefined;
 
   return (
-    <View style={{ backgroundColor: theme.raised, borderRadius: 6, padding: 14, gap: 12 }}>
+    <View style={{ backgroundColor: theme.raised, borderRadius: 18, padding: 14, gap: 12 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <Txt style={{ fontSize: 16 }}>{goal.emoji?.trim() || "🎯"}</Txt>
         <Txt variant="h3" style={{ flex: 1 }} numberOfLines={1}>
@@ -319,7 +328,7 @@ export function WeeklyGoalCard({ goal, habits }: { goal: Goal; habits: Habit[] }
           style={{
             width: 42,
             height: 42,
-            borderRadius: 4,
+            borderRadius: 14,
             alignItems: "center",
             justifyContent: "center",
             backgroundColor: `${color}22`,
@@ -402,7 +411,7 @@ export function WeeklyGoalCard({ goal, habits }: { goal: Goal; habits: Habit[] }
       </View>
 
       <View style={{ height: 1, backgroundColor: theme.border }} />
-      <View style={{ alignSelf: "flex-end", flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: theme.raised, borderRadius: 6, padding: 12 }}>
+      <View style={{ alignSelf: "flex-end", flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: theme.raised, borderRadius: 16, padding: 12 }}>
         <View>
           <Txt variant="caption" muted>
             Consistência
@@ -436,7 +445,7 @@ export function LongTermGoalMini({ goal }: { goal: Goal }) {
   const progress = getGoalProgress(goal);
   const done = goal.steps.filter(s => s.completed).length;
   return (
-    <View style={{ backgroundColor: theme.raised, borderRadius: 6, padding: 14, gap: 6 }}>
+    <View style={{ backgroundColor: theme.raised, borderRadius: 18, padding: 14, gap: 6 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
         <Txt style={{ fontSize: 16 }}>{goal.emoji?.trim() || "🎯"}</Txt>
         <Txt variant="h3" style={{ flex: 1 }} numberOfLines={1}>
@@ -475,7 +484,7 @@ export function LongTermGoalCard({ goal }: { goal: Goal }) {
           style={{
             width: 42,
             height: 42,
-            borderRadius: 4,
+            borderRadius: 14,
             alignItems: "center",
             justifyContent: "center",
             backgroundColor: `${color}22`,

@@ -1,5 +1,6 @@
 import { useCallback, useState } from "react";
-import { Alert, Pressable, ScrollView, View } from "react-native";
+import { Pressable, ScrollView, View } from "react-native";
+import { Alert } from "@/lib/alert";
 import { router, useFocusEffect } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { createNote, getNotes } from "@/lib/notes";
@@ -11,6 +12,7 @@ import { IS_DEMO } from "@/demo";
 import { ProGate } from "@/components/ProGate";
 import { Button, Card, EmptyState, IconButton, Input, Screen, Sheet, Txt } from "@/components/ui";
 import { fonts, useTheme } from "@/theme";
+import { useNewParam } from "@/hooks/useNewParam";
 
 const ALL = "__all__";
 const FAV = "__fav__";
@@ -65,10 +67,14 @@ function NotesList() {
         folder_id: folder !== ALL && folder !== FAV ? folder : null,
       });
       if (created) router.push({ pathname: "/notes/[id]", params: { id: created.id } });
+      else notifyError("Não foi possível criar a nota", "Entre na sua conta e tente de novo.");
     } catch (error) {
-      notifyError("Erro ao criar nota", error instanceof Error ? error.message : undefined);
+      const proOnly = error instanceof Error && error.message.includes("Only Pro");
+      notifyError("Erro ao criar nota", proOnly ? "Notas fazem parte do plano Pro." : error instanceof Error ? error.message : undefined);
     }
   };
+  useNewParam(() => void newNote());
+
 
   const addFolder = async () => {
     if (!folderName.trim()) return;

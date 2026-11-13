@@ -12,6 +12,7 @@ import { DateStrip } from "@/components/DateStrip";
 import { MonthCalendar } from "@/components/MonthCalendar";
 import type { RecurrenceConfig, RecurrenceType } from "@/types/recurrence";
 import { useTheme } from "@/theme";
+import { useNewParam } from "@/hooks/useNewParam";
 
 const PRIORITIES: { value: Task["priority"]; label: string }[] = [
   { value: "low", label: "Baixa" },
@@ -57,6 +58,7 @@ export default function TasksScreen() {
     setEditing(null);
     setShowSheet(true);
   };
+  useNewParam(openNew);
 
   const label = longDate(new Date(`${selectedDate}T12:00:00`));
   const title = label.charAt(0).toUpperCase() + label.slice(1);

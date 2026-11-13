@@ -1,5 +1,6 @@
 import { useState } from "react";
-import { Alert, Pressable, View } from "react-native";
+import { Pressable, View } from "react-native";
+import { Alert } from "@/lib/alert";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { addTransaction, deleteTransaction } from "@/store/financial.store";
 import { formatCurrency } from "@/lib/financial";
@@ -12,6 +13,7 @@ import { DonutChart, HBar } from "@/components/charts";
 import { DateStrip } from "@/components/DateStrip";
 import { MonthCalendar } from "@/components/MonthCalendar";
 import { resolveColor, useTheme } from "@/theme";
+import { useNewParam } from "@/hooks/useNewParam";
 
 // Mesmas categorias de pages/Financial.tsx.
 const EXPENSE_CATEGORIES = [
@@ -53,6 +55,7 @@ function Financial() {
   const [selected, setSelected] = useState(getTodayString());
   const [chart, setChart] = useState<"bars" | "pie">("bars");
   const [showAdd, setShowAdd] = useState(false);
+  useNewParam(() => setShowAdd(true));
 
   const all = data.financial.transactions as Tx[];
   const ref = new Date(`${selected}T12:00:00`);

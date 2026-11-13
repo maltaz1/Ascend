@@ -11,7 +11,7 @@ const dark = {
   primaryForeground: "#ffffff",
   primarySoft: "rgba(139, 92, 246, 0.12)",
   primaryBorder: "rgba(139, 92, 246, 0.55)",
-  primaryInk: "#a78bfa",
+  primaryInk: "#b69cfb",
   accent: "#f59e0b",
   accentSoft: "rgba(245, 158, 11, 0.10)",
   accentBorder: "rgba(245, 158, 11, 0.55)",
@@ -19,15 +19,18 @@ const dark = {
   cyan: "#06b6d4",
   pink: "#ec4899",
   orange: "#c2410c",
-  bg: "#12111a",
-  surface: "#18181f", // --ledger-paper-bg
-  surfaceAlt: "#15151c", // --sidebar-bg
-  raised: "#222229", // linhas dentro de cartões
-  border: "#262630", // --ledger-paper-border
-  field: "#2a2a32",
-  track: "#2a2a32", // trilho de anéis e barras
-  ink: "#f5f5f5",
-  inkMuted: "#9ca3af",
+  // Novo design: fundo roxo bem escuro, cartões um tom acima, violeta da logo em cor sólida.
+  bg: "#0f0d18",
+  surface: "#1b1828",
+  surfaceAlt: "#15131f",
+  raised: "#242036", // linhas dentro de cartões
+  border: "#2a2638",
+  field: "#242036",
+  track: "#2a2638", // trilho de anéis e barras
+  hero: "#1f1936", // cartão de destaque (progresso, saldo, nível)
+  heroBorder: "#3a3060",
+  ink: "#f6f5fb",
+  inkMuted: "#a9a6c0",
   success: "#10b981",
   danger: "#ef4444",
   warning: "#f59e0b",
@@ -41,15 +44,17 @@ const light: typeof dark = {
   ...dark,
   mode: "light",
   primarySoft: "rgba(139, 92, 246, 0.08)",
-  primaryInk: "#5b21b6",
+  primaryInk: "#6d3fd6",
   accentSoft: "rgba(245, 158, 11, 0.08)",
   bg: "#f4f1ea",
   surface: "#ffffff",
   surfaceAlt: "#efece3",
   raised: "#f7f5f0",
-  border: "#e0dcd2",
+  border: "#e6e1d7",
   field: "#ffffff",
   track: "#e5e0d5", // --border-subtle do Caderno Diurno
+  hero: "#ece5fb",
+  heroBorder: "#d7c9f7",
   ink: "#1c1917",
   inkMuted: "#57534e",
   shadow: "rgba(28, 25, 23, 0.18)",

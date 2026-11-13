@@ -11,6 +11,7 @@ import { LongTermGoalCard, WeeklyGoalCard } from "@/components/rows";
 import { getWeekConsistencyAverage } from "@/lib/weeklyGoals";
 import { DateStrip } from "@/components/DateStrip";
 import { resolveColor, useTheme } from "@/theme";
+import { useNewParam } from "@/hooks/useNewParam";
 
 const EMOJIS = ["🎯", "🏆", "📈", "💰", "🏃", "📚", "🧠", "💪", "✈️", "🏠", "❤️", "🌱"];
 const COLORS = ["var(--primary)", "var(--accent)", "#10B981", "#3B82F6", "#EF4444", "#EC4899"];
@@ -24,6 +25,7 @@ export default function GoalsScreen() {
   const { isPro } = useAuth();
   const [filter, setFilter] = useState<LongFilter>("all");
   const [showNew, setShowNew] = useState(false);
+  useNewParam(() => setShowNew(true));
 
   const weekly = data.goals.filter(g => g.type === "semanal");
   const longTerm = data.goals.filter(g => g.type !== "semanal");
