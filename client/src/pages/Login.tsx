@@ -1,8 +1,18 @@
-import { useState } from "react";
+import { useRef, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { Flame } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import { notifyError, notifySuccess, notifyWarning } from "@/lib/notifications";
+import { Turnstile, TURNSTILE_SITE_KEY, type TurnstileHandle } from "@/components/Turnstile";
+
+// Mensagens genéricas: não revelam se o e-mail existe nem detalhes internos.
+const GENERIC_LOGIN_ERROR = "E-mail ou senha incorretos.";
+const GENERIC_SIGNUP_OK = "Se o e-mail estiver disponível, enviamos um link de confirmação. Verifique sua caixa de entrada.";
+const GENERIC_RESET_OK = "Se existir uma conta com esse e-mail, enviamos o link de recuperação.";
+
+function isRateLimited(error: { status?: number; code?: string } | null) {
+  return error?.status === 429 || error?.code === "over_request_rate_limit" || error?.code === "over_email_send_rate_limit";
+}
 
 type Tab = "login" | "signup";
 
@@ -15,6 +25,20 @@ export default function Login() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
   const [acceptTerms, setAcceptTerms] = useState(false);
+  // Campo isca: invisível para pessoas, bots costumam preencher.
+  const [website, setWebsite] = useState("");
+  const [captchaToken, setCaptchaToken] = useState<string | null>(null);
+  const captchaRef = useRef<TurnstileHandle>(null);
+
+  const needsCaptcha = () => {
+    if (TURNSTILE_SITE_KEY && !captchaToken) {
+      notifyWarning("Confirme que você não é um robô.");
+      return true;
+    }
+    return false;
+  };
+  // O token do Turnstile vale para uma única tentativa.
+  const resetCaptcha = () => captchaRef.current?.reset();
 
   const handleForgotPassword = async () => {
     if (!email) {
@@ -22,15 +46,19 @@ export default function Login() {
       return;
     }
     
+    if (needsCaptcha()) return;
+
     setLoading(true);
     const { error } = await supabase.auth.resetPasswordForEmail(email, {
       redirectTo: `${window.location.origin}/reset-password`,
+      captchaToken: captchaToken ?? undefined,
     });
+    resetCaptcha();
 
-    if (error) {
-      notifyError(error.message);
+    if (isRateLimited(error)) {
+      notifyError("Muitas tentativas", "Aguarde alguns minutos e tente de novo.");
     } else {
-      notifySuccess("E-mail de recuperação enviado!");
+      notifySuccess(GENERIC_RESET_OK);
     }
     setLoading(false);
   };
@@ -50,39 +78,68 @@ export default function Login() {
       return;
     }
 
+    // Bot preencheu o campo isca: finge sucesso e não cria nada.
+    if (website) {
+      notifySuccess(GENERIC_SIGNUP_OK);
+      setTab("login");
+      return;
+    }
+
+    if (needsCaptcha()) return;
+
     setLoading(true);
 
     const { error } = await supabase.auth.signUp({
       email,
       password,
       options: {
-        data: { name },
+        data: { name: name.trim().slice(0, 80) },
         emailRedirectTo: `${window.location.origin}`,
+        captchaToken: captchaToken ?? undefined,
       },
     });
+    resetCaptcha();
 
     if (error) {
-      notifyError(error.message);
+      if (isRateLimited(error)) {
+        notifyError("Muitas tentativas", "Aguarde alguns minutos e tente de novo.");
+      } else if (error.code === "weak_password") {
+        notifyError("Senha fraca", "Essa senha é fácil de adivinhar ou já apareceu em vazamentos. Escolha outra.");
+      } else if (error.code === "email_address_invalid" || error.code === "validation_failed") {
+        notifyError("E-mail inválido", "Confira o endereço digitado.");
+      } else {
+        notifyError("Não foi possível criar a conta", "Tente novamente em instantes.");
+      }
       setLoading(false);
       return;
     }
 
-    notifySuccess("Enviamos um e-mail de confirmação. Verifique sua caixa de entrada.");
+    notifySuccess(GENERIC_SIGNUP_OK);
 
     setTab("login");
     setLoading(false);
   };
 
   const handleLogin = async () => {
+    if (needsCaptcha()) return;
+
     setLoading(true);
 
     const { data, error } = await supabase.auth.signInWithPassword({
       email,
       password,
+      options: { captchaToken: captchaToken ?? undefined },
     });
+    resetCaptcha();
 
     if (error) {
-      notifyError(error.message);
+      if (isRateLimited(error)) {
+        notifyError("Muitas tentativas", "Aguarde alguns minutos e tente de novo.");
+      } else if (error.code === "email_not_confirmed") {
+        notifyWarning("Você precisa confirmar seu e-mail antes de entrar.");
+      } else {
+        notifyError(GENERIC_LOGIN_ERROR);
+      }
       setLoading(false);
       return;
     }
@@ -95,9 +152,6 @@ export default function Login() {
       setLoading(false);
       return;
     }
-
-    console.log("LOGIN DATA:", data);
-    console.log("LOGIN ERROR:", error);
 
     setLoading(false);
     navigate("/dashboard");
@@ -1219,6 +1273,8 @@ export default function Login() {
                   </div>
                 </div>
 
+                <Turnstile ref={captchaRef} onToken={setCaptchaToken} action="login" />
+
                 <button
                   className="asc-btn"
                   onClick={handleLogin}
@@ -1394,6 +1450,20 @@ export default function Login() {
                     do Ascend.
                   </label>
                 </div>
+                {/* Campo isca (honeypot): fora da tela e fora do Tab. */}
+                <div aria-hidden="true" style={{ position: "absolute", left: "-10000px", width: 1, height: 1, overflow: "hidden" }}>
+                  <label htmlFor="asc-website">Site</label>
+                  <input
+                    id="asc-website"
+                    name="website"
+                    type="text"
+                    tabIndex={-1}
+                    autoComplete="off"
+                    value={website}
+                    onChange={e => setWebsite(e.target.value)}
+                  />
+                </div>
+                <Turnstile ref={captchaRef} onToken={setCaptchaToken} action="signup" />
                 <button
                   className="asc-btn"
                   onClick={handleSignup}

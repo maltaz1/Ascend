@@ -1,0 +1,12 @@
+title = "Ascend"
+
+[extend]
+useDefault = true
+
+# A chave anon do Supabase é pública por definição (quem protege os dados
+# é o RLS). Ela aparece no eas.json e numa migration antiga.
+[allowlist]
+description = "Chave anon pública do Supabase"
+regexes = [
+  '''eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9\.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InJ3ZHpjYmJuZWN6amVmbWp6a2RyIiwicm9sZSI6ImFub24i[A-Za-z0-9_.-]+''',
+]

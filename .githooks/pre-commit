@@ -1,0 +1,4 @@
+#!/bin/sh
+# Bloqueia commits com chaves/senhas. Ativado com:
+#   git config core.hooksPath .githooks
+exec node "$(git rev-parse --show-toplevel)/scripts/check-secrets.mjs"

@@ -149,7 +149,19 @@ export default async function handler(req: any, res: any) {
         event_type: eventType,
         app_user_id: event.app_user_id ?? null,
         environment: event.environment ?? null,
-        payload,
+        // Só o necessário: o evento completo traz atributos do assinante
+        // (e-mail, país, IP etc.) que não precisamos guardar.
+        payload: {
+          id: event.id,
+          type: eventType,
+          app_user_id: event.app_user_id ?? null,
+          product_id: event.product_id ?? null,
+          store: event.store ?? null,
+          environment: event.environment ?? null,
+          event_timestamp_ms: event.event_timestamp_ms ?? null,
+          transferred_from: event.transferred_from ?? null,
+          transferred_to: event.transferred_to ?? null,
+        },
       });
 
     if (idempotencyError) {
@@ -184,7 +196,7 @@ export default async function handler(req: any, res: any) {
     console.log(`[REVENUECAT] ${eventType} (${event.environment}) →`, results);
     return res.status(200).json({ ok: true, results });
   } catch (error: any) {
-    console.error("[REVENUECAT ERROR]", error);
+    console.error("[REVENUECAT ERROR]", error?.code ?? error?.name ?? "erro", error?.message ?? "");
     return res.status(500).json({ ok: false, error: "Erro interno de processamento do webhook" });
   }
 }

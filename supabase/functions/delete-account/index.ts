@@ -1,8 +1,8 @@
 // Edge Function: delete-account
 // Permanently deletes a user's account (LGPD Art. 18, VI):
-//  - removes rows from all 11 related public tables,
+//  - removes rows from every public table with user_id,
 //  - deletes the auth identity (auth.users + auth.identities),
-//  - removes the storage avatar folder,
+//  - removes the avatar files (new folder + legacy paths),
 //  - signs the user out client-side afterwards.
 //
 // Requires a valid session: the caller can only delete THEIR own
@@ -17,8 +17,17 @@ interface DeleteRequest {
   password?: string;
 }
 
+// Ordem importa: tasks e cancellation_requests não têm ON DELETE CASCADE
+// para auth.users, então precisam sair antes do deleteUser().
 const TABLES = [
   "tasks",
+  "cancellation_requests",
+  "appointments",
+  "calendar_notes",
+  "exercise_catalog",
+  "favorite_prayers",
+  "finances",
+  "prayer_conversations",
   "goals",
   "habits",
   "workouts",
@@ -104,8 +113,20 @@ Deno.serve(async (req) => {
   results["profiles"] = profileError ? `error: ${profileError.message}` : "deleted";
 
   // 3. Remove avatar files (best-effort).
+  //    Novos: pasta "<userId>/". Antigos: "Avatars/<userId>-<timestamp>.<ext>".
   try {
-    await supabase.storage.from("Avatars").remove([`${userId}/`]);
+    const bucket = supabase.storage.from("Avatars");
+    const paths: string[] = [];
+    const { data: own } = await bucket.list(userId, { limit: 1000 });
+    for (const f of own ?? []) paths.push(`${userId}/${f.name}`);
+    const { data: legacy } = await bucket.list("Avatars", { limit: 1000, search: userId });
+    for (const f of legacy ?? []) {
+      if (f.name.startsWith(`${userId}-`)) paths.push(`Avatars/${f.name}`);
+    }
+    if (paths.length) {
+      const { error } = await bucket.remove(paths);
+      results["avatars"] = error ? `failed: ${error.message}` : `deleted ${paths.length}`;
+    }
   } catch {
     /* best-effort */
   }
@@ -115,12 +136,13 @@ Deno.serve(async (req) => {
   results["auth_user"] = authError ? `error: ${authError.message}` : "deleted";
 
   const hasErrors = Object.values(results).some((v) => v.startsWith("error"));
+  if (hasErrors) {
+    // Detalhes só no log do servidor; o cliente recebe resposta genérica.
+    console.error("[delete-account] falha parcial", userId, results);
+  }
 
   return new Response(
-    JSON.stringify({
-      success: !hasErrors,
-      deleted: results,
-    }),
+    JSON.stringify(hasErrors ? { success: false, error: "deletion_failed" } : { success: true }),
     {
       status: hasErrors ? 500 : 200,
       headers: { "Content-Type": "application/json" },

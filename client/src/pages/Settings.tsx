@@ -26,6 +26,7 @@ import { useTheme } from "@/contexts/ThemeContext";
 
 import { motion } from "framer-motion";
 import { supabase } from "@/lib/supabase";
+import { AVATAR_MAX_BYTES, avatarPath, sniffImageType } from "@/lib/avatar";
 import { CancellationModal } from "@/components/CancellationModal";
 import { CancellationStatusCard } from "@/components/CancellationStatusCard";
 import { getPendingCancellationRequest, CancellationRequest } from "@/lib/cancellation";
@@ -166,19 +167,30 @@ export default function Settings() {
  return;
  }
 
- const fileExt = file.name.split(".").pop();
- const fileName = `${user.id}-${Date.now()}.${fileExt}`;
- const filePath = `Avatars/${fileName}`;
+ if (file.size > AVATAR_MAX_BYTES) {
+ notifyError("Imagem muito grande", "Use uma foto de até 2 MB.");
+ return;
+ }
+
+ const bytes = new Uint8Array(await file.arrayBuffer());
+ const contentType = sniffImageType(bytes);
+ if (!contentType) {
+ notifyError("Formato não suportado", "Use uma foto JPG, PNG ou WebP.");
+ return;
+ }
+
+ const filePath = avatarPath(user.id, contentType);
 
  const { error: uploadError } = await supabase.storage
  .from("Avatars")
- .upload(filePath, file, {
- upsert: true,
+ .upload(filePath, bytes, {
+ contentType,
+ upsert: false,
  });
 
  if (uploadError) {
  console.error(uploadError);
- notifyError(uploadError.message);
+ notifyError("Erro ao enviar imagem", "Tente novamente mais tarde.");
  return;
  }
 
@@ -376,7 +388,7 @@ export default function Settings() {
  Escolher Foto
  <input
  type="file"
- accept="image/*"
+ accept="image/jpeg,image/png,image/webp"
  className="hidden"
  onChange={handleImageUpload}
  /></label></div><p className="text-xs text-[var(--ink-muted)]">PNG, JPG ou WEBP</p></div><div className="space-y-4"><input

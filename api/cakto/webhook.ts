@@ -40,7 +40,33 @@ function verifySignature(payload: string, signature: string, secret: string): bo
     ? signature.substring(7) 
     : signature;
 
-  return digest === cleanSignature;
+  // Comparação em tempo constante (evita descobrir a assinatura por timing).
+  const a = Buffer.from(digest, "utf8");
+  const b = Buffer.from(cleanSignature, "utf8");
+  return a.length === b.length && crypto.timingSafeEqual(a, b);
+}
+
+// "fulano@gmail.com" -> "fu***@gmail.com" (logs sem dado pessoal completo).
+function maskEmail(email: string): string {
+  const [user, domain] = email.split("@");
+  if (!domain) return "***";
+  return `${user.slice(0, 2)}***@${domain}`;
+}
+
+// Guarda só o necessário para auditoria/idempotência. O payload completo
+// da Cakto traz dados pessoais do comprador (CPF, telefone, endereço...).
+function minimalPayload(payload: any) {
+  const data = payload?.data ?? {};
+  return {
+    id: payload?.id ?? null,
+    event: payload?.event ?? null,
+    status: data.status ?? null,
+    order_id: data.id ?? null,
+    product_id: data.product?.id ?? data.offer?.product ?? null,
+    offer_id: data.offer?.id ?? null,
+    amount: data.amount ?? data.baseAmount ?? null,
+    payment_method: data.paymentMethod ?? null,
+  };
 }
 
 function determineIsPro(event: string, status: string): boolean | null {
@@ -140,7 +166,7 @@ export default async function handler(req: any, res: any) {
     const status = (data.status || "unknown").toLowerCase();
     const desiredIsPro = determineIsPro(event, status);
     
-    console.log(`[CAKTO] Processando evento: ${event} | Status: ${status} | E-mail: ${email} | DesiredIsPro: ${desiredIsPro}`);
+    console.log(`[CAKTO] Processando evento: ${event} | Status: ${status} | E-mail: ${maskEmail(email)} | DesiredIsPro: ${desiredIsPro}`);
 
     if (desiredIsPro === null) {
       console.log(`[CAKTO] Evento ignorado (não relevante para status PRO): ${event}`);
@@ -156,7 +182,7 @@ export default async function handler(req: any, res: any) {
         event_type: event,
         status: status,
         customer_email: email,
-        payload: payload,
+        payload: minimalPayload(payload),
       });
 
     if (idempotencyError) {
@@ -167,27 +193,24 @@ export default async function handler(req: any, res: any) {
       throw idempotencyError;
     }
 
-    // 3. Localizar Usuário de forma confiável na versão 2.106.2
-    // Como getUserByEmail não existe, usamos listUsers com paginação se necessário,
-    // mas listUsers do Supabase Admin API suporta busca eficiente.
-    const { data: usersData, error: authError } = await supabase.auth.admin.listUsers();
+    // 3. Localizar o usuário pelo e-mail direto no auth.users.
+    // (auth.admin.listUsers() é paginado e só devolvia os 50 primeiros.)
+    const { data: userId, error: lookupError } = await supabase.rpc("get_user_id_by_email", {
+      p_email: email,
+    });
 
-    if (authError) {
-      console.error("[CAKTO] Erro ao listar usuários no Auth:", authError.message);
-      throw authError;
+    if (lookupError) {
+      console.error("[CAKTO] Erro ao buscar usuário por e-mail:", lookupError.code);
+      throw lookupError;
     }
 
-    // Localiza o usuário pelo e-mail na lista retornada
-    const targetUser = usersData.users.find(
-      (u) => u.email?.toLowerCase() === email.toLowerCase()
-    );
-
-    if (!targetUser) {
-      console.warn("[CAKTO] Usuário não encontrado no Supabase Auth para o email:", email);
+    if (!userId) {
+      console.warn("[CAKTO] Usuário não encontrado no Supabase Auth para o email:", maskEmail(email));
       return res.status(200).json({ ok: true, ignored: true, reason: "user_not_found_in_auth" });
     }
 
-    const userId = targetUser.id;
+    const { data: authData } = await supabase.auth.admin.getUserById(userId);
+    const targetUser = authData?.user;
 
     // 4. Localizar/Criar Perfil de forma confiável
     const { data: profile, error: profileError } = await supabase
@@ -207,7 +230,7 @@ export default async function handler(req: any, res: any) {
         id: userId,
         is_pro: desiredIsPro,
         pro_source: desiredIsPro ? "cakto" : null,
-        name: targetUser.user_metadata?.name || email.split("@")[0] || "Usuário",
+        name: targetUser?.user_metadata?.name || email.split("@")[0] || "Usuário",
         level: 1,
         xp: 0,
         streak: 0,
@@ -227,11 +250,11 @@ export default async function handler(req: any, res: any) {
       if (updateError) throw updateError;
     }
 
-    console.log(`[CAKTO] Sucesso: Perfil ${userId} (${email}) atualizado para PRO: ${desiredIsPro}`);
-    return res.status(200).json({ ok: true, email, isPro: desiredIsPro });
+    console.log(`[CAKTO] Sucesso: Perfil ${userId} atualizado para PRO: ${desiredIsPro}`);
+    return res.status(200).json({ ok: true, isPro: desiredIsPro });
 
   } catch (error: any) {
-    console.error("[CAKTO ERROR]", error);
+    console.error("[CAKTO ERROR]", error?.code ?? error?.name ?? "erro", error?.message ?? "");
     return res.status(500).json({ ok: false, error: "Erro interno de processamento do webhook" });
   }
 }

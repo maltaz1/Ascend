@@ -8,7 +8,8 @@
     "build": "vite build",
     "preview": "vite preview",
     "check": "tsc --noEmit",
-    "format": "prettier --write ."
+    "format": "prettier --write .",
+    "prepare": "git config core.hooksPath .githooks || exit 0"
   },
   "dependencies": {
     "@radix-ui/react-accordion": "^1.2.12",
@@ -57,7 +58,6 @@
     "react-router-dom": "^7.18.2",
     "recharts": "^2.15.2",
     "sonner": "^2.0.7",
-    "streamdown": "^1.6.11",
     "tailwind-merge": "^3.3.1",
     "tailwindcss-animate": "^1.0.7",
     "vaul": "^1.1.2",
