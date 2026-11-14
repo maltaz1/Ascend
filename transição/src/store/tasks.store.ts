@@ -1,5 +1,5 @@
 import { supabase } from "@/lib/supabase";
-import { generateOccurrenceForNewTask } from "@/lib/recurrence";
+import { generateAllRecurringOccurrences, generateOccurrenceForNewTask } from "@/lib/recurrence";
 import type { RecurrenceConfig } from "@/types/recurrence";
 import { Task } from "./types";
 import { _data, notify, persistState, markActiveToday, markSelfWrite } from "./state";
@@ -221,7 +221,7 @@ export async function loadTasksData(): Promise<void> {
 
   const { data, error } = await supabase
     .from("tasks")
-    .select("id, title, description, date, completed, priority, category, created_at, is_recurring, recurrence")
+    .select("id, title, description, date, completed, priority, category, created_at, is_recurring, recurrence, parent_id")
     .eq("user_id", user.id)
     .order("created_at", { ascending: false });
 
@@ -246,6 +246,7 @@ export async function loadTasksData(): Promise<void> {
     createdAt: task.created_at,
     isRecurring: task.is_recurring ?? false,
     recurrence: task.recurrence as Task["recurrence"],
+    parentId: task.parent_id ?? undefined,
   }));
 
   const t3 = performance.now();
@@ -294,6 +295,53 @@ export async function saveTask(input: {
     if (isRecurring && data?.id) await generateOccurrenceForNewTask(data.id, user.id);
   }
 
+  await loadTasksData();
+  return {};
+}
+
+// Gera as ocorrências das tarefas recorrentes (de hoje até 60 dias) e recarrega a lista
+// se algo novo foi criado — mesmo fluxo do handleSelectDate de pages/Tasks.tsx do web.
+export async function generateRecurringForDate(date: string): Promise<number> {
+  const generated = await generateAllRecurringOccurrences(date);
+  if (generated > 0) await loadTasksData();
+  return generated;
+}
+
+function withException(recurrence: RecurrenceConfig, date: string): RecurrenceConfig {
+  return { ...recurrence, exceptions: [...(recurrence.exceptions || []), date] };
+}
+
+// "Excluir apenas esta ocorrência" (handleDeleteThisOccurrence do web).
+export async function deleteRecurringOccurrence(task: Task): Promise<{ error?: string }> {
+  if (task.parentId) {
+    const { error } = await supabase.from("tasks").delete().eq("id", task.id);
+    if (error) return { error: error.message };
+    const parent = _data.tasks.find(t => t.id === task.parentId);
+    if (parent?.recurrence) {
+      await supabase.from("tasks").update({ recurrence: withException(parent.recurrence, task.date) }).eq("id", parent.id);
+    }
+  } else if (task.isRecurring && task.recurrence) {
+    const { error } = await supabase.from("tasks").update({ recurrence: withException(task.recurrence, task.date) }).eq("id", task.id);
+    if (error) return { error: error.message };
+  } else {
+    const { error } = await supabase.from("tasks").delete().eq("id", task.id);
+    if (error) return { error: error.message };
+  }
+  await loadTasksData();
+  return {};
+}
+
+// "Excluir de todos os dias" (handleDeleteAllOccurrences do web): apagar a tarefa-mãe
+// apaga em cascata as ocorrências já criadas.
+export async function deleteRecurringSeries(task: Task): Promise<{ error?: string }> {
+  const parent = task.parentId ? _data.tasks.find(t => t.id === task.parentId) : task.isRecurring ? task : undefined;
+  const targetId = parent?.id ?? task.id;
+  const { error } = await supabase.from("tasks").delete().eq("id", targetId);
+  if (error) return { error: error.message };
+  _data.tasks = _data.tasks.filter(t => t.id !== targetId && t.parentId !== targetId);
+  markSelfWrite("tasks", targetId);
+  notify();
+  persistState();
   await loadTasksData();
   return {};
 }

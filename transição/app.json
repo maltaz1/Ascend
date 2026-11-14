@@ -27,6 +27,12 @@
       "expo-sqlite",
       "expo-font",
       [
+        "expo-image-picker",
+        {
+          "photosPermission": "O Ascend usa suas fotos para você escolher a foto de perfil."
+        }
+      ],
+      [
         "expo-splash-screen",
         {
           "image": "./assets/splash-logo.png",

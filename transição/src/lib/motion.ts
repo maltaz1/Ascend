@@ -10,6 +10,15 @@ AccessibilityInfo.addEventListener("reduceMotionChanged", value => {
   reduceMotion = value;
 });
 
+// Chave "Animações" das Configurações (como no web): desligada, tudo aparece sem animar.
+let animationsOff = false;
+export function setAnimationsEnabled(enabled: boolean) {
+  animationsOff = !enabled;
+}
+export const animationsEnabled = () => !animationsOff;
+
+export const prefersReducedMotion = () => reduceMotion || animationsOff;
+
 const easeOutCubic = (t: number) => 1 - Math.pow(1 - t, 3);
 
 // Leva uma lista de números até o alvo, sempre partindo do valor que está na tela
@@ -25,7 +34,7 @@ export function useTween(target: number[], duration = 700): number[] {
     const startedAt = performance.now();
     let frame = 0;
     const step = (now: number) => {
-      const progress = reduceMotion ? 1 : Math.min(1, (now - startedAt) / duration);
+      const progress = prefersReducedMotion() ? 1 : Math.min(1, (now - startedAt) / duration);
       const eased = easeOutCubic(progress);
       const next = end.map((v, i) => (start[i] ?? 0) + (v - (start[i] ?? 0)) * eased);
       shown.current = next;
@@ -51,7 +60,7 @@ export function useCheckPop(checked: boolean): Animated.Value {
   useEffect(() => {
     const becameChecked = checked && !previous.current;
     previous.current = checked;
-    if (!becameChecked || reduceMotion) return;
+    if (!becameChecked || prefersReducedMotion()) return;
     scale.setValue(0.6);
     Animated.spring(scale, {
       toValue: 1,

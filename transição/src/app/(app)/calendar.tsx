@@ -9,15 +9,14 @@ import {
   deleteCalendarNote,
   getCalendarNoteForDate,
   loadCalendarNotes,
-  updateCalendarNote,
 } from "@/store/calendar-notes.store";
 import { APPOINTMENT_CATEGORIES, APPOINTMENT_COLORS, type Appointment, type CalendarNote } from "@/store/calendar.types";
-import { notifyError, notifySuccess } from "@/lib/notifications";
+import { notifyError, notifyInfo, notifySuccess } from "@/lib/notifications";
 import { IS_DEMO } from "@/demo";
 import { useStore } from "@/hooks/useStore";
-import { Button, Card, EmptyState, Input, Marginalia, Screen, Sheet, Txt } from "@/components/ui";
+import { Button, Card, EmptyState, IconButton, Input, Marginalia, Screen, Sheet, Txt } from "@/components/ui";
 import { longDate, TaskRow } from "@/components/rows";
-import { fonts, useTheme } from "@/theme";
+import { fonts, resolveColor, useTheme } from "@/theme";
 
 const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 const WEEK = ["D", "S", "T", "Q", "Q", "S", "S"];
@@ -31,8 +30,7 @@ export default function CalendarScreen() {
   const [selected, setSelected] = useState(today);
   const [appointments, setAppointments] = useState<Appointment[]>([]);
   const [notes, setNotes] = useState<CalendarNote[]>([]);
-  // Rascunho da anotação, preso ao dia em que foi digitado.
-  const [draft, setDraft] = useState<{ date: string; text: string } | null>(null);
+  const [noteText, setNoteText] = useState("");
   const [showNew, setShowNew] = useState(false);
   const [showNote, setShowNote] = useState(false);
 
@@ -57,8 +55,6 @@ export default function CalendarScreen() {
   }, []);
 
   const note = getCalendarNoteForDate(notes, selected);
-  const noteText = draft?.date === selected ? draft.text : note?.content ?? "";
-  const setNoteText = (text: string) => setDraft({ date: selected, text });
 
   const year = cursor.getFullYear();
   const month = cursor.getMonth();
@@ -66,30 +62,60 @@ export default function CalendarScreen() {
   const dayTasks = data.tasks.filter(t => t.date === selected);
   const dayApts = getAppointmentsForDate(appointments, selected).sort((a, b) => a.startTime.localeCompare(b.startTime));
 
+  // CalendarNoteModal do web: sempre cria uma anotação nova para o dia.
   const saveNote = async () => {
-    if (note) {
-      if (!noteText.trim()) await deleteCalendarNote(note.id);
-      else await updateCalendarNote(note.id, { content: noteText });
-    } else if (noteText.trim()) {
-      await addCalendarNote({ content: noteText, date: selected });
+    if (!noteText.trim()) {
+      notifyInfo("Anotação não pode estar vazia");
+      return false;
     }
-    notifySuccess("Anotação salva");
-    setDraft(null);
-    void reload();
+    try {
+      const created = await addCalendarNote({ content: noteText.trim(), date: selected });
+      if (!created) {
+        notifyError("Erro ao criar anotação");
+        return false;
+      }
+      notifySuccess("Anotação criada!");
+      setNoteText("");
+      void reload();
+      return true;
+    } catch {
+      notifyError("Erro ao salvar anotação");
+      return false;
+    }
   };
 
-  const removeApt = (apt: Appointment) => {
-    Alert.alert("Excluir compromisso", `Excluir "${apt.title}"?`, [
+  const removeNote = (id: string) =>
+    Alert.alert("Deletar anotação", "Tem certeza que deseja deletar esta anotação?", [
       { text: "Cancelar", style: "cancel" },
       {
-        text: "Excluir",
+        text: "Deletar",
         style: "destructive",
         onPress: async () => {
-          await deleteAppointment(apt.id);
+          await deleteCalendarNote(id);
+          notifySuccess("Anotação deletada!");
           void reload();
         },
       },
     ]);
+
+  const removeApt = (apt: Appointment) => {
+    Alert.alert("Deletar compromisso", "Tem certeza que deseja deletar este compromisso?", [
+      { text: "Cancelar", style: "cancel" },
+      {
+        text: "Deletar",
+        style: "destructive",
+        onPress: async () => {
+          await deleteAppointment(apt.id);
+          notifySuccess("Compromisso deletado!");
+          void reload();
+        },
+      },
+    ]);
+  };
+
+  const goToToday = () => {
+    setCursor(new Date());
+    setSelected(today);
   };
 
   // Grade de 6 semanas com os dias dos meses vizinhos apagados (como no site).
@@ -98,10 +124,11 @@ export default function CalendarScreen() {
     const d = new Date(year, month, 1 - firstWeekday + i);
     return { key: toYYYYMMDD(d), day: d.getDate(), inMonth: d.getMonth() === month };
   });
-  const goalsCount = data.goals.filter(g => g.type !== "semanal" && g.deadline === selected).length;
+  const dayGoals = data.goals.filter(g => g.deadline === selected);
+  const goalsCount = dayGoals.length;
 
   return (
-    <Screen title="Calendário" subtitle="Visão geral de tarefas e metas">
+    <Screen title="Calendário" subtitle="Visão geral de tarefas e metas" right={<IconButton icon="calendar-outline" label="Hoje" onPress={goToToday} />}>
       <Card>
         <View style={{ flexDirection: "row", alignItems: "center" }}>
           <CalArrow icon="chevron-back" label="Mês anterior" onPress={() => setCursor(new Date(year, month - 1, 1))} />
@@ -122,12 +149,12 @@ export default function CalendarScreen() {
             const isSel = key === selected;
             const isToday = key === today;
             const list = data.tasks.filter(t => t.date === key);
+            const cellGoals = data.goals.filter(g => g.deadline === key);
             const marks = [
               list.some(t => t.completed) ? theme.success : null,
               list.some(t => !t.completed && t.date >= today) ? theme.accent : null,
               list.some(t => !t.completed && t.date < today) ? theme.danger : null,
               appointments.some(a => a.date === key) ? theme.blue : null,
-              notes.some(n => n.date === key) ? theme.accent : null,
             ].filter(Boolean) as string[];
             return (
               <View key={key} style={{ width: `${100 / 7}%`, padding: 2.5 }}>
@@ -151,9 +178,14 @@ export default function CalendarScreen() {
                   <Txt style={{ fontFamily: isToday ? fonts.display : fonts.bodySemi, fontSize: 13 }} color={isToday ? theme.accent : theme.ink}>
                     {day}
                   </Txt>
-                  <View style={{ flexDirection: "row", gap: 2 }}>
-                    {marks.slice(0, 3).map((c, j) => (
+                  <View style={{ flexDirection: "row", flexWrap: "wrap", justifyContent: "center", alignItems: "center", gap: 2 }}>
+                    {marks.map((c, j) => (
                       <Dot key={j} color={c} />
+                    ))}
+                    {cellGoals.slice(0, 2).map(g => (
+                      <Txt key={g.id} style={{ fontSize: 10, lineHeight: 12 }}>
+                        {g.emoji}
+                      </Txt>
                     ))}
                   </View>
                 </Pressable>
@@ -196,28 +228,6 @@ export default function CalendarScreen() {
       </View>
 
       <Card>
-        <Marginalia>Compromissos</Marginalia>
-        {dayApts.length === 0 ? (
-          <EmptyState text="Nenhum compromisso." />
-        ) : (
-          dayApts.map(apt => (
-            <Pressable key={apt.id} onLongPress={() => removeApt(apt)} style={{ flexDirection: "row", gap: 12, alignItems: "center", backgroundColor: theme.raised, borderRadius: 6, padding: 12 }}>
-              <View style={{ width: 3, alignSelf: "stretch", borderRadius: 2, backgroundColor: apt.color }} />
-              <View style={{ flex: 1 }}>
-                <Txt variant="bodyStrong">{apt.title}</Txt>
-                <Txt variant="caption" muted>
-                  {apt.category ? `${apt.category} · ` : ""}
-                </Txt>
-              </View>
-              <Txt variant="mono" muted style={{ fontSize: 12 }}>
-                {apt.startTime}–{apt.endTime}
-              </Txt>
-            </Pressable>
-          ))
-        )}
-      </Card>
-
-      <Card>
         <Marginalia>Tarefas</Marginalia>
         {dayTasks.length === 0 ? (
           <EmptyState text="Nenhuma tarefa." />
@@ -230,22 +240,79 @@ export default function CalendarScreen() {
         )}
       </Card>
 
-      {note || noteText ? (
-        <Card tone="amber">
-          <Marginalia>Anotação do dia</Marginalia>
-          <Txt style={{ lineHeight: 21 }}>{note?.content ?? noteText}</Txt>
-          <Button label="Editar anotação" variant="ghost" compact onPress={() => setShowNote(true)} />
-        </Card>
-      ) : null}
+      <Card>
+        <Marginalia>Metas (prazo)</Marginalia>
+        {dayGoals.length === 0 ? (
+          <EmptyState text="Nenhuma meta com prazo neste dia" />
+        ) : (
+          dayGoals.map(goal => {
+            const color = resolveColor(goal.color, theme);
+            return (
+              <View key={goal.id} style={{ flexDirection: "row", alignItems: "center", gap: 8, padding: 10, borderRadius: 8, borderWidth: 1, borderColor: `${color}40`, backgroundColor: `${color}14` }}>
+                <Txt style={{ fontSize: 16 }}>{goal.emoji}</Txt>
+                <Txt variant="label" style={{ flex: 1 }} numberOfLines={1}>
+                  {goal.title}
+                </Txt>
+                {goal.completedAt ? <Ionicons name="checkmark-circle" size={14} color={theme.success} /> : null}
+              </View>
+            );
+          })
+        )}
+      </Card>
+
+      <Card>
+        <Marginalia>Compromissos</Marginalia>
+        {dayApts.length === 0 ? (
+          <EmptyState text="Nenhum compromisso" />
+        ) : (
+          dayApts.map(apt => {
+            const color = resolveColor(apt.color, theme);
+            return (
+              <View key={apt.id} style={{ flexDirection: "row", gap: 8, alignItems: "flex-start", borderRadius: 8, padding: 10, borderWidth: 1, borderColor: `${color}33`, backgroundColor: `${color}14` }}>
+                <View style={{ flex: 1 }}>
+                  <Txt variant="caption" color={color} style={{ fontFamily: fonts.bodyBold }}>
+                    {apt.startTime} - {apt.endTime}
+                  </Txt>
+                  <Txt variant="label" numberOfLines={1}>
+                    {apt.title}
+                  </Txt>
+                  {apt.category ? (
+                    <Txt variant="caption" muted style={{ fontSize: 10 }}>
+                      {apt.category}
+                    </Txt>
+                  ) : null}
+                </View>
+                <Pressable onPress={() => removeApt(apt)} hitSlop={8} accessibilityLabel="Deletar compromisso" style={{ padding: 4 }}>
+                  <Ionicons name="close" size={14} color={theme.inkMuted} />
+                </Pressable>
+              </View>
+            );
+          })
+        )}
+      </Card>
+
+      <Card>
+        <Marginalia>Anotação</Marginalia>
+        {note ? (
+          <>
+            <Txt style={{ lineHeight: 20 }}>{note.content}</Txt>
+            <Button label="Deletar anotação" variant="ghost" compact onPress={() => removeNote(note.id)} />
+          </>
+        ) : (
+          <EmptyState text="Nenhuma anotação" />
+        )}
+      </Card>
 
       <AppointmentSheet visible={showNew} date={selected} onClose={() => setShowNew(false)} onSaved={reload} />
-      <Sheet visible={showNote} onClose={() => setShowNote(false)} title="Anotação do dia">
-        <Input value={noteText} onChangeText={setNoteText} placeholder="Escreva algo sobre este dia..." multiline />
+      <Sheet visible={showNote} onClose={() => setShowNote(false)} title="Nova Anotação">
+        <Input label="Anotação *" value={noteText} onChangeText={setNoteText} placeholder="Escreva sua anotação para este dia..." multiline />
+        <Txt variant="caption" muted>
+          {noteText.length} caracteres
+        </Txt>
         <Button
-          label="Salvar anotação"
+          label="Salvar"
           onPress={async () => {
-            await saveNote();
-            setShowNote(false);
+            if (await saveNote()) setShowNote(false);
           }}
         />
       </Sheet>
@@ -287,24 +354,38 @@ function AppointmentSheet({
   const [description, setDescription] = useState("");
   const [startTime, setStartTime] = useState("09:00");
   const [endTime, setEndTime] = useState("10:00");
-  const [category, setCategory] = useState<string>(APPOINTMENT_CATEGORIES[0]);
+  const [category, setCategory] = useState<string>("");
   const [color, setColor] = useState<string>(APPOINTMENT_COLORS[0].value);
   const [saving, setSaving] = useState(false);
 
-  const valid = /^\d{2}:\d{2}$/.test(startTime) && /^\d{2}:\d{2}$/.test(endTime) && endTime > startTime;
+  const format = /^\d{2}:\d{2}$/.test(startTime) && /^\d{2}:\d{2}$/.test(endTime);
+  const valid = format && endTime > startTime;
 
   const save = async () => {
-    if (!title.trim() || !valid) return;
+    if (!title.trim()) {
+      notifyInfo("Título é obrigatório");
+      return;
+    }
+    if (!valid) return;
     setSaving(true);
-    const created = await addAppointment({ title: title.trim(), description, startTime, endTime, date, category, color });
-    setSaving(false);
-    if (!created) {
+    try {
+      const created = await addAppointment({ title: title.trim(), description: description.trim() || undefined, startTime, endTime, date, category: category || undefined, color });
+      if (!created) {
+        notifyError("Erro ao criar compromisso");
+        return;
+      }
+    } catch {
       notifyError("Erro ao salvar compromisso");
       return;
+    } finally {
+      setSaving(false);
     }
     notifySuccess("Compromisso criado!");
     setTitle("");
     setDescription("");
+    setStartTime("09:00");
+    setEndTime("10:00");
+    setCategory("");
     onSaved();
     onClose();
   };
@@ -314,26 +395,27 @@ function AppointmentSheet({
       <Txt variant="label" muted>
         {new Date(`${date}T12:00:00`).toLocaleDateString("pt-BR", { day: "numeric", month: "long", year: "numeric" })}
       </Txt>
-      <Input label="Título *" value={title} onChangeText={setTitle} placeholder="Ex.: Consulta médica" />
+      <Input label="Título *" value={title} onChangeText={setTitle} placeholder="Ex: Reunião com cliente" />
       <View style={{ flexDirection: "row", gap: 10 }}>
         <View style={{ flex: 1 }}>
-          <Input label="Início" value={startTime} onChangeText={setStartTime} placeholder="09:00" keyboardType="numbers-and-punctuation" maxLength={5} />
+          <Input label="Início *" value={startTime} onChangeText={setStartTime} placeholder="09:00" keyboardType="numbers-and-punctuation" maxLength={5} />
         </View>
         <View style={{ flex: 1 }}>
-          <Input label="Fim" value={endTime} onChangeText={setEndTime} placeholder="10:00" keyboardType="numbers-and-punctuation" maxLength={5} />
+          <Input label="Término *" value={endTime} onChangeText={setEndTime} placeholder="10:00" keyboardType="numbers-and-punctuation" maxLength={5} />
         </View>
       </View>
       {!valid && (
         <Txt variant="caption" color={theme.danger}>
-          Use o formato HH:MM e um fim depois do início.
+          {format ? "Hora de término deve ser após a hora de início" : "Use o formato HH:MM"}
         </Txt>
       )}
-      <Input label="Descrição (opcional)" value={description} onChangeText={setDescription} multiline />
+      <Input label="Descrição" value={description} onChangeText={setDescription} placeholder="Adicione detalhes sobre o compromisso..." multiline />
+      <Marginalia>Categoria</Marginalia>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {APPOINTMENT_CATEGORIES.map(c => (
           <Pressable
             key={c}
-            onPress={() => setCategory(c)}
+            onPress={() => setCategory(category === c ? "" : c)}
             style={{
               paddingHorizontal: 10,
               paddingVertical: 6,
@@ -347,6 +429,7 @@ function AppointmentSheet({
           </Pressable>
         ))}
       </View>
+      <Marginalia>Cor da tinta</Marginalia>
       <View style={{ flexDirection: "row", gap: 10, flexWrap: "wrap" }}>
         {APPOINTMENT_COLORS.map(c => (
           <Pressable
@@ -357,7 +440,7 @@ function AppointmentSheet({
           />
         ))}
       </View>
-      <Button label="Salvar compromisso" onPress={save} loading={saving} disabled={!title.trim() || !valid} />
+      <Button label="Criar Compromisso" onPress={save} loading={saving} />
     </Sheet>
   );
 }

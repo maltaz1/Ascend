@@ -11,6 +11,7 @@ export interface Task {
   createdAt: string;
   isRecurring?: boolean;
   recurrence?: RecurrenceConfig;
+  parentId?: string;
 }
 
 export interface GoalStep {

@@ -1,3 +1,4 @@
+import { useState } from "react";
 import { Animated, Pressable, View } from "react-native";
 import { Alert } from "@/lib/alert";
 import { useCheckPop } from "@/lib/motion";
@@ -8,17 +9,16 @@ import {
   getTaskStatus,
   getTodayString,
   toggleHabitDate,
-  toYYYYMMDD,
   uncompleteTask,
   deleteTask,
 } from "@/lib/store";
 import type { Goal, Habit, Task } from "@/lib/store";
 import { removeGoal, toggleLongTermStep, toggleWeeklyGoalDay } from "@/store/goals.store";
 import { syncHabitToGoals } from "@/lib/syncHabitGoals";
-import { getMondayOfDate, getLinkedHabitWeekCheckins } from "@/lib/weeklyGoals";
+import { getMondayOfDate, getLinkedHabitWeekCheckins, getWeeklySparkline, isWeeklyGoalHit, type WeeklyGoal } from "@/lib/weeklyGoals";
 import { notifyError, notifyInfo, notifySuccess } from "@/lib/notifications";
 import { fonts, resolveColor, useTheme } from "@/theme";
-import { Card, ProgressBar, Row, Stamp, Txt } from "./ui";
+import { Button, Card, ProgressBar, Row, Stamp, Txt } from "./ui";
 import { Sparkline } from "./charts";
 
 const PRIORITY_LABEL: Record<Task["priority"], string> = { low: "Baixa", medium: "Média", high: "Alta" };
@@ -68,7 +68,7 @@ export function TaskRow({ task }: { task: Task }) {
 // Tarefa na aba Tarefas: cartão com faixa da prioridade à esquerda e caixinha
 // ---------------------------------------------------------------------------
 
-export function TaskCard({ task, onPress }: { task: Task; onPress?: () => void }) {
+export function TaskCard({ task, onPress, onDelete }: { task: Task; onPress?: () => void; onDelete?: () => void }) {
   const theme = useTheme();
   const color = priorityColor(task.priority, theme);
   const overdue = getTaskStatus(task) === "overdue";
@@ -136,7 +136,7 @@ export function TaskCard({ task, onPress }: { task: Task; onPress?: () => void }
           </Txt>
         ) : null}
       </View>
-      <Pressable onPress={confirmDelete} hitSlop={10} accessibilityLabel="Excluir tarefa">
+      <Pressable onPress={onDelete ?? confirmDelete} hitSlop={10} accessibilityLabel="Excluir tarefa">
         <Ionicons name="trash-outline" size={18} color={theme.inkMuted} />
       </Pressable>
     </Pressable>
@@ -205,10 +205,33 @@ function confirmDeleteGoal(goal: Goal) {
       onPress: async () => {
         const { error } = await removeGoal(goal.id);
         if (error) notifyError("Não foi possível remover a meta", error);
-        else notifyInfo("Meta deletada");
+        else notifySuccess("Meta excluída");
       },
     },
   ]);
+}
+
+async function deleteLongTermGoal(goal: Goal) {
+  const { error } = await removeGoal(goal.id);
+  if (error) notifyError("Não foi possível remover a meta", error);
+  else notifyInfo("Meta deletada");
+}
+
+function toWeeklyGoal(goal: Goal, days: boolean[]): WeeklyGoal {
+  return {
+    id: goal.id,
+    title: goal.title,
+    emoji: goal.emoji,
+    color: goal.color,
+    targetFrequency: goal.targetFrequency ?? 1,
+    daysCompletedWeek: days,
+    weekStart: goal.weekStart ?? null,
+    streak: goal.streak ?? 0,
+    recordStreak: goal.recordStreak ?? 0,
+    linkedHabitId: goal.linkedHabitId ?? null,
+    weeklyHistory: goal.weeklyHistory ?? [],
+    createdAt: goal.createdAt,
+  };
 }
 
 // Os dias vêm do hábito vinculado quando existe (fonte de verdade no web).
@@ -318,8 +341,12 @@ export function WeeklyGoalCard({ goal, habits }: { goal: Goal; habits: Habit[] }
   const completed = days.filter(Boolean).length;
   const todayIdx = (new Date().getDay() + 6) % 7;
   const linked = goal.linkedHabitId ? habits.find(h => h.id === goal.linkedHabitId) : undefined;
-  const consistency = Math.min(100, Math.round((completed / target) * 100));
-  const spark = days.map((_, i) => days.slice(0, i + 1).filter(Boolean).length).slice(0, todayIdx + 1);
+  const weeklyGoal = toWeeklyGoal(goal, days);
+  const hit = isWeeklyGoalHit(weeklyGoal);
+  const spark = getWeeklySparkline(weeklyGoal).map(v => Math.min(100, Math.max(0, v)));
+  const consistency = spark[spark.length - 1] ?? 0;
+  const streak = goal.streak ?? 0;
+  const barColor = hit ? theme.success : color;
 
   return (
     <Card>
@@ -348,8 +375,8 @@ export function WeeklyGoalCard({ goal, habits }: { goal: Goal; habits: Habit[] }
             </Pressable>
           </View>
           <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6, alignItems: "center" }}>
-            <Stamp label={`${completed}/${target} sem.`} tone="violet" />
-            <Stamp label={`${goal.streak ?? 0} seg.`} icon="flame-outline" />
+            <Stamp label={hit ? "Atingida" : `${completed}/${target} sem.`} tone={hit ? "green" : "violet"} />
+            <Stamp label={`${streak} seg.`} icon={streak >= 7 ? "flame" : "flame-outline"} tone={streak >= 7 ? "amber" : "ink"} />
             {linked ? (
               <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
                 <Ionicons name="calendar-outline" size={12} color={theme.inkMuted} />
@@ -362,7 +389,7 @@ export function WeeklyGoalCard({ goal, habits }: { goal: Goal; habits: Habit[] }
         </View>
       </View>
 
-      <ProgressBar percent={consistency} color={color} />
+      <ProgressBar percent={Math.min(100, (completed / target) * 100)} color={barColor} />
 
       <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 6 }}>
         {DAY_SHORT.map((label, i) => {
@@ -411,12 +438,23 @@ export function WeeklyGoalCard({ goal, habits }: { goal: Goal; habits: Habit[] }
       </View>
 
       <View style={{ height: 1, backgroundColor: theme.border }} />
-      <View style={{ alignSelf: "flex-end", flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: theme.raised, borderRadius: 16, padding: 12 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
+        {(goal.recordStreak ?? 0) > 0 ? (
+          <>
+            <Ionicons name="trophy" size={11} color="#FCD34D" />
+            <Txt variant="caption" muted>
+              Recorde: {goal.recordStreak} semanas
+            </Txt>
+          </>
+        ) : null}
+      </View>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: theme.raised, borderRadius: 16, padding: 12 }}>
         <View>
           <Txt variant="caption" muted>
             Consistência
           </Txt>
-          <Txt variant="h2" color={color}>
+          <Txt variant="h2" color={barColor}>
             {consistency}%
           </Txt>
           <Txt variant="caption" muted>
@@ -424,16 +462,17 @@ export function WeeklyGoalCard({ goal, habits }: { goal: Goal; habits: Habit[] }
           </Txt>
         </View>
         <View>
-          <Sparkline values={spark.length ? spark : [0]} color={color} width={130} height={34} />
+          <Sparkline values={spark.length ? spark : [0]} color={barColor} width={130} height={34} max={100} />
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
             <Txt style={{ fontSize: 9 }} muted>
-              início
+              {spark.length > 1 ? `${spark.length - 1} sem. atrás` : "início"}
             </Txt>
             <Txt style={{ fontSize: 9 }} muted>
               agora
             </Txt>
           </View>
         </View>
+      </View>
       </View>
     </Card>
   );
@@ -462,15 +501,14 @@ export function LongTermGoalMini({ goal }: { goal: Goal }) {
   );
 }
 
-// Meta de longo prazo completa (aba Metas), com etapas.
+// Meta de longo prazo completa (aba Metas): etapas aparecem ao expandir, como no web.
 export function LongTermGoalCard({ goal }: { goal: Goal }) {
   const theme = useTheme();
+  const [expanded, setExpanded] = useState(false);
   const color = resolveColor(goal.color, theme);
   const progress = getGoalProgress(goal);
   const finished = Boolean(goal.completedAt);
-  const daysLeft = goal.deadline
-    ? Math.ceil((new Date(`${goal.deadline}T12:00:00`).getTime() - new Date(`${toYYYYMMDD(new Date())}T12:00:00`).getTime()) / 86400000)
-    : null;
+  const doneSteps = goal.steps.filter(s => s.completed).length;
 
   const toggleStep = async (stepId: string) => {
     const { xpGained, goalCompleted } = await toggleLongTermStep(goal.id, stepId);
@@ -478,8 +516,8 @@ export function LongTermGoalCard({ goal }: { goal: Goal }) {
   };
 
   return (
-    <Card tone={finished ? "green" : undefined}>
-      <View style={{ flexDirection: "row", gap: 12, alignItems: "flex-start" }}>
+    <Card>
+      <Pressable onPress={() => setExpanded(v => !v)} style={{ flexDirection: "row", gap: 12, alignItems: "flex-start" }}>
         <View
           style={{
             width: 42,
@@ -487,59 +525,74 @@ export function LongTermGoalCard({ goal }: { goal: Goal }) {
             borderRadius: 14,
             alignItems: "center",
             justifyContent: "center",
-            backgroundColor: `${color}22`,
+            backgroundColor: finished ? `${theme.success}26` : `${color}22`,
             borderWidth: 1,
-            borderColor: `${color}66`,
+            borderColor: finished ? `${theme.success}80` : `${color}66`,
           }}
         >
           <Txt style={{ fontSize: 19 }}>{goal.emoji?.trim() || goal.title.charAt(0).toUpperCase()}</Txt>
         </View>
         <View style={{ flex: 1, gap: 6 }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
-            <Txt variant="h3" style={{ flex: 1, fontSize: 16 }} numberOfLines={2}>
+            <Txt variant="h3" style={{ flex: 1, fontSize: 16 }} numberOfLines={1}>
               {goal.title}
             </Txt>
-            <Pressable onPress={() => confirmDeleteGoal(goal)} hitSlop={10} accessibilityLabel="Excluir meta">
-              <Ionicons name="trash-outline" size={16} color={theme.danger} />
-            </Pressable>
+            <Ionicons name={expanded ? "chevron-up" : "chevron-down"} size={16} color={theme.inkMuted} accessibilityLabel={expanded ? "Recolher etapas" : "Ver etapas"} />
           </View>
-          <View style={{ flexDirection: "row", gap: 6, flexWrap: "wrap" }}>
-            <Stamp label={finished ? "Concluída" : `${progress}%`} tone={finished ? "green" : "violet"} />
-            {daysLeft !== null && !finished ? (
-              <Stamp label={daysLeft >= 0 ? `${daysLeft} dias` : "Prazo vencido"} tone={daysLeft >= 0 ? "ink" : "red"} icon="time-outline" />
-            ) : null}
+          <View style={{ flexDirection: "row", gap: 8, flexWrap: "wrap", alignItems: "center" }}>
+            <Stamp label={finished ? "Concluída" : "Em curso"} tone={finished ? "green" : "violet"} />
+            <Txt variant="caption" muted>
+              {doneSteps}/{goal.steps.length} etapas
+            </Txt>
           </View>
+          {goal.description ? (
+            <Txt variant="caption" muted numberOfLines={2}>
+              {goal.description}
+            </Txt>
+          ) : null}
         </View>
-      </View>
-      {goal.description ? (
-        <Txt variant="label" muted>
-          {goal.description}
-        </Txt>
-      ) : null}
+      </Pressable>
       <ProgressBar percent={progress} color={finished ? theme.success : color} />
-      <View style={{ gap: 2 }}>
-        {goal.steps.map(step => (
-          <Pressable key={step.id} onPress={() => void toggleStep(step.id)} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 7 }}>
-            <View
+      {expanded ? (
+        <View style={{ gap: 6 }}>
+          {goal.steps.map(step => (
+            <Pressable
+              key={step.id}
+              onPress={() => void toggleStep(step.id)}
               style={{
-                width: 18,
-                height: 18,
-                borderRadius: 3,
-                borderWidth: step.completed ? 0 : 1.5,
-                borderColor: theme.inkMuted,
-                backgroundColor: step.completed ? theme.success : "transparent",
+                flexDirection: "row",
                 alignItems: "center",
-                justifyContent: "center",
+                gap: 10,
+                paddingVertical: 10,
+                paddingHorizontal: 12,
+                borderRadius: 10,
+                borderWidth: 1,
+                borderColor: step.completed ? `${theme.success}66` : theme.border,
+                backgroundColor: step.completed ? `${theme.success}0f` : "transparent",
               }}
             >
-              {step.completed ? <Ionicons name="checkmark" size={12} color="#fff" /> : null}
-            </View>
-            <Txt muted={step.completed} style={{ flex: 1, textDecorationLine: step.completed ? "line-through" : "none" }}>
-              {step.title}
-            </Txt>
-          </Pressable>
-        ))}
-      </View>
+              <View
+                style={{
+                  width: 18,
+                  height: 18,
+                  borderRadius: 3,
+                  borderWidth: step.completed ? 0 : 1.5,
+                  borderColor: color,
+                  backgroundColor: step.completed ? theme.success : "transparent",
+                  alignItems: "center",
+                  justifyContent: "center",
+                }}
+              >
+                {step.completed ? <Ionicons name="checkmark" size={12} color="#fff" /> : null}
+              </View>
+              <Txt muted={step.completed} numberOfLines={1} style={{ flex: 1, textDecorationLine: step.completed ? "line-through" : "none" }}>
+                {step.title}
+              </Txt>
+            </Pressable>
+          ))}
+          <Button label="Deletar Meta" variant="danger" icon="trash-outline" compact onPress={() => void deleteLongTermGoal(goal)} />
+        </View>
+      ) : null}
     </Card>
   );
 }

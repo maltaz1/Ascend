@@ -6,6 +6,7 @@ import {
   createHabit,
   getDailyHabitData,
   getHabitMonthProgress,
+  getHabitMonthRate,
   getHabitStreak,
   getTodayString,
   getWeeklyHabitData,
@@ -17,18 +18,22 @@ import { notifyError, notifyInfo, notifySuccess } from "@/lib/notifications";
 import { useStore } from "@/hooks/useStore";
 import { useInitialScroll } from "@/hooks/useInitialScroll";
 import { useAuth } from "@/hooks/useAuth";
-import { Button, Card, EmptyState, Fab, IconBox, Input, Marginalia, Metric, Screen, Segmented, Sheet, Txt } from "@/components/ui";
+import { Button, Card, EmptyState, Fab, IconBox, IconButton, Input, Marginalia, Metric, Screen, Segmented, Sheet, Txt } from "@/components/ui";
 import { AreaChart } from "@/components/charts";
 import { toggleHabitWithGoals } from "@/components/rows";
 import { fonts, resolveColor, useTheme } from "@/theme";
 import { useNewParam } from "@/hooks/useNewParam";
 import { useCheckPop } from "@/lib/motion";
+import { exportJson } from "@/lib/exportData";
 
 const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 const EMOJIS = ["🏃", "📚", "💪", "🧘", "💧", "🥗", "😴", "✍️", "🎵", "🧹", "💊", "🌿", "🧠", "🙏", "🎯"];
 // Mesmas "tintas" do formulário do web.
 const COLORS = ["var(--accent)", "var(--primary)", "#10B981", "#3B82F6", "#EF4444", "#EC4899", "#06B6D4"];
-const TARGETS = [7, 21, 30, 66, 100];
+const WEEK_DAYS = ["D", "S", "T", "Q", "Q", "S", "S"];
+
+// Visão escolhida (cards ou tabela) dura a sessão, como o sessionStorage do web.
+let sessionViewMode: "cards" | "table" = "table";
 
 const ROW_H = 78;
 const CELL = 30;
@@ -44,29 +49,32 @@ export default function HabitsScreen() {
   const [period, setPeriod] = useState<"daily" | "weekly">("daily");
   const [search, setSearch] = useState("");
   const [showNew, setShowNew] = useState(false);
+  const [viewMode, setViewModeState] = useState<"cards" | "table">(sessionViewMode);
+  const setViewMode = (mode: "cards" | "table") => {
+    sessionViewMode = mode;
+    setViewModeState(mode);
+  };
 
   const today = getTodayString();
   const daysInMonth = new Date(year, month + 1, 0).getDate();
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
   const habits = data.habits.filter(h => h.title.toLowerCase().includes(search.trim().toLowerCase()));
-  const doneToday = data.habits.filter(h => h.completedDates.includes(today)).length;
-  const elapsed = isCurrentMonth ? now.getDate() : daysInMonth;
-  const monthChecks = data.habits.reduce(
-    (sum, h) => sum + h.completedDates.filter(d => d.startsWith(`${year}-${String(month + 1).padStart(2, "0")}`)).length,
-    0
-  );
-  const rate = data.habits.length ? Math.round((monthChecks / (data.habits.length * elapsed)) * 100) : 0;
+  // Estatísticas e gráfico seguem a busca, como no web.
+  const doneToday = habits.filter(h => h.completedDates.includes(today)).length;
+  const rate = habits.length ? Math.round(habits.reduce((acc, h) => acc + getHabitMonthRate(h, year, month), 0) / habits.length) : 0;
 
   const chartData =
     period === "daily"
-      ? getDailyHabitData(year, month, data.habits).map(d => ({ label: String(d.day), count: d.count }))
-      : getWeeklyHabitData(year, month, data.habits).map(d => ({ label: d.week, count: d.count }));
+      ? getDailyHabitData(year, month, habits).map(d => ({ label: String(d.day), count: d.count }))
+      : getWeeklyHabitData(year, month, habits).map(d => ({ label: d.week, count: d.count }));
 
   const shiftMonth = (delta: number) => {
     const d = new Date(year, month + delta, 1);
     setYear(d.getFullYear());
     setMonth(d.getMonth());
   };
+
+  const exportData = () => void exportJson("habits.json", { date: new Date().toISOString(), habits });
 
   const confirmDelete = (habit: Habit) =>
     Alert.alert("Excluir hábito", `Excluir "${habit.title}"? O histórico será perdido.`, [
@@ -99,7 +107,21 @@ export default function HabitsScreen() {
 
   return (
     <Screen title="Hábitos" subtitle="Consistência é tudo" fab={<Fab label="Novo hábito" onPress={openNew} />}>
-      <Input boxed icon="search" placeholder="Buscar..." value={search} onChangeText={setSearch} />
+      <Segmented
+        options={[
+          { value: "cards", label: "Cards", icon: "grid-outline" },
+          { value: "table", label: "Tabela", icon: "list-outline" },
+        ]}
+        value={viewMode}
+        onChange={setViewMode}
+      />
+
+      <View style={{ flexDirection: "row", gap: 10, alignItems: "center" }}>
+        <View style={{ flex: 1 }}>
+          <Input boxed icon="search" placeholder="Buscar..." value={search} onChangeText={setSearch} />
+        </View>
+        <IconButton icon="download-outline" label="Exportar hábitos" onPress={exportData} />
+      </View>
 
       <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "center", gap: 18 }}>
         <MonthArrow icon="chevron-back" label="Mês anterior" onPress={() => shiftMonth(-1)} />
@@ -112,9 +134,12 @@ export default function HabitsScreen() {
       <Card>
         <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
           <IconBox icon="trending-up" size={38} />
-          <Txt variant="h2" style={{ flex: 1 }}>
-            Consistência em foco
-          </Txt>
+          <View style={{ flex: 1 }}>
+            <Txt variant="h2">Consistência em foco</Txt>
+            <Txt variant="caption" muted>
+              {period === "daily" ? "Seu ritmo dia a dia neste mês" : "Evolução semanal dos seus hábitos"}
+            </Txt>
+          </View>
           <View style={{ width: 150 }}>
             <Segmented
               options={[
@@ -134,13 +159,23 @@ export default function HabitsScreen() {
         />
       </Card>
 
+      {habits.length === 0 ? (
+        <Card>
+          <EmptyState icon="flame-outline" text={search ? "Nenhum hábito encontrado" : "Nenhum hábito criado"} />
+          <Txt variant="caption" muted style={{ textAlign: "center" }}>
+            {search ? "Tente buscar por outro termo." : "Hábitos são o alicerce da sua evolução. Comece criando seu primeiro hábito e construa sua streak!"}
+          </Txt>
+          {!search && <Button label="+ Criar primeiro hábito" onPress={openNew} />}
+        </Card>
+      ) : viewMode === "cards" ? (
+        <View style={{ gap: 12 }}>
+          {habits.map(habit => (
+            <HabitCardView key={habit.id} habit={habit} year={year} month={month} daysInMonth={daysInMonth} onDelete={() => confirmDelete(habit)} />
+          ))}
+        </View>
+      ) : (
       <Card padded={false} style={{ overflow: "hidden" }}>
-        {habits.length === 0 ? (
-          <View style={{ padding: 18, gap: 12 }}>
-            <EmptyState icon="flame-outline" text={search ? "Nenhum hábito encontrado" : "Nenhum hábito criado"} />
-            {!search && <Button label="Novo hábito" icon="add" onPress={openNew} />}
-          </View>
-        ) : (
+        {(
           <View style={{ flexDirection: "row" }}>
             {/* Coluna fixa com os hábitos */}
             <View style={{ width: 138, borderRightWidth: 1, borderRightColor: theme.border }}>
@@ -217,13 +252,14 @@ export default function HabitsScreen() {
           </View>
         )}
       </Card>
+      )}
 
       <View style={{ flexDirection: "row", gap: 12 }}>
         <Metric label="Hoje" value={String(doneToday)} valueColor={theme.accent} center />
         <Metric label="Taxa" value={`${rate}%`} valueColor={theme.success} center />
       </View>
       <View style={{ flexDirection: "row", gap: 12 }}>
-        <Metric label="Hábitos" value={String(data.habits.length)} valueColor={theme.primary} center />
+        <Metric label="Hábitos" value={String(habits.length)} valueColor={theme.primary} center />
         <View style={{ flex: 1 }} />
       </View>
       {!isPro && (
@@ -232,7 +268,7 @@ export default function HabitsScreen() {
         </Txt>
       )}
 
-      <NewHabitSheet visible={showNew} onClose={() => setShowNew(false)} />
+      <NewHabitSheet visible={showNew} onClose={() => setShowNew(false)} isPro={isPro} habitCount={data.habits.length} />
     </Screen>
   );
 }
@@ -251,7 +287,7 @@ function MonthArrow({ icon, label, onPress }: { icon: "chevron-back" | "chevron-
   );
 }
 
-function NewHabitSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
+function NewHabitSheet({ visible, onClose, isPro, habitCount }: { visible: boolean; onClose: () => void; isPro: boolean; habitCount: number }) {
   const theme = useTheme();
   const [title, setTitle] = useState("");
   const [emoji, setEmoji] = useState(EMOJIS[0]);
@@ -261,6 +297,10 @@ function NewHabitSheet({ visible, onClose }: { visible: boolean; onClose: () => 
 
   const handleSave = async () => {
     if (!title.trim()) return;
+    if (!isPro && habitCount >= FREE_LIMITS.habits) {
+      notifyInfo(`Plano grátis permite apenas ${FREE_LIMITS.habits} hábitos`);
+      return;
+    }
     setSaving(true);
     const { error } = await createHabit({ title, emoji, color, targetDays });
     setSaving(false);
@@ -270,6 +310,9 @@ function NewHabitSheet({ visible, onClose }: { visible: boolean; onClose: () => 
     }
     notifySuccess("Hábito criado!");
     setTitle("");
+    setEmoji(EMOJIS[0]);
+    setColor(COLORS[0]);
+    setTargetDays(30);
     onClose();
   };
 
@@ -308,9 +351,15 @@ function NewHabitSheet({ visible, onClose }: { visible: boolean; onClose: () => 
           />
         ))}
       </View>
-      <Marginalia>Meta (dias)</Marginalia>
-      <Segmented kind="stamp" options={TARGETS.map(days => ({ value: days, label: `${days} dias` }))} value={targetDays} onChange={setTargetDays} />
-      <Button label="Criar hábito" onPress={handleSave} loading={saving} disabled={!title.trim()} />
+      <Marginalia>Meta mensal · {targetDays} dias</Marginalia>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <IconButton icon="remove" label="Diminuir meta" onPress={() => setTargetDays(d => Math.max(1, d - 1))} />
+        <View style={{ flex: 1, height: 6, borderRadius: 3, backgroundColor: theme.track, overflow: "hidden" }}>
+          <View style={{ width: `${(targetDays / 31) * 100}%`, height: 6, backgroundColor: theme.primary }} />
+        </View>
+        <IconButton icon="add" label="Aumentar meta" onPress={() => setTargetDays(d => Math.min(31, d + 1))} />
+      </View>
+      <Button label="Criar Hábito" onPress={handleSave} loading={saving} disabled={!title.trim()} />
     </Sheet>
   );
 }
@@ -336,5 +385,108 @@ function HabitDot({ done, color, today, future }: { done: boolean; color: string
     >
       {done ? <Ionicons name="checkmark" size={13} color="#fff" /> : null}
     </Animated.View>
+  );
+}
+
+// Visão em cards (HabitCard do web): emoji, streak, progresso, taxa do mês e faixa de dias.
+function HabitCardView({
+  habit,
+  year,
+  month,
+  daysInMonth,
+  onDelete,
+}: {
+  habit: Habit;
+  year: number;
+  month: number;
+  daysInMonth: number;
+  onDelete: () => void;
+}) {
+  const theme = useTheme();
+  const today = getTodayString();
+  const color = resolveColor(habit.color, theme);
+  const progress = getHabitMonthProgress(habit, year, month);
+  const rate = getHabitMonthRate(habit, year, month);
+  const streak = getHabitStreak(habit);
+  const now = new Date();
+  const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
+  const [railRef, onRailSize] = useInitialScroll(isCurrentMonth ? Math.max(0, (now.getDate() - 5) * 44) : 0);
+
+  return (
+    <Card style={{ gap: 12 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
+        <View style={{ width: 42, height: 42, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: `${color}1a` }}>
+          <Txt style={{ fontSize: 20 }}>{habit.emoji}</Txt>
+        </View>
+        <View style={{ flex: 1, gap: 2 }}>
+          <Txt variant="bodyStrong" numberOfLines={1}>
+            {habit.title}
+          </Txt>
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 5, flexWrap: "wrap" }}>
+            <Ionicons name="flame" size={12} color={theme.accent} />
+            <Txt variant="caption" color={theme.accent} style={{ fontFamily: fonts.bodyBold }}>
+              {streak}d
+            </Txt>
+            <Txt variant="caption" muted>
+              •
+            </Txt>
+            <Txt variant="caption" color={color} style={{ fontFamily: fonts.bodyBold }}>
+              {progress}/{daysInMonth}
+            </Txt>
+            <Txt variant="caption" muted>
+              • {rate}% no mês
+            </Txt>
+          </View>
+        </View>
+        <Pressable onPress={onDelete} hitSlop={8} accessibilityLabel={`Remover hábito ${habit.title}`}>
+          <Ionicons name="trash-outline" size={16} color={theme.inkMuted} />
+        </Pressable>
+      </View>
+
+      <Marginalia>Atividade no mês</Marginalia>
+      <ScrollView horizontal showsHorizontalScrollIndicator={false} ref={railRef} onContentSizeChange={onRailSize}>
+        <View style={{ flexDirection: "row", gap: 4 }}>
+          {Array.from({ length: daysInMonth }, (_, i) => {
+            const day = i + 1;
+            const key = `${year}-${String(month + 1).padStart(2, "0")}-${String(day).padStart(2, "0")}`;
+            const done = habit.completedDates.includes(key);
+            const future = key > today;
+            const current = key === today;
+            const weekday = WEEK_DAYS[new Date(year, month, day).getDay()];
+            return (
+              <Pressable
+                key={key}
+                disabled={future}
+                onPress={() => void toggleHabitWithGoals(habit, key)}
+                accessibilityLabel={`${habit.title} — ${weekday}, dia ${day}`}
+                accessibilityState={{ checked: done }}
+                style={{
+                  width: 40,
+                  paddingVertical: 8,
+                  borderRadius: 12,
+                  alignItems: "center",
+                  gap: 4,
+                  borderWidth: 1,
+                  borderColor: current ? theme.accent : "transparent",
+                  opacity: future ? 0.35 : 1,
+                }}
+              >
+                <Txt variant="caption" muted style={{ fontSize: 10 }}>
+                  {weekday}
+                </Txt>
+                <Txt variant="caption" style={{ fontFamily: fonts.bodyBold }}>
+                  {day}
+                </Txt>
+                <HabitDot done={done} color={color} today={false} future={false} />
+              </Pressable>
+            );
+          })}
+        </View>
+      </ScrollView>
+
+      <View style={{ height: 6, borderRadius: 3, backgroundColor: theme.track, overflow: "hidden" }}>
+        <View style={{ width: `${daysInMonth > 0 ? Math.round((progress / daysInMonth) * 100) : 0}%`, height: 6, backgroundColor: color }} />
+      </View>
+    </Card>
   );
 }

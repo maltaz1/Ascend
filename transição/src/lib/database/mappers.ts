@@ -32,6 +32,7 @@ export function taskFromRow(row: TaskDatabaseRow): Task {
     createdAt: row.created_at,
     isRecurring: row.is_recurring ?? false,
     recurrence: row.recurrence as RecurrenceConfig | undefined,
+    parentId: row.parent_id ?? undefined,
   };
 }
 

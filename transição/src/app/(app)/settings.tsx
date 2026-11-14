@@ -1,10 +1,13 @@
 import { useEffect, useState } from "react";
-import { Linking, Pressable, View } from "react-native";
+import { Image, Linking, Pressable, Switch, View } from "react-native";
 import { Alert } from "@/lib/alert";
 import Constants from "expo-constants";
+import * as ImagePicker from "expo-image-picker";
 import { router } from "expo-router";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { updateUserName } from "@/lib/store";
+import { supabase } from "@/lib/supabase";
+import { AVATAR_MAX_BYTES, avatarPath, sniffImageType } from "@/lib/avatar";
 import {
   cancelCancellationRequest,
   createCancellationRequest,
@@ -13,6 +16,8 @@ import {
 } from "@/lib/cancellation";
 import { deleteAccount } from "@/lib/account";
 import { manageStoreSubscription } from "@/lib/purchases";
+import { exportJson } from "@/lib/exportData";
+import { animationsEnabled, setAnimationsEnabled } from "@/lib/motion";
 import { notifyError, notifySuccess } from "@/lib/notifications";
 import { IS_DEMO } from "@/demo";
 import { useStore } from "@/hooks/useStore";
@@ -20,33 +25,171 @@ import { useAuth } from "@/hooks/useAuth";
 import { UpgradeCard } from "@/components/ProGate";
 import { FounderBadge } from "@/components/FounderBadge";
 import { founderLabel } from "@/lib/founder";
-import { Badge, Button, Card, Divider, Input, Screen, SectionTitle, Sheet, Txt } from "@/components/ui";
-import { useTheme } from "@/theme";
+import { Badge, Button, Card, Divider, Input, Marginalia, Screen, SectionTitle, Sheet, Txt } from "@/components/ui";
+import { useTheme, useThemeToggle } from "@/theme";
 
 const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL;
 const SUPPORT_EMAIL = "ascendprod1@gmail.com";
 
+// Preferências que o web guarda só na sessão (não vão para o banco).
+type NotificationPrefs = { habits: boolean; tasks: boolean; academy: boolean };
+let sessionNotifications: NotificationPrefs = { habits: true, tasks: true, academy: true };
+function rememberNotifications(next: NotificationPrefs) {
+  sessionNotifications = next;
+}
+
 // Porta de pages/Settings.tsx.
 export default function SettingsScreen() {
   const theme = useTheme();
+  const toggleTheme = useThemeToggle();
+  const mode = theme.mode;
   const data = useStore();
   const { user, isPro, proSource, founder, signOut } = useAuth();
   const [name, setName] = useState(data.user.name);
+  const [bio, setBio] = useState("");
+  const [avatar, setAvatar] = useState<string | null>(null);
+  const [animations, setAnimations] = useState(animationsEnabled());
+  const [notifications, setNotifications] = useState(sessionNotifications);
   const [pending, setPending] = useState<CancellationRequest | null>(null);
   const [showCancel, setShowCancel] = useState(false);
   const [reason, setReason] = useState("");
   const [showDelete, setShowDelete] = useState(false);
   const [password, setPassword] = useState("");
   const [busy, setBusy] = useState(false);
+  const [exporting, setExporting] = useState(false);
+  const [uploading, setUploading] = useState(false);
 
   useEffect(() => {
     if (isPro && proSource === "cakto" && !IS_DEMO) void getPendingCancellationRequest().then(setPending);
   }, [isPro, proSource]);
 
-  const saveName = () => {
-    if (!name.trim() || name.trim() === data.user.name) return;
-    updateUserName(name.trim());
-    notifySuccess("Nome atualizado");
+  // Carrega nome, bio e foto do perfil (tabela profiles), como o web.
+  useEffect(() => {
+    if (IS_DEMO || !user) return;
+    void supabase
+      .from("profiles")
+      .select("name, bio, avatar_url")
+      .eq("id", user.id)
+      .single()
+      .then(({ data: row }) => {
+        if (!row) return;
+        if (row.name) setName(row.name);
+        setBio(row.bio || "");
+        setAvatar(row.avatar_url || null);
+      });
+  }, [user]);
+
+  // "Escolher Foto" do web: envia para o bucket Avatars e usa a URL pública.
+  const pickPhoto = async () => {
+    if (!user) {
+      notifyError("Usuário não encontrado");
+      return;
+    }
+    const result = await ImagePicker.launchImageLibraryAsync({ mediaTypes: ["images"], allowsEditing: true, aspect: [1, 1], quality: 0.5 });
+    if (result.canceled || !result.assets[0]) return;
+    const asset = result.assets[0];
+    setUploading(true);
+    try {
+      const body = await (await fetch(asset.uri)).arrayBuffer();
+      if (body.byteLength > AVATAR_MAX_BYTES) {
+        notifyError("Imagem muito grande", "Use uma foto de até 2 MB.");
+        return;
+      }
+      // Tipo pelo conteúdo do arquivo, não pela extensão.
+      const contentType = sniffImageType(new Uint8Array(body));
+      if (!contentType) {
+        notifyError("Formato não suportado", "Use uma foto JPG, PNG ou WebP.");
+        return;
+      }
+      const filePath = avatarPath(user.id, contentType);
+      const { error } = await supabase.storage.from("Avatars").upload(filePath, body, { upsert: false, contentType });
+      if (error) {
+        notifyError("Erro ao enviar imagem", "Tente novamente mais tarde.");
+        return;
+      }
+      setAvatar(supabase.storage.from("Avatars").getPublicUrl(filePath).data.publicUrl);
+      notifySuccess("Imagem enviada!");
+    } catch {
+      notifyError("Erro ao enviar imagem", "Tente novamente mais tarde.");
+    } finally {
+      setUploading(false);
+    }
+  };
+
+  const saveProfile = async () => {
+    if (!user) return;
+    if (name.trim() && name.trim() !== data.user.name) updateUserName(name.trim());
+    const { error } = await supabase.from("profiles").upsert({ id: user.id, name, bio, avatar_url: avatar });
+    if (error) notifyError("Erro ao salvar perfil", error.message);
+    else notifySuccess("Perfil salvo!");
+  };
+
+  const toggleAnimations = (value: boolean) => {
+    setAnimationsEnabled(value);
+    setAnimations(value);
+  };
+
+  const toggleNotification = (key: keyof NotificationPrefs) => {
+    const next = { ...notifications, [key]: !notifications[key] };
+    rememberNotifications(next);
+    setNotifications(next);
+  };
+
+  const resetPassword = async () => {
+    if (!user?.email) {
+      notifyError("Usuário não encontrado");
+      return;
+    }
+    const { error } = await supabase.auth.resetPasswordForEmail(user.email, WEB_URL ? { redirectTo: `${WEB_URL}/reset-password` } : undefined);
+    if (error) notifyError("Erro ao enviar e-mail", "Tente novamente mais tarde.");
+    else notifySuccess("E-mail de redefinição enviado!");
+  };
+
+  // "Solicitar meus dados": junta todas as tabelas do usuário num JSON (como o web).
+  const exportData = async () => {
+    if (!user) {
+      notifyError("Usuário não encontrado.");
+      return;
+    }
+    setExporting(true);
+    try {
+      const id = user.id;
+      const [profile, tasks, goals, habits, workouts, sessions, meals, hydration, diet, financial, notes, folders] = await Promise.all([
+        supabase.from("profiles").select("*").eq("id", id).single(),
+        supabase.from("tasks").select("*").eq("user_id", id),
+        supabase.from("goals").select("*").eq("user_id", id),
+        supabase.from("habits").select("*").eq("user_id", id),
+        supabase.from("workouts").select("*").eq("user_id", id),
+        supabase.from("workout_sessions").select("*").eq("user_id", id),
+        supabase.from("meals").select("*").eq("user_id", id),
+        supabase.from("hydration_logs").select("*").eq("user_id", id),
+        supabase.from("diet_settings").select("*").eq("user_id", id).maybeSingle(),
+        supabase.from("financial_transactions").select("*").eq("user_id", id),
+        supabase.from("notes").select("*").eq("user_id", id),
+        supabase.from("note_folders").select("*").eq("user_id", id),
+      ]);
+      await exportJson(`ascend-dados-${new Date().toISOString().split("T")[0]}.json`, {
+        exportDate: new Date().toISOString(),
+        userInfo: { id: user.id, email: user.email, createdAt: user.created_at },
+        profile: profile.data,
+        tasks: tasks.data || [],
+        goals: goals.data || [],
+        habits: habits.data || [],
+        workouts: workouts.data || [],
+        workoutSessions: sessions.data || [],
+        meals: meals.data || [],
+        hydration: hydration.data || [],
+        dietSettings: diet.data,
+        financialTransactions: financial.data || [],
+        notes: notes.data || [],
+        noteFolders: folders.data || [],
+      });
+      notifySuccess("Dados exportados com sucesso!");
+    } catch {
+      notifyError("Erro ao exportar dados. Tente novamente.");
+    } finally {
+      setExporting(false);
+    }
   };
 
   const requestCancel = async () => {
@@ -84,6 +227,12 @@ export default function SettingsScreen() {
     notifySuccess("Conta excluída com sucesso. Seus dados foram removidos.");
   };
 
+  const askDelete = () =>
+    Alert.alert("Excluir Conta", "ATENÇÃO: Esta ação é irreversível.\n\nDeseja continuar?", [
+      { text: "Cancelar", style: "cancel" },
+      { text: "Continuar", style: "destructive", onPress: () => setShowDelete(true) },
+    ]);
+
   const confirmSignOut = () =>
     Alert.alert("Sair", "Deseja sair da sua conta?", [
       { text: "Cancelar", style: "cancel" },
@@ -103,16 +252,67 @@ export default function SettingsScreen() {
     </Pressable>
   );
 
+  const toggleRow = (label: string, sub: string | undefined, value: boolean, onChange: (v: boolean) => void) => (
+    <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingVertical: 6 }}>
+      <View style={{ flex: 1 }}>
+        <Txt variant="bodyStrong">{label}</Txt>
+        {sub ? (
+          <Txt variant="caption" muted>
+            {sub}
+          </Txt>
+        ) : null}
+      </View>
+      <Switch value={value} onValueChange={onChange} trackColor={{ true: theme.primary, false: theme.track }} thumbColor="#fff" />
+    </View>
+  );
+
   return (
     <Screen title="Configurações">
+      <Marginalia index="14">Ajustes</Marginalia>
+      <Txt muted>Ajuste o caderno ao seu jeito.</Txt>
+
+      <Card tone={isPro ? "violet" : undefined}>
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
+          {avatar ? (
+            <Image source={{ uri: avatar }} style={{ width: 72, height: 72, borderRadius: 36, borderWidth: 2, borderColor: theme.border }} />
+          ) : (
+            <View style={{ width: 72, height: 72, borderRadius: 36, backgroundColor: theme.primary, alignItems: "center", justifyContent: "center" }}>
+              <Txt variant="h1" color="#fff">
+                {(name || "U").charAt(0).toUpperCase()}
+              </Txt>
+            </View>
+          )}
+          <View style={{ flex: 1, gap: 4 }}>
+            <Txt variant="h2">{name || "Usuário"}</Txt>
+            <Txt variant="caption" muted numberOfLines={2}>
+              {bio || "Sem bio definida"}
+            </Txt>
+            <View style={{ alignSelf: "flex-start" }}>
+              <Badge label={isPro ? "Ascend PRO" : "Ascend Free"} solid={isPro} />
+            </View>
+          </View>
+        </View>
+      </Card>
+
       <SectionTitle>Perfil</SectionTitle>
       <Card>
-        <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
-          <Txt muted>{user?.email}</Txt>
-          <Badge label={isPro ? "Ascend PRO" : "Ascend Free"} solid={isPro} />
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 14 }}>
+          {avatar ? (
+            <Image source={{ uri: avatar }} style={{ width: 64, height: 64, borderRadius: 32, borderWidth: 3, borderColor: theme.primary }} />
+          ) : (
+            <View style={{ width: 64, height: 64, borderRadius: 32, borderWidth: 3, borderColor: theme.primary, backgroundColor: theme.raised }} />
+          )}
+          <View style={{ flex: 1, gap: 4 }}>
+            <Button label="Escolher Foto" icon="image-outline" compact onPress={() => void pickPhoto()} loading={uploading} />
+            <Txt variant="caption" muted>
+              PNG, JPG ou WEBP
+            </Txt>
+          </View>
         </View>
-        <Input label="Nome" value={name} onChangeText={setName} onSubmitEditing={saveName} />
-        <Button label="Salvar nome" variant="ghost" compact onPress={saveName} />
+        <Txt muted>{user?.email}</Txt>
+        <Input label="Nome" placeholder="Nome" value={name} onChangeText={setName} />
+        <Input label="Bio" placeholder="Sua bio" value={bio} onChangeText={setBio} multiline />
+        <Button label="Salvar Perfil" icon="save-outline" onPress={saveProfile} />
       </Card>
 
       {founder ? (
@@ -129,11 +329,65 @@ export default function SettingsScreen() {
         </Card>
       ) : null}
 
-      <SectionTitle>Plano</SectionTitle>
+      <SectionTitle>Aparência</SectionTitle>
+      <Card style={{ gap: 4 }}>
+        {toggleRow("Tema do caderno", mode === "dark" ? "Ledger Noturno — papel escuro" : "Day Ledger — papel diurno", mode === "dark", () => toggleTheme())}
+        <Divider />
+        {toggleRow("Animações", "Ativar efeitos visuais", animations, toggleAnimations)}
+      </Card>
+
+      <SectionTitle>Notificações</SectionTitle>
+      <Card style={{ gap: 4 }}>
+        {toggleRow("Hábitos", undefined, notifications.habits, () => toggleNotification("habits"))}
+        <Divider />
+        {toggleRow("Tarefas", undefined, notifications.tasks, () => toggleNotification("tasks"))}
+        <Divider />
+        {toggleRow("Academia", undefined, notifications.academy, () => toggleNotification("academy"))}
+      </Card>
+
+      <SectionTitle>Privacidade e Dados</SectionTitle>
+      <Card style={{ gap: 0 }}>
+        {link("Política de Privacidade", "Como protegemos seus dados", "shield-checkmark-outline", () =>
+          WEB_URL ? void Linking.openURL(`${WEB_URL}/privacy`) : undefined
+        )}
+        <Divider />
+        {link("Termos de Uso", "Regras para utilização do app", "document-outline", () =>
+          WEB_URL ? void Linking.openURL(`${WEB_URL}/terms`) : undefined
+        )}
+        <Divider />
+        {link("Solicitar meus dados", exporting ? "Gerando exportação..." : "Baixar cópia de todos os seus dados", "download-outline", () => {
+          if (!exporting) void exportData();
+        })}
+      </Card>
+      <Button label="Excluir Conta" variant="danger" icon="trash-outline" onPress={askDelete} />
+
+      <SectionTitle>Conta</SectionTitle>
+      <Card style={{ gap: 0 }}>
+        {link("Alterar senha", "Enviamos um link para o seu e-mail", "lock-closed-outline", () => void resetPassword())}
+        <Divider />
+        {link("Conquistas", "Suas medalhas e XP total", "trophy-outline", () => router.push("/achievements"))}
+      </Card>
+      <Button label="Sair da conta" variant="ghost" icon="log-out-outline" onPress={confirmSignOut} />
+
+      <SectionTitle>Conta e Suporte</SectionTitle>
+      <Card style={{ gap: 0 }}>
+        <Txt variant="caption" muted style={{ paddingBottom: 6 }}>
+          Entre em contato caso tenha dúvidas ou sugestões.
+        </Txt>
+        {link(SUPPORT_EMAIL, "Toque para enviar um e-mail", "mail-outline", () => void Linking.openURL(`mailto:${SUPPORT_EMAIL}`))}
+      </Card>
+
+      <SectionTitle>Assinatura</SectionTitle>
       {isPro ? (
         <Card>
           <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
-            <Txt variant="h3">{proSource === "founder" ? "PRO de Fundador" : "Ascend PRO"}</Txt>
+            <Txt muted>Plano</Txt>
+            <Txt variant="bodyStrong" color={theme.success}>
+              {proSource === "founder" ? "PRO de Fundador" : "Ascend PRO"}
+            </Txt>
+          </View>
+          <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "center" }}>
+            <Txt muted>Status</Txt>
             <Badge label="Ativo" solid color={theme.success} />
           </View>
           {proSource === "founder" ? (
@@ -147,9 +401,7 @@ export default function SettingsScreen() {
               label="Gerenciar assinatura"
               variant="ghost"
               compact
-              onPress={() =>
-                void manageStoreSubscription().catch(() => notifyError("Não foi possível abrir as assinaturas da loja"))
-              }
+              onPress={() => void manageStoreSubscription().catch(() => notifyError("Não foi possível abrir as assinaturas da loja"))}
             />
           ) : pending ? (
             <>
@@ -159,37 +411,31 @@ export default function SettingsScreen() {
               <Button label="Desfazer solicitação" variant="ghost" compact onPress={undoCancel} />
             </>
           ) : (
-            <Button label="Solicitar cancelamento" variant="ghost" compact onPress={() => setShowCancel(true)} />
+            <>
+              <Txt variant="caption" muted>
+                Seu acesso ao Ascend PRO continuará disponível até o final do período já pago.
+              </Txt>
+              <Button label="Solicitar cancelamento" variant="ghost" icon="close-circle-outline" compact onPress={() => setShowCancel(true)} />
+            </>
           )}
         </Card>
       ) : (
         <UpgradeCard />
       )}
 
-      <SectionTitle>Conta e suporte</SectionTitle>
-      <Card style={{ gap: 0 }}>
-        {link("Conquistas", "Suas medalhas e XP total", "trophy-outline", () => router.push("/achievements"))}
-        <Divider />
-        {link("Fale conosco", SUPPORT_EMAIL, "mail-outline", () => void Linking.openURL(`mailto:${SUPPORT_EMAIL}`))}
-        <Divider />
-        {link("Política de Privacidade", "Como protegemos seus dados", "shield-checkmark-outline", () =>
-          WEB_URL ? void Linking.openURL(`${WEB_URL}/privacy`) : undefined
-        )}
-        <Divider />
-        {link("Termos de Uso", "Regras para utilização do app", "document-outline", () =>
-          WEB_URL ? void Linking.openURL(`${WEB_URL}/terms`) : undefined
-        )}
-        <Divider />
-        {link("Solicitar meus dados", "LGPD — enviaremos por e-mail", "download-outline", () =>
-          void Linking.openURL(`mailto:${SUPPORT_EMAIL}?subject=Solicitação de dados (LGPD)`)
-        )}
+      <SectionTitle>Sobre</SectionTitle>
+      <Card>
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <Txt>Versão do app</Txt>
+          <Txt muted>{Constants.expoConfig?.version ?? "1.0.0"}</Txt>
+        </View>
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <Txt>Status</Txt>
+          <Txt variant="bodyStrong" color={theme.primary}>
+            Online
+          </Txt>
+        </View>
       </Card>
-
-      <Button label="Sair da conta" variant="ghost" icon="log-out-outline" onPress={confirmSignOut} />
-      <Button label="Excluir conta" variant="danger" icon="trash-outline" onPress={() => setShowDelete(true)} />
-      <Txt variant="caption" muted style={{ textAlign: "center" }}>
-        Versão do app {Constants.expoConfig?.version ?? "1.0.0"}
-      </Txt>
 
       <Sheet visible={showCancel} onClose={() => setShowCancel(false)} title="Cancelar assinatura">
         <Txt muted>Conte o motivo (opcional). Sua solicitação será processada pela equipe.</Txt>
@@ -198,9 +444,17 @@ export default function SettingsScreen() {
       </Sheet>
 
       <Sheet visible={showDelete} onClose={() => setShowDelete(false)} title="Excluir conta">
-        <Txt muted>Todos os seus dados serão removidos de forma permanente. Confirme sua senha antes de excluir.</Txt>
+        <Txt muted>Confirme sua senha antes de excluir.</Txt>
         <Input value={password} onChangeText={setPassword} placeholder="Sua senha" secureTextEntry autoComplete="current-password" />
-        <Button label="Excluir minha conta" variant="danger" onPress={confirmDelete} loading={busy} />
+        <Button label="Confirmar exclusão" variant="danger" onPress={confirmDelete} loading={busy} disabled={!password.trim()} />
+        <Button
+          label="Cancelar"
+          variant="ghost"
+          onPress={() => {
+            setShowDelete(false);
+            setPassword("");
+          }}
+        />
       </Sheet>
     </Screen>
   );

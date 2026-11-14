@@ -8,7 +8,7 @@ import { getTodayString } from "@/lib/store";
 import { notifyError, notifySuccess } from "@/lib/notifications";
 import { useStore } from "@/hooks/useStore";
 import { ProGate } from "@/components/ProGate";
-import { Button, Card, EmptyState, Input, Marginalia, Screen, Segmented, Sheet, Txt } from "@/components/ui";
+import { Button, Card, Input, Marginalia, Screen, Segmented, Sheet, Txt } from "@/components/ui";
 import { DonutChart, HBar } from "@/components/charts";
 import { DateStrip } from "@/components/DateStrip";
 import { MonthCalendar } from "@/components/MonthCalendar";
@@ -90,11 +90,20 @@ function Financial() {
     .sort((a, b) => b[1] - a[1])
     .map(([name, value], i) => ({ name, value, color: resolveColor(CHART_COLORS[i % CHART_COLORS.length], theme) }));
   const topValue = byCategory[0]?.value ?? 1;
+  // Últimos 5 lançamentos de qualquer mês (como o web).
+  const recent = [...all].sort((a, b) => dateOf(b).getTime() - dateOf(a).getTime()).slice(0, 5);
 
   const confirmDelete = (t: Tx) =>
-    Alert.alert("Excluir lançamento", `Excluir "${t.title}"?`, [
+    Alert.alert("Remover transação", `Remover "${t.title}"?`, [
       { text: "Cancelar", style: "cancel" },
-      { text: "Excluir", style: "destructive", onPress: () => void deleteTransaction(t.id) },
+      {
+        text: "Confirmar",
+        style: "destructive",
+        onPress: async () => {
+          await deleteTransaction(t.id);
+          notifySuccess("Transação removida");
+        },
+      },
     ]);
 
   return (
@@ -134,12 +143,13 @@ function Financial() {
           weekLabels={["D", "S", "T", "Q", "Q", "S", "S"]}
           selectedStyle="filled"
           arrowColor={theme.primary}
-          dots={key => (all.some(t => t.date.slice(0, 10) === key) ? [theme.primary] : [])}
+          dots={key => (all.some(t => t.type === "expense" && t.date.slice(0, 10) === key) ? [theme.primary] : [])}
         />
         <View style={{ height: 1, backgroundColor: theme.border }} />
         <Button label="Registrar transação" icon="add" onPress={() => setShowAdd(true)} />
       </Card>
 
+      {byCategory.length > 0 ? (
       <Card>
         <View style={{ flexDirection: "row", alignItems: "flex-start", gap: 12 }}>
           <View style={{ flex: 1, gap: 4 }}>
@@ -157,9 +167,7 @@ function Financial() {
             />
           </View>
         </View>
-        {byCategory.length === 0 ? (
-          <EmptyState text="Nenhum gasto neste mês." />
-        ) : chart === "pie" ? (
+        {chart === "pie" ? (
           <View style={{ alignItems: "center", gap: 14 }}>
             <DonutChart slices={byCategory.map(c => ({ value: c.value, color: c.color, label: c.name }))} size={170} stroke={30} format={formatCurrency} />
             <View style={{ alignSelf: "stretch", gap: 8 }}>
@@ -197,13 +205,13 @@ function Financial() {
           </View>
         )}
       </Card>
+      ) : null}
 
+      {recent.length > 0 ? (
       <Card>
         <Marginalia>Lançamentos recentes</Marginalia>
-        {current.length === 0 ? (
-          <EmptyState icon="cash-outline" text="Nenhum lançamento neste mês." />
-        ) : (
-          current.map(t => (
+        {(
+          recent.map(t => (
             <View key={t.id} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 4 }}>
               <View style={{ width: 34, height: 34, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: theme.raised }}>
                 <Txt style={{ fontSize: 16 }}>{ICONS[t.category ?? ""] ?? (t.type === "income" ? "💰" : "🧾")}</Txt>
@@ -230,8 +238,9 @@ function Financial() {
           ))
         )}
       </Card>
+      ) : null}
 
-      <TransactionSheet visible={showAdd} defaultDate={selected} onClose={() => setShowAdd(false)} />
+      <TransactionSheet visible={showAdd} onClose={() => setShowAdd(false)} />
     </Screen>
   );
 }
@@ -267,13 +276,13 @@ function Comparison({ label, current, previous }: { label: string; current: numb
   );
 }
 
-function TransactionSheet({ visible, defaultDate, onClose }: { visible: boolean; defaultDate: string; onClose: () => void }) {
+function TransactionSheet({ visible, onClose }: { visible: boolean; onClose: () => void }) {
   const theme = useTheme();
   const [type, setType] = useState<"income" | "expense">("expense");
   const [name, setName] = useState("");
   const [amount, setAmount] = useState("");
   const [category, setCategory] = useState(EXPENSE_CATEGORIES[0].name);
-  const [date, setDate] = useState(defaultDate);
+  const [date, setDate] = useState(getTodayString());
   const [saving, setSaving] = useState(false);
 
   const categories = type === "expense" ? EXPENSE_CATEGORIES : INCOME_CATEGORIES;
@@ -285,9 +294,12 @@ function TransactionSheet({ visible, defaultDate, onClose }: { visible: boolean;
     setSaving(true);
     try {
       await addTransaction({ title: name.trim(), amount: value, type, category, date });
-      notifySuccess(type === "income" ? "Entrada registrada!" : "Gasto registrado!");
+      notifySuccess("Transação registrada com sucesso");
       setName("");
       setAmount("");
+      setType("expense");
+      setCategory(EXPENSE_CATEGORIES[0].name);
+      setDate(getTodayString());
       onClose();
     } catch (error) {
       notifyError("Erro ao salvar", error instanceof Error ? error.message : undefined);
@@ -301,7 +313,7 @@ function TransactionSheet({ visible, defaultDate, onClose }: { visible: boolean;
       <Segmented
         options={[
           { value: "expense", label: "Gasto" },
-          { value: "income", label: "Entrada" },
+          { value: "income", label: "Ganho" },
         ]}
         value={type}
         onChange={next => {
@@ -309,8 +321,8 @@ function TransactionSheet({ visible, defaultDate, onClose }: { visible: boolean;
           setCategory((next === "expense" ? EXPENSE_CATEGORIES : INCOME_CATEGORIES)[0].name);
         }}
       />
-      <Input label="Descrição" value={name} onChangeText={setName} placeholder="Ex.: Mercado" />
-      <Input label="Valor (R$)" value={amount} onChangeText={setAmount} placeholder="0,00" keyboardType="decimal-pad" />
+      <Input label="Descrição" value={name} onChangeText={setName} placeholder="Ex: Almoço no restaurante" />
+      <Input label="Valor" value={amount} onChangeText={setAmount} placeholder="0,00" keyboardType="decimal-pad" />
       <Marginalia>Categoria</Marginalia>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {categories.map(c => (
@@ -334,7 +346,7 @@ function TransactionSheet({ visible, defaultDate, onClose }: { visible: boolean;
       </View>
       <Marginalia>Data</Marginalia>
       <DateStrip value={date} onChange={setDate} daysBefore={30} daysAfter={30} />
-      <Button label="Salvar" onPress={save} loading={saving} disabled={!valid} />
+      <Button label="Registrar transação" onPress={save} loading={saving} disabled={!valid} />
     </Sheet>
   );
 }

@@ -1,6 +1,5 @@
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Pressable, View } from "react-native";
-import { Alert } from "@/lib/alert";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   addMeal,
@@ -17,10 +16,10 @@ import {
 } from "@/lib/store";
 import { calculateMacrosForQuantity, searchFoods, type FoodSearchResult } from "@/lib/foodApi";
 import { generateId } from "@/store/utils";
-import { notifySuccess } from "@/lib/notifications";
+import { notifyInfo, notifySuccess } from "@/lib/notifications";
 import { useStore } from "@/hooks/useStore";
 import { ProGate } from "@/components/ProGate";
-import { Button, Card, EmptyState, Input, Marginalia, ProgressBar, ProgressRing, Screen, Segmented, Sheet, Txt } from "@/components/ui";
+import { Button, Card, Input, Marginalia, ProgressBar, ProgressRing, Screen, Segmented, Sheet, Txt } from "@/components/ui";
 import { longDate } from "@/components/rows";
 import { fonts, resolveColor, useTheme } from "@/theme";
 
@@ -32,6 +31,8 @@ const MEAL_TYPES = {
   snack: { label: "Lanche", emoji: "🍎", color: "#EC4899" },
 } as const;
 type MealType = keyof typeof MEAL_TYPES;
+
+const WATER_COLOR = "#38BDF8";
 
 export default function DietScreen() {
   return (
@@ -48,6 +49,8 @@ function greeting(): string {
   return "Boa noite";
 }
 
+const num = (value: string) => parseFloat(value.replace(",", "."));
+
 // Porta de pages/Diet.tsx.
 function Diet() {
   const theme = useTheme();
@@ -61,7 +64,6 @@ function Diet() {
   const meals = getTodayMeals();
   const settings = data.diet.settings;
   const calPercent = (nutrition.calories / Math.max(1, settings.dailyCalorieGoal)) * 100;
-  const waterGoal = hydration.goal || settings.waterGoal;
 
   const rings = [
     { label: "Proteína", value: nutrition.protein, goal: settings.proteinGoal, color: theme.success },
@@ -70,18 +72,9 @@ function Diet() {
     { label: "Calorias", value: nutrition.calories, goal: settings.dailyCalorieGoal, color: theme.accent },
   ];
 
-  const removeMeal = (meal: Meal) => {
-    Alert.alert("Remover refeição", `Remover ${MEAL_TYPES[meal.type].label}?`, [
-      { text: "Cancelar", style: "cancel" },
-      {
-        text: "Remover",
-        style: "destructive",
-        onPress: async () => {
-          await deleteMeal(meal.id);
-          notifySuccess("Refeição removida");
-        },
-      },
-    ]);
+  const removeMeal = async (meal: Meal) => {
+    await deleteMeal(meal.id);
+    notifySuccess("Refeição removida");
   };
 
   return (
@@ -91,15 +84,14 @@ function Diet() {
           <View style={{ flex: 1, gap: 8 }}>
             <Marginalia index="10">Registro alimentar</Marginalia>
             <Txt variant="hero" style={{ fontSize: 30 }}>
-              {greeting()},{"\n"}
-              {data.user.name?.split(" ")[0] || "você"}
+              {greeting()}, {data.user.name || "Usuário"}
             </Txt>
             <Txt muted>{longDate()}</Txt>
           </View>
           <Pressable
             onPress={() => setShowSettings(true)}
-            accessibilityLabel="Metas da dieta"
-            style={{ width: 40, height: 40, borderRadius: 6, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: theme.primaryBorder, backgroundColor: theme.primarySoft }}
+            accessibilityLabel="Ajustar metas de dieta"
+            style={{ width: 40, height: 40, borderRadius: 8, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: theme.primaryBorder, backgroundColor: theme.primarySoft }}
           >
             <Ionicons name="settings-outline" size={18} color={theme.primary} />
           </Pressable>
@@ -116,7 +108,7 @@ function Diet() {
             {Math.round(nutrition.calories)} / {settings.dailyCalorieGoal} kcal
           </Txt>
         </View>
-        <ProgressBar percent={calPercent} height={7} color={calPercent > 100 ? theme.danger : theme.primary} />
+        <ProgressBar percent={calPercent} height={7} color={nutrition.calories > settings.dailyCalorieGoal ? theme.danger : theme.primary} />
       </Card>
 
       <View style={{ flexDirection: "row", flexWrap: "wrap", rowGap: 22 }}>
@@ -138,22 +130,19 @@ function Diet() {
       </View>
 
       <Card style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-        <Ionicons name="water-outline" size={22} color={theme.cyan} />
+        <Ionicons name="water-outline" size={22} color={WATER_COLOR} />
         <View style={{ flex: 1 }}>
-          <Txt style={{ fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 1 }} color={theme.cyan}>
+          <Txt style={{ fontFamily: fonts.bodyBold, fontSize: 12, letterSpacing: 1 }} color={WATER_COLOR}>
             HIDRATAÇÃO
           </Txt>
           <Txt variant="label" muted>
-            {hydration.cupsConsumed} / {waterGoal} mL
+            {hydration.cupsConsumed} / {hydration.goal} mL
           </Txt>
-          <View style={{ marginTop: 8 }}>
-            <ProgressBar percent={(hydration.cupsConsumed / Math.max(1, waterGoal)) * 100} color={theme.cyan} height={5} />
-          </View>
         </View>
         <Pressable
           onPress={() => setShowWater(true)}
-          accessibilityLabel="Adicionar água"
-          style={{ width: 44, height: 44, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: theme.cyan }}
+          accessibilityLabel="Registrar hidratação"
+          style={{ width: 44, height: 44, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: WATER_COLOR }}
         >
           <Ionicons name="add" size={24} color="#fff" />
         </Pressable>
@@ -164,113 +153,184 @@ function Diet() {
         const config = MEAL_TYPES[type];
         const color = resolveColor(config.color, theme);
         const ofType = meals.filter(m => m.type === type);
-        const kcal = ofType.reduce((s, m) => s + m.totalCalories, 0);
         return (
-          <Card key={type}>
-            <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
-              <View
-                style={{
-                  width: 30,
-                  height: 30,
-                  borderRadius: 4,
-                  alignItems: "center",
-                  justifyContent: "center",
-                  backgroundColor: `${color}22`,
-                  borderWidth: 1,
-                  borderColor: `${color}66`,
-                }}
-              >
+          <View key={type} style={{ gap: 10 }}>
+            <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
+              <View style={{ width: 26, height: 26, borderRadius: 6, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: `${color}66` }}>
                 <Txt style={{ fontSize: 14 }}>{config.emoji}</Txt>
               </View>
-              <View style={{ flex: 1 }}>
-                <Txt variant="h3" color={color}>
-                  {config.label}
-                </Txt>
-                <Txt variant="caption" muted>
-                  {Math.round(kcal)} kcal
-                </Txt>
-              </View>
-              <Pressable onPress={() => setAddFor(type)} hitSlop={10} accessibilityLabel={`Adicionar ${config.label}`}>
-                <Ionicons name="add" size={24} color={color} />
+              <Txt variant="h3" color={color} style={{ flex: 1 }}>
+                {config.label}
+              </Txt>
+              <Pressable
+                onPress={() => setAddFor(type)}
+                accessibilityLabel={`Adicionar ${config.label}`}
+                style={{ width: 36, height: 36, borderRadius: 8, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: `${color}55`, backgroundColor: `${color}22` }}
+              >
+                <Ionicons name="add" size={20} color={color} />
               </Pressable>
             </View>
-            {ofType.map(meal => (
-              <Pressable key={meal.id} onLongPress={() => removeMeal(meal)} style={{ gap: 6 }}>
-                {meal.foods.map(food => (
-                  <View key={food.id} style={{ flexDirection: "row", alignItems: "center", gap: 8, backgroundColor: theme.raised, borderRadius: 6, paddingVertical: 10, paddingHorizontal: 12 }}>
-                    <Txt variant="label" style={{ flex: 1 }} numberOfLines={1}>
-                      {food.name}
-                    </Txt>
-                    <Txt variant="caption" muted>
-                      {food.quantity}
-                      {food.unit === "unit" ? " un" : food.unit}
-                    </Txt>
-                    <Txt variant="mono" color={theme.accent} style={{ fontSize: 12 }}>
-                      {Math.round(food.calories)} kcal
-                    </Txt>
-                  </View>
-                ))}
-              </Pressable>
-            ))}
-          </Card>
+            {ofType.length > 0 ? (
+              ofType.map(meal => <MealCard key={meal.id} meal={meal} color={color} label={config.label} onDelete={() => void removeMeal(meal)} />)
+            ) : (
+              <View style={{ alignItems: "center", padding: 20, borderRadius: 14, borderWidth: 1, borderStyle: "dashed", borderColor: theme.border }}>
+                <Txt variant="caption" muted>
+                  Nenhuma refeição registrada
+                </Txt>
+              </View>
+            )}
+          </View>
         );
       })}
-      <Txt variant="caption" muted style={{ textAlign: "center" }}>
-        Segure uma refeição para remover · {data.diet.dietPoints} pontos de dieta
-      </Txt>
 
       <AddFoodSheet type={addFor} onClose={() => setAddFor(null)} />
       <DietSettingsSheet key={showSettings ? "open" : "closed"} visible={showSettings} settings={settings} onClose={() => setShowSettings(false)} />
-      <Sheet visible={showWater} onClose={() => setShowWater(false)} title="Adicionar água">
-        <View style={{ flexDirection: "row", gap: 8 }}>
-          {[200, 300, 500].map(ml => (
-            <View key={ml} style={{ flex: 1 }}>
-              <Button
-                label={`+${ml} mL`}
-                variant="ghost"
-                onPress={async () => {
-                  await addWaterMl(ml);
-                  notifySuccess(`${ml} mL de água adicionado!`);
-                  setShowWater(false);
-                }}
-              />
-            </View>
-          ))}
-        </View>
-      </Sheet>
+      <WaterSheet visible={showWater} onClose={() => setShowWater(false)} currentMl={hydration.cupsConsumed} goalMl={hydration.goal} />
     </Screen>
   );
 }
 
+function MealCard({ meal, color, label, onDelete }: { meal: Meal; color: string; label: string; onDelete: () => void }) {
+  const theme = useTheme();
+  return (
+    <Card style={{ gap: 10 }}>
+      <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+        <View style={{ width: 18, height: 2, backgroundColor: color, opacity: 0.8 }} />
+        <View style={{ flex: 1 }}>
+          <Txt variant="bodyStrong" color={color}>
+            {label}
+          </Txt>
+          <Txt variant="caption" muted>
+            {new Date(meal.timestamp).toLocaleTimeString("pt-BR", { hour: "2-digit", minute: "2-digit" })}
+          </Txt>
+        </View>
+        <Pressable
+          onPress={onDelete}
+          accessibilityLabel="Remover refeição"
+          style={{ width: 34, height: 34, borderRadius: 8, alignItems: "center", justifyContent: "center", backgroundColor: `${theme.danger}1a` }}
+        >
+          <Ionicons name="trash-outline" size={16} color={theme.danger} />
+        </Pressable>
+      </View>
+      {meal.foods.map(food => (
+        <View key={food.id} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
+          <Txt variant="label" style={{ flex: 1 }} numberOfLines={1}>
+            {food.name} ({food.quantity}
+            {food.unit})
+          </Txt>
+          <Txt variant="caption" color={color} style={{ fontFamily: fonts.bodyBold }}>
+            {food.calories} kcal
+          </Txt>
+        </View>
+      ))}
+      <View style={{ flexDirection: "row", justifyContent: "space-between", gap: 8, paddingTop: 10, borderTopWidth: 1, borderTopColor: theme.border }}>
+        <Txt variant="caption" muted style={{ fontFamily: fonts.bodySemi }}>
+          Total:
+        </Txt>
+        <Txt variant="caption" color={color} style={{ fontFamily: fonts.bodySemi, flexShrink: 1, textAlign: "right" }}>
+          {meal.totalCalories} kcal • P: {meal.totalProtein}g • C: {meal.totalCarbs}g • G: {meal.totalFat}g
+        </Txt>
+      </View>
+    </Card>
+  );
+}
+
+// AddFoodModal do web: nome com sugestões, "Calcular", campos manuais e lista de alimentos.
 function AddFoodSheet({ type, onClose }: { type: MealType | null; onClose: () => void }) {
   const theme = useTheme();
-  const [query, setQuery] = useState("");
-  const [results, setResults] = useState<FoodSearchResult[]>([]);
-  const [picked, setPicked] = useState<FoodSearchResult | null>(null);
-  const [quantity, setQuantity] = useState("100");
   const [foods, setFoods] = useState<FoodItem[]>([]);
+  const [foodName, setFoodName] = useState("");
+  const [calories, setCalories] = useState("");
+  const [protein, setProtein] = useState("");
+  const [carbs, setCarbs] = useState("");
+  const [fat, setFat] = useState("");
+  const [quantity, setQuantity] = useState("100");
+  const [calculating, setCalculating] = useState(false);
+  const [suggestions, setSuggestions] = useState<FoodSearchResult[]>([]);
+  const [showSuggestions, setShowSuggestions] = useState(false);
+  const typingRef = useRef(true);
 
-  const searching = !picked && query.length >= 2;
+  // Busca sugestões enquanto digita (300 ms), como o web.
   useEffect(() => {
-    if (!searching) return;
-    let cancelled = false;
-    void searchFoods(query).then(r => !cancelled && setResults(r.slice(0, 8)));
-    return () => {
-      cancelled = true;
-    };
-  }, [query, searching]);
-  const shown = searching ? results : [];
+    if (!typingRef.current) {
+      typingRef.current = true;
+      return;
+    }
+    const timer = setTimeout(async () => {
+      if (foodName.length > 1) {
+        try {
+          const results = await searchFoods(foodName);
+          setSuggestions(results);
+          setShowSuggestions(results.length > 0);
+        } catch {
+          setSuggestions([]);
+          setShowSuggestions(false);
+        }
+      } else {
+        setSuggestions([]);
+        setShowSuggestions(false);
+      }
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [foodName]);
+
+  const fillMacros = (food: FoodSearchResult) => {
+    const macros = calculateMacrosForQuantity(food.nutrients, num(quantity) || 100, food.servingSize);
+    setCalories(String(macros.calories));
+    setProtein(String(macros.protein));
+    setCarbs(String(macros.carbs));
+    setFat(String(macros.fat));
+  };
+
+  const calculate = async () => {
+    if (!foodName) {
+      notifyInfo("Digite o nome do alimento primeiro!");
+      return;
+    }
+    setCalculating(true);
+    try {
+      const results = await searchFoods(foodName);
+      if (results.length === 0) {
+        notifyInfo("Alimento não encontrado. Preencha manualmente.");
+        return;
+      }
+      fillMacros(results[0]);
+      setShowSuggestions(false);
+      notifySuccess(`Macros de ${results[0].description} calculados!`);
+    } catch {
+      notifyInfo("Erro ao buscar dados. Tente novamente.");
+    } finally {
+      setCalculating(false);
+    }
+  };
+
+  const selectFood = (food: FoodSearchResult) => {
+    typingRef.current = false;
+    setFoodName(food.description);
+    setShowSuggestions(false);
+    fillMacros(food);
+  };
 
   const addFood = () => {
-    if (!picked) return;
-    const qty = Number(quantity.replace(",", ".")) || 0;
-    const m = calculateMacrosForQuantity(picked.nutrients, qty, picked.servingSize || 100);
+    if (!foodName || !calories) return;
     setFoods(prev => [
       ...prev,
-      { id: generateId(), name: picked.description, quantity: qty, unit: "g", ...m },
+      {
+        id: generateId(),
+        name: foodName,
+        calories: num(calories),
+        protein: num(protein) || 0,
+        carbs: num(carbs) || 0,
+        fat: num(fat) || 0,
+        quantity: num(quantity),
+        unit: "g",
+      },
     ]);
-    setPicked(null);
-    setQuery("");
+    setFoodName("");
+    setCalories("");
+    setProtein("");
+    setCarbs("");
+    setFat("");
     setQuantity("100");
   };
 
@@ -290,64 +350,123 @@ function AddFoodSheet({ type, onClose }: { type: MealType | null; onClose: () =>
     onClose();
   };
 
+  const numberField = (label: string, value: string, set: (v: string) => void, placeholder: string) => (
+    <View style={{ flex: 1 }}>
+      <Input label={label} value={value} onChangeText={set} placeholder={placeholder} keyboardType="decimal-pad" />
+    </View>
+  );
+
   return (
-    <Sheet visible={!!type} onClose={onClose} title={type ? `Adicionar · ${MEAL_TYPES[type].label}` : "Adicionar"}>
-      {picked ? (
-        <Card>
-          <Txt variant="bodyStrong">{picked.description}</Txt>
-          <Txt variant="caption" muted>
-            Por {picked.servingSize || 100}
-            {picked.servingUnit || "g"}: {Math.round(picked.nutrients.calories)} kcal · P {picked.nutrients.protein}g · C{" "}
-            {picked.nutrients.carbs}g · G {picked.nutrients.fat}g
-          </Txt>
-          <Input label="Quantidade (g)" value={quantity} onChangeText={setQuantity} keyboardType="decimal-pad" />
-          <View style={{ flexDirection: "row", gap: 8 }}>
-            <View style={{ flex: 1 }}>
-              <Button label="Cancelar" variant="ghost" compact onPress={() => setPicked(null)} />
-            </View>
-            <View style={{ flex: 1 }}>
-              <Button label="Adicionar" compact onPress={addFood} />
-            </View>
-          </View>
-        </Card>
-      ) : (
-        <>
-          <Input label="Buscar alimento" value={query} onChangeText={setQuery} placeholder="Ex.: arroz, frango, banana" />
-          {shown.map(r => (
+    <Sheet visible={!!type} onClose={onClose} title="Adicionar Alimento">
+      <Marginalia>Nome do Alimento *</Marginalia>
+      <View style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
+        <View style={{ flex: 1 }}>
+          <Input placeholder="Ex: Frango grelhado" value={foodName} onChangeText={setFoodName} />
+        </View>
+        <Button label={calculating ? "Calc..." : "Calcular"} variant="ghost" compact onPress={calculate} disabled={calculating || !foodName} />
+      </View>
+      {showSuggestions && suggestions.length > 0 ? (
+        <View style={{ borderWidth: 1, borderColor: theme.border, borderRadius: 12, overflow: "hidden" }}>
+          {suggestions.slice(0, 5).map((food, idx) => (
             <Pressable
-              key={r.fdcId}
-              onPress={() => setPicked(r)}
-              style={{ flexDirection: "row", justifyContent: "space-between", paddingVertical: 8, borderBottomWidth: 1, borderBottomColor: theme.border }}
+              key={`${food.fdcId}-${idx}`}
+              onPress={() => selectFood(food)}
+              style={({ pressed }) => ({
+                paddingHorizontal: 12,
+                paddingVertical: 10,
+                backgroundColor: pressed ? theme.primarySoft : idx % 2 === 0 ? theme.raised : "transparent",
+                borderBottomWidth: idx < Math.min(5, suggestions.length) - 1 ? 1 : 0,
+                borderBottomColor: theme.border,
+              })}
             >
-              <Txt variant="label" style={{ flex: 1 }} numberOfLines={1}>
-                {r.description}
+              <Txt variant="label" color={theme.primaryInk} style={{ fontFamily: fonts.bodySemi }}>
+                {food.description}
               </Txt>
               <Txt variant="caption" muted>
-                {Math.round(r.nutrients.calories)} kcal/{r.servingSize || 100}
-                {r.servingUnit || "g"}
+                {food.nutrients.calories} kcal • P: {food.nutrients.protein}g • C: {food.nutrients.carbs}g • G: {food.nutrients.fat}g
               </Txt>
             </Pressable>
           ))}
-          {searching && shown.length === 0 && <EmptyState text="Nenhum alimento encontrado." />}
-        </>
-      )}
+        </View>
+      ) : null}
 
-      {foods.length > 0 && (
-        <Card>
+      <View style={{ flexDirection: "row", gap: 12 }}>
+        {numberField("Calorias *", calories, setCalories, "0")}
+        {numberField("Quantidade (g)", quantity, setQuantity, "100")}
+      </View>
+      <View style={{ flexDirection: "row", gap: 12 }}>
+        {numberField("Proteína (g)", protein, setProtein, "0")}
+        {numberField("Carboidratos (g)", carbs, setCarbs, "0")}
+      </View>
+      <View style={{ flexDirection: "row", gap: 12 }}>
+        {numberField("Gordura (g)", fat, setFat, "0")}
+        <View style={{ flex: 1 }} />
+      </View>
+
+      <Button label="+ Adicionar Alimento" variant="orange" onPress={addFood} disabled={!foodName || !calories} />
+
+      {foods.length > 0 ? (
+        <Card style={{ gap: 6 }}>
+          <Txt variant="marginalia">Alimentos adicionados ({foods.length}):</Txt>
           {foods.map(f => (
-            <View key={f.id} style={{ flexDirection: "row", justifyContent: "space-between" }}>
-              <Txt variant="label" style={{ flex: 1 }} numberOfLines={1}>
-                {f.name} · {f.quantity}g
+            <View key={f.id} style={{ flexDirection: "row", justifyContent: "space-between", gap: 8 }}>
+              <Txt variant="label" muted style={{ flex: 1 }} numberOfLines={1}>
+                {f.name} ({f.quantity}g)
               </Txt>
-              <Txt variant="caption" muted>
-                {Math.round(f.calories)} kcal
+              <Txt variant="caption" color={theme.primary} style={{ fontFamily: fonts.bodySemi }}>
+                {f.calories} kcal
               </Txt>
             </View>
           ))}
-          <Txt variant="bodyStrong">Total: {Math.round(foods.reduce((s, f) => s + f.calories, 0))} kcal</Txt>
         </Card>
-      )}
-      <Button label="Salvar refeição" onPress={save} disabled={foods.length === 0} />
+      ) : null}
+      <Button label="Salvar Refeição" onPress={save} disabled={foods.length === 0} />
+    </Sheet>
+  );
+}
+
+const QUICK_WATER = [150, 200, 250, 300, 350, 400, 500, 750, 1000];
+
+function WaterSheet({ visible, onClose, currentMl, goalMl }: { visible: boolean; onClose: () => void; currentMl: number; goalMl: number }) {
+  const [amount, setAmount] = useState("250");
+  const [adding, setAdding] = useState(false);
+  const percentage = goalMl > 0 ? Math.min((currentMl / goalMl) * 100, 100) : 0;
+  const ml = num(amount);
+  const valid = !!ml && ml > 0;
+
+  const add = async () => {
+    if (!valid) {
+      notifyInfo("Insira uma quantidade válida!");
+      return;
+    }
+    setAdding(true);
+    await addWaterMl(ml);
+    notifySuccess(`${ml} mL de água adicionado!`);
+    setAmount("250");
+    setAdding(false);
+    onClose();
+  };
+
+  return (
+    <Sheet visible={visible} onClose={onClose} title="Registrar Hidratação">
+      <Card style={{ gap: 8, borderColor: `${WATER_COLOR}4d` }}>
+        <View style={{ flexDirection: "row", justifyContent: "space-between" }}>
+          <Txt variant="bodyStrong" color={WATER_COLOR}>
+            {currentMl} mL
+          </Txt>
+          <Txt variant="bodyStrong" muted>
+            Meta: {goalMl} mL
+          </Txt>
+        </View>
+        <ProgressBar percent={percentage} color={WATER_COLOR} height={10} />
+        <Txt variant="caption" muted style={{ textAlign: "center" }}>
+          {Math.round(percentage)}% da meta diária
+        </Txt>
+      </Card>
+      <Marginalia>Quantidade rápida (mL)</Marginalia>
+      <Segmented kind="stamp" options={QUICK_WATER.map(v => ({ value: String(v), label: `${v} mL` }))} value={amount} onChange={setAmount} />
+      <Input label="Ou digite a quantidade personalizada (mL)" placeholder="250" keyboardType="number-pad" value={amount} onChangeText={setAmount} />
+      <Button label={adding ? "Adicionando..." : `+ Adicionar ${amount || "0"} mL`} onPress={add} disabled={adding || !valid} />
     </Sheet>
   );
 }
@@ -356,33 +475,31 @@ function AddFoodSheet({ type, onClose }: { type: MealType | null; onClose: () =>
 function DietSettingsSheet({ visible, settings, onClose }: { visible: boolean; settings: DietSettings; onClose: () => void }) {
   const [form, setForm] = useState(settings);
 
-  const field = (key: keyof Pick<DietSettings, "dailyCalorieGoal" | "proteinGoal" | "carbsGoal" | "fatGoal" | "waterGoal">, label: string) => (
-    <Input
-      label={label}
-      value={String(form[key])}
-      onChangeText={text => setForm(prev => ({ ...prev, [key]: Number(text.replace(/\D/g, "")) || 0 }))}
-      keyboardType="number-pad"
-    />
+  const field = (key: keyof Pick<DietSettings, "dailyCalorieGoal" | "proteinGoal" | "carbsGoal" | "fatGoal" | "waterGoal">, label: string, hint: string) => (
+    <View style={{ gap: 4 }}>
+      <Input
+        label={label}
+        value={String(form[key])}
+        onChangeText={text => setForm(prev => ({ ...prev, [key]: Number(text.replace(/\D/g, "")) || 0 }))}
+        keyboardType="number-pad"
+      />
+      <Txt variant="caption" muted>
+        {hint}
+      </Txt>
+    </View>
   );
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Metas da dieta">
-      {field("dailyCalorieGoal", "Calorias por dia (kcal)")}
-      {field("proteinGoal", "Proteína (g)")}
-      {field("carbsGoal", "Carboidratos (g)")}
-      {field("fatGoal", "Gorduras (g)")}
-      {field("waterGoal", "Água (mL)")}
-      <Segmented
-        options={[
-          { value: 1500, label: "1,5 L" },
-          { value: 2000, label: "2 L" },
-          { value: 3000, label: "3 L" },
-        ]}
-        value={form.waterGoal}
-        onChange={value => setForm(prev => ({ ...prev, waterGoal: value }))}
-      />
+    <Sheet visible={visible} onClose={onClose} title="Ajustar Metas de Dieta">
+      {field("dailyCalorieGoal", "Meta Calórica Diária", "Recomendação: 1800-2500 kcal/dia")}
+      <Marginalia>Macronutrientes</Marginalia>
+      {field("proteinGoal", "Proteína", "gramas")}
+      {field("carbsGoal", "Carboidratos", "gramas")}
+      {field("fatGoal", "Gordura", "gramas")}
+      {field("waterGoal", "Meta de Hidratação", "Recomendação: 2000-3000 mL/dia (2-3 litros)")}
       <Button
-        label="Salvar metas"
+        label="Salvar Metas"
+        variant="orange"
         onPress={async () => {
           await updateDietSettings(form);
           notifySuccess("Metas de dieta atualizadas!");

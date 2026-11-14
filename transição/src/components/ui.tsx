@@ -1,5 +1,7 @@
-import { useState, type ReactNode } from "react";
+import { Children, isValidElement, useEffect, useState, type ReactNode } from "react";
 import {
+  Easing,
+  Animated,
   ActivityIndicator,
   KeyboardAvoidingView,
   Modal,
@@ -21,7 +23,7 @@ import { router, usePathname, type Href } from "expo-router";
 import Svg, { Circle } from "react-native-svg";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { fonts, useTheme, withAlpha, type Theme } from "@/theme";
-import { useTweenNumber } from "@/lib/motion";
+import { prefersReducedMotion, useTweenNumber } from "@/lib/motion";
 import { Glass } from "./Glass";
 import { TAB_BAR_HEIGHT } from "./layout";
 import { Corv } from "./Corv";
@@ -181,6 +183,25 @@ function goBack(fallback: Href) {
   else router.replace(fallback);
 }
 
+// Cada bloco da tela entra subindo e aparecendo, um logo depois do outro.
+function EnterItem({ index, children }: { index: number; children: ReactNode }) {
+  const [progress] = useState(() => new Animated.Value(prefersReducedMotion() ? 1 : 0));
+  useEffect(() => {
+    Animated.timing(progress, {
+      toValue: 1,
+      duration: 420,
+      delay: Math.min(index, 10) * 40,
+      easing: Easing.out(Easing.cubic),
+      useNativeDriver: Platform.OS !== "web",
+    }).start();
+  }, [progress, index]);
+  return (
+    <Animated.View style={{ opacity: progress, transform: [{ translateY: progress.interpolate({ inputRange: [0, 1], outputRange: [14, 0] }) }] }}>
+      {children}
+    </Animated.View>
+  );
+}
+
 export function Screen({
   children,
   scroll = true,
@@ -262,8 +283,11 @@ export function Screen({
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         {scroll ? (
           <ScrollView contentContainerStyle={styles.screenContent} keyboardShouldPersistTaps="handled">
-            {header}
-            {children}
+            {[header, ...Children.toArray(children)].filter(Boolean).map((child, i) => (
+              <EnterItem key={isValidElement(child) && child.key != null ? String(child.key) : `item-${i}`} index={i}>
+                {child}
+              </EnterItem>
+            ))}
           </ScrollView>
         ) : (
           <View style={[styles.screenContent, { flex: 1 }]}>

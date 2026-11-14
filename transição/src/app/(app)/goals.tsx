@@ -2,22 +2,39 @@ import { useState } from "react";
 import { Pressable, View } from "react-native";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import { createGoal } from "@/store/goals.store";
+import type { Goal } from "@/lib/store";
 import { FREE_LIMITS } from "@/config/planLimits";
-import { notifyError, notifyInfo, notifySuccess } from "@/lib/notifications";
+import { notifyError, notifyInfo } from "@/lib/notifications";
 import { useStore } from "@/hooks/useStore";
 import { useAuth } from "@/hooks/useAuth";
-import { Button, Card, EmptyState, Input, Marginalia, Metric, Screen, Segmented, Sheet, Txt } from "@/components/ui";
-import { LongTermGoalCard, WeeklyGoalCard } from "@/components/rows";
-import { getWeekConsistencyAverage } from "@/lib/weeklyGoals";
-import { DateStrip } from "@/components/DateStrip";
-import { resolveColor, useTheme } from "@/theme";
+import { Button, Card, Input, Marginalia, Metric, Screen, Segmented, Sheet, Txt } from "@/components/ui";
+import { LongTermGoalCard, WeeklyGoalCard, weeklyDays } from "@/components/rows";
+import { COMMON_FREQUENCIES, countActiveWeeklyGoals, getWeekConsistencyAverage, type WeeklyGoal } from "@/lib/weeklyGoals";
+import { fonts, resolveColor, useTheme } from "@/theme";
 import { useNewParam } from "@/hooks/useNewParam";
 
-const EMOJIS = ["🎯", "🏆", "📈", "💰", "🏃", "📚", "🧠", "💪", "✈️", "🏠", "❤️", "🌱"];
-const COLORS = ["var(--primary)", "var(--accent)", "#10B981", "#3B82F6", "#EF4444", "#EC4899"];
-const FREQUENCIES = [1, 2, 3, 4, 5, 6, 7];
+// Mesmos ícones e tintas do formulário do web.
+const EMOJIS = ["📚", "🏃", "💼", "💰", "🎯", "💪", "🧘", "✈", "🎨", "💧", "📷", "🎓"];
+const COLORS = ["var(--primary)", "var(--accent)", "#10B981", "#EF4444", "#EC4899", "#06B6D4", "#84CC16", "#6B7280"];
 
 type LongFilter = "all" | "ongoing" | "completed";
+
+function toWeekly(goal: Goal, days: boolean[]): WeeklyGoal {
+  return {
+    id: goal.id,
+    title: goal.title,
+    emoji: goal.emoji,
+    color: goal.color,
+    targetFrequency: goal.targetFrequency ?? 1,
+    daysCompletedWeek: days,
+    weekStart: goal.weekStart ?? null,
+    streak: goal.streak ?? 0,
+    recordStreak: goal.recordStreak ?? 0,
+    linkedHabitId: goal.linkedHabitId ?? null,
+    weeklyHistory: goal.weeklyHistory ?? [],
+    createdAt: goal.createdAt,
+  };
+}
 
 // Porta de pages/Goals.tsx ("Livro de objetivos").
 export default function GoalsScreen() {
@@ -27,28 +44,13 @@ export default function GoalsScreen() {
   const [showNew, setShowNew] = useState(false);
   useNewParam(() => setShowNew(true));
 
-  const weekly = data.goals.filter(g => g.type === "semanal");
-  const longTerm = data.goals.filter(g => g.type !== "semanal");
+  // Semanais em ordem fixa por título (como o web).
+  const weekly = data.goals.filter(g => g.type === "semanal").sort((a, b) => a.title.localeCompare(b.title));
+  const longTerm = data.goals.filter(g => !g.type || g.type === "longo_prazo");
   const longFiltered = longTerm.filter(g => (filter === "ongoing" ? !g.completedAt : filter === "completed" ? !!g.completedAt : true));
-  // Mesma conta do site (lib/weeklyGoals.getWeekConsistencyAverage).
-  const consistency = Math.round(
-    getWeekConsistencyAverage(
-      weekly.map(g => ({
-        id: g.id,
-        title: g.title,
-        emoji: g.emoji,
-        color: g.color,
-        targetFrequency: g.targetFrequency ?? 1,
-        daysCompletedWeek: g.daysCompletedWeek ?? [false, false, false, false, false, false, false],
-        weekStart: g.weekStart ?? null,
-        streak: g.streak ?? 0,
-        recordStreak: g.recordStreak ?? 0,
-        linkedHabitId: g.linkedHabitId ?? null,
-        weeklyHistory: g.weeklyHistory ?? [],
-        createdAt: g.createdAt,
-      }))
-    ) || 0
-  );
+  const asWeekly = weekly.map(g => toWeekly(g, weeklyDays(g, data.habits)));
+  const consistency = getWeekConsistencyAverage(asWeekly);
+  const active = countActiveWeeklyGoals(asWeekly);
   const streakTotal = weekly.reduce((s, g) => s + (g.streak ?? 0), 0);
 
   return (
@@ -73,16 +75,24 @@ export default function GoalsScreen() {
           </Txt>
         </View>
       </View>
-      <Metric label="Consistência" value={`${consistency}%`} />
-      <Metric label="Ativas" value={String(weekly.length)} />
-      <Metric label="Streak total" value={String(streakTotal)} />
 
-      {weekly.length === 0 ? (
-        <Card>
-          <EmptyState icon="calendar-outline" text="Crie uma meta semanal, como “Treinar 4x por semana”." />
-        </Card>
+      {weekly.length > 0 ? (
+        <>
+          <Metric label="Consistência" value={`${consistency}%`} />
+          <Metric label="Ativas" value={String(active)} />
+          <Metric label="Streak total" value={String(streakTotal)} />
+          {weekly.map(goal => (
+            <WeeklyGoalCard key={goal.id} goal={goal} habits={data.habits} />
+          ))}
+        </>
       ) : (
-        weekly.map(goal => <WeeklyGoalCard key={goal.id} goal={goal} habits={data.habits} />)
+        <EmptySection
+          icon="flash-outline"
+          title="Nenhuma meta semanal"
+          subtitle="Crie metas que resetam toda semana para construir novos hábitos e consistência."
+          actionLabel="Criar Meta Semanal"
+          onAction={() => setShowNew(true)}
+        />
       )}
 
       <View style={{ gap: 4, marginTop: 8 }}>
@@ -100,15 +110,47 @@ export default function GoalsScreen() {
         onChange={setFilter}
       />
       {longFiltered.length === 0 ? (
-        <Card>
-          <EmptyState icon="flag-outline" text="Nenhuma meta aqui ainda." />
-        </Card>
+        <EmptySection
+          icon="rocket-outline"
+          title="Nenhuma meta de longo prazo"
+          subtitle="Defina objetivos grandes e acompanhe seu progresso passo a passo."
+          actionLabel="Criar Meta"
+          onAction={() => setShowNew(true)}
+        />
       ) : (
         longFiltered.map(goal => <LongTermGoalCard key={goal.id} goal={goal} />)
       )}
 
       <NewGoalSheet visible={showNew} onClose={() => setShowNew(false)} isPro={isPro} weeklyCount={weekly.length} longCount={longTerm.length} />
     </Screen>
+  );
+}
+
+function EmptySection({
+  icon,
+  title,
+  subtitle,
+  actionLabel,
+  onAction,
+}: {
+  icon: keyof typeof Ionicons.glyphMap;
+  title: string;
+  subtitle: string;
+  actionLabel: string;
+  onAction: () => void;
+}) {
+  const theme = useTheme();
+  return (
+    <Card style={{ alignItems: "center", gap: 10, paddingVertical: 28, borderStyle: "dashed" }}>
+      <View style={{ width: 52, height: 52, borderRadius: 14, backgroundColor: theme.raised, alignItems: "center", justifyContent: "center" }}>
+        <Ionicons name={icon} size={22} color={theme.primary} />
+      </View>
+      <Txt variant="h3">{title}</Txt>
+      <Txt variant="caption" muted style={{ textAlign: "center", maxWidth: 300 }}>
+        {subtitle}
+      </Txt>
+      <Button label={actionLabel} icon="add" compact onPress={onAction} />
+    </Card>
   );
 }
 
@@ -127,25 +169,15 @@ function NewGoalSheet({
 }) {
   const theme = useTheme();
   const data = useStore();
-  const [type, setType] = useState<"semanal" | "longo_prazo">("semanal");
+  const [type, setType] = useState<"semanal" | "longo_prazo">("longo_prazo");
   const [title, setTitle] = useState("");
-  const [description, setDescription] = useState("");
-  const [emoji, setEmoji] = useState(EMOJIS[0]);
+  const [emoji, setEmoji] = useState(" ");
   const [color, setColor] = useState(COLORS[0]);
   const [frequency, setFrequency] = useState(4);
   const [habitId, setHabitId] = useState<string | null>(null);
-  const [hasDeadline, setHasDeadline] = useState(false);
-  const [deadline, setDeadline] = useState("");
   const [steps, setSteps] = useState<string[]>([""]);
   const [saving, setSaving] = useState(false);
-
-  const reset = () => {
-    setTitle("");
-    setDescription("");
-    setSteps([""]);
-    setHabitId(null);
-    setHasDeadline(false);
-  };
+  const tint = resolveColor(color, theme);
 
   const handleSave = async () => {
     if (!title.trim()) return;
@@ -160,31 +192,55 @@ function NewGoalSheet({
     setSaving(true);
     const { error } =
       type === "semanal"
-        ? await createGoal({ type, title, description, emoji, color, targetFrequency: frequency, linkedHabitId: habitId })
-        : await createGoal({ type, title, description, emoji, color, deadline: hasDeadline ? deadline : undefined, steps });
+        ? await createGoal({ type, title, emoji, color, targetFrequency: frequency, linkedHabitId: habitId })
+        : await createGoal({ type, title, emoji, color, steps });
     setSaving(false);
     if (error) {
       notifyError("Erro ao criar meta", error);
       return;
     }
-    notifySuccess("Meta criada!");
-    reset();
+    setTitle("");
+    setSteps([""]);
+    setHabitId(null);
     onClose();
   };
 
-  return (
-    <Sheet visible={visible} onClose={onClose} title="Nova meta">
-      <Segmented
-        options={[
-          { value: "semanal", label: "Semanal" },
-          { value: "longo_prazo", label: "Longo prazo" },
-        ]}
-        value={type}
-        onChange={setType}
-      />
-      <Input label="Título *" placeholder={type === "semanal" ? "Ex.: Treinar" : "Ex.: Correr uma maratona"} value={title} onChangeText={setTitle} />
-      <Input label="Descrição (opcional)" value={description} onChangeText={setDescription} multiline />
+  const choice = (selected: boolean) => ({
+    paddingHorizontal: 12,
+    paddingVertical: 8,
+    borderRadius: 8,
+    borderWidth: selected ? 1.5 : 1,
+    borderColor: selected ? tint : theme.border,
+    backgroundColor: selected ? `${tint}26` : "transparent",
+  });
 
+  return (
+    <Sheet visible={visible} onClose={onClose} title="Nova Meta">
+      <Marginalia>Tipo de Meta</Marginalia>
+      <View style={{ flexDirection: "row", gap: 10 }}>
+        {(
+          [
+            { value: "longo_prazo", label: "Longo Prazo", icon: "flag-outline" },
+            { value: "semanal", label: "Semanal", icon: "calendar-outline" },
+          ] as const
+        ).map(option => {
+          const selected = type === option.value;
+          return (
+            <Pressable
+              key={option.value}
+              onPress={() => setType(option.value)}
+              style={{ ...choice(selected), flex: 1, padding: 12, borderRadius: 12, alignItems: "center", gap: 6 }}
+            >
+              <Ionicons name={option.icon} size={16} color={selected ? tint : theme.inkMuted} />
+              <Txt style={{ fontFamily: fonts.bodyBold, fontSize: 13 }} color={selected ? tint : theme.ink}>
+                {option.label}
+              </Txt>
+            </Pressable>
+          );
+        })}
+      </View>
+
+      <Marginalia>Ícone</Marginalia>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
         {EMOJIS.map(item => (
           <Pressable
@@ -196,93 +252,79 @@ function NewGoalSheet({
               borderRadius: 10,
               alignItems: "center",
               justifyContent: "center",
-              backgroundColor: emoji === item ? theme.primarySoft : "transparent",
-              borderWidth: 1,
-              borderColor: emoji === item ? theme.primary : theme.border,
+              backgroundColor: emoji === item ? `${theme.accent}26` : "transparent",
+              borderWidth: emoji === item ? 2 : 1,
+              borderColor: emoji === item ? theme.accent : theme.border,
             }}
           >
-            <Txt style={{ fontSize: 20 }}>{item}</Txt>
+            <Txt style={{ fontSize: 18 }}>{item}</Txt>
           </Pressable>
         ))}
       </View>
-      <View style={{ flexDirection: "row", gap: 10 }}>
+
+      <Marginalia>Cor da tinta</Marginalia>
+      <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
         {COLORS.map(item => (
           <Pressable
             key={item}
             onPress={() => setColor(item)}
-            style={{
-              width: 32,
-              height: 32,
-              borderRadius: 16,
-              backgroundColor: resolveColor(item, theme),
-              borderWidth: color === item ? 3 : 0,
-              borderColor: theme.ink,
-            }}
+            accessibilityLabel={`Cor ${item}`}
+            style={{ width: 30, height: 30, borderRadius: 15, backgroundColor: resolveColor(item, theme), borderWidth: color === item ? 3 : 0, borderColor: theme.ink }}
           />
         ))}
       </View>
 
+      <Input label="Título" placeholder="Ex: Aprender React" value={title} onChangeText={setTitle} />
+
       {type === "semanal" ? (
         <>
-          <Txt variant="label" muted>
-            Quantas vezes por semana?
-          </Txt>
-          <Segmented options={FREQUENCIES.map(f => ({ value: f, label: `${f}x` }))} value={frequency} onChange={setFrequency} />
-          <Txt variant="label" muted>
-            Vincular a um hábito (opcional)
-          </Txt>
-          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
-            {[{ id: null as string | null, title: "Nenhum", emoji: "—" }, ...data.habits].map(h => (
-              <Pressable
-                key={h.id ?? "none"}
-                onPress={() => setHabitId(h.id)}
-                style={{
-                  paddingHorizontal: 12,
-                  paddingVertical: 8,
-                  borderRadius: 8,
-                  borderWidth: 1,
-                  borderColor: habitId === h.id ? theme.primary : theme.border,
-                  backgroundColor: habitId === h.id ? theme.primarySoft : "transparent",
-                }}
-              >
-                <Txt variant="label">
-                  {h.emoji} {h.title}
-                </Txt>
+          <Marginalia>Frequência (vezes por semana)</Marginalia>
+          <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+            {COMMON_FREQUENCIES.map(f => (
+              <Pressable key={f.value} onPress={() => setFrequency(f.value)} style={choice(frequency === f.value)}>
+                <Txt variant="label">{f.label}</Txt>
               </Pressable>
             ))}
           </View>
+          {data.habits.length > 0 ? (
+            <>
+              <Marginalia>Vincular a um hábito (opcional)</Marginalia>
+              <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 6 }}>
+                <Pressable onPress={() => setHabitId(null)} style={choice(habitId === null)}>
+                  <Txt variant="label">Manual</Txt>
+                </Pressable>
+                {data.habits.map(h => (
+                  <Pressable
+                    key={h.id}
+                    onPress={() => {
+                      setHabitId(h.id);
+                      setTitle(h.title);
+                    }}
+                    style={choice(habitId === h.id)}
+                  >
+                    <Txt variant="label">{h.title}</Txt>
+                  </Pressable>
+                ))}
+              </View>
+            </>
+          ) : null}
         </>
       ) : (
         <>
-          <Pressable onPress={() => setHasDeadline(v => !v)} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-            <Ionicons name={hasDeadline ? "checkbox" : "square-outline"} size={22} color={theme.primary} />
-            <Txt>Definir prazo</Txt>
-          </Pressable>
-          {hasDeadline && <DateStrip value={deadline} onChange={setDeadline} daysBefore={0} daysAfter={365} />}
-          <Txt variant="label" muted>
-            Etapas
-          </Txt>
+          <Marginalia>Etapas</Marginalia>
           {steps.map((step, index) => (
-            <View key={index} style={{ flexDirection: "row", gap: 8, alignItems: "center" }}>
-              <View style={{ flex: 1 }}>
-                <Input
-                  placeholder={`Etapa ${index + 1}`}
-                  value={step}
-                  onChangeText={text => setSteps(prev => prev.map((s, i) => (i === index ? text : s)))}
-                />
-              </View>
-              {steps.length > 1 && (
-                <Pressable onPress={() => setSteps(prev => prev.filter((_, i) => i !== index))} hitSlop={8}>
-                  <Ionicons name="close-circle" size={24} color={theme.inkMuted} />
-                </Pressable>
-              )}
-            </View>
+            <Input
+              key={index}
+              placeholder={`Etapa ${index + 1}`}
+              value={step}
+              onChangeText={text => setSteps(prev => prev.map((s, i) => (i === index ? text : s)))}
+            />
           ))}
-          <Button label="Adicionar etapa" variant="ghost" icon="add" compact onPress={() => setSteps(prev => [...prev, ""])} />
+          <Button label="+ Adicionar Etapa" variant="ghost" compact onPress={() => setSteps(prev => [...prev, ""])} />
         </>
       )}
 
-      <Button label="Criar meta" onPress={handleSave} loading={saving} disabled={!title.trim()} />
+      <Button label="Criar Meta" onPress={handleSave} loading={saving} disabled={!title.trim()} />
     </Sheet>
   );
 }

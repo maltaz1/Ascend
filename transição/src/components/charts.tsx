@@ -1,6 +1,6 @@
-import { useState } from "react";
-import { useTween, useTweenNumber } from "@/lib/motion";
-import { View, type GestureResponderEvent, type LayoutChangeEvent } from "react-native";
+import { useEffect, useState } from "react";
+import { prefersReducedMotion, useTween, useTweenNumber } from "@/lib/motion";
+import { Animated, Easing, View, type GestureResponderEvent, type LayoutChangeEvent } from "react-native";
 import Svg, { Circle, Defs, G, Line, LinearGradient, Path, Rect, Stop, Text as SvgText } from "react-native-svg";
 import { fonts, useTheme } from "@/theme";
 import { Txt } from "./ui";
@@ -13,7 +13,26 @@ type Series = { key: string; color: string; label: string };
 type Datum = { label: string } & Record<string, number | string>;
 type Formatter = (value: number) => string;
 
-const PAD = { top: 10, right: 8, bottom: 22, left: 30 };
+const PAD = { top: 12, right: 12, bottom: 22, left: 30 };
+
+const AnimatedPath = Animated.createAnimatedComponent(Path);
+const AnimatedG = Animated.createAnimatedComponent(G);
+
+// 0 → 1 uma vez ao abrir: a linha se desenha da esquerda para a direita.
+function useDrawIn(): Animated.Value {
+  const [progress] = useState(() => new Animated.Value(prefersReducedMotion() ? 1 : 0));
+  useEffect(() => {
+    Animated.timing(progress, { toValue: 1, duration: 1100, easing: Easing.out(Easing.cubic), useNativeDriver: false }).start();
+  }, [progress]);
+  return progress;
+}
+
+// Comprimento aproximado da curva (para o traço tracejado que "desenha" a linha).
+function pathLength(pts: { x: number; y: number }[]): number {
+  let total = 0;
+  for (let i = 1; i < pts.length; i++) total += Math.hypot(pts[i].x - pts[i - 1].x, pts[i].y - pts[i - 1].y);
+  return total * 1.25 + 10;
+}
 const TOOLTIP_W = 176;
 
 function useWidth(): [number, (e: LayoutChangeEvent) => void] {
@@ -201,6 +220,7 @@ export function AreaChart({
   const theme = useTheme();
   const [width, onLayout] = useWidth();
   const [active, setActive] = useState<number | null>(null);
+  const draw = useDrawIn();
   const raw = data.flatMap(d => series.map(s => Number(d[s.key]) || 0));
   const targetMax = niceMax(Math.max(0, ...raw));
   // A linha "cresce" ao abrir e desliza até os valores novos quando os dados mudam.
@@ -235,11 +255,29 @@ export function AreaChart({
                 const pts = data.map((_, i) => ({ x: x(i), y: y(valueAt(i, j)) }));
                 const line = monotonePath(pts);
                 const area = pts.length ? `${line} L ${pts[pts.length - 1].x} ${PAD.top + chartH} L ${pts[0].x} ${PAD.top + chartH} Z` : "";
+                const length = pathLength(pts);
+                const end = pts[pts.length - 1];
                 return (
                   <G key={s.key}>
-                    <Path d={area} fill={`url(#fill-${s.key})`} />
-                    <Path d={line} stroke={s.color} strokeWidth={2.5} fill="none" strokeLinecap="round" strokeLinejoin="round" />
+                    <AnimatedG opacity={draw.interpolate({ inputRange: [0, 0.35, 1], outputRange: [0, 0.6, 1] })}>
+                      <Path d={area} fill={`url(#fill-${s.key})`} />
+                    </AnimatedG>
+                    <AnimatedPath
+                      d={line}
+                      stroke={s.color}
+                      strokeWidth={3}
+                      fill="none"
+                      strokeLinecap="round"
+                      strokeLinejoin="round"
+                      strokeDasharray={`${length} ${length}`}
+                      strokeDashoffset={draw.interpolate({ inputRange: [0, 1], outputRange: [length, 0] })}
+                    />
                     {dots && pts.map((p, i) => <Circle key={i} cx={p.x} cy={p.y} r={3} fill={theme.surface} stroke={s.color} strokeWidth={2} />)}
+                    {!dots && end && !current ? (
+                      <AnimatedG opacity={draw.interpolate({ inputRange: [0, 0.8, 1], outputRange: [0, 0, 1] })}>
+                        <Circle cx={end.x} cy={end.y} r={5} fill={theme.surface} stroke={s.color} strokeWidth={3} />
+                      </AnimatedG>
+                    ) : null}
                     {current && <Circle cx={pts[active!].x} cy={pts[active!].y} r={5} fill={s.color} stroke={theme.surface} strokeWidth={2} />}
                   </G>
                 );
@@ -473,11 +511,11 @@ export function DonutChart({
 }
 
 // Mini gráfico de linha (consistência da meta semanal).
-export function Sparkline({ values, color, width = 140, height = 36 }: { values: number[]; color: string; width?: number; height?: number }) {
+export function Sparkline({ values, color, width = 140, height = 36, max: fixedMax }: { values: number[]; color: string; width?: number; height?: number; max?: number }) {
   const theme = useTheme();
   const shown = useTween(values);
   if (values.length === 0) return null;
-  const max = Math.max(1, ...values);
+  const max = fixedMax ?? Math.max(1, ...values);
   const step = values.length > 1 ? (width - 8) / (values.length - 1) : 0;
   const pts = values.map((_, i) => shown[i] ?? 0).map((v, i) => ({ x: 4 + i * step, y: height - 4 - (v / max) * (height - 10) }));
   const line = monotonePath(pts);

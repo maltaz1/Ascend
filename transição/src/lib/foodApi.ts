@@ -72,6 +72,8 @@ const fallbackFoods: Record<string, FoodNutrient> = {
   'ovo cozido': { calories: 155, protein: 13, carbs: 1.1, fat: 11 },
   'ovo frito': { calories: 196, protein: 13, carbs: 0.9, fat: 15 },
   'clara de ovo': { calories: 52, protein: 11, carbs: 0.7, fat: 0.2 },
+  'ovo mexido': { calories: 149, protein: 10, carbs: 1.6, fat: 11 },
+  'omelete': { calories: 154, protein: 11, carbs: 0.6, fat: 12 },
   'leite integral': { calories: 61, protein: 3.2, carbs: 4.8, fat: 3.3 },
   'leite desnatado': { calories: 35, protein: 3.4, carbs: 5, fat: 0.1 },
   'leite semidesnatado': { calories: 46, protein: 3.3, carbs: 4.9, fat: 1.6 },
@@ -308,45 +310,72 @@ function extractNutrients(foodItem: any): FoodNutrient {
   };
 }
 
+const MAX_RESULTS = 8;
+const STOPWORDS = new Set(['de', 'da', 'do', 'das', 'dos', 'com', 'e', 'em', 'a', 'o']);
+
+// "Pão", "pao" e "PÃO" viram "pao": a busca ignora acento e maiúscula.
+export function normalizeFoodText(text: string): string {
+  return text
+    .toLowerCase()
+    .normalize('NFD')
+    .replace(/[̀-ͯ]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim();
+}
+
+// Plural simples do português: "ovos" → "ovo", "pães" → "pao", "feijões" → "feijao".
+function singular(word: string): string {
+  if (word.length >= 4 && (word.endsWith('aes') || word.endsWith('oes'))) return word.slice(0, -3) + 'ao';
+  if (word.length > 3 && word.endsWith('s')) return word.slice(0, -1);
+  return word;
+}
+
+function tokens(text: string): string[] {
+  return normalizeFoodText(text)
+    .split(' ')
+    .filter(word => word && !STOPWORDS.has(word))
+    .map(singular);
+}
+
 /**
- * Busca alimentos no banco de dados local expandido
- * Retorna resultados que correspondem à query (busca exata ou parcial)
+ * Busca alimentos no banco de dados local expandido.
+ * Ignora acento, maiúscula e plural; mostra todas as variações ("ovo" traz ovo cozido,
+ * frito, mexido...) com as mais parecidas primeiro. Se nenhuma bate com todas as
+ * palavras, mostra as que batem com parte delas.
  */
 function searchLocalFoods(query: string): FoodSearchResult[] {
-  const lowerQuery = query.toLowerCase();
-  const results: FoodSearchResult[] = [];
-  
-  // Busca exata primeiro
+  const normalizedQuery = tokens(query).join(' ');
+  const queryWords = normalizedQuery.split(' ').filter(Boolean);
+  if (queryWords.length === 0) return [];
+
+  const scored: { key: string; nutrients: FoodNutrient; score: number }[] = [];
   for (const [key, nutrients] of Object.entries(fallbackFoods)) {
-    if (key === lowerQuery) {
-      results.push({
-        fdcId: `local_${key}`,
-        description: key.charAt(0).toUpperCase() + key.slice(1),
-        nutrients,
-        servingSize: 100,
-        servingUnit: 'g',
-      });
-      break;
+    const keyWords = tokens(key);
+    const keyText = keyWords.join(' ');
+    const matched = queryWords.filter(word => keyWords.some(k => k.startsWith(word)) || keyText.includes(word)).length;
+    if (matched === 0) continue;
+
+    let score = matched * 10;
+    if (matched === queryWords.length) {
+      if (keyText === normalizedQuery) score = 1000;
+      else if (keyText.startsWith(normalizedQuery)) score = 800;
+      else if (queryWords.every(word => keyWords.some(k => k.startsWith(word)))) score = 600;
+      else score = 400;
     }
+    scored.push({ key, nutrients, score });
   }
 
-  // Se não encontrou exato, busca parcial
-  if (results.length === 0) {
-    for (const [key, nutrients] of Object.entries(fallbackFoods)) {
-      if (key.includes(lowerQuery)) {
-        results.push({
-          fdcId: `local_${key}`,
-          description: key.charAt(0).toUpperCase() + key.slice(1),
-          nutrients,
-          servingSize: 100,
-          servingUnit: 'g',
-        });
-        if (results.length >= 8) break;
-      }
-    }
-  }
-
-  return results;
+  const best = scored.some(item => item.score >= 400) ? scored.filter(item => item.score >= 400) : scored;
+  return best
+    .sort((a, b) => b.score - a.score || a.key.length - b.key.length)
+    .slice(0, MAX_RESULTS)
+    .map(({ key, nutrients }) => ({
+      fdcId: `local_${key}`,
+      description: key.charAt(0).toUpperCase() + key.slice(1),
+      nutrients,
+      servingSize: 100,
+      servingUnit: 'g',
+    }));
 }
 
 /**
@@ -354,9 +383,9 @@ function searchLocalFoods(query: string): FoodSearchResult[] {
  * Busca instantânea e confiável sem depender de API externa
  */
 export async function searchFoods(query: string): Promise<FoodSearchResult[]> {
-  if (!query || query.length < 2) return [];
+  if (!query || query.trim().length < 2) return [];
 
-  const lowerQuery = query.toLowerCase();
+  const lowerQuery = normalizeFoodText(query);
 
   // Buscar no banco local (BR) - sempre rápido e confiável
   const localResults = searchLocalFoods(lowerQuery);
