@@ -46,12 +46,12 @@ export function AttributePicker({
                 paddingVertical: 9,
                 borderRadius: 14,
                 borderWidth: 1,
-                borderColor: on ? a.color : theme.border,
-                backgroundColor: on ? `${a.color}2e` : "transparent",
+                borderColor: on ? theme.primary : theme.border,
+                backgroundColor: on ? theme.primarySoft : "transparent",
               }}
             >
-              <Ionicons name={a.icon as never} size={15} color={on ? a.ink : theme.inkMuted} />
-              <Txt style={{ fontFamily: fonts.bodySemi, fontSize: 12.5 }} color={on ? a.ink : theme.inkMuted}>
+              <Ionicons name={a.icon as never} size={15} color={on ? theme.primaryInk : theme.inkMuted} />
+              <Txt style={{ fontFamily: fonts.bodySemi, fontSize: 12.5 }} color={on ? theme.primaryInk : theme.inkMuted}>
                 {a.name}
               </Txt>
             </Pressable>
@@ -73,11 +73,11 @@ export function AttributePicker({
                     paddingVertical: 8,
                     borderRadius: 12,
                     borderWidth: 1,
-                    borderColor: on ? current.color : theme.border,
-                    backgroundColor: on ? `${current.color}2e` : "transparent",
+                    borderColor: on ? theme.primary : theme.border,
+                    backgroundColor: on ? theme.primarySoft : "transparent",
                   }}
                 >
-                  <Txt style={{ fontFamily: fonts.bodySemi, fontSize: 12.5 }} color={on ? current.ink : theme.inkMuted}>
+                  <Txt style={{ fontFamily: fonts.bodySemi, fontSize: 12.5 }} color={on ? theme.primaryInk : theme.inkMuted}>
                     {ACTION_LABEL[act]}
                   </Txt>
                 </Pressable>

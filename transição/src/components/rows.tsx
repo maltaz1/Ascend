@@ -135,8 +135,8 @@ export function TaskCard({ task, onPress, onDelete }: { task: Task; onPress?: ()
         </Txt>
         {tag ? (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: tag.attr.color }} />
-            <Txt variant="caption" color={tag.attr.ink}>
+            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: theme.primary }} />
+            <Txt variant="caption" color={theme.primaryInk}>
               {tag.attr.name} · {ACTION_LABEL[tag.action]}
             </Txt>
           </View>

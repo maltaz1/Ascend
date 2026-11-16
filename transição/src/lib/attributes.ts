@@ -9,14 +9,15 @@ export type ActionId = "meditacao" | "nota" | "atividade" | "habito" | "leitura"
 
 export type Attr = { id: AttrId; name: string; color: string; ink: string; icon: string; angle: number };
 
-// Ordem e ângulos do radar (topo, sentido horário).
+// Ordem e ângulos do radar (topo, sentido horário). Cada atributo tem a sua cor, usada só na aba Eu
+// (radar, árvore e lista); no resto do app a etiqueta do atributo fica roxa.
 export const ATTRS: Attr[] = [
-  { id: "espirito", name: "Espírito", color: "#a78bfa", ink: "#c9b8fc", icon: "sparkles-outline", angle: -90 },
-  { id: "mente", name: "Mente", color: "#818cf8", ink: "#aab2fb", icon: "book-outline", angle: -30 },
-  { id: "riqueza", name: "Riqueza", color: "#d8b4fe", ink: "#e9d5ff", icon: "diamond-outline", angle: 30 },
-  { id: "disciplina", name: "Disciplina", color: "#c084fc", ink: "#d8a8fd", icon: "flame-outline", angle: 90 },
-  { id: "vitalidade", name: "Vitalidade", color: "#9333ea", ink: "#b06af0", icon: "heart-outline", angle: 150 },
-  { id: "forca", name: "Força", color: "#7c3aed", ink: "#a07df0", icon: "flash-outline", angle: 210 },
+  { id: "espirito", name: "Espírito", color: "#8b5cf6", ink: "#b69cfb", icon: "sparkles-outline", angle: -90 },
+  { id: "mente", name: "Mente", color: "#5b7cff", ink: "#8ea5ff", icon: "book-outline", angle: -30 },
+  { id: "riqueza", name: "Riqueza", color: "#06b6d4", ink: "#5fd8ec", icon: "diamond-outline", angle: 30 },
+  { id: "disciplina", name: "Disciplina", color: "#f59e0b", ink: "#fbbf4a", icon: "flame-outline", angle: 90 },
+  { id: "vitalidade", name: "Vitalidade", color: "#10b981", ink: "#4fd8a6", icon: "heart-outline", angle: 150 },
+  { id: "forca", name: "Força", color: "#ef4444", ink: "#ff7b7b", icon: "flash-outline", angle: 210 },
 ];
 export const attrOf = (id: string | undefined | null) => ATTRS.find(a => a.id === id);
 

@@ -479,10 +479,10 @@ function HabitCardView({
         onPress={onEdit}
         accessibilityRole="button"
         accessibilityLabel="Atributo do hábito"
-        style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: tag ? tag.attr.color : theme.border, backgroundColor: tag ? `${tag.attr.color}22` : "transparent" }}
+        style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: tag ? theme.primaryBorder : theme.border, backgroundColor: tag ? theme.primarySoft : "transparent" }}
       >
-        <Ionicons name={(tag ? tag.attr.icon : "sparkles-outline") as never} size={13} color={tag ? tag.attr.ink : theme.inkMuted} />
-        <Txt variant="caption" color={tag ? tag.attr.ink : theme.inkMuted} style={{ fontFamily: fonts.bodySemi }}>
+        <Ionicons name={(tag ? tag.attr.icon : "sparkles-outline") as never} size={13} color={tag ? theme.primaryInk : theme.inkMuted} />
+        <Txt variant="caption" color={tag ? theme.primaryInk : theme.inkMuted} style={{ fontFamily: fonts.bodySemi }}>
           {tag ? `${tag.attr.name} · ${ACTION_LABEL[tag.action]}` : "+ Atributo"}
         </Txt>
       </Pressable>
