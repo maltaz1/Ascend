@@ -14,6 +14,7 @@ const logo = require("../../../assets/logo-mark.png");
 type IconName = keyof typeof Ionicons.glyphMap;
 
 const ITEMS: { section: Section; href: string; title: string; caption: string; icon: IconName; color: string }[] = [
+  { section: "academy", href: "/academy", title: "Saúde", caption: "Treino e alimentação", icon: "heart-outline", color: "#ef4444" },
   { section: "financial", href: "/financial", title: "Financeiro", caption: "Entradas e gastos", icon: "wallet-outline", color: "#10b981" },
   { section: "notes", href: "/notes", title: "Notas", caption: "Ideias e pastas", icon: "document-text-outline", color: "#5b7cff" },
   { section: "calendar", href: "/calendar", title: "Calendário", caption: "Compromissos", icon: "calendar-outline", color: "#8b5cf6" },

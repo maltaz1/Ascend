@@ -50,6 +50,8 @@ export interface Habit {
   completedDates: string[];
   createdAt: string;
   targetDays: number;
+  // Etiqueta de atributo ("forca:treino"), ver lib/attributes.ts.
+  category?: string;
 }
 
 export interface CatalogExercise {

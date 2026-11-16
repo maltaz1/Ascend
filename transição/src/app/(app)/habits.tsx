@@ -1,9 +1,10 @@
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import { Pressable, ScrollView, View, Animated } from "react-native";
 import { Alert } from "@/lib/alert";
 import Ionicons from "@expo/vector-icons/Ionicons";
 import {
   createHabit,
+  editHabit,
   getDailyHabitData,
   getHabitMonthProgress,
   getHabitMonthRate,
@@ -21,6 +22,8 @@ import { useAuth } from "@/hooks/useAuth";
 import { Button, Card, EmptyState, Fab, IconBox, IconButton, Input, Marginalia, Metric, Screen, Segmented, Sheet, Txt } from "@/components/ui";
 import { AreaChart } from "@/components/charts";
 import { toggleHabitWithGoals } from "@/components/rows";
+import { AttributePicker } from "@/components/AttributePicker";
+import { ACTION_LABEL, formatTag, parseTag, type ActionId, type AttrId } from "@/lib/attributes";
 import { fonts, resolveColor, useTheme } from "@/theme";
 import { useNewParam } from "@/hooks/useNewParam";
 import { useCheckPop } from "@/lib/motion";
@@ -49,6 +52,7 @@ export default function HabitsScreen() {
   const [period, setPeriod] = useState<"daily" | "weekly">("daily");
   const [search, setSearch] = useState("");
   const [showNew, setShowNew] = useState(false);
+  const [editing, setEditing] = useState<Habit | null>(null);
   const [viewMode, setViewModeState] = useState<"cards" | "table">(sessionViewMode);
   const setViewMode = (mode: "cards" | "table") => {
     sessionViewMode = mode;
@@ -170,7 +174,7 @@ export default function HabitsScreen() {
       ) : viewMode === "cards" ? (
         <View style={{ gap: 12 }}>
           {habits.map(habit => (
-            <HabitCardView key={habit.id} habit={habit} year={year} month={month} daysInMonth={daysInMonth} onDelete={() => confirmDelete(habit)} />
+            <HabitCardView key={habit.id} habit={habit} year={year} month={month} daysInMonth={daysInMonth} onDelete={() => confirmDelete(habit)} onEdit={() => setEditing(habit)} />
           ))}
         </View>
       ) : (
@@ -194,6 +198,9 @@ export default function HabitsScreen() {
                       <Txt variant="bodyStrong" style={{ flex: 1, fontSize: 13 }} numberOfLines={2}>
                         {habit.title}
                       </Txt>
+                      <Pressable onPress={() => setEditing(habit)} hitSlop={8} accessibilityLabel="Editar hábito">
+                        <Ionicons name="create-outline" size={15} color={theme.inkMuted} />
+                      </Pressable>
                       <Pressable onPress={() => confirmDelete(habit)} hitSlop={8} accessibilityLabel="Excluir hábito">
                         <Ionicons name="trash-outline" size={15} color={theme.inkMuted} />
                       </Pressable>
@@ -268,7 +275,7 @@ export default function HabitsScreen() {
         </Txt>
       )}
 
-      <NewHabitSheet visible={showNew} onClose={() => setShowNew(false)} isPro={isPro} habitCount={data.habits.length} />
+      <HabitSheet visible={showNew || !!editing} habit={editing} onClose={() => { setShowNew(false); setEditing(null); }} isPro={isPro} habitCount={data.habits.length} />
     </Screen>
   );
 }
@@ -287,37 +294,54 @@ function MonthArrow({ icon, label, onPress }: { icon: "chevron-back" | "chevron-
   );
 }
 
-function NewHabitSheet({ visible, onClose, isPro, habitCount }: { visible: boolean; onClose: () => void; isPro: boolean; habitCount: number }) {
+function HabitSheet({ visible, onClose, isPro, habitCount, habit }: { visible: boolean; onClose: () => void; isPro: boolean; habitCount: number; habit?: Habit | null }) {
   const theme = useTheme();
   const [title, setTitle] = useState("");
   const [emoji, setEmoji] = useState(EMOJIS[0]);
   const [color, setColor] = useState(COLORS[0]);
   const [targetDays, setTargetDays] = useState(30);
+  const [attrId, setAttrId] = useState<AttrId | null>(null);
+  const [action, setAction] = useState<ActionId>("habito");
   const [saving, setSaving] = useState(false);
+
+  // Ao abrir, preenche com o hábito em edição (ou limpa, para um novo).
+  useEffect(() => {
+    if (!visible) return;
+    const tag = parseTag(habit?.category);
+    setTitle(habit?.title ?? "");
+    setEmoji(habit?.emoji ?? EMOJIS[0]);
+    setColor(habit?.color ?? COLORS[0]);
+    setTargetDays(habit?.targetDays ?? 30);
+    setAttrId(tag?.attr.id ?? null);
+    setAction(tag?.action ?? "habito");
+  }, [visible, habit]);
 
   const handleSave = async () => {
     if (!title.trim()) return;
-    if (!isPro && habitCount >= FREE_LIMITS.habits) {
+    if (!habit && !isPro && habitCount >= FREE_LIMITS.habits) {
       notifyInfo(`Plano grátis permite apenas ${FREE_LIMITS.habits} hábitos`);
       return;
     }
     setSaving(true);
-    const { error } = await createHabit({ title, emoji, color, targetDays });
+    const category = attrId ? formatTag(attrId, action) : null;
+    const { error } = habit ? await editHabit(habit.id, { title, emoji, color, targetDays, category }) : await createHabit({ title, emoji, color, targetDays, category });
     setSaving(false);
     if (error) {
-      notifyError("Erro ao criar hábito", error);
+      notifyError(habit ? "Erro ao salvar hábito" : "Erro ao criar hábito", error);
       return;
     }
-    notifySuccess("Hábito criado!");
+    notifySuccess(habit ? "Hábito atualizado!" : "Hábito criado!");
     setTitle("");
     setEmoji(EMOJIS[0]);
     setColor(COLORS[0]);
     setTargetDays(30);
+    setAttrId(null);
+    setAction("habito");
     onClose();
   };
 
   return (
-    <Sheet visible={visible} onClose={onClose} title="Novo Hábito">
+    <Sheet visible={visible} onClose={onClose} title={habit ? "Editar Hábito" : "Novo Hábito"}>
       <Input label="Nome do hábito" placeholder="Ex.: Beber 2L de água" value={title} onChangeText={setTitle} />
       <Marginalia>Ícone</Marginalia>
       <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 8 }}>
@@ -359,7 +383,8 @@ function NewHabitSheet({ visible, onClose, isPro, habitCount }: { visible: boole
         </View>
         <IconButton icon="add" label="Aumentar meta" onPress={() => setTargetDays(d => Math.min(31, d + 1))} />
       </View>
-      <Button label="Criar Hábito" onPress={handleSave} loading={saving} disabled={!title.trim()} />
+      <AttributePicker attrId={attrId} action={action} onAttr={setAttrId} onAction={setAction} what="hábito" />
+      <Button label={habit ? "Salvar" : "Criar Hábito"} onPress={handleSave} loading={saving} disabled={!title.trim()} />
     </Sheet>
   );
 }
@@ -395,12 +420,14 @@ function HabitCardView({
   month,
   daysInMonth,
   onDelete,
+  onEdit,
 }: {
   habit: Habit;
   year: number;
   month: number;
   daysInMonth: number;
   onDelete: () => void;
+  onEdit: () => void;
 }) {
   const theme = useTheme();
   const today = getTodayString();
@@ -411,6 +438,7 @@ function HabitCardView({
   const now = new Date();
   const isCurrentMonth = year === now.getFullYear() && month === now.getMonth();
   const [railRef, onRailSize] = useInitialScroll(isCurrentMonth ? Math.max(0, (now.getDate() - 5) * 44) : 0);
+  const tag = parseTag(habit.category);
 
   return (
     <Card style={{ gap: 12 }}>
@@ -438,10 +466,25 @@ function HabitCardView({
             </Txt>
           </View>
         </View>
+        <Pressable onPress={onEdit} hitSlop={8} accessibilityLabel={`Editar hábito ${habit.title}`}>
+          <Ionicons name="create-outline" size={16} color={theme.inkMuted} />
+        </Pressable>
         <Pressable onPress={onDelete} hitSlop={8} accessibilityLabel={`Remover hábito ${habit.title}`}>
           <Ionicons name="trash-outline" size={16} color={theme.inkMuted} />
         </Pressable>
       </View>
+
+      <Pressable
+        onPress={onEdit}
+        accessibilityRole="button"
+        accessibilityLabel="Atributo do hábito"
+        style={{ alignSelf: "flex-start", flexDirection: "row", alignItems: "center", gap: 6, paddingHorizontal: 10, paddingVertical: 6, borderRadius: 12, borderWidth: 1, borderColor: tag ? tag.attr.color : theme.border, backgroundColor: tag ? `${tag.attr.color}22` : "transparent" }}
+      >
+        <Ionicons name={(tag ? tag.attr.icon : "sparkles-outline") as never} size={13} color={tag ? tag.attr.ink : theme.inkMuted} />
+        <Txt variant="caption" color={tag ? tag.attr.ink : theme.inkMuted} style={{ fontFamily: fonts.bodySemi }}>
+          {tag ? `${tag.attr.name} · ${ACTION_LABEL[tag.action]}` : "+ Atributo"}
+        </Txt>
+      </Pressable>
 
       <Marginalia>Atividade no mês</Marginalia>
       <ScrollView horizontal showsHorizontalScrollIndicator={false} ref={railRef} onContentSizeChange={onRailSize}>

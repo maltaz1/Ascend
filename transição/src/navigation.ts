@@ -15,6 +15,7 @@ export type Section =
   | "calendar"
   | "evolution"
   | "achievements"
+  | "eu"
   | "settings";
 
 export type SectionInfo = {
@@ -38,6 +39,7 @@ export const SECTIONS: SectionInfo[] = [
   { id: "financial", label: "Financeiro", icon: "logo-usd", href: "/financial" },
   { id: "notes", label: "Notas", icon: "document-text-outline", href: "/notes" },
   { id: "calendar", label: "Calendário", icon: "calendar-outline", href: "/calendar" },
+  { id: "eu", label: "Eu", icon: "person-outline", href: "/eu" },
   { id: "evolution", label: "Evolução", icon: "trending-up-outline", href: "/evolution", inMenu: false },
   { id: "achievements", label: "Conquistas", icon: "trophy-outline", href: "/achievements", inMenu: false },
   { id: "settings", label: "Configurações", icon: "flash-outline", href: "/settings" },
@@ -45,7 +47,7 @@ export const SECTIONS: SectionInfo[] = [
 
 // Conquistas existe como página no web (pages/Achievements.tsx) mas não tem
 // aba no menu; no app fica liberada para todos.
-const FREE_EXTRA: Section[] = ["achievements"];
+const FREE_EXTRA: Section[] = ["achievements", "eu"];
 
 // Qualquer seção fora de FREE_TABS é exclusiva do PRO, como no App.tsx do web.
 export function isProSection(section: Section): boolean {

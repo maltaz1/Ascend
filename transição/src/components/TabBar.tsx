@@ -14,13 +14,13 @@ type IconName = keyof typeof Ionicons.glyphMap;
 const TABS: { key: string; label: string; icon: IconName; href: string; paths: string[] }[] = [
   { key: "today", label: "Hoje", icon: "home-outline", href: "/", paths: ["/"] },
   { key: "routine", label: "Rotina", icon: "layers-outline", href: "/tasks", paths: ["/tasks", "/habits", "/goals"] },
-  { key: "health", label: "Saúde", icon: "heart-outline", href: "/academy", paths: ["/academy", "/diet"] },
+  { key: "eu", label: "Eu", icon: "person-outline", href: "/eu", paths: ["/eu"] },
   {
     key: "more",
     label: "Mais",
     icon: "grid-outline",
     href: "/more",
-    paths: ["/more", "/financial", "/notes", "/calendar", "/dashboard", "/evolution", "/achievements", "/settings"],
+    paths: ["/more", "/academy", "/diet", "/financial", "/notes", "/calendar", "/dashboard", "/evolution", "/achievements", "/settings"],
   },
 ];
 

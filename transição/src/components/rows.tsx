@@ -20,6 +20,7 @@ import { notifyError, notifyInfo, notifySuccess } from "@/lib/notifications";
 import { fonts, resolveColor, useTheme } from "@/theme";
 import { Button, Card, ProgressBar, Row, Stamp, Txt } from "./ui";
 import { Sparkline } from "./charts";
+import { ACTION_LABEL, parseTag, taskAttrXP } from "@/lib/attributes";
 
 const PRIORITY_LABEL: Record<Task["priority"], string> = { low: "Baixa", medium: "Média", high: "Alta" };
 
@@ -34,7 +35,9 @@ export async function toggleTask(task: Task) {
     return;
   }
   const { xpGained } = await completeTask(task.id);
-  notifySuccess(xpGained > 0 ? `Tarefa concluída! +${xpGained} XP` : "Tarefa concluída!");
+  const tag = parseTag(task.category);
+  const base = xpGained > 0 ? `Tarefa concluída! +${xpGained} XP` : "Tarefa concluída!";
+  notifySuccess(tag ? `${base} · +${taskAttrXP(task)} em ${tag.attr.name}` : base);
 }
 
 // ---------------------------------------------------------------------------
@@ -73,6 +76,7 @@ export function TaskCard({ task, onPress, onDelete }: { task: Task; onPress?: ()
   const color = priorityColor(task.priority, theme);
   const overdue = getTaskStatus(task) === "overdue";
   const taskPop = useCheckPop(task.completed);
+  const tag = parseTag(task.category);
 
   const confirmDelete = () =>
     Alert.alert("Excluir tarefa", `Excluir "${task.title}"?`, [
@@ -128,6 +132,14 @@ export function TaskCard({ task, onPress, onDelete }: { task: Task; onPress?: ()
         >
           {task.title}
         </Txt>
+        {tag ? (
+          <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+            <View style={{ width: 7, height: 7, borderRadius: 4, backgroundColor: tag.attr.color }} />
+            <Txt variant="caption" color={tag.attr.ink}>
+              {tag.attr.name} · {ACTION_LABEL[tag.action]}
+            </Txt>
+          </View>
+        ) : null}
         {overdue || task.isRecurring || task.description ? (
           <Txt variant="caption" color={overdue ? theme.danger : theme.inkMuted} numberOfLines={1}>
             {overdue ? "Atrasada · " : ""}

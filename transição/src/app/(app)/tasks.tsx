@@ -13,6 +13,8 @@ import { DateStrip } from "@/components/DateStrip";
 import { MonthCalendar } from "@/components/MonthCalendar";
 import { RecurrenceSection } from "@/components/RecurrenceSection";
 import type { RecurrenceConfig } from "@/types/recurrence";
+import { formatTag, parseTag, type ActionId, type AttrId } from "@/lib/attributes";
+import { AttributePicker } from "@/components/AttributePicker";
 import { fonts, useTheme } from "@/theme";
 import { useNewParam } from "@/hooks/useNewParam";
 
@@ -407,6 +409,8 @@ function TaskSheet({
   const [date, setDate] = useState(defaultDate);
   const [priority, setPriority] = useState<Task["priority"]>("medium");
   const [recurrence, setRecurrence] = useState<RecurrenceConfig>(EMPTY_RECURRENCE);
+  const [attrId, setAttrId] = useState<AttrId | null>(null);
+  const [action, setAction] = useState<ActionId>("habito");
   const [showRecurrence, setShowRecurrence] = useState(false);
   const [activeTab, setActiveTab] = useState<"edit" | "recurrence">("edit");
   const [saving, setSaving] = useState(false);
@@ -422,6 +426,9 @@ function TaskSheet({
       setDate(task?.date ?? defaultDate);
       setPriority(task?.priority ?? "medium");
       setRecurrence(task?.recurrence ?? EMPTY_RECURRENCE);
+      const tag = parseTag(task?.category);
+      setAttrId(tag?.attr.id ?? null);
+      setAction(tag?.action ?? "habito");
       setShowRecurrence(!!task?.recurrence);
       setActiveTab("edit");
     }
@@ -441,7 +448,7 @@ function TaskSheet({
     const finalRecurrence = !task && !showRecurrence ? null : recurrence.type !== "never" ? recurrence : null;
 
     setSaving(true);
-    const { error } = await saveTask({ id: task?.id, title, description, date, priority, recurrence: finalRecurrence });
+    const { error } = await saveTask({ id: task?.id, title, description, date, priority, recurrence: finalRecurrence, category: attrId ? formatTag(attrId, action) : null });
     setSaving(false);
     if (error) {
       notifyError("Erro ao salvar tarefa", error);
@@ -473,6 +480,8 @@ function TaskSheet({
           <DateStrip value={date} onChange={setDate} daysBefore={1} daysAfter={60} />
           <Marginalia>Prioridade</Marginalia>
           <Segmented kind="stamp" options={PRIORITIES} value={priority} onChange={setPriority} />
+
+          <AttributePicker attrId={attrId} action={action} onAttr={setAttrId} onAction={setAction} priority={priority} />
 
           {!task ? (
             <>

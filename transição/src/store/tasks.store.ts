@@ -265,7 +265,21 @@ export async function saveTask(input: {
   date: string;
   priority: Task["priority"];
   recurrence?: RecurrenceConfig | null;
+  // Etiqueta de atributo ("espirito:meditacao"), ver lib/attributes.ts.
+  category?: string | null;
 }): Promise<{ error?: string }> {
+  // Modo demo: sem Supabase, grava só na memória para dar para testar a criação.
+  if (process.env.EXPO_PUBLIC_DEMO === "1") {
+    const existing = input.id ? _data.tasks.find(t => t.id === input.id) : undefined;
+    if (existing) {
+      Object.assign(existing, { title: input.title.trim(), description: input.description || "", date: input.date, priority: input.priority, category: input.category ?? undefined });
+    } else {
+      _data.tasks.push({ id: generateId(), title: input.title.trim(), description: input.description || "", date: input.date, priority: input.priority, completed: false, createdAt: new Date().toISOString(), category: input.category ?? undefined });
+    }
+    notify();
+    persistState();
+    return {};
+  }
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -277,6 +291,7 @@ export async function saveTask(input: {
     description: input.description || "",
     date: input.date,
     priority: input.priority,
+    category: input.category ?? null,
     user_id: user.id,
     is_recurring: isRecurring,
     recurrence: isRecurring ? input.recurrence : null,

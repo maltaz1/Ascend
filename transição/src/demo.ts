@@ -30,26 +30,47 @@ function pastDays(count: number, skip: number[] = []): string[] {
 
 export function seedDemoData(): void {
   const now = new Date().toISOString();
-  const task = (id: string, title: string, date: string, priority: Task["priority"], completed = false): Task => ({
+  const task = (id: string, title: string, date: string, priority: Task["priority"], completed = false, category?: string): Task => ({
     id,
     title,
     date,
     priority,
     completed,
     createdAt: now,
+    category,
   });
 
   _data.user = { ..._data.user, name: "Visitante", xp: 140, level: 3, streak: 6 };
+  // Histórico com etiqueta de atributo: alimenta a aba Eu (atributos e árvore).
+  const history: [string, string, number][] = [
+    ["disciplina:habito", "Cumprir a rotina da manhã", 16], ["disciplina:nota", "Planejar o dia seguinte", 4], ["disciplina:treino", "Treino em casa", 2],
+    ["forca:treino", "Treino de força", 14], ["forca:atividade", "Corrida leve", 4], ["forca:dieta", "Refeição pós-treino", 3],
+    ["vitalidade:agua", "Beber 2L de água", 8], ["vitalidade:sono", "Dormir 7h ou mais", 6], ["vitalidade:dieta", "Almoço equilibrado", 4],
+    ["mente:leitura", "Ler 20 páginas", 7], ["mente:estudo", "Sessão de estudo", 4], ["mente:nota", "Resumo do capítulo", 2],
+    ["riqueza:financeiro", "Anotar os gastos do dia", 9], ["riqueza:estudo", "Ler sobre investimentos", 1],
+    ["espirito:meditacao", "Meditar 5 minutos", 3], ["espirito:nota", "Escrever no diário", 1],
+  ];
+  const tagged: Task[] = [];
+  let seq = 0;
+  history.forEach(([tag, title, count]) => {
+    for (let k = 0; k < count; k++) {
+      seq += 1;
+      tagged.push(task(`d${seq}`, title, dayOffset(-(1 + ((seq * 3 + k) % 28))), (["low", "medium", "high"] as const)[seq % 3], true, tag));
+    }
+  });
   _data.tasks = [
-    task("t1", "Revisar metas da semana", dayOffset(0), "high"),
-    task("t2", "Treino de pernas", dayOffset(0), "medium", true),
-    task("t3", "Ler 20 páginas", dayOffset(0), "low"),
+    task("t1", "Revisar metas da semana", dayOffset(0), "high", false, "disciplina:nota"),
+    task("t2", "Treino de pernas", dayOffset(0), "medium", true, "forca:treino"),
+    task("t3", "Ler 20 páginas", dayOffset(0), "low", false, "mente:leitura"),
     task("t4", "Pagar conta de luz", dayOffset(-1), "high"),
     task("t5", "Reunião com o time", dayOffset(1), "medium"),
     task("t6", "Planejar refeições", dayOffset(2), "low"),
+    task("t7", "Meditar 5 minutos", dayOffset(0), "low", false, "espirito:meditacao"),
+    task("t8", "Anotar os gastos do dia", dayOffset(0), "medium", false, "riqueza:financeiro"),
+    ...tagged,
   ];
 
-  const habit = (id: string, title: string, emoji: string, color: string, completedDates: string[]): Habit => ({
+  const habit = (id: string, title: string, emoji: string, color: string, completedDates: string[], category?: string): Habit => ({
     id,
     title,
     emoji,
@@ -58,12 +79,13 @@ export function seedDemoData(): void {
     completedDates,
     createdAt: now,
     targetDays: 30,
+    category,
   });
 
   _data.habits = [
-    habit("h1", "Beber 2L de água", "💧", "#3b82f6", [dayOffset(0), ...pastDays(6)]),
-    habit("h2", "Meditar 10 min", "🧘", "var(--accent)", pastDays(4, [2])),
-    habit("h3", "Ler antes de dormir", "📚", "#8b5cf6", pastDays(3)),
+    habit("h1", "Beber 2L de água", "💧", "#3b82f6", [dayOffset(0), ...pastDays(6)], "vitalidade:agua"),
+    habit("h2", "Meditar 10 min", "🧘", "var(--accent)", pastDays(4, [2]), "espirito:meditacao"),
+    habit("h3", "Ler antes de dormir", "📚", "#8b5cf6", pastDays(3), "mente:leitura"),
   ];
 
   const monday = getMondayOfDate(new Date());

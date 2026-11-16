@@ -26,7 +26,12 @@ export async function createHabit(input: {
   emoji: string;
   color: string;
   targetDays: number;
+  category?: string | null;
 }): Promise<{ error?: string }> {
+  if (process.env.EXPO_PUBLIC_DEMO === "1") {
+    addHabit({ title: input.title.trim(), emoji: input.emoji, color: input.color, frequency: "daily", targetDays: input.targetDays, category: input.category ?? undefined });
+    return {};
+  }
   const {
     data: { user },
   } = await supabase.auth.getUser();
@@ -40,6 +45,8 @@ export async function createHabit(input: {
     frequency: "daily",
     target_days: input.targetDays,
     completed_dates: [],
+    // Só envia quando há etiqueta: sem ela o insert funciona mesmo antes da coluna existir no banco.
+    ...(input.category ? { category: input.category } : {}),
   });
 
   if (error) return { error: error.message };
@@ -60,6 +67,41 @@ export async function removeHabit(id: string): Promise<{ error?: string }> {
     _data.habits.push(habit);
     notify();
     persistState();
+    return { error: error.message };
+  }
+  return {};
+}
+
+// Edita um hábito existente (nome, ícone, cor, meta e atributo), com reversão se o banco recusar.
+export async function editHabit(
+  id: string,
+  input: { title: string; emoji: string; color: string; targetDays: number; category: string | null }
+): Promise<{ error?: string }> {
+  const before = _data.habits.find(item => item.id === id);
+  if (!before) return { error: "Hábito não encontrado" };
+  const prev = { title: before.title, emoji: before.emoji, color: before.color, targetDays: before.targetDays, category: before.category };
+  updateHabit(id, { title: input.title.trim(), emoji: input.emoji, color: input.color, targetDays: input.targetDays, category: input.category ?? undefined });
+  if (process.env.EXPO_PUBLIC_DEMO === "1") return {};
+  const { error } = await supabase
+    .from("habits")
+    .update({ title: input.title.trim(), emoji: input.emoji, color: input.color, target_days: input.targetDays, ...(input.category !== (prev.category ?? null) ? { category: input.category } : {}) })
+    .eq("id", id);
+  if (error) {
+    updateHabit(id, prev);
+    return { error: error.message };
+  }
+  markSelfWrite("habits", id);
+  return {};
+}
+
+// Define (ou limpa) a etiqueta de atributo de um hábito já existente.
+export async function setHabitCategory(id: string, category: string | null): Promise<{ error?: string }> {
+  const before = _data.habits.find(item => item.id === id)?.category;
+  updateHabit(id, { category: category ?? undefined });
+  if (process.env.EXPO_PUBLIC_DEMO === "1") return {};
+  const { error } = await supabase.from("habits").update({ category }).eq("id", id);
+  if (error) {
+    updateHabit(id, { category: before });
     return { error: error.message };
   }
   return {};
@@ -174,6 +216,11 @@ export async function loadHabitsData(): Promise<void> {
     return;
   }
 
+  // Etiqueta de atributo em consulta à parte: se a coluna ainda não existir, os hábitos carregam normalmente.
+  const tags = new Map<string, string>();
+  const tagRes = await supabase.from("habits").select("id, category").eq("user_id", user.id);
+  if (!tagRes.error) (tagRes.data || []).forEach((r: { id: string; category: string | null }) => r.category && tags.set(r.id, r.category));
+
   _data.habits = (data || []).map(habit => ({
     id: habit.id,
     title: habit.title,
@@ -183,6 +230,7 @@ export async function loadHabitsData(): Promise<void> {
     completedDates: habit.completed_dates || [],
     createdAt: habit.created_at,
     targetDays: habit.target_days,
+    category: tags.get(habit.id),
   }));
 
   notify();

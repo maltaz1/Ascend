@@ -25,6 +25,7 @@ export default function AppLayout() {
         <Stack.Screen name="evolution" options={{ animation: "slide_from_right" }} />
         <Stack.Screen name="achievements" options={{ animation: "slide_from_right" }} />
         <Stack.Screen name="settings" options={{ animation: "slide_from_right" }} />
+        <Stack.Screen name="eu" />
         <Stack.Screen name="more" />
       </Stack>
       <TabBar />
