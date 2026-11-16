@@ -4,6 +4,7 @@ import { useStore } from "@/hooks/useStore";
 import { Card, ProgressRing, Screen, SectionTitle, Txt } from "@/components/ui";
 import { useTheme } from "@/theme";
 import { Corv } from "@/components/Corv";
+import { Glyph, stripEmoji } from "@/components/Glyph";
 
 // Porta de pages/Achievements.tsx.
 export default function AchievementsScreen() {
@@ -39,7 +40,7 @@ export default function AchievementsScreen() {
         unlocked.map(a => (
           <Card key={a.id} style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
             <View style={{ width: 44, height: 44, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: theme.accentSoft }}>
-              <Txt style={{ fontSize: 22 }}>{a.emoji}</Txt>
+              <Glyph emoji={a.emoji} size={22} />
             </View>
             <View style={{ flex: 1 }}>
               <Txt variant="h3">{a.title}</Txt>

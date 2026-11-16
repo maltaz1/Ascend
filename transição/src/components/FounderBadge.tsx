@@ -15,7 +15,7 @@ export function FounderBadge({ number, size = 120 }: { number: number; size?: nu
         <LinearGradient id={`${id}-rim`} x1="0" y1="0" x2="1" y2="1">
           <Stop offset="0%" stopColor="#c4b5fd" />
           <Stop offset="45%" stopColor="#8b5cf6" />
-          <Stop offset="100%" stopColor="#3b82f6" />
+          <Stop offset="100%" stopColor="#7c3aed" />
         </LinearGradient>
         <RadialGradient id={`${id}-core`} cx="50%" cy="35%" r="70%">
           <Stop offset="0%" stopColor="#241d38" />
@@ -38,7 +38,7 @@ export function FounderBadge({ number, size = 120 }: { number: number; size?: nu
       <SvgText x="100" y="145" textAnchor="middle" fill="#f5f5f5" fontFamily={fonts.display} fontSize={15} letterSpacing={3}>
         FUNDADOR
       </SvgText>
-      <SvgText x="100" y="163" textAnchor="middle" fill="#f59e0b" fontFamily={fonts.displaySemi} fontSize={13} letterSpacing={1}>
+      <SvgText x="100" y="163" textAnchor="middle" fill="#c4b5fd" fontFamily={fonts.displaySemi} fontSize={13} letterSpacing={1}>
         {label}
       </SvgText>
     </Svg>

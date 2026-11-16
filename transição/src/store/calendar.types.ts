@@ -12,7 +12,7 @@ export interface Appointment {
   endTime: string;   // ISO 8601 format: "HH:mm"
   date: string;      // ISO 8601 format: "YYYY-MM-DD"
   category?: string;
-  color: string;     // Hex color code (e.g., "#F59E0B")
+  color: string;     // Hex color code (e.g., "#c4b5fd")
   createdAt: string;
 }
 
@@ -41,14 +41,14 @@ export interface CalendarNoteFormData {
 
 // Cores predefinidas para categorias
 export const APPOINTMENT_COLORS = [
-  { name: "Laranja", value: "#F59E0B" },
-  { name: "Vermelho", value: "#EF4444" },
-  { name: "Verde", value: "#10B981" },
-  { name: "Azul", value: "#3B82F6" },
+  { name: "Laranja", value: "#c4b5fd" },
+  { name: "Vermelho", value: "#6d28d9" },
+  { name: "Verde", value: "#a78bfa" },
+  { name: "Azul", value: "#7c3aed" },
   { name: "Roxo", value: "#A855F7" },
-  { name: "Rosa", value: "#EC4899" },
-  { name: "Cyan", value: "#06B6D4" },
-  { name: "Amarelo", value: "#FBBF24" },
+  { name: "Rosa", value: "#c084fc" },
+  { name: "Cyan", value: "#ddd6fe" },
+  { name: "Amarelo", value: "#ddd6fe" },
 ] as const;
 
 export const APPOINTMENT_CATEGORIES = [

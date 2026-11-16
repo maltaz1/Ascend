@@ -4,6 +4,7 @@ import { useStore } from "@/hooks/useStore";
 import { useTheme } from "@/theme";
 import { Corv, type CorvPose } from "./Corv";
 import { AnimatedNumber, Button, Txt } from "./ui";
+import { Landscape } from "./Landscape";
 
 const INTRO_KEY = "ascend.corv-intro-seen";
 
@@ -29,7 +30,7 @@ const INTRO_STEPS: { pose: CorvPose; title: string; text: string }[] = [
   { pose: "bracos", title: "E eu vou cobrar.", text: "Se a sequência estiver em risco, você vai me ver de braços cruzados." },
 ];
 
-function Overlay({ visible, onClose, children }: { visible: boolean; onClose: () => void; children: React.ReactNode }) {
+function Overlay({ visible, onClose, children, hero }: { visible: boolean; onClose: () => void; children: React.ReactNode; hero?: React.ReactNode }) {
   const theme = useTheme();
   return (
     <Modal visible={visible} transparent animationType="fade" onRequestClose={onClose} statusBarTranslucent>
@@ -39,15 +40,15 @@ function Overlay({ visible, onClose, children }: { visible: boolean; onClose: ()
             width: "100%",
             maxWidth: 380,
             alignItems: "center",
-            gap: 12,
-            padding: 24,
             borderRadius: 30,
             backgroundColor: theme.surface,
             borderWidth: 1,
             borderColor: theme.border,
+            overflow: "hidden",
           }}
         >
-          {children}
+          {hero}
+          <View style={{ alignSelf: "stretch", alignItems: "center", gap: 12, padding: 24, paddingTop: hero ? 12 : 24 }}>{children}</View>
         </View>
       </View>
     </Modal>
@@ -113,6 +114,7 @@ export function CorvIntro() {
 
 // Quando o nível sobe, o Corv aparece comemorando.
 export function CorvLevelUp() {
+  const theme = useTheme();
   const data = useStore();
   const level = data.user.level;
   const previous = useRef(level);
@@ -129,10 +131,18 @@ export function CorvLevelUp() {
   }, [level]);
 
   return (
-    <Overlay visible={!!shown} onClose={() => setShown(null)}>
+    <Overlay
+      visible={!!shown}
+      onClose={() => setShown(null)}
+      hero={
+        <View style={{ height: 200, alignSelf: "stretch", alignItems: "center", justifyContent: "flex-end" }}>
+          <Landscape art="panorama" dim={0.15} fadeTo={theme.surface} />
+          <Corv pose="joinha" size={170} pop />
+        </View>
+      }
+    >
       {shown ? (
         <>
-          <Corv pose="joinha" size={170} pop />
           <Txt variant="label" muted>
             Subiu de nível!
           </Txt>

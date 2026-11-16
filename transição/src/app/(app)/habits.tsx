@@ -28,11 +28,12 @@ import { fonts, resolveColor, useTheme } from "@/theme";
 import { useNewParam } from "@/hooks/useNewParam";
 import { useCheckPop } from "@/lib/motion";
 import { exportJson } from "@/lib/exportData";
+import { Glyph, stripEmoji } from "@/components/Glyph";
 
 const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 const EMOJIS = ["🏃", "📚", "💪", "🧘", "💧", "🥗", "😴", "✍️", "🎵", "🧹", "💊", "🌿", "🧠", "🙏", "🎯"];
 // Mesmas "tintas" do formulário do web.
-const COLORS = ["var(--accent)", "var(--primary)", "#10B981", "#3B82F6", "#EF4444", "#EC4899", "#06B6D4"];
+const COLORS = ["var(--accent)", "var(--primary)", "#a78bfa", "#7c3aed", "#6d28d9", "#c084fc", "#ddd6fe"];
 const WEEK_DAYS = ["D", "S", "T", "Q", "Q", "S", "S"];
 
 // Visão escolhida (cards ou tabela) dura a sessão, como o sessionStorage do web.
@@ -194,7 +195,7 @@ export default function HabitsScreen() {
                     style={{ height: ROW_H, paddingHorizontal: 12, justifyContent: "center", gap: 4, borderBottomWidth: 1, borderBottomColor: theme.border }}
                   >
                     <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
-                      <Txt style={{ fontSize: 16 }}>{habit.emoji}</Txt>
+                      <Glyph emoji={habit.emoji} size={16} />
                       <Txt variant="bodyStrong" style={{ flex: 1, fontSize: 13 }} numberOfLines={2}>
                         {habit.title}
                       </Txt>
@@ -360,7 +361,7 @@ function HabitSheet({ visible, onClose, isPro, habitCount, habit }: { visible: b
               borderColor: emoji === item ? theme.primaryBorder : theme.border,
             }}
           >
-            <Txt style={{ fontSize: 20 }}>{item}</Txt>
+            <Glyph emoji={item} size={20} color={emoji === item ? theme.primaryInk : theme.inkMuted} />
           </Pressable>
         ))}
       </View>
@@ -444,7 +445,7 @@ function HabitCardView({
     <Card style={{ gap: 12 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
         <View style={{ width: 42, height: 42, borderRadius: 12, alignItems: "center", justifyContent: "center", backgroundColor: `${color}1a` }}>
-          <Txt style={{ fontSize: 20 }}>{habit.emoji}</Txt>
+          <Glyph emoji={habit.emoji} size={20} />
         </View>
         <View style={{ flex: 1, gap: 2 }}>
           <Txt variant="bodyStrong" numberOfLines={1}>

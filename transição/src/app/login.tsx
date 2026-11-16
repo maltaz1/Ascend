@@ -2,7 +2,9 @@ import { useState } from "react";
 import { Linking, Pressable, Switch, View } from "react-native";
 import { supabase } from "@/lib/supabase";
 import { notifyError, notifySuccess, notifyWarning } from "@/lib/notifications";
-import { Button, Card, Input, Screen, Segmented, Txt } from "@/components/ui";
+import { Button, Input, Screen, Segmented, Txt } from "@/components/ui";
+import { Glass } from "@/components/Glass";
+import { Landscape } from "@/components/Landscape";
 import { Logo } from "@/components/Brand";
 import { useTheme } from "@/theme";
 
@@ -86,16 +88,16 @@ export default function LoginScreen() {
   };
 
   return (
-    <Screen>
+    <Screen banner={{ height: 640, node: <Landscape art="retrato" dim={0.12} fadeTo={theme.bg} /> }}>
       <View style={{ alignItems: "center", marginTop: 40, marginBottom: 12, gap: 14 }}>
         <Logo size={88} wordmark={false} />
         <Logo size={34} wordmark />
-        <Txt muted style={{ textAlign: "center" }}>
+        <Txt color="#e6defc" style={{ textAlign: "center", textShadowColor: "rgba(0,0,0,0.35)", textShadowRadius: 8 }}>
           Produtividade gamificada.{"\n"}Sua rotina, um nível de cada vez.
         </Txt>
       </View>
 
-      <Card style={{ gap: 14 }}>
+      <Glass style={{ gap: 14, padding: 18, borderRadius: 28, marginTop: 90 }}>
         <Segmented
           options={[
             { value: "login", label: "Entrar" },
@@ -153,7 +155,7 @@ export default function LoginScreen() {
             </Txt>
           </Pressable>
         )}
-      </Card>
+      </Glass>
     </Screen>
   );
 }

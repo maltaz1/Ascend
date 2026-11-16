@@ -210,6 +210,7 @@ export function Screen({
   back,
   right,
   fab,
+  banner,
 }: {
   children: ReactNode;
   scroll?: boolean;
@@ -218,7 +219,10 @@ export function Screen({
   back?: boolean;
   right?: ReactNode;
   fab?: ReactNode;
+  /** Faixa decorativa (paisagem) atrás do começo da tela; vai até o topo, por baixo da barra de status. */
+  banner?: { height: number; node: ReactNode };
 }) {
+  const insets = useSafeAreaInsets();
   const pathname = usePathname();
   const group = GROUPS.find(g => g.tabs.some(tab => tab.href === pathname));
   const morePage = MORE_PAGES[pathname];
@@ -278,11 +282,19 @@ export function Screen({
   }
 
   return (
-    <SafeAreaView style={{ flex: 1 }} edges={["top"]}>
+    <SafeAreaView style={{ flex: 1 }} edges={banner ? [] : ["top"]}>
       <PaperBackground />
       <KeyboardAvoidingView style={{ flex: 1 }} behavior={Platform.OS === "ios" ? "padding" : undefined}>
         {scroll ? (
-          <ScrollView contentContainerStyle={styles.screenContent} keyboardShouldPersistTaps="handled">
+          <ScrollView
+            contentContainerStyle={[styles.screenContent, banner ? { paddingTop: styles.screenContent.paddingTop + insets.top } : null]}
+            keyboardShouldPersistTaps="handled"
+          >
+            {banner ? (
+              <View pointerEvents="none" style={{ position: "absolute", top: 0, left: 0, right: 0, height: banner.height + insets.top }}>
+                {banner.node}
+              </View>
+            ) : null}
             {[header, ...Children.toArray(children)].filter(Boolean).map((child, i) => (
               <EnterItem key={isValidElement(child) && child.key != null ? String(child.key) : `item-${i}`} index={i}>
                 {child}

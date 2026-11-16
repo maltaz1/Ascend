@@ -20,10 +20,10 @@ import { Expandable, SubPanel } from "@/components/Expandable";
 import { fonts, resolveColor, useTheme } from "@/theme";
 
 const MILESTONES = [
-  { at: 100, label: "Centurião", color: "#f59e0b" },
+  { at: 100, label: "Centurião", color: "#c4b5fd" },
   { at: 30, label: "Mensal", color: "#8b5cf6" },
-  { at: 7, label: "Semana", color: "#10B981" },
-  { at: 3, label: "Trio", color: "#06B6D4" },
+  { at: 7, label: "Semana", color: "#a78bfa" },
+  { at: 3, label: "Trio", color: "#ddd6fe" },
 ];
 const MONTH_SHORT = ["Jan", "Fev", "Mar", "Abr", "Mai", "Jun", "Jul", "Ago", "Set", "Out", "Nov", "Dez"];
 
@@ -145,7 +145,7 @@ export default function DashboardScreen() {
         <Metric index="03" label="Tarefas" value={String(completedToday)} caption="Concluídas hoje" sub={`${todayTotal} no caderno de hoje`} subColor={theme.success} />
       </View>
       <View style={{ flexDirection: "row", gap: 12 }}>
-        <Metric index="04" label="Hábitos" value={String(habitsToday)} caption="Marcados hoje" sub="hábitos concluídos" subColor="#f97316" />
+        <Metric index="04" label="Hábitos" value={String(habitsToday)} caption="Marcados hoje" sub="hábitos concluídos" subColor="#c4b5fd" />
         <Metric index="05" label="Dívidas" value={String(overdue)} caption="Tarefas atrasadas" sub="pendentes de anotação" subColor={theme.primary} />
       </View>
 

@@ -17,6 +17,7 @@ import { useStore } from "@/hooks/useStore";
 import { Button, Card, EmptyState, IconButton, Input, Marginalia, Screen, Sheet, Txt } from "@/components/ui";
 import { longDate, TaskRow } from "@/components/rows";
 import { fonts, resolveColor, useTheme } from "@/theme";
+import { Glyph, stripEmoji } from "@/components/Glyph";
 
 const MONTHS = ["Janeiro", "Fevereiro", "Março", "Abril", "Maio", "Junho", "Julho", "Agosto", "Setembro", "Outubro", "Novembro", "Dezembro"];
 const WEEK = ["D", "S", "T", "Q", "Q", "S", "S"];
@@ -183,9 +184,7 @@ export default function CalendarScreen() {
                       <Dot key={j} color={c} />
                     ))}
                     {cellGoals.slice(0, 2).map(g => (
-                      <Txt key={g.id} style={{ fontSize: 10, lineHeight: 12 }}>
-                        {g.emoji}
-                      </Txt>
+                      <Glyph key={g.id} emoji={g.emoji} size={10} />
                     ))}
                   </View>
                 </Pressable>
@@ -249,7 +248,7 @@ export default function CalendarScreen() {
             const color = resolveColor(goal.color, theme);
             return (
               <View key={goal.id} style={{ flexDirection: "row", alignItems: "center", gap: 8, padding: 10, borderRadius: 8, borderWidth: 1, borderColor: `${color}40`, backgroundColor: `${color}14` }}>
-                <Txt style={{ fontSize: 16 }}>{goal.emoji}</Txt>
+                <Glyph emoji={goal.emoji} size={16} />
                 <Txt variant="label" style={{ flex: 1 }} numberOfLines={1}>
                   {goal.title}
                 </Txt>
@@ -278,7 +277,7 @@ export default function CalendarScreen() {
                   </Txt>
                   {apt.category ? (
                     <Txt variant="caption" muted style={{ fontSize: 10 }}>
-                      {apt.category}
+                      {stripEmoji(apt.category)}
                     </Txt>
                   ) : null}
                 </View>
@@ -425,7 +424,7 @@ function AppointmentSheet({
               backgroundColor: category === c ? theme.primarySoft : "transparent",
             }}
           >
-            <Txt variant="label">{c}</Txt>
+            <Txt variant="label">{stripEmoji(c)}</Txt>
           </Pressable>
         ))}
       </View>

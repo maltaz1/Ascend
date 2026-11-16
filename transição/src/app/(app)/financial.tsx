@@ -14,6 +14,7 @@ import { DateStrip } from "@/components/DateStrip";
 import { MonthCalendar } from "@/components/MonthCalendar";
 import { resolveColor, useTheme } from "@/theme";
 import { useNewParam } from "@/hooks/useNewParam";
+import { Glyph, stripEmoji } from "@/components/Glyph";
 
 // Mesmas categorias de pages/Financial.tsx.
 const EXPENSE_CATEGORIES = [
@@ -33,7 +34,7 @@ const INCOME_CATEGORIES = [
   { name: "Outros", icon: "🧩" },
 ];
 const ICONS: Record<string, string> = Object.fromEntries([...EXPENSE_CATEGORIES, ...INCOME_CATEGORIES].map(c => [c.name, c.icon]));
-const CHART_COLORS = ["var(--primary)", "#EC4899", "var(--accent)", "#10B981", "#06B6D4", "#3B82F6", "#EF4444", "#6366F1"];
+const CHART_COLORS = ["var(--primary)", "#c084fc", "var(--accent)", "#a78bfa", "#ddd6fe", "#7c3aed", "#6d28d9", "#6366F1"];
 
 export default function FinancialScreen() {
   return (
@@ -175,7 +176,7 @@ function Financial() {
                 <View key={c.name} style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
                   <View style={{ width: 10, height: 10, borderRadius: 2, backgroundColor: c.color }} />
                   <Txt variant="label" style={{ flex: 1 }}>
-                    {ICONS[c.name] ?? ""} {c.name}
+                    {c.name}
                   </Txt>
                   <Txt variant="mono" color={c.color}>
                     {Math.round((c.value / expense) * 100)}%
@@ -189,7 +190,7 @@ function Financial() {
             {byCategory.map(c => (
               <View key={c.name} style={{ gap: 6 }}>
                 <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-                  <Txt style={{ fontSize: 14 }}>{ICONS[c.name] ?? "🧾"}</Txt>
+                  <Glyph emoji={ICONS[c.name] ?? "🧾"} size={14} />
                   <Txt variant="label" color={c.color} style={{ flex: 1 }} numberOfLines={1}>
                     {c.name}
                   </Txt>
@@ -214,7 +215,7 @@ function Financial() {
           recent.map(t => (
             <View key={t.id} style={{ flexDirection: "row", alignItems: "center", gap: 10, paddingVertical: 4 }}>
               <View style={{ width: 34, height: 34, borderRadius: 6, alignItems: "center", justifyContent: "center", backgroundColor: theme.raised }}>
-                <Txt style={{ fontSize: 16 }}>{ICONS[t.category ?? ""] ?? (t.type === "income" ? "💰" : "🧾")}</Txt>
+                <Glyph emoji={ICONS[t.category ?? ""] ?? (t.type === "income" ? "💰" : "🧾")} size={16} />
               </View>
               <View style={{ flex: 1 }}>
                 <Txt variant="bodyStrong" numberOfLines={1}>
@@ -339,7 +340,7 @@ function TransactionSheet({ visible, onClose }: { visible: boolean; onClose: () 
             }}
           >
             <Txt variant="label">
-              {c.icon} {c.name}
+              {c.name}
             </Txt>
           </Pressable>
         ))}

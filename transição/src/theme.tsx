@@ -12,13 +12,13 @@ const dark = {
   primarySoft: "rgba(139, 92, 246, 0.12)",
   primaryBorder: "rgba(139, 92, 246, 0.55)",
   primaryInk: "#b69cfb",
-  accent: "#f59e0b",
-  accentSoft: "rgba(245, 158, 11, 0.10)",
-  accentBorder: "rgba(245, 158, 11, 0.55)",
-  blue: "#3b82f6",
-  cyan: "#06b6d4",
-  pink: "#ec4899",
-  orange: "#c2410c",
+  accent: "#c4b5fd",
+  accentSoft: "rgba(196, 181, 253, 0.10)",
+  accentBorder: "rgba(196, 181, 253, 0.55)",
+  blue: "#7c3aed",
+  cyan: "#ddd6fe",
+  pink: "#c084fc",
+  orange: "#6d28d9",
   // Novo design: fundo roxo bem escuro, cartões um tom acima, violeta da logo em cor sólida.
   bg: "#0f0d18",
   surface: "#1b1828",
@@ -31,12 +31,12 @@ const dark = {
   heroBorder: "#3a3060",
   ink: "#f6f5fb",
   inkMuted: "#a9a6c0",
-  success: "#10b981",
-  danger: "#ef4444",
-  warning: "#f59e0b",
+  success: "#a78bfa",
+  danger: "#d946ef",
+  warning: "#c4b5fd",
   shadow: "rgba(0, 0, 0, 0.32)", // --ledger-paper-shadow
   glowTop: "rgba(139, 92, 246, 0.13)",
-  glowBottom: "rgba(245, 158, 11, 0.05)",
+  glowBottom: "rgba(196, 181, 253, 0.06)",
   overlay: "rgba(0, 0, 0, 0.55)",
 };
 
@@ -45,7 +45,13 @@ const light: typeof dark = {
   mode: "light",
   primarySoft: "rgba(139, 92, 246, 0.08)",
   primaryInk: "#6d3fd6",
-  accentSoft: "rgba(245, 158, 11, 0.08)",
+  accent: "#7c3aed",
+  accentSoft: "rgba(124, 58, 237, 0.08)",
+  accentBorder: "rgba(124, 58, 237, 0.5)",
+  success: "#6d3fd6",
+  warning: "#7c3aed",
+  cyan: "#8b5cf6",
+  pink: "#a855f7",
   bg: "#f4f1ea",
   surface: "#ffffff",
   surfaceAlt: "#efece3",
@@ -58,7 +64,7 @@ const light: typeof dark = {
   ink: "#1c1917",
   inkMuted: "#57534e",
   shadow: "rgba(28, 25, 23, 0.18)",
-  glowTop: "rgba(245, 158, 11, 0.10)",
+  glowTop: "rgba(139, 92, 246, 0.10)",
   glowBottom: "rgba(139, 92, 246, 0.05)",
   overlay: "rgba(28, 25, 23, 0.45)",
 };
@@ -78,7 +84,7 @@ export const fonts = {
 };
 
 // Paleta de gráficos do web (--chart-1..5).
-export const chartColors = ["#8b5cf6", "#f59e0b", "#10b981", "#3b82f6", "#ec4899"];
+export const chartColors = ["#8b5cf6", "#c4b5fd", "#a78bfa", "#7c3aed", "#c084fc"];
 
 type ThemeState = { theme: Theme; toggleTheme: () => void };
 
@@ -117,11 +123,27 @@ export function useThemeToggle(): () => void {
   return useContext(ThemeContext).toggleTheme;
 }
 
+// Qualquer cor fora da faixa do roxo (azul-índigo a magenta) é trocada por um tom de roxo,
+// sempre o mesmo para a mesma cor. Cinzas e brancos ficam como estão.
+const PURPLES = ["#8b5cf6", "#a78bfa", "#c4b5fd", "#7c3aed", "#c084fc", "#9333ea", "#ddd6fe"];
+export function toPurple(color: string): string {
+  const m = color.match(/^#([0-9a-f]{6})$/i);
+  if (!m) return color;
+  const n = parseInt(m[1], 16);
+  const r = (n >> 16) / 255, g = ((n >> 8) & 255) / 255, b = (n & 255) / 255;
+  const max = Math.max(r, g, b), min = Math.min(r, g, b), d = max - min;
+  if (d < 0.08) return color; // cinza ou branco
+  let h = max === r ? ((g - b) / d) % 6 : max === g ? (b - r) / d + 2 : (r - g) / d + 4;
+  h = (h * 60 + 360) % 360;
+  if (h >= 235 && h <= 320) return color; // já é roxo
+  return PURPLES[n % PURPLES.length];
+}
+
 // O web grava cores de hábitos/metas como "var(--accent)" ou hex.
 export function resolveColor(color: string | undefined, theme: Theme): string {
   if (!color) return theme.primary;
   const match = color.match(/^var\(--([\w-]+)\)$/);
-  if (!match) return color;
+  if (!match) return toPurple(color);
   switch (match[1]) {
     case "accent":
     case "chart-2":

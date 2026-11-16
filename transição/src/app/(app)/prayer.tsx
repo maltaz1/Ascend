@@ -15,6 +15,7 @@ import { IS_DEMO } from "@/demo";
 import { ProGate } from "@/components/ProGate";
 import { Card, EmptyState, IconButton, Input, Screen, Segmented, Txt } from "@/components/ui";
 import { useTheme } from "@/theme";
+import { Glyph, stripEmoji } from "@/components/Glyph";
 
 type Message = { id: string; role: "user" | "assistant"; content: string };
 
@@ -114,7 +115,7 @@ function Prayer() {
               <View style={{ flexDirection: "row", flexWrap: "wrap", gap: 10 }}>
                 {PRAYER_SUGGESTIONS.map(s => (
                   <Card key={s.title} onPress={() => void send(s.prompt)} style={{ width: "47%", gap: 4, padding: 12 }}>
-                    <Txt style={{ fontSize: 22 }}>{s.emoji}</Txt>
+                    <Glyph emoji={s.emoji} size={22} />
                     <Txt variant="h3">{s.title}</Txt>
                   </Card>
                 ))}

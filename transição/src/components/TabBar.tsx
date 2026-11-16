@@ -26,11 +26,11 @@ const TABS: { key: string; label: string; icon: IconName; href: string; paths: s
 
 const QUICK_ADD: { label: string; icon: IconName; color: string; href: string }[] = [
   { label: "Tarefa", icon: "checkmark-circle-outline", color: "#8b5cf6", href: "/tasks?novo=1" },
-  { label: "Hábito", icon: "flame-outline", color: "#f59e0b", href: "/habits?novo=1" },
-  { label: "Meta", icon: "radio-button-on-outline", color: "#ec4899", href: "/goals?novo=1" },
-  { label: "Refeição", icon: "restaurant-outline", color: "#10b981", href: "/diet" },
-  { label: "Transação", icon: "wallet-outline", color: "#5b7cff", href: "/financial?novo=1" },
-  { label: "Nota", icon: "document-text-outline", color: "#06b6d4", href: "/notes?novo=1" },
+  { label: "Hábito", icon: "flame-outline", color: "#c4b5fd", href: "/habits?novo=1" },
+  { label: "Meta", icon: "radio-button-on-outline", color: "#c084fc", href: "/goals?novo=1" },
+  { label: "Refeição", icon: "restaurant-outline", color: "#a78bfa", href: "/diet" },
+  { label: "Transação", icon: "wallet-outline", color: "#818cf8", href: "/financial?novo=1" },
+  { label: "Nota", icon: "document-text-outline", color: "#ddd6fe", href: "/notes?novo=1" },
 ];
 
 function isActive(paths: string[], pathname: string) {

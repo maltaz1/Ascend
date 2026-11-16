@@ -53,9 +53,9 @@ export interface Insight {
 const DAY_LABELS = ["Dom", "Seg", "Ter", "Qua", "Qui", "Sex", "Sáb"];
 
 const PRIORITY_COLORS: Record<string, string> = {
-  high: "#EF4444",
-  medium: "#F59E0B",
-  low: "#10B981",
+  high: "#ddd6fe",
+  medium: "#a78bfa",
+  low: "#7c3aed",
 };
 
 const PRIORITY_LABELS: Record<string, string> = {
@@ -285,7 +285,7 @@ export function generateInsights(
       icon: trend.direction === "up" ? "📈" : "📉",
       title: trend.direction === "up" ? "Evolução positiva" : "Atenção à consistência",
       detail: directionText,
-      color: trend.direction === "up" ? "#10B981" : "#F59E0B",
+      color: trend.direction === "up" ? "#a78bfa" : "#c4b5fd",
     });
   }
 
@@ -311,7 +311,7 @@ export function generateInsights(
       icon: "⚡",
       title: "Ritmo acima da média",
       detail: `Você está completando em média ${pace} atividades por dia nos últimos 30 dias`,
-      color: "#06B6D4",
+      color: "#ddd6fe",
     });
   }
 
@@ -320,7 +320,7 @@ export function generateInsights(
       icon: "🔥",
       title: "Streak de destaque",
       detail: `${globalStreak} dias seguidos ativo${globalStreak > 1 ? "s" : ""} — continue assim!`,
-      color: "#F59E0B",
+      color: "#c4b5fd",
     });
   }
 

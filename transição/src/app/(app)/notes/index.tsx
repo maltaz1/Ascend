@@ -39,8 +39,6 @@ function relativeDate(value: string): string {
   return date.toLocaleDateString("pt-BR", { day: "2-digit", month: "short" }).toLowerCase();
 }
 
-const FOLDER_EMOJI: Record<string, string> = { Trabalho: "💼", Estudos: "📚", Pessoal: "👤", Ideias: "💡" };
-
 // Porta de pages/Notes.tsx: busca, Fixadas, Pastas e Notas.
 export default function NotesScreen() {
   return (
@@ -250,7 +248,7 @@ function NoteItem({ note, folder, onPress }: { note: NoteDatabaseRow; folder: st
         </Txt>
         <View style={{ paddingHorizontal: 8, paddingVertical: 3, borderRadius: 8, borderWidth: 1, borderColor: theme.border }}>
           <Txt variant="caption" muted style={{ fontFamily: fonts.bodyBold, fontSize: 10, textTransform: "uppercase" }}>
-            {FOLDER_EMOJI[folder] ?? "📁"} {folder}
+            {folder}
           </Txt>
         </View>
       </View>

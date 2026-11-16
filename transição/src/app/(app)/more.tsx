@@ -14,13 +14,13 @@ const logo = require("../../../assets/logo-mark.png");
 type IconName = keyof typeof Ionicons.glyphMap;
 
 const ITEMS: { section: Section; href: string; title: string; caption: string; icon: IconName; color: string }[] = [
-  { section: "academy", href: "/academy", title: "Saúde", caption: "Treino e alimentação", icon: "heart-outline", color: "#ef4444" },
-  { section: "financial", href: "/financial", title: "Financeiro", caption: "Entradas e gastos", icon: "wallet-outline", color: "#10b981" },
-  { section: "notes", href: "/notes", title: "Notas", caption: "Ideias e pastas", icon: "document-text-outline", color: "#5b7cff" },
+  { section: "academy", href: "/academy", title: "Saúde", caption: "Treino e alimentação", icon: "heart-outline", color: "#9333ea" },
+  { section: "financial", href: "/financial", title: "Financeiro", caption: "Entradas e gastos", icon: "wallet-outline", color: "#a78bfa" },
+  { section: "notes", href: "/notes", title: "Notas", caption: "Ideias e pastas", icon: "document-text-outline", color: "#818cf8" },
   { section: "calendar", href: "/calendar", title: "Calendário", caption: "Compromissos", icon: "calendar-outline", color: "#8b5cf6" },
-  { section: "dashboard", href: "/dashboard", title: "Dashboard", caption: "Seu desempenho", icon: "bar-chart-outline", color: "#ec4899" },
-  { section: "evolution", href: "/evolution", title: "Evolução", caption: "Carga e volume", icon: "trending-up-outline", color: "#06b6d4" },
-  { section: "achievements", href: "/achievements", title: "Conquistas", caption: "Suas medalhas", icon: "trophy-outline", color: "#f59e0b" },
+  { section: "dashboard", href: "/dashboard", title: "Dashboard", caption: "Seu desempenho", icon: "bar-chart-outline", color: "#c084fc" },
+  { section: "evolution", href: "/evolution", title: "Evolução", caption: "Carga e volume", icon: "trending-up-outline", color: "#ddd6fe" },
+  { section: "achievements", href: "/achievements", title: "Conquistas", caption: "Suas medalhas", icon: "trophy-outline", color: "#c4b5fd" },
 ];
 
 // Aba "Mais": tudo o que não cabe na barra inferior.

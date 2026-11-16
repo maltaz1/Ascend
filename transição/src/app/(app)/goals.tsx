@@ -12,10 +12,11 @@ import { LongTermGoalCard, WeeklyGoalCard, weeklyDays } from "@/components/rows"
 import { COMMON_FREQUENCIES, countActiveWeeklyGoals, getWeekConsistencyAverage, type WeeklyGoal } from "@/lib/weeklyGoals";
 import { fonts, resolveColor, useTheme } from "@/theme";
 import { useNewParam } from "@/hooks/useNewParam";
+import { Glyph, stripEmoji } from "@/components/Glyph";
 
 // Mesmos ícones e tintas do formulário do web.
 const EMOJIS = ["📚", "🏃", "💼", "💰", "🎯", "💪", "🧘", "✈", "🎨", "💧", "📷", "🎓"];
-const COLORS = ["var(--primary)", "var(--accent)", "#10B981", "#EF4444", "#EC4899", "#06B6D4", "#84CC16", "#6B7280"];
+const COLORS = ["var(--primary)", "var(--accent)", "#a78bfa", "#6d28d9", "#c084fc", "#ddd6fe", "#9333ea", "#6B7280"];
 
 type LongFilter = "all" | "ongoing" | "completed";
 
@@ -257,7 +258,7 @@ function NewGoalSheet({
               borderColor: emoji === item ? theme.accent : theme.border,
             }}
           >
-            <Txt style={{ fontSize: 18 }}>{item}</Txt>
+            <Glyph emoji={item} size={18} color={emoji === item ? theme.primaryInk : theme.inkMuted} />
           </Pressable>
         ))}
       </View>

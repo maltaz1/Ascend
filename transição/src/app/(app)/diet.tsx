@@ -22,13 +22,14 @@ import { ProGate } from "@/components/ProGate";
 import { Button, Card, Input, Marginalia, ProgressBar, ProgressRing, Screen, Segmented, Sheet, Txt } from "@/components/ui";
 import { longDate } from "@/components/rows";
 import { fonts, resolveColor, useTheme } from "@/theme";
+import { Glyph, stripEmoji } from "@/components/Glyph";
 
 // Mesmos tipos de refeição de pages/Diet.tsx.
 const MEAL_TYPES = {
   breakfast: { label: "Café da manhã", emoji: "🍳", color: "var(--accent)" },
-  lunch: { label: "Almoço", emoji: "🍽️", color: "#10B981" },
+  lunch: { label: "Almoço", emoji: "🍽️", color: "#a78bfa" },
   dinner: { label: "Jantar", emoji: "🌙", color: "var(--primary)" },
-  snack: { label: "Lanche", emoji: "🍎", color: "#EC4899" },
+  snack: { label: "Lanche", emoji: "🍎", color: "#c084fc" },
 } as const;
 type MealType = keyof typeof MEAL_TYPES;
 
@@ -157,7 +158,7 @@ function Diet() {
           <View key={type} style={{ gap: 10 }}>
             <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
               <View style={{ width: 26, height: 26, borderRadius: 6, alignItems: "center", justifyContent: "center", borderWidth: 1, borderColor: `${color}66` }}>
-                <Txt style={{ fontSize: 14 }}>{config.emoji}</Txt>
+                <Glyph emoji={config.emoji} size={14} />
               </View>
               <Txt variant="h3" color={color} style={{ flex: 1 }}>
                 {config.label}

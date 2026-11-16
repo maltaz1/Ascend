@@ -7,9 +7,11 @@ import { getGlobalStreak } from "@/lib/streak";
 import { useStore } from "@/hooks/useStore";
 import { AnimatedNumber, AnimatedText, Button, EmptyState, GlassIconButton, HeroCard, ProgressBar, ProgressRing, Screen, Txt } from "@/components/ui";
 import { Corv, CorvSays, type CorvPose } from "@/components/Corv";
+import { QuoteCard } from "@/components/QuoteCard";
 import { useCheckPop } from "@/lib/motion";
 import { toggleHabitWithGoals, toggleTask, weeklyDays } from "@/components/rows";
 import { fonts, resolveColor, useTheme, withAlpha } from "@/theme";
+import { Glyph, stripEmoji } from "@/components/Glyph";
 
 const WEEKDAYS = ["dom", "seg", "ter", "qua", "qui", "sex", "sáb"];
 const PRIORITY_LABEL: Record<Task["priority"], string> = { low: "Prioridade baixa", medium: "Prioridade média", high: "Prioridade alta" };
@@ -158,6 +160,8 @@ export default function TodayScreen() {
         )}
       </Section>
 
+      <QuoteCard onPress={() => router.push("/tasks?novo=1")} />
+
       <Section title="Hábitos do dia" link="Ver todos" onLink={() => router.replace("/habits")}>
         {data.habits.length === 0 ? (
           <EmptyState text="Você ainda não tem hábitos." />
@@ -285,7 +289,7 @@ function CheckCircle({ done }: { done: boolean }) {
 function TodayTask({ task }: { task: Task }) {
   const theme = useTheme();
   const overdue = getTaskStatus(task) === "overdue";
-  const dot = { low: theme.success, medium: theme.accent, high: theme.danger }[task.priority];
+  const dot = { low: theme.blue, medium: theme.primaryInk, high: "#ede9fe" }[task.priority];
   return (
     <Pressable
       onPress={() => void toggleTask(task)}
@@ -347,7 +351,7 @@ function HabitTile({ habit, date }: { habit: Habit; date: string }) {
     >
       <View style={{ flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" }}>
         <View style={{ width: 38, height: 38, borderRadius: 13, backgroundColor: withAlpha(color, 0.18), alignItems: "center", justifyContent: "center" }}>
-          <Txt style={{ fontSize: 18 }}>{habit.emoji}</Txt>
+          <Glyph emoji={habit.emoji} size={18} />
         </View>
         <CheckCircle done={done} />
       </View>
@@ -390,7 +394,7 @@ function GoalTile({ goal, habits }: { goal: Goal; habits: Habit[] }) {
     >
       <View style={{ flexDirection: "row", alignItems: "center", gap: 12 }}>
         <View style={{ width: 42, height: 42, borderRadius: 14, backgroundColor: withAlpha(color, 0.18), alignItems: "center", justifyContent: "center" }}>
-          <Txt style={{ fontSize: 19 }}>{goal.emoji?.trim() || "🎯"}</Txt>
+          <Glyph emoji={goal.emoji?.trim() || "🎯"} size={19} />
         </View>
         <View style={{ flex: 1 }}>
           <Txt style={{ fontFamily: fonts.bodySemi, fontSize: 15 }} numberOfLines={1}>

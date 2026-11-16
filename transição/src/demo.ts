@@ -83,7 +83,7 @@ export function seedDemoData(): void {
   });
 
   _data.habits = [
-    habit("h1", "Beber 2L de água", "💧", "#3b82f6", [dayOffset(0), ...pastDays(6)], "vitalidade:agua"),
+    habit("h1", "Beber 2L de água", "💧", "#7c3aed", [dayOffset(0), ...pastDays(6)], "vitalidade:agua"),
     habit("h2", "Meditar 10 min", "🧘", "var(--accent)", pastDays(4, [2]), "espirito:meditacao"),
     habit("h3", "Ler antes de dormir", "📚", "#8b5cf6", pastDays(3), "mente:leitura"),
   ];
@@ -96,7 +96,7 @@ export function seedDemoData(): void {
     goal({ id: "g1", title: "Treinar", emoji: "💪", color: "var(--primary)", type: "semanal", targetFrequency: 4, daysCompletedWeek: week(3), weekStart: monday, streak: 2, recordStreak: 5 }),
     goal({ id: "g2", title: "Meditar", emoji: "🧘", color: "var(--accent)", type: "semanal", targetFrequency: 5, daysCompletedWeek: week(2), weekStart: monday, linkedHabitId: "h2" }),
     goal({
-      id: "g3", title: "Ler 12 livros no ano", emoji: "📚", color: "#10B981", type: "longo_prazo", deadline: `${new Date().getFullYear()}-12-31`,
+      id: "g3", title: "Ler 12 livros no ano", emoji: "📚", color: "#a78bfa", type: "longo_prazo", deadline: `${new Date().getFullYear()}-12-31`,
       steps: [
         { id: "s1", title: "Hábitos Atômicos", completed: true },
         { id: "s2", title: "O Poder do Hábito", completed: true },

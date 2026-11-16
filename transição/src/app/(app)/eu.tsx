@@ -7,6 +7,8 @@ import { ATTRS, TREES, attrStats, computeProgress, habitEvents, nodeCount, nodeP
 import { Card, EmptyState, GlassIconButton, HeroCard, ProgressBar, ProgressRing, Screen, Segmented, Txt } from "@/components/ui";
 import { BranchTree, Hub, NodeSheet, Radar, TreeLegend } from "@/components/EuViews";
 import { EuTour, tourSeen } from "@/components/EuTour";
+import { Corv } from "@/components/Corv";
+import { Landscape } from "@/components/Landscape";
 import { fonts, useTheme, withAlpha } from "@/theme";
 
 type View_ = "attrs" | "tree";
@@ -82,8 +84,15 @@ export default function EuScreen() {
   active.sort((a, b) => b.p - a.p);
 
   return (
-    <Screen title="Eu" subtitle="Quem você está se tornando" right={<GlassIconButton icon="help-circle-outline" label="Como funciona a aba Eu" onPress={() => setTour(true)} />}>
+    <Screen
+      title="Eu"
+      subtitle="Quem você está se tornando"
+      banner={{ height: 270, node: <Landscape art="panorama" dim={0} fadeTo={theme.bg} /> }}
+      right={<GlassIconButton icon="help-circle-outline" label="Como funciona a aba Eu" onPress={() => setTour(true)} />}>
       <EuTour visible={tour} onClose={() => setTour(false)} />
+      <View style={{ height: 150, alignItems: "center", justifyContent: "flex-end", marginTop: 4 }}>
+        <Corv pose="bolso" size={150} />
+      </View>
       <HeroCard style={{ flexDirection: "row", alignItems: "center", gap: 16 }}>
         <ProgressRing percent={(user.xp / need) * 100} size={84} stroke={6}>
           <Txt variant="display" style={{ fontSize: 26 }}>

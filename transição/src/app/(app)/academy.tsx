@@ -29,10 +29,10 @@ import { fonts, useTheme } from "@/theme";
 const DAYS_OF_WEEK = ["Segunda", "Terça", "Quarta", "Quinta", "Sexta", "Sábado", "Domingo"];
 const XP_PER_WORKOUT = 25;
 const SET_TYPES: { value: WorkoutSet["type"]; label: string }[] = [
-  { value: "warmup", label: "🔥 Aquecimento" },
-  { value: "normal", label: "💪 Normal" },
-  { value: "failed", label: "❌ Falhada" },
-  { value: "drop", label: "⬇️ Drop" },
+  { value: "warmup", label: "Aquecimento" },
+  { value: "normal", label: "Normal" },
+  { value: "failed", label: "Falhada" },
+  { value: "drop", label: "Drop" },
 ];
 
 function normalizeSearch(value: string) {

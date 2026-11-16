@@ -109,26 +109,26 @@ export interface FinancialState {
 // ============================================================================
 
 export const DEFAULT_EXPENSE_CATEGORIES: FinancialCategory[] = [
-  { id: 'food', name: 'Alimentação', type: 'saída', color: '#F59E0B', icon: '🍔' },
+  { id: 'food', name: 'Alimentação', type: 'saída', color: '#c4b5fd', icon: '🍔' },
   { id: 'transport', name: 'Transporte', type: 'saída', color: '#8B5CF6', icon: '🚗' },
-  { id: 'entertainment', name: 'Lazer', type: 'saída', color: '#EC4899', icon: '🎮' },
-  { id: 'utilities', name: 'Contas', type: 'saída', color: '#10B981', icon: '💡' },
-  { id: 'health', name: 'Saúde', type: 'saída', color: '#EF4444', icon: '🏥' },
+  { id: 'entertainment', name: 'Lazer', type: 'saída', color: '#c084fc', icon: '🎮' },
+  { id: 'utilities', name: 'Contas', type: 'saída', color: '#a78bfa', icon: '💡' },
+  { id: 'health', name: 'Saúde', type: 'saída', color: '#6d28d9', icon: '🏥' },
   { id: 'education', name: 'Educação', type: 'saída', color: '#8B5CF6', icon: '📚' },
-  { id: 'shopping', name: 'Compras', type: 'saída', color: '#06B6D4', icon: '🛍️' },
+  { id: 'shopping', name: 'Compras', type: 'saída', color: '#ddd6fe', icon: '🛍️' },
   { id: 'other_expense', name: 'Outros', type: 'saída', color: '#6B7280', icon: '📌' },
 ];
 
 export const DEFAULT_INCOME_CATEGORIES: FinancialCategory[] = [
-  { id: 'salary', name: 'Salário', type: 'entrada', color: '#10B981', icon: '💰' },
-  { id: 'freelance', name: 'Freelance', type: 'entrada', color: '#F59E0B', icon: '💻' },
+  { id: 'salary', name: 'Salário', type: 'entrada', color: '#a78bfa', icon: '💰' },
+  { id: 'freelance', name: 'Freelance', type: 'entrada', color: '#c4b5fd', icon: '💻' },
   { id: 'investment', name: 'Investimento', type: 'entrada', color: '#8B5CF6', icon: '📈' },
-  { id: 'gift', name: 'Presente', type: 'entrada', color: '#EC4899', icon: '🎁' },
+  { id: 'gift', name: 'Presente', type: 'entrada', color: '#c084fc', icon: '🎁' },
   { id: 'other_income', name: 'Outros', type: 'entrada', color: '#6B7280', icon: '📌' },
 ];
 
 export const DEFAULT_ACCOUNTS: FinancialAccount[] = [
-  { id: 'wallet', name: 'Carteira', balance: 0, type: 'carteira', color: '#F59E0B' },
+  { id: 'wallet', name: 'Carteira', balance: 0, type: 'carteira', color: '#c4b5fd' },
   { id: 'bank', name: 'Banco', balance: 0, type: 'banco', color: '#8B5CF6' },
 ];
 

@@ -21,11 +21,12 @@ import { fonts, resolveColor, useTheme } from "@/theme";
 import { Button, Card, ProgressBar, Row, Stamp, Txt } from "./ui";
 import { Sparkline } from "./charts";
 import { ACTION_LABEL, parseTag, taskAttrXP } from "@/lib/attributes";
+import { Glyph, stripEmoji } from "@/components/Glyph";
 
 const PRIORITY_LABEL: Record<Task["priority"], string> = { low: "Baixa", medium: "Média", high: "Alta" };
 
 export function priorityColor(priority: Task["priority"], theme: ReturnType<typeof useTheme>): string {
-  return { low: theme.success, medium: theme.accent, high: theme.danger }[priority];
+  return { low: theme.blue, medium: theme.primaryInk, high: "#ede9fe" }[priority];
 }
 
 export async function toggleTask(task: Task) {
@@ -191,7 +192,7 @@ export function HabitRow({ habit, date }: { habit: Habit; date: string }) {
       >
         {done ? <Ionicons name="checkmark" size={13} color="#fff" /> : null}
       </Animated.View>
-      <Txt style={{ fontSize: 16 }}>{habit.emoji}</Txt>
+      <Glyph emoji={habit.emoji} size={16} />
       <Txt
         variant="bodyStrong"
         muted={done}
@@ -288,7 +289,7 @@ export function WeeklyGoalMini({ goal, habits }: { goal: Goal; habits: Habit[] }
   return (
     <View style={{ backgroundColor: theme.raised, borderRadius: 18, padding: 14, gap: 12 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <Txt style={{ fontSize: 16 }}>{goal.emoji?.trim() || "🎯"}</Txt>
+        <Glyph emoji={goal.emoji?.trim() || "🎯"} size={16} />
         <Txt variant="h3" style={{ flex: 1 }} numberOfLines={1}>
           {goal.title}
         </Txt>
@@ -375,7 +376,7 @@ export function WeeklyGoalCard({ goal, habits }: { goal: Goal; habits: Habit[] }
             borderColor: `${color}66`,
           }}
         >
-          <Txt style={{ fontSize: 19 }}>{goal.emoji?.trim() || goal.title.charAt(0).toUpperCase()}</Txt>
+          <Glyph emoji={goal.emoji} size={19} fallback={goal.title.charAt(0).toUpperCase()} />
         </View>
         <View style={{ flex: 1, gap: 8 }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
@@ -498,7 +499,7 @@ export function LongTermGoalMini({ goal }: { goal: Goal }) {
   return (
     <View style={{ backgroundColor: theme.raised, borderRadius: 18, padding: 14, gap: 6 }}>
       <View style={{ flexDirection: "row", alignItems: "center", gap: 8 }}>
-        <Txt style={{ fontSize: 16 }}>{goal.emoji?.trim() || "🎯"}</Txt>
+        <Glyph emoji={goal.emoji?.trim() || "🎯"} size={16} />
         <Txt variant="h3" style={{ flex: 1 }} numberOfLines={1}>
           {goal.title}
         </Txt>
@@ -542,7 +543,7 @@ export function LongTermGoalCard({ goal }: { goal: Goal }) {
             borderColor: finished ? `${theme.success}80` : `${color}66`,
           }}
         >
-          <Txt style={{ fontSize: 19 }}>{goal.emoji?.trim() || goal.title.charAt(0).toUpperCase()}</Txt>
+          <Glyph emoji={goal.emoji} size={19} fallback={goal.title.charAt(0).toUpperCase()} />
         </View>
         <View style={{ flex: 1, gap: 6 }}>
           <View style={{ flexDirection: "row", alignItems: "center" }}>
