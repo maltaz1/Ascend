@@ -33,7 +33,7 @@ const MEAL_TYPES = {
 } as const;
 type MealType = keyof typeof MEAL_TYPES;
 
-const WATER_COLOR = "#38BDF8";
+const WATER_COLOR = "#c4b5fd";
 
 export default function DietScreen() {
   return (

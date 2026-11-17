@@ -128,7 +128,7 @@ export default function LoginScreen() {
 
         {mode === "signup" && (
           <View style={{ flexDirection: "row", alignItems: "center", gap: 10 }}>
-            <Switch value={acceptTerms} onValueChange={setAcceptTerms} trackColor={{ true: theme.primary }} />
+            <Switch value={acceptTerms} onValueChange={setAcceptTerms} trackColor={{ true: theme.primary }} thumbColor="#fff" {...({ activeThumbColor: "#fff" } as object)} />
             <Txt variant="label" muted style={{ flex: 1 }}>
               Aceito os{" "}
               <Txt variant="label" color={theme.primary} onPress={() => openWeb("/terms")}>

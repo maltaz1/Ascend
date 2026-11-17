@@ -1,4 +1,4 @@
-import { Children, isValidElement, useEffect, useState, type ReactNode } from "react";
+import { Children, Fragment, cloneElement, isValidElement, useEffect, useState, type ReactElement, type ReactNode } from "react";
 import {
   Easing,
   Animated,
@@ -202,6 +202,22 @@ function EnterItem({ index, children }: { index: number; children: ReactNode }) 
   );
 }
 
+// Children.toArray não abre os fragmentos (<>...</>): tudo dentro deles virava um só filho e ficava
+// sem o espaçamento entre blocos da tela. Aqui eles são abertos, para cada bloco ganhar o seu gap.
+function flattenChildren(children: ReactNode, prefix = ""): ReactNode[] {
+  const out: ReactNode[] = [];
+  Children.toArray(children).forEach(child => {
+    if (isValidElement(child) && child.type === Fragment) {
+      out.push(...flattenChildren((child as ReactElement<{ children?: ReactNode }>).props.children, `${prefix}${child.key}/`));
+    } else if (isValidElement(child)) {
+      out.push(cloneElement(child, { key: `${prefix}${child.key}` }));
+    } else {
+      out.push(child);
+    }
+  });
+  return out;
+}
+
 export function Screen({
   children,
   scroll = true,
@@ -295,7 +311,7 @@ export function Screen({
                 {banner.node}
               </View>
             ) : null}
-            {[header, ...Children.toArray(children)].filter(Boolean).map((child, i) => (
+            {[header, ...flattenChildren(children)].filter(Boolean).map((child, i) => (
               <EnterItem key={isValidElement(child) && child.key != null ? String(child.key) : `item-${i}`} index={i}>
                 {child}
               </EnterItem>
@@ -512,7 +528,7 @@ export function Metric({
   return (
     <View style={{ flex: 1 }}>
       <Card tone={tone} style={{ gap: 6, alignItems: center ? "center" : "flex-start", paddingVertical: 16 }}>
-        <Marginalia index={index}>{label}</Marginalia>
+        {label || index ? <Marginalia index={index}>{label}</Marginalia> : null}
         <AnimatedText variant="metric" color={valueColor} style={{ marginTop: 4 }} text={value} />
         {caption ? (
           <Txt variant="label" muted>

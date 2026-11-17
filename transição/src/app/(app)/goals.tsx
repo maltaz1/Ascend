@@ -79,9 +79,11 @@ export default function GoalsScreen() {
 
       {weekly.length > 0 ? (
         <>
-          <Metric label="Consistência" value={`${consistency}%`} />
-          <Metric label="Ativas" value={String(active)} />
-          <Metric label="Streak total" value={String(streakTotal)} />
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <Metric label="Consistência" value={`${consistency}%`} />
+            <Metric label="Ativas" value={String(active)} />
+            <Metric label="Streak" value={String(streakTotal)} />
+          </View>
           {weekly.map(goal => (
             <WeeklyGoalCard key={goal.id} goal={goal} habits={data.habits} />
           ))}

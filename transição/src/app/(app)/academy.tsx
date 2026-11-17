@@ -206,9 +206,11 @@ function Academy() {
         </>
       ) : (
         <>
-          <Metric label="" value={String(stats.totalWorkouts)} caption="Treinos Completos" valueColor={theme.primary} center />
-          <Metric label="" value={String(stats.totalWorkoutPlans)} caption="Fichas de Treino" valueColor={theme.primary} center />
-          <Metric label="" value={String(stats.totalExercises)} caption="Exercícios" valueColor={theme.cyan} center />
+          <View style={{ flexDirection: "row", gap: 10 }}>
+            <Metric label="" value={String(stats.totalWorkouts)} caption="Treinos" valueColor={theme.primary} center />
+            <Metric label="" value={String(stats.totalWorkoutPlans)} caption="Fichas" valueColor={theme.primary} center />
+            <Metric label="" value={String(stats.totalExercises)} caption="Exercícios" valueColor={theme.cyan} center />
+          </View>
 
           <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", marginTop: 8 }}>
             <Txt variant="h1" style={{ fontSize: 20 }}>

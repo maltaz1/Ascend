@@ -263,10 +263,10 @@ function Comparison({ label, current, previous }: { label: string; current: numb
           borderRadius: 4,
           borderWidth: 1,
           borderColor: `${color}66`,
-          backgroundColor: theme.mode === "dark" ? (up ? "#fee2e2" : "#d1fae5") : `${color}14`,
+          backgroundColor: theme.mode === "dark" ? (up ? "#f3e8ff" : "#ede9fe") : `${color}14`,
         }}
       >
-        <Txt variant="mono" color={up ? "#dc2626" : "#059669"} style={{ fontWeight: "500" }}>
+        <Txt variant="mono" color={up ? "#7e22ce" : "#6d28d9"} style={{ fontWeight: "500" }}>
           {up ? "↑" : delta < 0 ? "↓" : "="} {Math.abs(delta).toFixed(1)}% {up ? "maior" : delta < 0 ? "menor" : "igual"}
         </Txt>
       </View>
