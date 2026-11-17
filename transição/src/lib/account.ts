@@ -1,4 +1,5 @@
 import { supabase } from "./supabase";
+import { clearReminders } from "./reminders";
 
 // Mesmo fluxo de handleDeleteAccount em pages/Settings.tsx: a função
 // "delete-account" do Supabase confere a senha antes de apagar a conta.
@@ -23,6 +24,7 @@ export async function deleteAccount(password: string): Promise<{ error?: string 
   for (const key of ["flowzone_data", "ascend_app_state", "ascend_schema_version"]) {
     localStorage.removeItem(key);
   }
+  await clearReminders();
   await supabase.auth.signOut();
   return {};
 }

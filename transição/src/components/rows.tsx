@@ -141,8 +141,9 @@ export function TaskCard({ task, onPress, onDelete }: { task: Task; onPress?: ()
             </Txt>
           </View>
         ) : null}
-        {overdue || task.isRecurring || task.description ? (
+        {overdue || task.isRecurring || task.description || task.time ? (
           <Txt variant="caption" color={overdue ? theme.danger : theme.inkMuted} numberOfLines={1}>
+            {task.time ? `${task.time} · ` : ""}
             {overdue ? "Atrasada · " : ""}
             {task.isRecurring ? "Recorrente · " : ""}
             {task.description || PRIORITY_LABEL[task.priority]}
@@ -451,18 +452,15 @@ export function WeeklyGoalCard({ goal, habits }: { goal: Goal; habits: Habit[] }
       </View>
 
       <View style={{ height: 1, backgroundColor: theme.border }} />
-      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 4 }}>
-        {(goal.recordStreak ?? 0) > 0 ? (
-          <>
-            <Ionicons name="trophy" size={11} color="#FCD34D" />
-            <Txt variant="caption" muted>
-              Recorde: {goal.recordStreak} semanas
-            </Txt>
-          </>
-        ) : null}
-      </View>
-      <View style={{ flexDirection: "row", alignItems: "center", gap: 12, backgroundColor: theme.raised, borderRadius: 16, padding: 12 }}>
+      {(goal.recordStreak ?? 0) > 0 ? (
+        <View style={{ flexDirection: "row", alignItems: "center", gap: 6 }}>
+          <Ionicons name="trophy" size={12} color={theme.primaryInk} />
+          <Txt variant="caption" muted>
+            Recorde: {goal.recordStreak} semanas
+          </Txt>
+        </View>
+      ) : null}
+      <View style={{ flexDirection: "row", alignItems: "center", justifyContent: "space-between", gap: 12, backgroundColor: theme.raised, borderRadius: 16, padding: 14 }}>
         <View>
           <Txt variant="caption" muted>
             Consistência
@@ -485,7 +483,6 @@ export function WeeklyGoalCard({ goal, habits }: { goal: Goal; habits: Habit[] }
             </Txt>
           </View>
         </View>
-      </View>
       </View>
     </Card>
   );

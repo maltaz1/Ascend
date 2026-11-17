@@ -6,6 +6,7 @@ import { loadGymData } from "@/lib/gym";
 import { logger } from "@/lib/logger";
 import { identifyPurchaser, resetPurchaser } from "@/lib/purchases";
 import { syncFounder } from "@/lib/founder";
+import { clearReminders } from "@/lib/reminders";
 import { DEMO_USER, IS_DEMO, seedDemoData } from "@/demo";
 import {
   _data,
@@ -175,6 +176,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       return;
     }
     stopRealtimeSync();
+    void clearReminders();
     await safeSignOut();
   };
 

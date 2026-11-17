@@ -27,6 +27,13 @@
       "expo-sqlite",
       "expo-font",
       [
+        "expo-notifications",
+        {
+          "icon": "./assets/android-icon-monochrome.png",
+          "color": "#8b5cf6"
+        }
+      ],
+      [
         "expo-image-picker",
         {
           "photosPermission": "O Ascend usa suas fotos para você escolher a foto de perfil."

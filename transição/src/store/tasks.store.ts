@@ -235,11 +235,18 @@ export async function loadTasksData(): Promise<void> {
 
   console.log(`[loadTasksData] Mapeando ${(data || []).length} tarefas...`);
 
+  // Horário em consulta à parte: se a coluna ainda não existir, as tarefas carregam normalmente.
+  const times = new Map<string, string>();
+  const timeRes = await supabase.from("tasks").select("id, time").eq("user_id", user.id);
+  if (!timeRes.error) (timeRes.data || []).forEach((r: { id: string; time: string | null }) => r.time && times.set(r.id, r.time.slice(0, 5)));
+
   _data.tasks = (data || []).map(task => ({
     id: task.id,
     title: task.title,
     description: task.description,
     date: task.date,
+    // Ocorrências de tarefas recorrentes herdam o horário da tarefa de origem.
+    time: times.get(task.id) ?? (task.parent_id ? times.get(task.parent_id) : undefined),
     completed: task.completed,
     priority: task.priority,
     category: task.category,
@@ -263,6 +270,8 @@ export async function saveTask(input: {
   title: string;
   description?: string;
   date: string;
+  /** "HH:MM" ou vazio para tarefa sem horário. */
+  time?: string | null;
   priority: Task["priority"];
   recurrence?: RecurrenceConfig | null;
   // Etiqueta de atributo ("espirito:meditacao"), ver lib/attributes.ts.
@@ -272,9 +281,9 @@ export async function saveTask(input: {
   if (process.env.EXPO_PUBLIC_DEMO === "1") {
     const existing = input.id ? _data.tasks.find(t => t.id === input.id) : undefined;
     if (existing) {
-      Object.assign(existing, { title: input.title.trim(), description: input.description || "", date: input.date, priority: input.priority, category: input.category ?? undefined });
+      Object.assign(existing, { title: input.title.trim(), description: input.description || "", date: input.date, time: input.time || undefined, priority: input.priority, category: input.category ?? undefined });
     } else {
-      _data.tasks.push({ id: generateId(), title: input.title.trim(), description: input.description || "", date: input.date, priority: input.priority, completed: false, createdAt: new Date().toISOString(), category: input.category ?? undefined });
+      _data.tasks.push({ id: generateId(), title: input.title.trim(), description: input.description || "", date: input.date, time: input.time || undefined, priority: input.priority, completed: false, createdAt: new Date().toISOString(), category: input.category ?? undefined });
     }
     notify();
     persistState();
@@ -297,9 +306,15 @@ export async function saveTask(input: {
     recurrence: isRecurring ? input.recurrence : null,
   };
 
+  // O horário vai em gravação à parte: se a coluna ainda não existir, a tarefa salva igual (sem horário).
+  const saveTime = async (id: string, hadTime: boolean) => {
+    if (input.time || hadTime) await supabase.from("tasks").update({ time: input.time || null }).eq("id", id);
+  };
+
   if (input.id) {
     const { error } = await supabase.from("tasks").update(taskData).eq("id", input.id);
     if (error) return { error: error.message };
+    await saveTime(input.id, !!_data.tasks.find(t => t.id === input.id)?.time);
   } else {
     const { data, error } = await supabase
       .from("tasks")
@@ -307,6 +322,7 @@ export async function saveTask(input: {
       .select("id")
       .single();
     if (error) return { error: error.message };
+    if (data?.id) await saveTime(data.id, false);
     if (isRecurring && data?.id) await generateOccurrenceForNewTask(data.id, user.id);
   }
 

@@ -5,6 +5,8 @@ export interface Task {
   title: string;
   description?: string;
   date: string;
+  /** Horário opcional da tarefa, "HH:MM". */
+  time?: string;
   completed: boolean;
   priority: "low" | "medium" | "high";
   category?: string;

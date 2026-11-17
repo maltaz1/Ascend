@@ -19,6 +19,19 @@ import { manageStoreSubscription } from "@/lib/purchases";
 import { exportJson } from "@/lib/exportData";
 import { animationsEnabled, setAnimationsEnabled } from "@/lib/motion";
 import { notifyError, notifySuccess } from "@/lib/notifications";
+import {
+  askReminderPermission,
+  formatTime,
+  loadReminderPrefs,
+  REMINDER_INFO,
+  REMINDER_KINDS,
+  remindersSupported,
+  setTaskAlerts,
+  syncTaskReminders,
+  taskAlertsOn,
+  updateReminder,
+  type ReminderKind,
+} from "@/lib/reminders";
 import { IS_DEMO } from "@/demo";
 import { useStore } from "@/hooks/useStore";
 import { useAuth } from "@/hooks/useAuth";
@@ -31,12 +44,6 @@ import { useTheme, useThemeToggle } from "@/theme";
 const WEB_URL = process.env.EXPO_PUBLIC_WEB_URL;
 const SUPPORT_EMAIL = "ascendprod1@gmail.com";
 
-// Preferências que o web guarda só na sessão (não vão para o banco).
-type NotificationPrefs = { habits: boolean; tasks: boolean; academy: boolean };
-let sessionNotifications: NotificationPrefs = { habits: true, tasks: true, academy: true };
-function rememberNotifications(next: NotificationPrefs) {
-  sessionNotifications = next;
-}
 
 // Porta de pages/Settings.tsx.
 export default function SettingsScreen() {
@@ -49,7 +56,8 @@ export default function SettingsScreen() {
   const [bio, setBio] = useState("");
   const [avatar, setAvatar] = useState<string | null>(null);
   const [animations, setAnimations] = useState(animationsEnabled());
-  const [notifications, setNotifications] = useState(sessionNotifications);
+  const [reminders, setReminders] = useState(loadReminderPrefs);
+  const [taskAlerts, setTaskAlertsState] = useState(taskAlertsOn);
   const [pending, setPending] = useState<CancellationRequest | null>(null);
   const [showCancel, setShowCancel] = useState(false);
   const [reason, setReason] = useState("");
@@ -129,10 +137,33 @@ export default function SettingsScreen() {
     setAnimations(value);
   };
 
-  const toggleNotification = (key: keyof NotificationPrefs) => {
-    const next = { ...notifications, [key]: !notifications[key] };
-    rememberNotifications(next);
-    setNotifications(next);
+  // Liga/desliga um lembrete. Ao ligar, pede a permissão de notificação ao sistema.
+  const toggleReminder = async (kind: ReminderKind) => {
+    const turningOn = !reminders[kind].on;
+    if (turningOn && remindersSupported() && !(await askReminderPermission())) {
+      notifyError("Notificações bloqueadas", "Libere as notificações do Ascend nos ajustes do celular.");
+      void Linking.openSettings();
+      return;
+    }
+    setReminders(await updateReminder(kind, { on: turningOn }));
+  };
+
+  const toggleTaskAlerts = async (value: boolean) => {
+    if (value && remindersSupported() && !(await askReminderPermission())) {
+      notifyError("Notificações bloqueadas", "Libere as notificações do Ascend nos ajustes do celular.");
+      void Linking.openSettings();
+      return;
+    }
+    setTaskAlerts(value);
+    setTaskAlertsState(value);
+    void syncTaskReminders(data.tasks);
+  };
+
+  // Muda o horário em passos de 30 minutos.
+  const shiftReminder = async (kind: ReminderKind, minutes: number) => {
+    const { hour, minute } = reminders[kind];
+    const total = (hour * 60 + minute + minutes + 1440) % 1440;
+    setReminders(await updateReminder(kind, { hour: Math.floor(total / 60), minute: total % 60 }));
   };
 
   const resetPassword = async () => {
@@ -262,7 +293,7 @@ export default function SettingsScreen() {
           </Txt>
         ) : null}
       </View>
-      <Switch value={value} onValueChange={onChange} trackColor={{ true: theme.primary, false: theme.track }} thumbColor="#fff" />
+      <Switch value={value} onValueChange={onChange} trackColor={{ true: theme.primary, false: theme.track }} thumbColor="#fff" {...({ activeThumbColor: "#fff" } as object)} />
     </View>
   );
 
@@ -336,13 +367,40 @@ export default function SettingsScreen() {
         {toggleRow("Animações", "Ativar efeitos visuais", animations, toggleAnimations)}
       </Card>
 
-      <SectionTitle>Notificações</SectionTitle>
+      <SectionTitle>Lembretes</SectionTitle>
       <Card style={{ gap: 4 }}>
-        {toggleRow("Hábitos", undefined, notifications.habits, () => toggleNotification("habits"))}
+        <Txt variant="caption" muted style={{ paddingBottom: 6 }}>
+          {remindersSupported()
+            ? "Aparecem só na bandeja de notificações do celular, sem som e sem vibrar."
+            : "Os lembretes funcionam no app instalado no celular."}
+        </Txt>
+        {toggleRow("Tarefas com horário", "Avisa na hora marcada de cada tarefa", taskAlerts, value => void toggleTaskAlerts(value))}
         <Divider />
-        {toggleRow("Tarefas", undefined, notifications.tasks, () => toggleNotification("tasks"))}
-        <Divider />
-        {toggleRow("Academia", undefined, notifications.academy, () => toggleNotification("academy"))}
+        {REMINDER_KINDS.map((kind, index) => {
+          const setting = reminders[kind];
+          return (
+            <View key={kind}>
+              {index > 0 ? <Divider /> : null}
+              {toggleRow(REMINDER_INFO[kind].label, REMINDER_INFO[kind].sub, setting.on, () => void toggleReminder(kind))}
+              {setting.on ? (
+                <View style={{ flexDirection: "row", alignItems: "center", gap: 12, paddingBottom: 8 }}>
+                  <Txt variant="caption" muted style={{ flex: 1 }}>
+                    Todo dia às
+                  </Txt>
+                  <Pressable accessibilityLabel="Antecipar 30 minutos" onPress={() => void shiftReminder(kind, -30)} hitSlop={8}>
+                    <Ionicons name="remove-circle-outline" size={26} color={theme.primary} />
+                  </Pressable>
+                  <Txt variant="bodyStrong" style={{ minWidth: 52, textAlign: "center" }}>
+                    {formatTime(setting.hour, setting.minute)}
+                  </Txt>
+                  <Pressable accessibilityLabel="Adiar 30 minutos" onPress={() => void shiftReminder(kind, 30)} hitSlop={8}>
+                    <Ionicons name="add-circle-outline" size={26} color={theme.primary} />
+                  </Pressable>
+                </View>
+              ) : null}
+            </View>
+          );
+        })}
       </Card>
 
       <SectionTitle>Privacidade e Dados</SectionTitle>

@@ -1,6 +1,9 @@
-import { Stack } from "expo-router";
+import { useEffect } from "react";
+import { router, Stack } from "expo-router";
+import { onReminderTap, setupReminders, syncReminders } from "@/lib/reminders";
 import { DrawerProvider } from "@/components/AppDrawer";
 import { TabBar } from "@/components/TabBar";
+import { TaskAlerts } from "@/components/TaskAlerts";
 import { CorvIntro, CorvLevelUp } from "@/components/CorvMoments";
 import { useTheme } from "@/theme";
 
@@ -8,6 +11,15 @@ import { useTheme } from "@/theme";
 // como a gaveta do site no celular.
 export default function AppLayout() {
   const theme = useTheme();
+
+  // Lembretes: prepara o canal silencioso, reagenda o que está salvo e abre a tela
+  // certa quando a pessoa toca na notificação.
+  useEffect(() => {
+    setupReminders();
+    void syncReminders();
+    return onReminderTap(url => router.push(url as never));
+  }, []);
+
   return (
     <DrawerProvider>
       <Stack screenOptions={{ headerShown: false, animation: "fade", contentStyle: { backgroundColor: theme.bg } }}>
@@ -28,6 +40,7 @@ export default function AppLayout() {
         <Stack.Screen name="eu" />
         <Stack.Screen name="more" />
       </Stack>
+      <TaskAlerts />
       <TabBar />
       <CorvLevelUp />
       <CorvIntro />

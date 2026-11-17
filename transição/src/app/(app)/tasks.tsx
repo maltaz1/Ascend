@@ -15,6 +15,8 @@ import { RecurrenceSection } from "@/components/RecurrenceSection";
 import type { RecurrenceConfig } from "@/types/recurrence";
 import { formatTag, parseTag, type ActionId, type AttrId } from "@/lib/attributes";
 import { AttributePicker } from "@/components/AttributePicker";
+import { TimeField } from "@/components/TimeField";
+import { askReminderPermission, remindersSupported } from "@/lib/reminders";
 import { fonts, useTheme } from "@/theme";
 import { useNewParam } from "@/hooks/useNewParam";
 
@@ -84,6 +86,8 @@ export default function TasksScreen() {
     if (filter === "overdue") return !task.completed && task.date < today;
     return true;
   });
+  // Tarefas com horário vêm primeiro, na ordem do relógio; as sem horário mantêm a ordem de antes.
+  dayTasks.sort((a, b) => (a.time ?? "99:99").localeCompare(b.time ?? "99:99"));
   const createdThisWeek = countTasksCreatedThisWeek(data.tasks);
 
   const openNew = () => {
@@ -407,6 +411,7 @@ function TaskSheet({
   const [title, setTitle] = useState("");
   const [description, setDescription] = useState("");
   const [date, setDate] = useState(defaultDate);
+  const [time, setTime] = useState<string | null>(null);
   const [priority, setPriority] = useState<Task["priority"]>("medium");
   const [recurrence, setRecurrence] = useState<RecurrenceConfig>(EMPTY_RECURRENCE);
   const [attrId, setAttrId] = useState<AttrId | null>(null);
@@ -424,6 +429,7 @@ function TaskSheet({
       setTitle(task?.title ?? "");
       setDescription(task?.description ?? "");
       setDate(task?.date ?? defaultDate);
+      setTime(task?.time ?? null);
       setPriority(task?.priority ?? "medium");
       setRecurrence(task?.recurrence ?? EMPTY_RECURRENCE);
       const tag = parseTag(task?.category);
@@ -447,8 +453,13 @@ function TaskSheet({
     // Sem a seção aberta numa tarefa nova, a recorrência não vale (o web zera ao remover).
     const finalRecurrence = !task && !showRecurrence ? null : recurrence.type !== "never" ? recurrence : null;
 
+    // Com horário, o app avisa na hora marcada: pede a permissão de notificação se ainda faltar.
+    if (time && remindersSupported() && !(await askReminderPermission())) {
+      notifyInfo("Notificações bloqueadas", "A tarefa será salva, mas sem aviso no horário.");
+    }
+
     setSaving(true);
-    const { error } = await saveTask({ id: task?.id, title, description, date, priority, recurrence: finalRecurrence, category: attrId ? formatTag(attrId, action) : null });
+    const { error } = await saveTask({ id: task?.id, title, description, date, time, priority, recurrence: finalRecurrence, category: attrId ? formatTag(attrId, action) : null });
     setSaving(false);
     if (error) {
       notifyError("Erro ao salvar tarefa", error);
@@ -478,6 +489,7 @@ function TaskSheet({
           <Input label="Descrição (opcional)" placeholder="Detalhes..." value={description} onChangeText={setDescription} multiline />
           <Marginalia>Data *</Marginalia>
           <DateStrip value={date} onChange={setDate} daysBefore={1} daysAfter={60} />
+          <TimeField value={time} onChange={setTime} />
           <Marginalia>Prioridade</Marginalia>
           <Segmented kind="stamp" options={PRIORITIES} value={priority} onChange={setPriority} />
 
